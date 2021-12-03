@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "pkm"
+version = "0.1.0"
+description = "Package Manager For Python"
+authors = [ "bennyl"]
+license = "MIT License"
+readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+dataclasses = {version = "^0.8", python = "~3.6"}
+typing-extensions = "^3.10.0.2"
+
+
+
+[tool.relaxed-poetry.sub-projects]
+pkm-main="pkm-main"
+
+
+[build-system]
+requires = ["relaxed-poetry-core>=0.3.0"]
+build-backend = "poetry.core.masonry.api"
