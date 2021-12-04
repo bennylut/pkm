@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from dataclasses import dataclass, replace
 
 from pkm.utils.sequences import distinct, subiter
-from pkm_main.versions.version import Version
+from pkm.api.versions.version import Version
 
 
 class VersionSpecifier(ABC):
@@ -154,7 +154,7 @@ class VersionSpecifier(ABC):
 
     @classmethod
     def parse(cls, txt: str) -> "VersionSpecifier":
-        from pkm_main.versions.version_parser import version_parser
+        from pkm.api.versions.version_parser import version_parser
         return version_parser.parse_specifier(txt)
 
 

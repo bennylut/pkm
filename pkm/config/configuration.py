@@ -3,7 +3,7 @@ from copy import copy
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable
 
-from pkm_buildsys.config import toml
+from pkm.config import toml
 
 
 class Configuration(ABC):

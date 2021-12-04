@@ -5,7 +5,8 @@ from typing import TypeVar, Callable, Any
 _T = TypeVar("_T")
 
 
-class cached_property:  # noqa
+# noinspection PyPep8Naming
+class cached_property:
 
     def __init__(self, func: Callable[[Any], _T]):
         self._func = func

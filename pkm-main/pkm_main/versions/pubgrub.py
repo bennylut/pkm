@@ -5,8 +5,8 @@ from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Uni
 
 from dataclasses import dataclass
 from pkm.utils.sequences import argmax
-from pkm_main.versions.version import Version
-from pkm_main.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
+from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
     AnyVersion
 
 
