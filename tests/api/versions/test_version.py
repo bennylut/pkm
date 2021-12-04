@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pkm_main.versions.version import Version
+from pkm.api.versions.version import Version
 
 
 class TestVersion(TestCase):

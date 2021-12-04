@@ -3,8 +3,6 @@ from typing import Tuple, Optional
 from dataclasses import dataclass, replace
 from typing_extensions import Literal
 
-from pkm.utils.sequences import startswith
-
 
 @dataclass(frozen=True, repr=False)
 class Version:
@@ -122,5 +120,5 @@ class Version:
 
     @classmethod
     def parse(cls, txt: str) -> "Version":
-        from pkm_main.versions.version_parser import version_parser
+        from pkm.api.versions.version_parser import version_parser
         return version_parser.parse_version(txt)

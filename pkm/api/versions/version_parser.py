@@ -2,8 +2,8 @@ from typing import List
 
 from dataclasses import replace
 from pkm.utils.parsing import TextReader
-from pkm_main.versions.version import Version
-from pkm_main.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion, \
+from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion, \
     ExactVersionString
 
 

@@ -1,4 +1,21 @@
 [[package]]
+name = "colorama"
+version = "0.4.4"
+description = "Cross-platform colored terminal text."
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
+name = "commonmark"
+version = "0.9.1"
+description = "Python parser for the CommonMark Markdown spec"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = [ "flake8 (==3.7.8)",  "hypothesis (==3.55.3)"]
+
+[[package]]
 name = "dataclasses"
 version = "0.8"
 description = "A backport of the dataclasses module for Python 3.6"
@@ -22,19 +39,71 @@ version = "^0.8"
 markers = "python_version >= \"3.6\" and python_version < \"3.7\""
 
 [[package]]
+name = "pygments"
+version = "2.10.0"
+description = "Pygments is a syntax highlighting package written in Python."
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
+name = "rich"
+version = "10.15.2"
+description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+optional = false
+python-versions = ">=3.6.2,<4.0.0"
+
+[package.dependencies]
+colorama = ">=0.4.0,<0.5.0"
+commonmark = ">=0.9.0,<0.10.0"
+dataclasses = {version = ">=0.7,<0.9", markers = "python_version < \"3.7\""}
+pygments = ">=2.6.0,<3.0.0"
+typing-extensions = {version = ">=3.7.4,<5.0", markers = "python_version < \"3.8\""}
+
+[package.extras]
+jupyter = [ "ipywidgets (>=7.5.1,<8.0.0)"]
+
+[[package]]
 name = "typing-extensions"
 version = "4.0.0"
 description = "Backported and Experimental Type Hints for Python 3.6+"
 optional = false
 python-versions = ">=3.6"
 
+[[package]]
+name = "urllib3"
+version = "1.26.7"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+
+[package.extras]
+brotli = [ "brotlipy (>=0.6.0)"]
+secure = [ "pyOpenSSL (>=0.14)",  "cryptography (>=1.3.4)",  "idna (>=2.0.0)",  "certifi",  "ipaddress"]
+socks = [ "PySocks (>=1.5.6,!=1.5.7,<2.0)"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "c07f45416382e68afcd3c36c6aeffd30ac738059720b47edc062c760ee2496fb"
+content-hash = "00e248c44689aaeb9ebc8219d321dd97a26c274f80985d253833361925b307b9"
 
 [metadata.files]
 pkm = []
+
+[[metadata.files.colorama]]
+file = "colorama-0.4.4-py2.py3-none-any.whl"
+hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"
+
+[[metadata.files.colorama]]
+file = "colorama-0.4.4.tar.gz"
+hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"
+
+[[metadata.files.commonmark]]
+file = "commonmark-0.9.1-py2.py3-none-any.whl"
+hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"
+
+[[metadata.files.commonmark]]
+file = "commonmark-0.9.1.tar.gz"
+hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"
 
 [[metadata.files.dataclasses]]
 file = "dataclasses-0.8-py3-none-any.whl"
@@ -44,6 +113,22 @@ hash = "sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf"
 file = "dataclasses-0.8.tar.gz"
 hash = "sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97"
 
+[[metadata.files.pygments]]
+file = "Pygments-2.10.0-py3-none-any.whl"
+hash = "sha256:b8e67fe6af78f492b3c4b3e2970c0624cbf08beb1e493b2c99b9fa1b67a20380"
+
+[[metadata.files.pygments]]
+file = "Pygments-2.10.0.tar.gz"
+hash = "sha256:f398865f7eb6874156579fdf36bc840a03cab64d1cde9e93d68f46a425ec52c6"
+
+[[metadata.files.rich]]
+file = "rich-10.15.2-py3-none-any.whl"
+hash = "sha256:43b2c6ad51f46f6c94992aee546f1c177719f4e05aff8f5ea4d2efae3ebdac89"
+
+[[metadata.files.rich]]
+file = "rich-10.15.2.tar.gz"
+hash = "sha256:1dded089b79dd042b3ab5cd63439a338e16652001f0c16e73acdcf4997ad772d"
+
 [[metadata.files.typing-extensions]]
 file = "typing_extensions-4.0.0-py3-none-any.whl"
 hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"
@@ -51,3 +136,11 @@ hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"
 [[metadata.files.typing-extensions]]
 file = "typing_extensions-4.0.0.tar.gz"
 hash = "sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed"
+
+[[metadata.files.urllib3]]
+file = "urllib3-1.26.7-py2.py3-none-any.whl"
+hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"
+
+[[metadata.files.urllib3]]
+file = "urllib3-1.26.7.tar.gz"
+hash = "sha256:4987c65554f7a2dbf30c18fd48778ef124af6fab771a377103da0585e2336ece"
