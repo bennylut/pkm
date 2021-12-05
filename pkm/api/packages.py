@@ -1,13 +1,12 @@
-from abc import abstractmethod
-from typing import List, Optional
+from abc import abstractmethod, ABC
+from typing import List, Optional, Protocol
 
 from dataclasses import dataclass
 
 from pkm.api.versions.version import Version
 
-from pkm.api.environments import VirtualEnv
+from pkm.api.environments import Environment
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from typing_extensions import Protocol
 
 
 @dataclass
@@ -17,17 +16,27 @@ class Dependency(Protocol):
 
     repository: Optional[str] = None
 
-class Package(Protocol):
+
+@dataclass
+class PackageDescriptor:
+    name: str
+    version: Version
+
+
+class Package(ABC):
 
     @abstractmethod
+    @property
+    def descriptor(self) -> PackageDescriptor:
+        ...
+
     @property
     def name(self) -> str:
-        ...
+        return self.descriptor.name
 
-    @abstractmethod
     @property
     def version(self) -> Version:
-        ...
+        return self.descriptor.version
 
     @abstractmethod
     @property
@@ -35,9 +44,9 @@ class Package(Protocol):
         ...
 
     @abstractmethod
-    def is_compatible_with(self, env: VirtualEnv):
+    def is_compatible_with(self, env: Environment):
         ...
 
     @abstractmethod
-    def install_to(self, env: VirtualEnv):
+    def install_to(self, env: Environment):
         ...

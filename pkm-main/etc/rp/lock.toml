@@ -16,11 +16,12 @@ python-versions = "*"
 test = [ "flake8 (==3.7.8)",  "hypothesis (==3.55.3)"]
 
 [[package]]
-name = "dataclasses"
-version = "0.8"
-description = "A backport of the dataclasses module for Python 3.6"
+name = "packaging"
+version = "21.3"
+description = "Core utilities for Python packages"
 optional = false
-python-versions = ">=3.6, <3.7"
+python-versions = ">=3.6"
+dependencies = {pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"}
 
 [[package]]
 name = "pkm"
@@ -28,15 +29,9 @@ version = "0.1.0"
 description = "Package Manager For Python"
 optional = false
 python-versions = "^3.6"
+dependencies = {typing-extensions = "^3.10.0.2"}
 source = {type = "directory", url = "../../.."}
 develop = true
-
-[package.dependencies]
-typing-extensions = "^3.10.0.2"
-
-[package.dependencies.dataclasses]
-version = "^0.8"
-markers = "python_version >= \"3.6\" and python_version < \"3.7\""
 
 [[package]]
 name = "pygments"
@@ -46,18 +41,22 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "pyparsing"
+version = "3.0.6"
+description = "Python parsing module"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+diagrams = [ "jinja2",  "railroad-diagrams"]
+
+[[package]]
 name = "rich"
 version = "10.15.2"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.6.2,<4.0.0"
-
-[package.dependencies]
-colorama = ">=0.4.0,<0.5.0"
-commonmark = ">=0.9.0,<0.10.0"
-dataclasses = {version = ">=0.7,<0.9", markers = "python_version < \"3.7\""}
-pygments = ">=2.6.0,<3.0.0"
-typing-extensions = {version = ">=3.7.4,<5.0", markers = "python_version < \"3.8\""}
+dependencies = {colorama = ">=0.4.0,<0.5.0", commonmark = ">=0.9.0,<0.10.0", pygments = ">=2.6.0,<3.0.0"}
 
 [package.extras]
 jupyter = [ "ipywidgets (>=7.5.1,<8.0.0)"]
@@ -83,8 +82,8 @@ socks = [ "PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.6"
-content-hash = "00e248c44689aaeb9ebc8219d321dd97a26c274f80985d253833361925b307b9"
+python-versions = "^3.8"
+content-hash = "294584d262bf8d8bb30748ce190226b8812ca6b92635616de66617aaa0a632d1"
 
 [metadata.files]
 pkm = []
@@ -105,13 +104,13 @@ hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"
 file = "commonmark-0.9.1.tar.gz"
 hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"
 
-[[metadata.files.dataclasses]]
-file = "dataclasses-0.8-py3-none-any.whl"
-hash = "sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf"
+[[metadata.files.packaging]]
+file = "packaging-21.3-py3-none-any.whl"
+hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"
 
-[[metadata.files.dataclasses]]
-file = "dataclasses-0.8.tar.gz"
-hash = "sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97"
+[[metadata.files.packaging]]
+file = "packaging-21.3.tar.gz"
+hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"
 
 [[metadata.files.pygments]]
 file = "Pygments-2.10.0-py3-none-any.whl"
@@ -120,6 +119,14 @@ hash = "sha256:b8e67fe6af78f492b3c4b3e2970c0624cbf08beb1e493b2c99b9fa1b67a20380"
 [[metadata.files.pygments]]
 file = "Pygments-2.10.0.tar.gz"
 hash = "sha256:f398865f7eb6874156579fdf36bc840a03cab64d1cde9e93d68f46a425ec52c6"
+
+[[metadata.files.pyparsing]]
+file = "pyparsing-3.0.6-py3-none-any.whl"
+hash = "sha256:04ff808a5b90911829c55c4e26f75fa5ca8a2f5f36aa3a51f68e27033341d3e4"
+
+[[metadata.files.pyparsing]]
+file = "pyparsing-3.0.6.tar.gz"
+hash = "sha256:d9bdec0013ef1eb5a84ab39a3b3868911598afa494f5faa038647101504e2b81"
 
 [[metadata.files.rich]]
 file = "rich-10.15.2-py3-none-any.whl"

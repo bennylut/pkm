@@ -1,0 +1,32 @@
+from pathlib import Path
+from typing import Set
+
+from pkm.api.environments import Environment
+from pkm.utils.properties import cached_property
+
+from pkm_main.environments.environment_introspection import EnvironmentIntrospection
+
+
+class VirtualEnvironment(Environment):
+    def __init__(self, path: Path):
+        self._path = path
+
+    @cached_property
+    def _introspection(self) -> EnvironmentIntrospection:
+        return EnvironmentIntrospection.remote(self.interpreter_path)
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+    @cached_property
+    def compatability_tags(self) -> Set[str]:
+        return set(self._introspection.compatibility_tags)
+
+    @cached_property
+    def interpreter_path(self) -> Path:
+        interpreter_paths = list(self.path.rglob('**/bin/python'))
+        if len(interpreter_paths) != 1:
+            raise ValueError(f'could not decide on interpreter for environment {self.path}')
+
+        return interpreter_paths[0]
