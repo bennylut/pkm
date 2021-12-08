@@ -1,5 +1,4 @@
-from typing import TypeVar, Any, Callable, Iterable, Sequence, Optional
-from typing_extensions import Protocol
+from typing import TypeVar, Any, Callable, Iterable, Sequence, Optional, Protocol
 
 _T = TypeVar("_T")
 

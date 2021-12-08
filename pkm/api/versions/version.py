@@ -1,7 +1,6 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Literal
 
 from dataclasses import dataclass, replace
-from typing_extensions import Literal
 
 
 @dataclass(frozen=True, repr=False)
@@ -12,9 +11,6 @@ class Version:
     post_release: Optional[int] = None
     dev_release: Optional[int] = None
     local_label: Optional[str] = None
-
-    # def is_pre_release(self) -> bool:
-    #     return self.pre_release is not None
 
     def is_pre_or_dev_release(self) -> bool:
         return self.pre_release is not None or self.dev_release is not None
@@ -120,5 +116,5 @@ class Version:
 
     @classmethod
     def parse(cls, txt: str) -> "Version":
-        from pkm.api.versions.version_parser import version_parser
-        return version_parser.parse_version(txt)
+        from pkm.api.versions.version_parser import parse_version
+        return parse_version(txt)

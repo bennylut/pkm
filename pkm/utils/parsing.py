@@ -1,7 +1,11 @@
-from typing import Optional, NoReturn, Callable
+from typing import Optional, NoReturn, Callable, List, Type, TypeVar, Sequence, Union
+
+_URL_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%")
+_P = TypeVar("_P", bound="SimpleParser")
+_T = TypeVar("_T")
 
 
-class TextReader:
+class SimpleParser:
     def __init__(self, text: str, file_name: Optional[str] = None):
         self.text = text
         self.file_name = file_name
@@ -14,6 +18,9 @@ class TextReader:
     def is_not_empty(self) -> bool:
         return self.position < len(self.text)
 
+    def is_empty(self) -> bool:
+        return self.position == len(self.text)
+
     def read_digits(self) -> str:
         position = self.position
         self.until(lambda i, t: not t[i].isdigit())
@@ -21,12 +28,56 @@ class TextReader:
             self.raise_err('expecting digits')
         return self.text[position:self.position]
 
-    def match(self, substr: str) -> bool:
-        if self.peek(len(substr)) == substr:
-            self.next(len(substr))
-            return True
+    def subparser(self, pareser_t: Type[_P]) -> _P:
+        main_parser = self
+        p = self.position
 
-        return False
+        class SubParser(pareser_t):
+            @property
+            def position(self) -> int:
+                return main_parser.position
+
+            @position.setter
+            def position(self, v: int):
+                main_parser.position = v
+
+        result = SubParser(text=self.text)
+        self.position = p
+        return result
+
+    # def subparse(self, subparser_t: Type[_P], cmd: Callable[[_P], _T]) -> _T:
+    #     subparser: SimpleParser = subparser_t(text=self.text)
+    #     subparser.position = self.position
+    #
+    #     result = cmd(subparser)
+    #     self.position = subparser.position
+    #     return result
+
+    def read_url(self, supported_schemas: Optional[List[str]] = None) -> str:
+        p = self.position
+
+        supported_schemas = supported_schemas or ['http', 'https']
+        if not self.match_any(*supported_schemas):
+            self.raise_err('expecting url')
+
+        self.match_or_err('://', 'malformed url')
+        self.until(lambda i, t: t[i] not in _URL_CHARS)
+
+        return self.text[p:self.position]
+
+    def match(self, *substrs: str) -> Optional[str]:
+        p = self.position
+        for i, substr in enumerate(substrs):
+            if i != 0:
+                self.read_ws(False)
+
+            if self.peek(len(substr)) != substr:
+                self.position = p
+                return None
+
+            self.position += len(substr)
+
+        return self.text[p:self.position]
 
     def peek_prev(self, amount: int = 1) -> str:
         p = self.position

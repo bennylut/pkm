@@ -154,8 +154,8 @@ class VersionSpecifier(ABC):
 
     @classmethod
     def parse(cls, txt: str) -> "VersionSpecifier":
-        from pkm.api.versions.version_parser import version_parser
-        return version_parser.parse_specifier(txt)
+        from pkm.api.versions.version_parser import parse_specifier
+        return parse_specifier(txt)
 
 
 @dataclass(frozen=True)

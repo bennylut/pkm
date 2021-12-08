@@ -2,6 +2,7 @@ from abc import abstractmethod, ABC
 from io import UnsupportedOperation
 from typing import List, Dict
 
+from pkm.api.dependencies.dependency import RepositoryDependency
 from pkm.api.versions.version_specifiers import AnyVersion
 
 from pkm.api.packages import Dependency, Package
@@ -25,7 +26,7 @@ class Repository(ABC):
         ...
 
     def list(self, package_name: str) -> List[Package]:
-        dependency = Dependency(package_name, AnyVersion)
+        dependency = RepositoryDependency(package_name, AnyVersion)
         if self.accepts(dependency):
             return self.match(dependency)
         raise UnsupportedOperation(f"Repository ({self.name}) does not support listing")

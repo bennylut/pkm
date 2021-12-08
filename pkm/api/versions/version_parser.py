@@ -1,30 +1,26 @@
 from typing import List
 
 from dataclasses import replace
-from pkm.utils.parsing import TextReader
+from pkm.utils.parsing import SimpleParser
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion, \
     ExactVersionString
 
 
-class _VersionParser:
-    def parse_version(self, version_str: str) -> Version:
-        return _Reader(version_str.lower()).read_version()
-
-    def parse_specifier(self, specifier_str: str) -> VersionSpecifier:
-        return _Reader(specifier_str.lower()).read_specifier()
+def parse_version(version_str: str) -> Version:
+    return VersionParser(version_str.lower()).read_version()
 
 
-version_parser = _VersionParser()
+def parse_specifier(specifier_str: str) -> VersionSpecifier:
+    return VersionParser(specifier_str.lower()).read_specifier()
+
 
 _PRE_RELEASE_TYPE_NORMALIZER = {
     'a': 'a', 'b': 'b', 'rc': 'rc', 'c': 'rc', 'alpha': 'a', 'beta': 'b', 'preview': 'rc'
 }
 
 
-class _Reader(TextReader):
-    def __init__(self, txt: str):
-        super().__init__(txt)
+class VersionParser(SimpleParser):
 
     def read_version(self) -> Version:
         self.read_ws()
@@ -118,7 +114,7 @@ class _Reader(TextReader):
                             pre_release=None, post_release=None, dev_release=None, local_label=None)),
                 includes_max=False)
 
-        comparison = self.match_any('>=', '>', '<', '<=')
+        comparison = self.match_any('>=', '>', '<=', '<')
         if comparison:
             self.read_ws()
             version = SpecificVersion(self.read_version())
@@ -134,11 +130,17 @@ class _Reader(TextReader):
         self.raise_err('unknown operator')
 
     def read_specifier(self):
+        self.read_ws()
+        paren = self.match('(')
+
         specifier = AnyVersion
         while self.is_not_empty():
             specifier = specifier.intersect(self._read_single_specifier())
             self.read_ws()
             if not self.match(',') and self.is_not_empty():
+                if paren and self.match(')'):
+                    break
+
                 self.raise_err('could not parse token')
 
         return specifier
