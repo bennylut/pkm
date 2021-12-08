@@ -25,9 +25,8 @@ class TestVersionSpecifiers(TestCase):
         assert VersionSpecifier.parse('<1.7a5').allows_version(Version.parse('1.7a'))
 
         # regression
-        assert VersionSpecifier.parse("<1").union(VersionSpecifier.parse(">=2")).allows_all(VersionSpecifier.parse("==2.0.0"))
-
-
+        assert VersionSpecifier.parse("<1").union(VersionSpecifier.parse(">=2")).allows_all(
+            VersionSpecifier.parse("==2.0.0"))
 
     def test_parsing(self):
         assert_version(VersionSpecifier.parse("== 1.1"), "==1.1")
@@ -43,6 +42,7 @@ class TestVersionSpecifiers(TestCase):
         assert_version(VersionSpecifier.parse(">1,<2"), '>1, <2')
         assert_version(VersionSpecifier.parse(">1,<2,==5"), '<none>')
         assert_version(VersionSpecifier.parse(">1,<2,*"), '>1, <2')
+        assert_version(VersionSpecifier.parse("(>=1.17.3)"), '>=1.17.3')
 
     def test_version_set_operations(self):
         v1 = SpecificVersion(Version((1, 2, 3)))

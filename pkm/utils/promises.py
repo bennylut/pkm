@@ -18,7 +18,7 @@ class Promise(ABC, Generic[_T]):
         ...
 
     @abstractmethod
-    def result(self, await: bool = True) -> _T:
+    def result(self, wait: bool = True) -> _T:
         ...
 
     @abstractmethod
@@ -120,7 +120,7 @@ class _SimplePromise(Promise[_T]):
         except Exception as e:
             return Promise.create_completed(err=e)
 
-    def result(self, await: bool = True) -> _T:
+    def result(self, wait: bool = True) -> _T:
         while True:
             with self._wait_lock:
                 if self._done:
@@ -128,7 +128,7 @@ class _SimplePromise(Promise[_T]):
                         raise self._err
                     return self._result
 
-                if not await:
+                if not wait:
                     raise ValueError("promise not completed yet")
 
                 self._wait_lock.wait()

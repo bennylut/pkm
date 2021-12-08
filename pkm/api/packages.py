@@ -1,20 +1,10 @@
 from abc import abstractmethod, ABC
-from typing import List, Optional, Protocol
-
 from dataclasses import dataclass
+from typing import List, Optional
 
-from pkm.api.versions.version import Version
-
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments import Environment
-from pkm.api.versions.version_specifiers import VersionSpecifier
-
-
-@dataclass
-class Dependency(Protocol):
-    package_name: str
-    version_spec: VersionSpecifier
-
-    repository: Optional[str] = None
+from pkm.api.versions.version import Version
 
 
 @dataclass
@@ -25,8 +15,8 @@ class PackageDescriptor:
 
 class Package(ABC):
 
-    @abstractmethod
     @property
+    @abstractmethod
     def descriptor(self) -> PackageDescriptor:
         ...
 
@@ -38,9 +28,9 @@ class Package(ABC):
     def version(self) -> Version:
         return self.descriptor.version
 
+
     @abstractmethod
-    @property
-    def dependencies(self) -> List[Dependency]:
+    def dependencies(self, environment: Environment, extras: Optional[List[str]] = None) -> List[Dependency]:
         ...
 
     @abstractmethod

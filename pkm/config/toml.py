@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, Mapping, List, Tuple, Union, NoReturn, M
 
 from dataclasses import dataclass
 
-from pkm.utils.parsing import TextReader
+from pkm.utils.parsing import SimpleParser
 
 _KEY_RX = re.compile(r'[a-zA-Z0-9\-_]+')
 KEY_T = Tuple
@@ -378,7 +378,7 @@ class _Writer:
         return f"{vstyle.prolog}{items}{vstyle.epilog}"
 
 
-class _Reader(TextReader):
+class _Reader(SimpleParser):
     def __init__(self, text: str, file_name: Optional[str]):
         super().__init__(text, file_name)
         self.style = _StyleSheet()

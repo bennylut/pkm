@@ -24,6 +24,16 @@ python-versions = ">=3.6"
 dependencies = {pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"}
 
 [[package]]
+name = "pkginfo"
+version = "1.8.2"
+description = "Query metadatdata from sdists / bdists / installed packages."
+optional = false
+python-versions = "*"
+
+[package.extras]
+testing = [ "coverage",  "nose"]
+
+[[package]]
 name = "pkm"
 version = "0.1.0"
 description = "Package Manager For Python"
@@ -83,7 +93,7 @@ socks = [ "PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "294584d262bf8d8bb30748ce190226b8812ca6b92635616de66617aaa0a632d1"
+content-hash = "77cfc2f2d44b871191550c2b45b5b7a40a3ff3547fb629e2644388c3a3c482d2"
 
 [metadata.files]
 pkm = []
@@ -111,6 +121,14 @@ hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"
 [[metadata.files.packaging]]
 file = "packaging-21.3.tar.gz"
 hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"
+
+[[metadata.files.pkginfo]]
+file = "pkginfo-1.8.2-py2.py3-none-any.whl"
+hash = "sha256:c24c487c6a7f72c66e816ab1796b96ac6c3d14d49338293d2141664330b55ffc"
+
+[[metadata.files.pkginfo]]
+file = "pkginfo-1.8.2.tar.gz"
+hash = "sha256:542e0d0b6750e2e21c20179803e40ab50598d8066d51097a0e382cba9eb02bff"
 
 [[metadata.files.pygments]]
 file = "Pygments-2.10.0-py3-none-any.whl"

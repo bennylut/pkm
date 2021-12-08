@@ -1,25 +1,22 @@
 import hashlib
 import json
 import locale
-import os
 import shutil
 import urllib.parse
-from concurrent.futures import ThreadPoolExecutor, Future
+from dataclasses import dataclass
 from datetime import datetime
-from io import IOBase
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, Optional, Union, Tuple
+from typing import Any, Dict, Optional
 from urllib.parse import SplitResult as ParsedUrl
 
 import urllib3
-from dataclasses import dataclass
 from pkm.config.configuration import TomlFileConfiguration
-from pkm.utils.promises import Promise
+from pkm.logging.console import console
+from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import cached_property, clear_cached_properties
 from urllib3 import HTTPResponse, Retry
 
-from pkm.logging.console import console
 from pkm_main.utils.http.cache_directive import TF_HTTP, CacheDirective
 
 locale.setlocale(locale.LC_ALL, 'en_US.utf8')
@@ -55,7 +52,8 @@ class TSPoolManager(urllib3.PoolManager):
 _CONNECTIONS = TSPoolManager(
     25, retries=Retry(connect=5, read=2, redirect=5))  # probably should come from configuration
 
-_THREADS = ThreadPoolExecutor(os.cpu_count() * 2)
+
+# _THREADS = ThreadPoolExecutor(os.cpu_count() * 2)
 
 
 @dataclass
@@ -161,33 +159,33 @@ class HttpClient:
 
         return FetchedResource(fetch_file, data_file, self._cache_dir)
 
-    def post(self, url: str, body: Union[str, bytes, IOBase], *,
-             headers: Optional[Dict[str, str]] = None) -> Future:
+    # def post(self, url: str, body: Union[str, bytes, IOBase], *,
+    #          headers: Optional[Dict[str, str]] = None) -> Future:
+    #
+    #     def _post():
+    #
+    #         response: Optional[HTTPResponse] = None
+    #
+    #         try:
+    #             nonlocal headers
+    #             headers = headers or {}
+    #             self._add_standard_headers(headers)
+    #             response = _CONNECTIONS.request(
+    #                 "POST", url, headers=headers, body=body)
+    #
+    #             if response.status == 200:
+    #                 return response.data
+    #             else:
+    #                 raise HttpException(f"server responded with {response.status} ({response.msg}) status", response)
+    #         except Exception as e:
+    #             if isinstance(e, HttpException):
+    #                 raise
+    #             else:
+    #                 raise HttpException(str(e), response) from e
+    #
+    #     return _THREADS.submit(_post)
 
-        def _post():
-
-            response: Optional[HTTPResponse] = None
-
-            try:
-                nonlocal headers
-                headers = headers or {}
-                self._add_standard_headers(headers)
-                response = _CONNECTIONS.request(
-                    "POST", url, headers=headers, body=body)
-
-                if response.status == 200:
-                    return response.data
-                else:
-                    raise HttpException(f"server responded with {response.status} ({response.msg}) status", response)
-            except Exception as e:
-                if isinstance(e, HttpException):
-                    raise
-                else:
-                    raise HttpException(str(e), response) from e
-
-        return _THREADS.submit(_post)
-
-    def get(self, url: str, cache: Optional[CacheDirective] = None) -> Promise[Optional[FetchedResource]]:
+    def get(self, url: str, cache: Optional[CacheDirective] = None) -> Optional[FetchedResource]:
 
         if not cache:
             cache = CacheDirective.allways()
@@ -199,7 +197,7 @@ class HttpClient:
             # we can fix it by adding a ref-counting delete operation for the FetchedResource for example
             promise = self._fetch_inprogress.get(url)
             if promise:
-                return promise
+                return promise.result()
 
             def _fetch() -> Optional[FetchedResource]:
                 headers = {}
@@ -222,8 +220,6 @@ class HttpClient:
 
                         if response.status == 200:
                             cache_files.save(response)
-                        elif response.status == 404:
-                            return None
                         elif response.status != 304:
                             raise HttpException(
                                 f"request to {url} ended with unexpected status code:"
@@ -243,8 +239,15 @@ class HttpClient:
 
                 return cache_files
 
-            promise = self._fetch_inprogress[url] = Promise.execute(_THREADS, _fetch)
-            return promise
+            deffered: Deferred[Optional[FetchedResource]] = Deferred()
+            promise = self._fetch_inprogress[url] = deffered.promise()
+
+        try:
+            deffered.complete(_fetch())
+        except Exception as e:
+            deffered.fail(e)
+
+        return promise.result()
 
     def clear_cache(self):
         shutil.rmtree(self._cache_dir)
