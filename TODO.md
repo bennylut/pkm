@@ -1,26 +1,29 @@
 ## RUNNING: 
- 
 
 ## DONE IN THIS VERSION
-- remove threading from httpclient - it should be made externally
-- environment marker parsing and handling
-- environment introspection
-- pep508 dependency parsing 
-- partial implementation of pypi with version listing
- 
+- basic project definition
+- lock file 
+- (extended) dependency serialization
+
 ## BACKLOG:
  
-- python installation repository (no sudo! - download for os and install in data files - if possible)
-
 - generating a versioning problem from repositories, requirements, installation and lock
-
+- populating the package installation plan using the versioning problem solution
+- python installation repository (no sudo! - download for os and install in data files - if possible)
+- environment zoo (pkm install -g, -ga, -ge env)
 - create project that reference venv(s?), pyproject & other configuration files, source roots
 - design pkm toml namespace
 - virtual environment - create
-- lock file
-- build project 
+- git and url dependencies support 
+- pypi package installation support  
+- create buildsys (with buildable project)
 - publish project
-- install dependency
-- remove dependency
-- create project
-- move to src layout??
+- project operations: install dependency, remove dependency, create project, build project 
+- move to src layout?
+- manage multiple envs per project (lock should have a section per env)
+- cli
+- make-like task system
+- source definition and configuration (can it be translated to pep508 dependency?)
+- properties and build profiles
+- documentation site
+- entry_points

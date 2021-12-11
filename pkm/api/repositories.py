@@ -2,7 +2,6 @@ from abc import abstractmethod, ABC
 from io import UnsupportedOperation
 from typing import List, Dict
 
-from pkm.api.dependencies.dependency import RepositoryDependency
 from pkm.api.versions.version_specifiers import AnyVersion
 
 from pkm.api.packages import Dependency, Package
@@ -19,14 +18,27 @@ class Repository(ABC):
 
     @abstractmethod
     def accepts(self, dependency: Dependency) -> bool:
+        """
+        :param dependency: the dependency to check 
+        :return: true if this repository knows how to handle the given [dependency]. 
+                 e.g., pypi does not know how to handle local file dependency
+        """
         ...
 
     @abstractmethod
     def match(self, dependency: Dependency) -> List[Package]:
+        """
+        :param dependency: the dependency to match 
+        :return: list of all the packages in this repository that match the given [dependency]
+        """
         ...
 
     def list(self, package_name: str) -> List[Package]:
-        dependency = RepositoryDependency(package_name, AnyVersion)
+        """
+        :param package_name: the package to match 
+        :return: list of all the packages that match the given [package_name]
+        """
+        dependency = Dependency(package_name, AnyVersion)
         if self.accepts(dependency):
             return self.match(dependency)
         raise UnsupportedOperation(f"Repository ({self.name}) does not support listing")
@@ -40,22 +52,9 @@ class CompoundRepository(Repository):
         self._repositories_by_name: Dict[str, Repository] = {r.name: r for r in repositories}
 
     def accepts(self, dependency: Dependency) -> bool:
-        if dependency.repository is not None:
-            repo = self._repositories_by_name.get(dependency.repository)
-            if repo is None:
-                return False
-            return repo.accepts(dependency)
-
         return any(r.accepts(dependency) for r in self._repositories)
 
     def match(self, dependency: Dependency) -> List[Package]:
-        if dependency.repository is not None:
-            repo = self._repositories_by_name.get(dependency.repository)
-            if repo is None:
-                raise KeyError(f"undefined repository required: {dependency.repository}")
-
-            return repo.match(dependency)
-
         for repo in self._repositories:
             if repo.accepts(dependency):
                 return repo.match(dependency)

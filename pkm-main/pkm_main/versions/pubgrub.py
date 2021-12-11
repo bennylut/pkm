@@ -11,9 +11,9 @@ from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, 
 
 
 class UnsolvableProblemException(Exception):
-    def __init__(self, incompatability: "Incompatability"):
-        super().__init__(f'Dependency Versions Resolution Failed\n{incompatability.report()}')
-        self.incompatability = incompatability
+    def __init__(self, incompatibility: "Incompatibility"):
+        super().__init__(f'Dependency Versions Resolution Failed\n{incompatibility.report()}')
+        self.incompatibility = incompatibility
 
 
 @dataclass(frozen=True)
@@ -67,7 +67,7 @@ class Assignment:
     term: Term
     decision_level: int
     order_index: int
-    cause: Optional["Incompatability"]
+    cause: Optional["Incompatibility"]
     accumulated: VersionSpecifier
 
     def is_decision(self) -> bool:
@@ -132,7 +132,7 @@ class PartialSolution:
     def requires(self, package: str) -> bool:
         return package in self._required_packages
 
-    def make_assignment(self, assignment_value: Term, cause: Optional["Incompatability"] = None):
+    def make_assignment(self, assignment_value: Term, cause: Optional["Incompatibility"] = None):
         package_assignments = self.assignments_by_package[assignment_value.package]
 
         prev_ass = package_assignments[-1].term if package_assignments \
@@ -148,7 +148,7 @@ class PartialSolution:
         return Assignment(assignment_value, dlevel, len(self._assignments_by_order),
                           cause, prev_ass.constraint.intersect(assignment_value.constraint))
 
-    def assign(self, assignment_value: Union[Term, Assignment], cause: Optional["Incompatability"] = None):
+    def assign(self, assignment_value: Union[Term, Assignment], cause: Optional["Incompatibility"] = None):
         assignment = self.make_assignment(assignment_value, cause) \
             if not isinstance(assignment_value, Assignment) else assignment_value
 
@@ -171,7 +171,7 @@ class PartialSolution:
 
 @dataclass
 class IncompatabilitySatisfaction:
-    incompatability: "Incompatability"
+    incompatability: "Incompatibility"
     satisfier: Optional[Assignment] = None
     prev_satisfier: Optional[Assignment] = None
     undecided_term: Optional[Term] = None
@@ -184,9 +184,9 @@ class IncompatabilitySatisfaction:
 
 
 @dataclass
-class Incompatability:
+class Incompatibility:
     terms: Tuple[Term, ...]
-    interlal_cause: Optional[Tuple["Incompatability", "Incompatability"]]
+    interlal_cause: Optional[Tuple["Incompatibility", "Incompatibility"]]
     external_cause: Optional[str]
     added: bool = False
 
@@ -258,7 +258,7 @@ class Incompatability:
         return not self.terms
 
     def __eq__(self, o: object) -> bool:
-        return isinstance(o, Incompatability) and o.terms == self.terms
+        return isinstance(o, Incompatibility) and o.terms == self.terms
 
     def __hash__(self):
         return hash(self.terms)
@@ -291,7 +291,7 @@ class Incompatability:
         def write(key: Any, text: str):
             report[key] = len(report), text
 
-        def generate(incompatability: Incompatability):
+        def generate(incompatability: Incompatibility):
             if incompatability.external_cause:
                 write(incompatability, incompatability.external_cause)
                 return
@@ -347,8 +347,8 @@ class Incompatability:
 
     @classmethod
     def create(cls, terms: Iterable[Term],
-               internal_cause: Optional[Tuple["Incompatability", "Incompatability"]] = None,
-               external_cause: Optional[str] = None) -> "Incompatability":
+               internal_cause: Optional[Tuple["Incompatibility", "Incompatibility"]] = None,
+               external_cause: Optional[str] = None) -> "Incompatibility":
 
         grouped_terms: Dict[str, List[Term]] = defaultdict(list)
         for term in terms:
@@ -388,8 +388,8 @@ class PackageVersion:
     def version(self) -> Version:
         return cast(SpecificVersion, self.term.constraint).version
 
-    def compute_incompatabilities(self) -> List[Incompatability]:
-        result: List[Incompatability] = []
+    def compute_incompatibilities(self) -> List[Incompatibility]:
+        result: List[Incompatibility] = []
         for dependency in self.dependencies.values():
             last_requiring = self
 
@@ -412,7 +412,7 @@ class PackageVersion:
                     continue
 
             nt = Term(self.term.package, self.generalized_constraint)
-            dependency.incompatability = Incompatability.create(
+            dependency.incompatability = Incompatibility.create(
                 [nt, dependency.term.negate()], None, f'{nt} depends on {dependency.term}')
             result.append(dependency.incompatability)
 
@@ -425,7 +425,7 @@ class PackageVersion:
 @dataclass
 class PackageDependency:
     term: Term
-    incompatability: Optional[Incompatability] = None
+    incompatability: Optional[Incompatibility] = None
 
 
 class Problem(ABC):
@@ -448,9 +448,9 @@ class Solver:
         self._package_versions: Dict[str, List[PackageVersion]] = {}
 
         # incompatabilities by package name
-        self._incompatabilities: DefaultDict[str, List[Incompatability]] = defaultdict(list)
+        self._incompatabilities: DefaultDict[str, List[Incompatibility]] = defaultdict(list)
 
-    def _add_incompatability(self, incompatability: Incompatability):
+    def _add_incompatability(self, incompatability: Incompatibility):
         if incompatability.added:
             return
         incompatability.added = True
@@ -465,7 +465,7 @@ class Solver:
     def solve(self) -> Dict[str, Version]:
         root_term = self.package_versions(self._root_package)[0].term
         self._add_incompatability(
-            Incompatability.create([root_term.negate()], external_cause='Root Project'))
+            Incompatibility.create([root_term.negate()], external_cause='Root Project'))
 
         self._solution.require([root_term.package])
 
@@ -509,12 +509,12 @@ class Solver:
                     self._solution.assign(term.negate(), incompatability)
                     changed.add(term.package)
 
-    def _is_tautology(self, incompatability: Incompatability) -> bool:
+    def _is_tautology(self, incompatability: Incompatibility) -> bool:
         return not incompatability.terms or (
                 len(incompatability.terms) == 1 and incompatability.terms[0].package == self._root_package)
 
     def _resolve_conflict(
-            self, incompatability: Incompatability, satisfaction: IncompatabilitySatisfaction) -> Incompatability:
+            self, incompatability: Incompatibility, satisfaction: IncompatabilitySatisfaction) -> Incompatibility:
 
         print("#### conflict resolution ####")
 
@@ -549,7 +549,7 @@ class Solver:
                          satisfier.term.optional and term.optional)
                 )
 
-            incompatability = Incompatability.create(
+            incompatability = Incompatibility.create(
                 prior_cause_terms, internal_cause=(satisfier.cause, incompatability))
 
             print(f"root cause: {incompatability}")
@@ -607,7 +607,7 @@ class Solver:
             acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
             print(f"could not find version that match {acc_assignment}")
             self._add_incompatability(
-                Incompatability.create([Term(package, acc_assignment)],
+                Incompatibility.create([Term(package, acc_assignment)],
                                        external_cause=f'No Versions matching {acc_assignment}'))
             return package
 
@@ -637,8 +637,8 @@ class Solver:
 
         return package
 
-    def _add_dependency_incompatabilities(self, version: PackageVersion) -> List[Incompatability]:
-        incompatabilities = version.compute_incompatabilities()
+    def _add_dependency_incompatabilities(self, version: PackageVersion) -> List[Incompatibility]:
+        incompatabilities = version.compute_incompatibilities()
         for incompatability in incompatabilities:
             self._add_incompatability(incompatability)
 
