@@ -22,7 +22,7 @@ class PyPiRepository(Repository):
         self._http = http
 
     def accepts(self, dependency: Dependency) -> bool:
-        return True
+        return type(dependency) == Dependency  # accept only simple dependency and no other subtypes
 
     def match(self, dependency: Dependency) -> List[Package]:
         json: Dict[str, Any] = self._http \
