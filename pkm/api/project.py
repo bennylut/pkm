@@ -3,6 +3,7 @@ from typing import List, Optional, Literal, Sequence
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages import Package
+from pkm.api.repositories import Repository
 
 
 class Project(Package, ABC):
@@ -27,3 +28,33 @@ class Project(Package, ABC):
         build distribution files from this project
         :param formats: the required distribution formats to build
         """
+
+    @property
+    @abstractmethod
+    def repository(self) -> "ProjectRepository":
+        """
+        :return: the repository defined by this project
+        """
+
+
+class ProjectRepository(Repository, ABC):
+
+    def __init__(self, project: Project):
+        super().__init__(f"{project.name}'s repository")
+        self.project = project
+
+    @abstractmethod
+    def _match_non_project(self, dependency: Dependency) -> List[Package]:
+        """
+        this method is called by the actual [match] method of this repository for any packages that are not its project 
+        
+        :param dependency: the dependency to match 
+        :return: list of all the packages in this repository that match the given [dependency]
+        """
+        ...
+
+    def match(self, dependency: Dependency) -> List[Package]:
+        if dependency.package_name == self.project.name:
+            return [self.project]
+        
+        return self._match_non_project(dependency)

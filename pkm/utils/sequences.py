@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import TypeVar, Any, Callable, Iterable, Sequence, Optional, Protocol, Dict, List, Tuple
 
 _T = TypeVar("_T")

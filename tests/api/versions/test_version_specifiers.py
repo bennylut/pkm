@@ -45,25 +45,25 @@ class TestVersionSpecifiers(TestCase):
         assert_version(VersionSpecifier.parse("(>=1.17.3)"), '>=1.17.3')
 
     def test_version_set_operations(self):
-        v1 = SpecificVersion(Version((1, 2, 3)))
+        v1 = SpecificVersion(StandardVersion((1, 2, 3)))
         assert_version(v1.inverse(), '!=1.2.3')
         assert_version(v1.union(v1), '==1.2.3')
         assert_version(v1.difference(v1), '<none>')
 
-        v2 = SpecificVersion(Version((1, 2, 4)))
+        v2 = SpecificVersion(StandardVersion((1, 2, 4)))
         assert_version(v1.union(v2), '==1.2.3, ==1.2.4')
         assert_version(v1.intersect(v2), '<none>')
         assert_version(v1.union(v2).intersect(v1), '==1.2.3')
         assert_version(v1.difference(v2), '==1.2.3')
 
     def test_range_set_operations(self):
-        v1 = SpecificVersion(Version((1, 2, 3)))
+        v1 = SpecificVersion(StandardVersion((1, 2, 3)))
         r1 = VersionRange(min=v1)
 
         assert_version(r1, '>1.2.3')
         assert_version(r1.inverse(), '<=1.2.3')
 
-        v2 = SpecificVersion(Version((2, 0, 0)))
+        v2 = SpecificVersion(StandardVersion((2, 0, 0)))
         assert_version(r1.union(v2), '>1.2.3')
         assert_version(v2.union(r1), '>1.2.3')
 
@@ -77,13 +77,13 @@ class TestVersionSpecifiers(TestCase):
 
     def test_star_operations(self):
         all = AnyVersion
-        v1 = SpecificVersion(Version((1, 0, 0)))
+        v1 = SpecificVersion(StandardVersion((1, 0, 0)))
 
         assert_version(all.difference(v1), '!=1.0.0')
         assert_version(all.intersect(v1), '==1.0.0')
         assert_version(all.union(v1), '*')
 
-        r1 = VersionRange(v1, SpecificVersion(Version((2, 0, 0))))
+        r1 = VersionRange(v1, SpecificVersion(StandardVersion((2, 0, 0))))
         assert_version(all.difference(r1), '<=1.0.0, >=2.0.0')
 
 

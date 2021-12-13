@@ -1,10 +1,61 @@
+from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Literal
 
 from dataclasses import dataclass, replace
 
 
+class Version(ABC):
+    @abstractmethod
+    def is_pre_or_dev_release(self) -> bool:
+        ...
+
+    @abstractmethod
+    def is_post_release(self) -> bool:
+        ...
+
+    @abstractmethod
+    def is_local(self) -> bool:
+        ...
+
+    @abstractmethod
+    def __lt__(self, other: "Version") -> bool:
+        ...
+
+    @abstractmethod
+    def __eq__(self, other) -> bool:
+        ...
+
+    @classmethod
+    def parse(cls, txt: str) -> "Version":
+        from pkm.api.versions.version_parser import parse_version
+        return parse_version(txt)
+
+
+@dataclass(frozen=True)
+class NamedVersion(Version):
+    name: str
+
+    def is_pre_or_dev_release(self) -> bool:
+        return False
+
+    def is_post_release(self) -> bool:
+        return False
+
+    def is_local(self) -> bool:
+        return False
+
+    def __lt__(self, other: "Version") -> bool:
+        if isinstance(other, NamedVersion):
+            return self.name < other.name
+
+        return other > self
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, NamedVersion) and self.name == other.name
+
+
 @dataclass(frozen=True, repr=False)
-class Version:
+class StandardVersion(Version):
     release: Tuple[int, ...]
     epoch: Optional[int] = None
     pre_release: Optional[Tuple[Literal['a', 'b', 'rc'], int]] = None
@@ -41,10 +92,14 @@ class Version:
         return str(self)
 
     def __lt__(self, other: "Version"):
+
+        if not isinstance(other, StandardVersion):
+            return False
+
         if (self.epoch or 0) != (other.epoch or 0):
             return (self.epoch or 0) < (other.epoch or 0)
 
-        v1, v2 = Version.normalized(self, other)
+        v1, v2 = StandardVersion.normalized(self, other)
         for s, o in zip(v1.release, v2.release):
             if s == o: continue
             return s < o
@@ -90,10 +145,10 @@ class Version:
         return len(my_local_segments) < len(other_local_segments)
 
     def __eq__(self, other):
-        if not isinstance(other, Version):
+        if not isinstance(other, StandardVersion):
             return False
 
-        v1, v2 = Version.normalized(self, other)
+        v1, v2 = StandardVersion.normalized(self, other)
         return (v1.epoch or 0) == (other.epoch or 0) \
                and v1.release == v2.release \
                and v1.pre_release == v2.pre_release \
@@ -102,7 +157,7 @@ class Version:
                and v1.local_label == v2.local_label  # noqa
 
     @staticmethod
-    def normalized(v1: "Version", v2: "Version") -> Tuple["Version", "Version"]:
+    def normalized(v1: "StandardVersion", v2: "StandardVersion") -> Tuple["StandardVersion", "StandardVersion"]:
         v1rel, v2rel = v1.release, v2.release  # noqa
         rlen = max(len(v1rel), len(v2rel))  # noqa
 
@@ -113,8 +168,3 @@ class Version:
 
         return ((v1 if v1rel == v1.release else replace(v1, release=v1rel)),
                 (v2 if v2rel == v2.release else replace(v2, release=v2rel)))
-
-    @classmethod
-    def parse(cls, txt: str) -> "Version":
-        from pkm.api.versions.version_parser import parse_version
-        return parse_version(txt)

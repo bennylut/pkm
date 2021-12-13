@@ -1,16 +1,16 @@
-import json
 import argparse
+import json
+import os
+import platform
+import site
 import subprocess
 import sys
 from argparse import Namespace
 from pathlib import Path
-from tempfile import TemporaryFile, NamedTemporaryFile
-import os
-import site
+from tempfile import NamedTemporaryFile
 from typing import List, Dict
-import pkg_resources
-import platform
 
+import pkg_resources
 from packaging.tags import sys_tags
 
 parser = argparse.ArgumentParser()

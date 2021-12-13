@@ -1,4 +1,4 @@
-from typing import Optional, NoReturn, Callable, List, Type, TypeVar, Sequence, Union
+from typing import Optional, NoReturn, Callable, List, Type, TypeVar
 
 _URL_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%")
 _P = TypeVar("_P", bound="SimpleParser")
