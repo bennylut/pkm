@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import Set, Dict
+from typing import Set, Dict, List
 
 from pkm.api.environments import Environment
+from pkm.api.packages import PackageDescriptor
 from pkm.api.versions.version import Version
-from pkm.utils.properties import cached_property
+from pkm.utils.properties import cached_property, clear_cached_properties
 
 from pkm_main.environments.environment_introspection import EnvironmentIntrospection
 
@@ -40,3 +41,12 @@ class VirtualEnvironment(Environment):
     @property
     def markers(self) -> Dict[str, str]:
         return self._introspection.env_markers
+
+    @cached_property
+    def installed_packages(self) -> List[PackageDescriptor]:
+        return [PackageDescriptor(name, Version.parse(version))
+                for name, version in self._introspection.installed_packages.items()]
+
+    def reload(self):
+        clear_cached_properties(self)
+

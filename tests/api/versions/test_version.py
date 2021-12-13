@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pkm.api.versions.version import Version
+from pkm.api.versions.version import Version, StandardVersion
 
 
 class TestVersion(TestCase):
@@ -31,9 +31,9 @@ class TestVersion(TestCase):
 
 
     def test_version_comparison(self):
-        v123 = Version((1, 2, 3))
-        v200 = Version((2, 0, 0))
-        v2 = Version((2,))
+        v123 = StandardVersion((1, 2, 3))
+        v200 = StandardVersion((2, 0, 0))
+        v2 = StandardVersion((2,))
 
         assert v123 < v200, '1.2.3 expected to be before 2.0.0'
         assert v123 < v2, '1.2.3 expected to be before 2'

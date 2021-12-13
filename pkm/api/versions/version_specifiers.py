@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from dataclasses import dataclass, replace
 
 from pkm.utils.sequences import distinct, subiter
-from pkm.api.versions.version import Version
+from pkm.api.versions.version import Version, StandardVersion
 
 
 class VersionSpecifier(ABC):
@@ -15,10 +15,7 @@ class VersionSpecifier(ABC):
     def allows_any(self, other: "VersionSpecifier") -> bool:
         return not self.intersect(other).is_none()
 
-    def allows_version(self, version: Union["Version", str]):
-        if isinstance(version, str):
-            return isinstance(self, ExactVersionString) and self.version_string == version
-
+    def allows_version(self, version: "Version"):
         return any(segment.allows_version(version) for segment in self._segments())
 
     def intersect(self, other: "VersionSpecifier") -> "VersionSpecifier":
@@ -159,35 +156,6 @@ class VersionSpecifier(ABC):
 
 
 @dataclass(frozen=True)
-class ExactVersionString(VersionSpecifier):
-    version_string: str
-
-    def allows_version(self, version: Union["Version", str]):
-        return self.version_string == str(version)
-
-    def inverse(self) -> "VersionSpecifier":
-        return AnyVersion  # is it right?
-
-    def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
-        if other == self:
-            return other
-
-        return None
-
-    def __eq__(self, other):
-        return isinstance(other, ExactVersionString) and other.version_string == self.version_string
-
-    def __lt__(self, other):
-        if isinstance(other, ExactVersionString):
-            return self.version_string < other.version_string
-
-        return True  # this version comes before any other..
-
-    def __str__(self):
-        return f"==={self.version_string}"
-
-
-@dataclass(frozen=True)
 class SpecificVersion(VersionSpecifier):
     version: Version
 
@@ -197,7 +165,9 @@ class SpecificVersion(VersionSpecifier):
         return version == self.version
 
     def __str__(self):
-        return f'=={self.version}'
+        if isinstance(self.version, StandardVersion):
+            return f'=={self.version}'
+        return f"==={self.version}"
 
     def __repr__(self):
         return str(self)
@@ -205,7 +175,7 @@ class SpecificVersion(VersionSpecifier):
     def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
         if other == self:
             return other
-        if isinstance(other, (SpecificVersion, ExactVersionString)):
+        if isinstance(other, SpecificVersion):
             return None
         if isinstance(other, VersionRange):
             if other.min == self:
@@ -320,7 +290,7 @@ class VersionRange(VersionSpecifier):
         return res
 
     def _try_merge(self, other: VersionSpecifier) -> Optional[VersionSpecifier]:
-        if isinstance(other, (SpecificVersion, ExactVersionString)):
+        if isinstance(other, SpecificVersion):
             return other._try_merge(self)  # noqa
 
         min1, min2 = self.min, other.min

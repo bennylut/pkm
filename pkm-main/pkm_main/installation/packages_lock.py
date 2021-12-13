@@ -1,80 +1,72 @@
-import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments import Environment
-from pkm.api.versions.version import Version
+from pkm.api.packages import PackageDescriptor
 from pkm.config.configuration import TomlFileConfiguration
+from pkm.utils.commons import unone
 from pkm.utils.sequences import groupby
-
-from pkm_main.installation.package_installation_plan import PackageInstallationPlan
 
 
 @dataclass
-class _LockedPackage:
-    markers_hash: str
-    dependency: Dependency
-    version: Version
+class _LockedVersion:
+    env_markers_hash: str
+    package: PackageDescriptor
 
     def write(self) -> Dict[str, Any]:
         return {
-            'env_markers_hash': self.markers_hash,
-            'dependency': self.dependency.write(),
-            'version': str(self.version)
+            'env_markers_hash': self.env_markers_hash,
+            'package': self.package.write(),
         }
 
     @classmethod
-    def read(cls, data: Dict[str, Any]) -> "_LockedPackage":
-        env_markers_hash = data['env_markers_hash']
-        dependency = Dependency.read(data['dependency'])
-        version = Version.parse(data['version'])
-
-        return _LockedPackage(env_markers_hash, dependency, version)
+    def read(cls, data: Dict[str, Any]) -> "_LockedVersion":
+        return _LockedVersion(data['env_markers_hash'], PackageDescriptor.read(data['package']))
 
 
 class PackagesLock:
 
-    def __init__(self, locked_packages: List[_LockedPackage], lock_file: Optional[Path] = None):
-        self._locked_packages: Dict[str, List[_LockedPackage]] = \
-            groupby(locked_packages, lambda it: it.dependency.package_name)
+    def __init__(self, locked_packages: Optional[List[_LockedVersion]] = None, lock_file: Optional[Path] = None):
+        locked_packages = unone(locked_packages, list)
+        self._locked_packages: Dict[str, List[_LockedVersion]] = \
+            groupby(locked_packages, lambda it: it.package)
         self._lock_file = lock_file
 
-    def locked_versions(self, env: Environment, dependency: Dependency) -> List[Version]:
+    def locked_versions(self, env: Environment, package: str) -> List[PackageDescriptor]:
         """
         :param env: environment that the given dependency should be compatible with
-        :param dependency: the dependency to find lock information for
-        :return: list of versions to try and install on the environment, sorted by importance (try the first one first)
+        :param package: the package to find lock information for
+        :return: list of package descriptors to try and install on the environment, sorted by importance
+                 (try the first one first)
         """
 
-        relevant_locks = self._locked_packages[dependency.package_name]
+        relevant_locks = [l for l in self._locked_packages[package]]
         if not relevant_locks:
             return []
 
         env_markers_hash = env.markers_hash
 
-        result = [lock.version for lock in relevant_locks if lock.markers_hash != env_markers_hash]
+        result = [lock.package for lock in relevant_locks if lock.env_markers_hash != env_markers_hash]
         if len(result) != len(relevant_locks):
-            result.insert(0, next(lock.version for lock in relevant_locks if lock.markers_hash == env_markers_hash))
+            result.insert(0, next(lock.package for lock in relevant_locks if lock.env_markers_hash == env_markers_hash))
 
         return result
 
-    def update_lock(self, installation_plan: PackageInstallationPlan):
+    def update_lock(self, env: Environment):
         """
-        lock the packages in the given installation plan for the relevant environment
-        :param installation_plan: a plan of selected versions to install on the given environment
+        lock the packages in the given environment
+        :param env: the environment to use to extract lock information
         """
 
-        env_hash = installation_plan.environment.markers_hash
+        env_hash = env.markers_hash
         new_locks = [
             lock for locks_by_name in self._locked_packages.values()
             for lock in locks_by_name
-            if lock.markers_hash != env_hash]
+            if lock.env_markers_hash != env_hash]
 
-        for pd in installation_plan.expectation_after_install():
-            for pr in installation_plan.requesters_of(pd.name):
-                new_locks.append(_LockedPackage(env_hash, pr.dependency, pd.version))
+        for pd in env.installed_packages:
+            new_locks.append(_LockedVersion(env_hash, pd))
 
         self._locked_packages = groupby(new_locks, lambda it: it.dependency.package_name)
 
@@ -102,5 +94,5 @@ class PackagesLock:
         """
 
         configuration = TomlFileConfiguration.load(lock_file)
-        locked_packages = [_LockedPackage.read(l) for l in configuration['lock']]
+        locked_packages = [_LockedVersion.read(l) for l in configuration['lock']]
         return PackagesLock(locked_packages, lock_file)

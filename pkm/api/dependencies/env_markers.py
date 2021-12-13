@@ -20,7 +20,7 @@ class EnvironmentMarker:
 
     def evaluate_on(self, env: Environment, extras: _EXTRAS_T) -> bool:
         return self._exec(env, extras)
-
+    
     def __str__(self) -> str:
         return self._expr
 

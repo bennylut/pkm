@@ -2,13 +2,15 @@ from typing import List
 
 from dataclasses import replace
 from pkm.utils.parsing import SimpleParser
-from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion, \
-    ExactVersionString
+from pkm.api.versions.version import Version, NamedVersion, StandardVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion
 
 
 def parse_version(version_str: str) -> Version:
-    return VersionParser(version_str.lower()).read_version()
+    try:
+        return VersionParser(version_str.lower()).read_version()
+    except ValueError:
+        return NamedVersion(version_str)
 
 
 def parse_specifier(specifier_str: str) -> VersionSpecifier:
@@ -22,7 +24,7 @@ _PRE_RELEASE_TYPE_NORMALIZER = {
 
 class VersionParser(SimpleParser):
 
-    def read_version(self) -> Version:
+    def read_version(self) -> StandardVersion:
         self.read_ws()
 
         self.match('v')
@@ -68,7 +70,7 @@ class VersionParser(SimpleParser):
 
         self.read_ws()
 
-        return Version(release=tuple(release), epoch=epoch, pre_release=pre_release, post_release=post_release,
+        return StandardVersion(release=tuple(release), epoch=epoch, pre_release=pre_release, post_release=post_release,
                        dev_release=dev_release, local_label=local_label)
 
     def _read_single_specifier(self) -> VersionSpecifier:
@@ -80,7 +82,7 @@ class VersionParser(SimpleParser):
         if self.match('==='):
             self.read_ws()
             version_str = self.until(lambda i, t: t[i].isspace() or t[i] == ',')
-            return ExactVersionString(version_str)
+            return SpecificVersion(NamedVersion(version_str))
 
         exclusion_inclusion = self.match_any('==', '!=')
         if exclusion_inclusion:

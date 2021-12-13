@@ -46,7 +46,7 @@ class TestDependency(TestCase):
 
 
 def assert_parsed(text: str, **kwargs):
-    assert_dependency(Dependency.read_pep508(text), **kwargs)
+    assert_dependency(Dependency.parse_pep508(text), **kwargs)
 
 
 def assert_dependency(d: Dependency, **kwargs):

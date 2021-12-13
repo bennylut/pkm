@@ -1,10 +1,9 @@
 import re
 from copy import copy
+from dataclasses import dataclass
 from numbers import Number
 from pathlib import Path
-from typing import Optional, Dict, Any, Mapping, List, Tuple, Union, NoReturn, MutableMapping, Callable
-
-from dataclasses import dataclass
+from typing import Optional, Dict, Any, Mapping, List, Tuple, Union, MutableMapping, Callable
 
 from pkm.utils.parsing import SimpleParser
 
