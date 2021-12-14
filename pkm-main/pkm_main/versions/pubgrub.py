@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any
 
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pkm.utils.sequences import argmax
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
-    AnyVersion
+    AnyVersion, NoVersion
 
 
 class UnsolvableProblemException(Exception):
@@ -16,14 +16,22 @@ class UnsolvableProblemException(Exception):
         self.incompatibility = incompatibility
 
 
+class MalformedPackageException(Exception):
+    ...
+
+
 @dataclass(frozen=True)
 class Term:
     package: str
     constraint: VersionSpecifier
+
+    # only true for a requiring dependency incompatibility
+    # means that if x requires y, the incompatibility will be x, not y (optional)
+    # this means that both if y not exists or not y then the incompatibility is satisfied
     optional: bool = False
 
-    def negate(self) -> "Term":
-        return Term(self.package, self.constraint.inverse(), not self.optional)
+    def negate(self, optional: bool = False) -> "Term":
+        return Term(self.package, self.constraint.inverse(), optional)
 
     def intersect(self, other: "Term") -> "Term":
         assert self.package == other.package, 'cannot intesect terms of different packages'
@@ -135,18 +143,16 @@ class PartialSolution:
     def make_assignment(self, assignment_value: Term, cause: Optional["Incompatibility"] = None):
         package_assignments = self.assignments_by_package[assignment_value.package]
 
-        prev_ass = package_assignments[-1].term if package_assignments \
-            else Term.create(assignment_value.package, '*')
+        accumulated_constraint = assignment_value.constraint
+        if package_assignments:
+            accumulated_constraint = package_assignments[-1].accumulated.intersect(accumulated_constraint)
 
         dlevel = self._decision_level
 
         if cause is None and assignment_value.package != self._root_package:
             dlevel += 1
 
-        # print(f'prev ass: {prev_ass.constraint}, new: {assignment_value.constraint}, intersection: {prev_ass.constraint.intersect(assignment_value.constraint)}')
-
-        return Assignment(assignment_value, dlevel, len(self._assignments_by_order),
-                          cause, prev_ass.constraint.intersect(assignment_value.constraint))
+        return Assignment(assignment_value, dlevel, len(self._assignments_by_order), cause, accumulated_constraint)
 
     def assign(self, assignment_value: Union[Term, Assignment], cause: Optional["Incompatibility"] = None):
         assignment = self.make_assignment(assignment_value, cause) \
@@ -207,18 +213,21 @@ class Incompatibility:
 
         for term in self.terms:
             satisfier: Optional[Assignment] = None
-
-            for assignment in assignments[term.package]:
-                acc = assignment.accumulated
-
+            package_assignments = assignments[term.package]
+            if package_assignments:
+                acc = package_assignments[-1].accumulated
                 if acc.is_none() and not term.optional:
                     return IncompatabilitySatisfaction(self)
 
                 if term.constraint.allows_all(acc):
-                    satisfier = assignment
-                    break
+                    for assignment in package_assignments:
+                        acc = assignment.accumulated
 
-                if not acc.allows_any(term.constraint):
+                        if term.constraint.allows_all(acc):
+                            satisfier = assignment
+                            break
+
+                if not satisfier and not acc.allows_any(term.constraint):
                     return IncompatabilitySatisfaction(self)
 
             if not satisfier:
@@ -413,7 +422,7 @@ class PackageVersion:
 
             nt = Term(self.term.package, self.generalized_constraint)
             dependency.incompatability = Incompatibility.create(
-                [nt, dependency.term.negate()], None, f'{nt} depends on {dependency.term}')
+                [nt, dependency.term.negate(True)], None, f'{nt} depends on {dependency.term}')
             result.append(dependency.incompatability)
 
         return result
@@ -446,6 +455,7 @@ class Solver:
         self._problem = problem
         self._solution = PartialSolution(root_package)
         self._package_versions: Dict[str, List[PackageVersion]] = {}
+        self._package_trouble_level: Counter[str] = Counter()
 
         # incompatabilities by package name
         self._incompatabilities: DefaultDict[str, List[Incompatibility]] = defaultdict(list)
@@ -502,7 +512,8 @@ class Solver:
 
                     term = satisfaction.undecided_term
                     self._solution.assign(term.negate(), new_incompatability)
-                    changed = {term.package}
+                    # changed = {term.package}
+                    changed.add(term.package)
                 elif satisfaction.is_almost_full():
                     term = satisfaction.undecided_term
                     print(f"incompatability {incompatability} is almost full, undecided_term is {term}")
@@ -521,6 +532,9 @@ class Solver:
         original_incompatability = incompatability
         while True:
             print(f"enter conflict resolution loop with {incompatability}")
+            for term in incompatability.terms:
+                self._package_trouble_level[term.package] += 1
+
             if self._is_tautology(incompatability):
                 raise UnsolvableProblemException(incompatability)
 
@@ -542,11 +556,11 @@ class Solver:
                 term for term in chain(incompatability.terms, satisfier.cause.terms)
                 if term.package != satisfier.term.package]
 
-            if not satisfier.term.satisfies(term.constraint) or not prior_cause_terms:
+            if not term.optional and (not satisfier.term.satisfies(term.constraint) or not prior_cause_terms):
                 prior_cause_terms.append(
                     Term(satisfier.term.package,
                          satisfier.term.constraint.difference(term.constraint).inverse(),
-                         satisfier.term.optional and term.optional)
+                         False)
                 )
 
             incompatability = Incompatibility.create(
@@ -599,25 +613,35 @@ class Solver:
             package_matching_versions[package] = [pver for pver in versions if
                                                   acc_assignment.allows_version(pver.version)]
 
-        package = min(undecided_packages, key=lambda pack: len(package_matching_versions[pack]))
+        package = min(undecided_packages,
+                      key=lambda pack: (-self._package_trouble_level[pack], len(package_matching_versions[pack])))
 
-        print(f"choosing to try and assign {package} with constraint: {self._solution.assignments_by_package[package][-1].accumulated}")
-        versions = package_matching_versions[package]
-        if not versions:
-            acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
-            print(f"could not find version that match {acc_assignment}")
-            self._add_incompatability(
-                Incompatibility.create([Term(package, acc_assignment)],
-                                       external_cause=f'No Versions matching {acc_assignment}'))
-            return package
+        print(
+            f"choosing to try and assign {package} with constraint: {self._solution.assignments_by_package[package][-1].accumulated}")
+        versions = list(package_matching_versions[package])  # defensive copy because we might change it
 
-        version = versions[0]
-        print(f"version: {version} match our term")
+        while True:
+            if not versions:
+                acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
+                print(f"could not find version that match {acc_assignment}")
+                self._add_incompatability(
+                    Incompatibility.create([Term(package, acc_assignment)],
+                                           external_cause=f'Compatible version for [{package} {acc_assignment}] not found'))
+                return package
 
-        if not version.dependencies:
-            version.dependencies = {
-                d.package: PackageDependency(d)
-                for d in self._problem.get_dependencies(package, version.version)}
+            version = versions.pop(0)
+            print(f"version: {version} match our term")
+
+            if not version.dependencies:
+                try:
+                    version_dependencies = self._problem.get_dependencies(package, version.version)
+                    version.dependencies = {
+                        d.package: PackageDependency(d)
+                        for d in version_dependencies}
+                except MalformedPackageException:
+                    print(f"version: {version} discovered to be malformed")
+                    continue  # retry with another version
+            break
 
         incompatabilities = self._add_dependency_incompatabilities(version)
 

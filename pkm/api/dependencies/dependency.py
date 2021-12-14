@@ -27,7 +27,7 @@ class Dependency:
     @cached_property
     def is_url_dependency(self):
         vspec = self.version_spec
-        return isinstance(vspec, NamedVersion) and ':\\' in vspec.name
+        return isinstance(vspec, NamedVersion) and '://' in vspec.name
 
     @property
     def url(self) -> Optional[str]:

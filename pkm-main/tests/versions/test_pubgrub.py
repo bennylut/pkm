@@ -6,6 +6,16 @@ from pkm_main.versions.pubgrub import *
 
 class TestSolver(TestCase):
 
+    def test_star_version(self):
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo *'],
+            'foo 1.0.0': [],
+            'foo 2.0.0': [],
+        })
+
+        solution = Solver(problem).solve()
+        assert_solution({'root': '1.0.0', 'foo': '2.0.0'}, solution)
+
     def test_no_conflict(self):
         problem = ExampleProblem({
             'root 1.0.0': ['foo ~=1.0.0'],

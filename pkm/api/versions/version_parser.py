@@ -140,9 +140,8 @@ class VersionParser(SimpleParser):
             specifier = specifier.intersect(self._read_single_specifier())
             self.read_ws()
             if not self.match(',') and self.is_not_empty():
-                if paren and self.match(')'):
+                if not paren or self.match(')'):
                     break
-
                 self.raise_err('could not parse token')
 
         return specifier

@@ -7,7 +7,7 @@ from pkm.api.environments import Environment, CompatibilityTag
 from pkm.api.packages import Package, PackageDescriptor
 from pkm.api.repositories import Repository
 from pkm.api.versions.version import Version, StandardVersion
-from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.api.versions.version_specifiers import VersionSpecifier, SpecificVersion
 from pkm.logging.console import console
 from pkm.utils.strings import without_suffix
 
@@ -22,9 +22,9 @@ class PyPiRepository(Repository):
         self._http = http
 
     def accepts(self, dependency: Dependency) -> bool:
-        return isinstance(dependency.version_spec, StandardVersion)
+        return not dependency.is_url_dependency
 
-    def match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency) -> List[Package]:
         json: Dict[str, Any] = self._http \
             .get(f'https://pypi.org/pypi/{dependency.package_name}/json', cache=CacheDirective.ask_for_update()) \
             .read_data_as_json()
@@ -38,10 +38,12 @@ class PyPiRepository(Repository):
                 if not a.get('yanked') and a.get("packagetype") in ("sdist", "bdist_wheel")]
 
             if relevant_artifacts:
-                packages.append(_PyPiPackage(
-                    self, PackageDescriptor(dependency.package_name, Version.parse(version_str)),
-                    package_info, relevant_artifacts
-                ))
+                version = Version.parse(version_str)
+                if dependency.version_spec.allows_version(version):
+                    packages.append(_PyPiPackage(
+                        self, PackageDescriptor(dependency.package_name, version),
+                        package_info, relevant_artifacts
+                    ))
 
         return packages
 
@@ -88,7 +90,11 @@ class _PyPiPackage(Package):
         for artifact in self._artifacts:
             requires_python = artifact.get('requires_python')
             package_type = artifact.get('packagetype')
-            python_version = artifact.get('python_version')
+            python_version: Optional[str] = artifact.get('python_version')
+
+            if python_version and not python_version.startswith(('cp', 'py')):
+                python_version = None  # guard from malformed python versions
+
             file_name: str = artifact.get('filename')
             is_binary = package_type == 'bdist_wheel' or file_name.endswith('.whl')
 

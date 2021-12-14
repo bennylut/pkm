@@ -8,8 +8,8 @@ _M = TypeVar("_M", bound=MutableMapping)
 
 
 def remove_by_value(
-        d: _M[_K, _V], value: Optional[_V] = None,
-        match: Optional[Callable[[_V], bool]] = None) -> _M[_K, _V]:
+        d: "_M[_K, _V]", value: Optional[_V] = None,
+        match: Optional[Callable[[_V], bool]] = None) -> "_M[_K, _V]":
     """
     remove items from [d] if they either match the given [match] function
     or if no [match] function given, if they are equals to the given [value]

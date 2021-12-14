@@ -41,7 +41,7 @@ class PackagesLock:
                  (try the first one first)
         """
 
-        relevant_locks = [l for l in self._locked_packages[package]]
+        relevant_locks = [l for l in (self._locked_packages.get(package) or ())]
         if not relevant_locks:
             return []
 
