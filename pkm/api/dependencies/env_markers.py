@@ -1,15 +1,17 @@
-from typing import Callable, Optional, List, Sequence
+from typing import Callable, Optional, List, Sequence, TYPE_CHECKING
 
-from pkm.api.environments import Environment
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.parsing import SimpleParser
 
 _EXTRAS_COLLECTION_T = List
 _EXTRAS_T = _EXTRAS_COLLECTION_T[str]
-_MARKER_PRED_T = Callable[[Environment, _EXTRAS_T], bool]
-_MARKER_GET_T = Callable[[Environment, _EXTRAS_T], Sequence[str]]
+_MARKER_PRED_T = Callable[["Environment", _EXTRAS_T], bool]
+_MARKER_GET_T = Callable[["Environment", _EXTRAS_T], Sequence[str]]
 _MARKER_OP_T = Callable[[Sequence[str], Sequence[str]], bool]
+
+if TYPE_CHECKING:
+    from pkm.api.environments import Environment
 
 
 class EnvironmentMarker:
@@ -18,7 +20,7 @@ class EnvironmentMarker:
         self._expr = expr
         self._exec = exec
 
-    def evaluate_on(self, env: Environment, extras: _EXTRAS_T) -> bool:
+    def evaluate_on(self, env: "Environment", extras: _EXTRAS_T) -> bool:
         return self._exec(env, extras)
     
     def __str__(self) -> str:

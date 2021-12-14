@@ -2,11 +2,13 @@ import hashlib
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Set, Dict, Optional
+from typing import List, Set, Dict, Optional, TYPE_CHECKING
 
-from pkm.api.packages import PackageDescriptor
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
+
+if TYPE_CHECKING:
+    from pkm.api.packages import PackageDescriptor
 
 
 @dataclass(frozen=True)
@@ -68,7 +70,7 @@ class Environment(ABC):
 
     @property
     @abstractmethod
-    def installed_packages(self) -> List[PackageDescriptor]:
+    def installed_packages(self) -> List["PackageDescriptor"]:
         """
         :return: the list of packages currently installed in this environment, note that this list may be collected at previous time
                  if you need the most up to date list you should call the [reload] method prior to this method

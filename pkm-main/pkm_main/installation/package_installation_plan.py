@@ -7,7 +7,8 @@ from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 
 from pkm_main.installation.packages_lock import PackagesLock
-from pkm_main.versions.pubgrub import Problem, Term, Solver
+from pkm_main.utils.http.http_client import HttpException
+from pkm_main.versions.pubgrub import Problem, Term, Solver, MalformedPackageException
 
 
 class PackageInstallationPlan:
@@ -96,7 +97,11 @@ class _PkmPackageInstallationProblem(Problem):
     def get_dependencies(self, package: str, version: Version) -> List[Term]:
         package_name, extras = _decode_package_and_extras(package)
         descriptor = PackageDescriptor(package_name, version)
-        dependencies = self.opened_packages[descriptor].dependencies(self._env, extras)
+
+        try:
+            dependencies = self.opened_packages[descriptor].dependencies(self._env, extras)
+        except (ValueError, HttpException) as e:
+            raise MalformedPackageException(str(descriptor)) from e
 
         result: List[Term] = []
         if extras:
@@ -112,6 +117,7 @@ class _PkmPackageInstallationProblem(Problem):
         return result
 
     def get_versions(self, package: str) -> List[Version]:
+
         if package == self._root.name:
             return [self._root.version]
 
@@ -127,15 +133,15 @@ class _PkmPackageInstallationProblem(Problem):
         if installed:
             pd = package_by_version.pop(installed, None)
             if pd:
-                result.append(pd)
+                result.append(pd.version)
 
         locked_packages: List[PackageDescriptor] = self._lock.locked_versions(self._env, package_name)
         for locked_package in locked_packages:
             pd = package_by_version.pop(locked_package.version)
             if pd:
-                result.append(pd)
+                result.append(pd.version)
 
-        sorted_packages_left = sorted(p.version for p in package_by_version.values())
+        sorted_packages_left = sorted((p.version for p in package_by_version.values()), reverse=True)
         result.extend(sorted_packages_left)
 
         return result

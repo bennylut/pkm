@@ -44,6 +44,10 @@ class TestDependency(TestCase):
                       package_name="name", version_spec=AnyVersion,
                       env_marker="(os_name=='a' or os_name=='b') and os_name=='c'")
 
+        assert_parsed('pyOpenSSL>=0.14; python_version<="2.7" and extra == \'secure\'',
+                      package_name="pyOpenSSL", version_spec=VersionSpecifier.parse(">=0.14"),
+                      env_marker="python_version<=\"2.7\" and extra == \'secure\'")
+
 
 def assert_parsed(text: str, **kwargs):
     assert_dependency(Dependency.parse_pep508(text), **kwargs)
@@ -53,5 +57,8 @@ def assert_dependency(d: Dependency, **kwargs):
     for key, value in kwargs.items():
         if key == 'env_marker':
             assert str(d.env_marker) == value, f"expecting env-marker to be {value} but it was {d.env_marker}"
+        elif key == 'url':
+            assert d.is_url_dependency, f"expecting url dependency but got non url one"
+            assert d.url == value, f"expecting url dependency to have the url: {value} but it was {d.url}"
         else:
             assert getattr(d, key) == value, f"expecting {key} to be {value} but it was {getattr(d, key)}"

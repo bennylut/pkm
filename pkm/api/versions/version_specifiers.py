@@ -18,6 +18,9 @@ class VersionSpecifier(ABC):
     def allows_version(self, version: "Version"):
         return any(segment.allows_version(version) for segment in self._segments())
 
+    def allows_pre_or_dev_releases(self) -> bool:
+        return any(segment.allows_pre_or_dev_releases() for segment in self._segments())
+
     def intersect(self, other: "VersionSpecifier") -> "VersionSpecifier":
         new_segments: List[VersionSpecifier] = []
         for s1 in self._segments():
@@ -172,6 +175,9 @@ class SpecificVersion(VersionSpecifier):
     def __repr__(self):
         return str(self)
 
+    def allows_pre_or_dev_releases(self) -> bool:
+        return self.version.is_pre_or_dev_release()
+
     def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
         if other == self:
             return other
@@ -231,14 +237,19 @@ class VersionRange(VersionSpecifier):
         self.includes_max = self.includes_max if self.includes_max is not None else self.max is None
         self.includes_min = self.includes_min if self.includes_min is not None else self.min is None
 
-    # note that pre-release rules should be implemented in the problem and not here
-    def allows_version(self, version: Union["Version", str]):
+    def allows_pre_or_dev_releases(self) -> bool:
+        max = self.max
+        return max is not None and max.version.is_pre_or_dev_release()
 
-        if isinstance(version, str) or version.is_local():
+    # note that pep440 pre-release filtering rules should be implemented in the repository and not here
+    def allows_version(self, version: "Version"):
+
+        if version.is_local():
             return False
 
         if self.is_any():
-            return True
+            # return not version.is_pre_or_dev_release() and not version.is_post_release()
+            return not version.is_post_release()
         if self.is_none():
             return False
 
@@ -250,13 +261,18 @@ class VersionRange(VersionSpecifier):
         if version.is_post_release() and (min is None or not min.version.is_post_release()):
             return False
 
-        if version.is_pre_or_dev_release() and (max is None or not max.version.is_pre_or_dev_release()):
-            return False
+        # if version.is_pre_or_dev_release() and (max is None or not max.version.is_pre_or_dev_release()):
+        #     return False
 
         return (min is None or min.version < version) and (max is None or version < max.version)
 
     def inverse(self) -> "VersionSpecifier":
         new_segments: List["VersionSpecifier"] = []
+
+        if self.is_any():
+            return NoVersion
+        if self.is_none():
+            return AnyVersion
 
         if self.min is not None:
             new_segments.append(VersionRange(max=self.min, includes_max=not self.includes_min))
@@ -331,7 +347,7 @@ class VersionUnion(VersionSpecifier):
             if a.min is None and b.max is None and a.max == b.min and (a.includes_max is b.includes_min is False):
                 return f"!={a.max.version}"
 
-        return ', '.join(str(it) for it in self._constraints)
+        return '; '.join(str(it) for it in self._constraints)
 
     def _segments(self) -> List["VersionSpecifier"]:
         return self._constraints
