@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict, Any, cast
 
 from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentMarker
-from pkm.api.environments import Environment
+from pkm.api.environments.environment import Environment
 from pkm.api.versions.version import NamedVersion
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion

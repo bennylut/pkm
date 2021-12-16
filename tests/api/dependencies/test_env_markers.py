@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Set, List
 from unittest import TestCase
 
 from pkm.api.dependencies.env_markers import EnvironmentMarker
-from pkm.api.environments import Environment
+from pkm.api.environments.environment import Environment
+from pkm.api.packages import PackageDescriptor
 from pkm.api.versions.version import Version
 
 
@@ -82,3 +83,8 @@ class _MockEnvironment(Environment):
 
     @property
     def compatibility_tags(self) -> Set[str]: raise NotImplemented()
+
+    @property
+    def installed_packages(self) -> List["PackageDescriptor"]: raise NotImplemented()
+
+    def reload(self): raise NotImplemented()

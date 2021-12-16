@@ -44,7 +44,7 @@ class ProjectRepository(Repository, ABC):
         self.project = project
 
     @abstractmethod
-    def _match_non_project(self, dependency: Dependency) -> List[Package]:
+    def _do_match_non_project(self, dependency: Dependency) -> List[Package]:
         """
         this method is called by the actual [match] method of this repository for any packages that are not its project 
         
@@ -53,8 +53,9 @@ class ProjectRepository(Repository, ABC):
         """
         ...
 
-    def match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency) -> List[Package]:
         if dependency.package_name == self.project.name:
             return [self.project]
-        
-        return self._match_non_project(dependency)
+
+        return self._do_match_non_project(dependency)
+

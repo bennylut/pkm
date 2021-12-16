@@ -73,6 +73,7 @@ class VersionParser(SimpleParser):
         return StandardVersion(release=tuple(release), epoch=epoch, pre_release=pre_release, post_release=post_release,
                        dev_release=dev_release, local_label=local_label)
 
+    # noinspection PyShadowingBuiltins
     def _read_single_specifier(self) -> VersionSpecifier:
         self.read_ws()
 

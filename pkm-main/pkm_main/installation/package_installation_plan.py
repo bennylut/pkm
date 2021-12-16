@@ -1,10 +1,12 @@
 from typing import List, Dict, Tuple, Optional
 
-from pkm.api.environments import Environment
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment import Environment
 from pkm.api.packages import Package, PackageDescriptor
 from pkm.api.repositories import Repository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.utils.commons import unone
 
 from pkm_main.installation.packages_lock import PackagesLock
 from pkm_main.utils.http.http_client import HttpException
@@ -17,6 +19,10 @@ class PackageInstallationPlan:
         self._env = env
         self._install = install
         self._remove = remove
+
+    def execute(self, env: Optional[Environment]):
+        env = unone(env, lambda: self.environment)
+        print("PACKAGE INSTALLATION PLAN EXECUTION IS NOT IMPLEMENTED YET")
 
     @property
     def environment(self) -> Environment:
@@ -42,7 +48,8 @@ class PackageInstallationPlan:
         return self._install
 
     @classmethod
-    def create(cls, root: Package, env: Environment, repo: Repository, lock: PackagesLock) -> "PackageInstallationPlan":
+    def create(cls, root: Dependency, env: Environment, repo: Repository,
+               lock: Optional[PackagesLock] = None) -> "PackageInstallationPlan":
         """
         creates an installation plan to install [root] on [env] using packages from [repo]
         while considering the given [lock]
@@ -53,8 +60,10 @@ class PackageInstallationPlan:
         :param lock: the lock to consider
         :return: the result installation plan
         """
+
+        lock = unone(lock, lambda: PackagesLock())
         problem = _PkmPackageInstallationProblem(env, lock, repo, root)
-        solver = Solver(problem, root.name)
+        solver = Solver(problem, root.package_name)
         solution = solver.solve()
 
         already_installed_packages: Dict[str, PackageDescriptor] = {p.name: p for p in env.installed_packages}
@@ -84,15 +93,13 @@ class PackageInstallationPlan:
 
 class _PkmPackageInstallationProblem(Problem):
 
-    def __init__(self, env: Environment, lock: PackagesLock, repo: Repository, root: Package):
+    def __init__(self, env: Environment, lock: PackagesLock, repo: Repository, root: Dependency):
         self._env = env
         self._lock = lock
         self._repo = repo
         self._root = root
 
-        self.opened_packages: Dict[PackageDescriptor, Package] = {
-            root.descriptor: root
-        }
+        self.opened_packages: Dict[PackageDescriptor, Package] = {}
 
     def get_dependencies(self, package: str, version: Version) -> List[Term]:
         package_name, extras = _decode_package_and_extras(package)
@@ -118,11 +125,14 @@ class _PkmPackageInstallationProblem(Problem):
 
     def get_versions(self, package: str) -> List[Version]:
 
-        if package == self._root.name:
-            return [self._root.version]
-
         package_name, extras = _decode_package_and_extras(package)
-        package_by_version = {p.version: p for p in self._repo.list(package_name) if p.is_compatible_with(self._env)}
+
+        if package_name == self._root.package_name:
+            package_by_version = {p.version: p for p in self._repo.match(self._root)
+                                  if p.is_compatible_with(self._env)}
+        else:
+            package_by_version = {p.version: p for p in self._repo.list(package_name)
+                                  if p.is_compatible_with(self._env)}
 
         for package in package_by_version.values():
             self.opened_packages[package.descriptor] = package

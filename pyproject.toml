@@ -10,9 +10,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8"
 
-#typing-extensions = "^3.10.0.2"
-
-
 
 [tool.relaxed-poetry.sub-projects]
 pkm-main="pkm-main"
