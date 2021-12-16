@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 from unittest import TestCase
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments import Environment
+from pkm.api.environments.environment import Environment
 from pkm.api.packages import Package, PackageDescriptor
 
 from pkm.api.repositories import Repository

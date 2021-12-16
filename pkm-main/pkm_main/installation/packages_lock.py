@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from pkm.api.environments import Environment
+from pkm.api.environments.environment import Environment
 from pkm.api.packages import PackageDescriptor
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.commons import unone
-from pkm.utils.sequences import groupby
+from pkm.utils.iterators import groupby
 
 
 @dataclass

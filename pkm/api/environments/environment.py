@@ -41,6 +41,13 @@ class Environment(ABC):
         """
 
     @property
+    def name(self) -> str:
+        return self.path.name
+
+    def __repr__(self):
+        return f"Environment({self.path})"
+
+    @property
     @abstractmethod
     def interpreter_version(self) -> Version:
         """

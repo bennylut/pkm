@@ -61,7 +61,7 @@ class _StyleSheet:
     def lastify(self, key: KEY_T) -> KEY_T:
         lk = len(key) + 1
         index = sum(len(k) == lk and k[:-1] == key for k in self.keys.keys())
-        return (*key, index)
+        return *key, index
 
     def set_key_style(self, key: KEY_T, style: _KeyStyle):
         self.keys[key] = style
@@ -152,7 +152,7 @@ class _Writer:
         return self._write_value(data, key, self.style.value_style(key, data)).rstrip()
 
     def _write_value(self, data: Any, key: KEY_T, vstyle: _ValueStyle) -> str:
-        if isinstance(data, (bool)):
+        if isinstance(data, bool):
             return self._write_bool(data, vstyle)
 
         if isinstance(data, (Number, TimeLiteral)):

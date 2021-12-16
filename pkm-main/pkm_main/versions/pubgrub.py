@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
+from dataclasses import dataclass
 from itertools import chain
 from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any
 
-from dataclasses import dataclass
-from pkm.utils.sequences import argmax
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
-    AnyVersion, NoVersion
+    AnyVersion
+from pkm.utils.sequences import argmax
 
 
 class UnsolvableProblemException(Exception):

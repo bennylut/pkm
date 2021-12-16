@@ -11,7 +11,7 @@ _MARKER_GET_T = Callable[["Environment", _EXTRAS_T], Sequence[str]]
 _MARKER_OP_T = Callable[[Sequence[str], Sequence[str]], bool]
 
 if TYPE_CHECKING:
-    from pkm.api.environments import Environment
+    from pkm.api.environments.environment import Environment
 
 
 class EnvironmentMarker:

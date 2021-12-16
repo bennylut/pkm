@@ -3,11 +3,11 @@ from typing import List, Dict, Any, Optional
 
 import pkginfo
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments import Environment, CompatibilityTag
+from pkm.api.environments.environment import Environment, CompatibilityTag
 from pkm.api.packages import Package, PackageDescriptor
 from pkm.api.repositories import Repository
-from pkm.api.versions.version import Version, StandardVersion
-from pkm.api.versions.version_specifiers import VersionSpecifier, SpecificVersion
+from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.logging.console import console
 from pkm.utils.strings import without_suffix
 

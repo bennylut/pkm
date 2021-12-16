@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments import Environment
+from pkm.api.environments.environment import Environment
 from pkm.api.versions.version import Version
 
 
@@ -60,3 +60,9 @@ class Package(ABC):
         installs this package into the given [env]
         :param env: the environment to install this package into
         """
+
+    def __str__(self):
+        return f"{self.name} {self.version}"
+
+    def __repr__(self):
+        return f"Package({str(self)})"

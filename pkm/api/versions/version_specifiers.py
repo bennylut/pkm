@@ -3,8 +3,9 @@ from typing import List, Optional, Union
 
 from dataclasses import dataclass, replace
 
-from pkm.utils.sequences import distinct, subiter
 from pkm.api.versions.version import Version, StandardVersion
+from pkm.utils.iterators import distinct
+from pkm.utils.sequences import subiter
 
 
 class VersionSpecifier(ABC):

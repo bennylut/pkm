@@ -4,7 +4,7 @@ from typing import List, Union
 
 from pkm.api.packages import Dependency, Package
 from pkm.api.versions.version_specifiers import AnyVersion
-from pkm.utils.sequences import partition
+from pkm.utils.iterators import partition
 
 
 class Repository(ABC):
