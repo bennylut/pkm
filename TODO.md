@@ -1,23 +1,20 @@
 ## RUNNING:
 
 ## DONE IN THIS VERSION
-- environment zoo~~~~
-- local pythons repository
-- generating a versioning problem from repositories, requirements, installation and lock
-- populating the package installation plan using the versioning problem solution
-- benchmark pubgrub implementation
-- virtual environment - create
-- package installation plan: root should be given as a dependency and not as a package
+- test the wheel installer - basic tests only, no automation yet
+- implement wheel installer
 
 ## BACKLOG:
+- implement entrypoints awareness for installer
+- virtual environment - install
+- implement pep517, pep518, pep660 source installer
+- checkout distlib
 - support `pkm new notebook`
 - implement pep621 and 631 for project layout in toml (note that it goes very good with the source override vision)
-- implement pep517, pep518, pep660 source installer
-- consider implementing virtualenv myself 
+- consider implementing virtualenv myself (pep 405)
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - commandline: pkm install -g, -ga, -ge env
-- virtual environment - install
 - virtual environment - remove + autoremove + sync
 - check that when downloading packages for install, the hash is being validated
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
@@ -26,7 +23,7 @@
 - create problem exporter for debug
 - create project that reference venv(s?), pyproject & other configuration files, source roots
 - design pkm toml namespace
-- git and url dependencies support
+- git and url dependencies installation support
 - pypi package installation support
 - create buildsys (with buildable project)
 - publish project

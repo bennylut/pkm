@@ -1,6 +1,8 @@
-from typing import TypeVar, Optional, Callable, Protocol, Any
+from typing import TypeVar, Optional, Callable, Protocol, Any, Type
 
 _T = TypeVar("_T")
+# noinspection PyTypeChecker
+_C = TypeVar('_C', bound=Type)
 
 
 def unone(v: Optional[_T], on_none: Callable[[], _T]) -> _T:
@@ -46,3 +48,4 @@ class SupportHashCode(Protocol):
     def __hash__(self): ...
 
     def __eq__(self, other): ...
+

@@ -25,3 +25,4 @@ def run_once(func: _FUNC_T) -> _FUNC_T:
 
 def identity(x: _T) -> _T:
     return x
+
