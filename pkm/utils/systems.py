@@ -6,6 +6,13 @@ from typing import Literal
 OS: Literal['Windows', 'Linux', 'Darwin', 'Java', ''] = platform.system()  # noqa
 
 
+def is_windows() -> bool:
+    """
+    :return: true if running inside a windows OS
+    """
+    return OS == 'Windows'
+
+
 def is_executable(file: Path) -> bool:
     """
     :param file: the file to test

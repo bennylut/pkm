@@ -38,3 +38,5 @@ def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], SupportsLessThan]]) -
         okey = lambda i: key(seq[i])
 
     return max(range(len(seq)), key=okey)
+
+

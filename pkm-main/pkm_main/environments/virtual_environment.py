@@ -1,6 +1,6 @@
 from io import UnsupportedOperation
 from pathlib import Path
-from typing import Set, Dict, List, Optional
+from typing import Set, Dict, List, Optional, Literal
 
 from pkm.api.environments.environment import Environment
 from pkm.api.packages import PackageDescriptor
@@ -9,6 +9,8 @@ from pkm.utils.iterators import find_first
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 from pkm_main.environments.environment_introspection import EnvironmentIntrospection
+
+_PATH_KEY = {"purelib", "platlib", "scripts", "data"}
 
 
 class VirtualEnvironment(Environment):
@@ -26,9 +28,18 @@ class VirtualEnvironment(Environment):
     def interpreter_version(self) -> Version:
         return Version.parse(self._introspection.python_version)
 
+    def site_packages_path(self, type: Literal['platlib', 'purelib'] = 'purelib') -> Path:
+        return Path(self._introspection.paths[type])
+
     @property
     def path(self) -> Path:
         return self._path
+
+    def sysconfig_path(self, type: str) -> Optional[Path]:
+        if type not in _PATH_KEY or type not in self._introspection.paths:
+            return None
+
+        return Path(self._introspection.paths[type])
 
     @cached_property
     def compatibility_tags(self) -> Set[str]:
@@ -84,6 +95,9 @@ class UninitializedVirtualEnvironment(Environment):
     @property
     def compatibility_tags(self) -> Set[str]:
         return set()
+
+    def sysconfig_path(self, type: str) -> Optional[Path]:
+        return None
 
     @property
     def markers(self) -> Dict[str, str]:

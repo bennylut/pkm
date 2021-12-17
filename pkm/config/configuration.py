@@ -1,3 +1,4 @@
+import configparser
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
@@ -129,31 +130,33 @@ class Configuration(ABC):
         ...
 
 
-class TomlFileConfiguration(Configuration):
-    def __init__(
-            self, *,
-            path: Path,
-            parent: Optional["Configuration"] = None,
-            data: Optional[Dict[str, Any]] = None):
+class FileConfiguration(Configuration, ABC):
+    def __init__(self, *, path: Path, parent: Optional["Configuration"] = None, data: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent, data=data)
         self._path = path
 
-    def exists(self) -> bool:
-        return self._path.exists()
+    @abstractmethod
+    def generate_content(self) -> str:
+        ...
 
     def _do_save(self):
         self._path.parent.mkdir(exist_ok=True, parents=True)
         self._path.write_text(self.generate_content())
 
+    def exists(self) -> bool:
+        return self._path.exists()
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+
+class TomlFileConfiguration(FileConfiguration):
     def generate_content(self) -> str:
         dumps = toml.dumps
         if self._path.exists():
             _, dumps = toml.load(self._path)
         return dumps(self._data)
-
-    @property
-    def path(self) -> Path:
-        return self._path
 
     @classmethod
     def load(cls, file: Path, parent: Optional[Configuration] = None) -> "TomlFileConfiguration":
@@ -168,3 +171,29 @@ class InMemConfiguration(Configuration):
     @classmethod
     def load(cls, data: Dict[str, Any], parent: Optional[Configuration]) -> "InMemConfiguration":
         return cls(parent=parent, data=data)
+
+
+class _CaseSensitiveConfigParser(configparser.ConfigParser):
+    optionxform = staticmethod(str)
+
+
+_CASE_SENSITIVE_INI_PARSER = configparser.ConfigParser()
+
+
+class IniFileConfiguration(FileConfiguration):
+    def generate_content(self) -> str:
+        class StringWriter:
+            def __init__(self):
+                self.v: List[str] = []
+
+            def write(self, s: str):
+                self.v.append(s)
+
+        sw = StringWriter()
+        _CASE_SENSITIVE_INI_PARSER.write(sw)
+        return ''.join(sw.v)
+
+    @classmethod
+    def load(cls, file: Path) -> "IniFileConfiguration":
+        data = _CASE_SENSITIVE_INI_PARSER.read(str(file)) if file.exists() else {}
+        return cls(path=file, data=data)

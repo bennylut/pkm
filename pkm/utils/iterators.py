@@ -80,3 +80,22 @@ def without_nones(it: Iterable[Optional[_T]]) -> Iterator[_T]:
     :return: iterator containing all the non-none items in `it`
     """
     return without(it, lambda x: x is None)
+
+
+def first(it: Iterable[_T], default: _T) -> _T:
+    """
+    return the first value in the given iterable (does not have to be subscriptable)
+    :param it: the iterator to run over
+    :param default: the value to return if `it` if empty
+    :return: the first value in `it` or `default` if `it` is empty
+    """
+    return next(iter(it), default)
+
+
+def first_or_none(it: Iterable[_T]) -> Optional[_T]:
+    """
+    same as calling `first(it, None)`
+    :param it: the iterator to run over
+    :return: the first value in `it` or None if `it` is empty
+    """
+    return first(it, None)

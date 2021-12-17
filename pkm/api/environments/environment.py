@@ -2,7 +2,7 @@ import hashlib
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Set, Dict, Optional, TYPE_CHECKING
+from typing import List, Set, Dict, Optional, TYPE_CHECKING, Literal
 
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
@@ -38,6 +38,13 @@ class Environment(ABC):
     def path(self) -> Path:
         """
         :return: the path for this environment root directory
+        """
+
+    @abstractmethod
+    def sysconfig_path(self, type: str) -> Optional[Path]:
+        """
+        :param type: the type of path to return (purelib, platlib, scripts, data)
+        :return: the path to site packages
         """
 
     @property

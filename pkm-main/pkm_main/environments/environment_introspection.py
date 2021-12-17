@@ -5,6 +5,7 @@ import platform
 import site
 import subprocess
 import sys
+import sysconfig
 from argparse import Namespace
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -19,10 +20,11 @@ parser.add_argument('output', type=str)
 
 class EnvironmentIntrospection:
     def __init__(self, compatibility_tags: List[str], installed_packages: Dict[str, str],
-                 python_version: str, env_markers: Dict[str, str]):
+                 python_version: str, env_markers: Dict[str, str], paths: Dict[str, str]):
         self.compatibility_tags = compatibility_tags
         self.installed_packages = installed_packages
         self.python_version = python_version
+        self.paths: Dict[str, str] = paths
 
         # as defined in https://www.python.org/dev/peps/pep-0508/
         self.env_markers = env_markers
@@ -42,6 +44,7 @@ class EnvironmentIntrospection:
         compatibility_tags = [str(tag) for tag in sys_tags(warn=True)]
         installed_packages = {d.project_name: str(d.version) for d in pkg_resources.working_set}
         python_version = platform.python_version()
+        paths = sysconfig.get_paths()
         markers = {
             "os_name": os.name,
             "sys_platform": sys.platform,
@@ -56,7 +59,7 @@ class EnvironmentIntrospection:
             "implementation_version": _compute_implementation_version()
         }
 
-        return cls(compatibility_tags, installed_packages, python_version, markers)
+        return cls(compatibility_tags, installed_packages, python_version, markers, paths)
 
     @classmethod
     def remote(cls, interpreter_path: Path) -> "EnvironmentIntrospection":
