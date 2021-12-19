@@ -233,7 +233,7 @@ class VersionRange(VersionSpecifier):
     includes_max: bool = None
 
     def __post_init__(self):
-        assert self.min is None or self.max is None or self.min < self.max, 'min > max'
+        assert self.min is None or self.max is None or self.min <= self.max, f'min > max :: {self.min} > {self.max}'
 
         self.includes_max = self.includes_max if self.includes_max is not None else self.max is None
         self.includes_min = self.includes_min if self.includes_min is not None else self.min is None

@@ -99,3 +99,4 @@ def first_or_none(it: Iterable[_T]) -> Optional[_T]:
     :return: the first value in `it` or None if `it` is empty
     """
     return first(it, None)
+

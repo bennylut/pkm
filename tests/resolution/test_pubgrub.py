@@ -1,7 +1,7 @@
 from typing import Callable
 from unittest import TestCase
 
-from pkm_main.versions.pubgrub import *
+from pkm.resolution.pubgrub import *
 
 
 class TestSolver(TestCase):

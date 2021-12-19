@@ -168,3 +168,8 @@ class StandardVersion(Version):
 
         return ((v1 if v1rel == v1.release else replace(v1, release=v1rel)),
                 (v2 if v2rel == v2.release else replace(v2, release=v2rel)))
+
+    @classmethod
+    def parse(cls, txt: str) -> "StandardVersion":
+        from version_parser import VersionParser
+        return VersionParser(txt.lower()).read_version()

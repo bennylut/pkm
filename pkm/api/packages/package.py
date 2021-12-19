@@ -1,10 +1,12 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment
 from pkm.api.versions.version import Version
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 @dataclass(frozen=True)
@@ -39,7 +41,13 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def dependencies(self, environment: Environment, extras: Optional[List[str]] = None) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
+        """
+        :param environment: the environment that the dependencies should be calculated against
+        :return: a list of all the package dependencies (for any environment and extras)
+        """
+
+    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List[Dependency]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :param extras: the extras to include in the dependencies calculation
@@ -47,18 +55,21 @@ class Package(ABC):
         [environment] with the given [extras] 
         """
 
+        return [d for d in self._all_dependencies(environment) if d.is_applicable_for(environment, extras)]
+
     @abstractmethod
-    def is_compatible_with(self, env: Environment):
+    def is_compatible_with(self, env: "Environment") -> bool:
         """
         :param env: the environment to check 
         :return: true if this package can be installed given its dependencies into the given environment 
         """
 
     @abstractmethod
-    def install_to(self, env: Environment):
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
         """
         installs this package into the given [env]
         :param env: the environment to install this package into
+        :param user_request: if this package was requested by the user, supplying this field will mark the installation as user request
         """
 
     def __str__(self):
@@ -66,3 +77,4 @@ class Package(ABC):
 
     def __repr__(self):
         return f"Package({str(self)})"
+
