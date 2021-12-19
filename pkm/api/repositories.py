@@ -2,7 +2,8 @@ from abc import abstractmethod, ABC
 from io import UnsupportedOperation
 from typing import List, Union
 
-from pkm.api.packages import Dependency, Package
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package import Package
 from pkm.api.versions.version_specifiers import AnyVersion
 from pkm.utils.iterators import partition
 
@@ -20,7 +21,7 @@ class Repository(ABC):
     def accepts(self, dependency: Dependency) -> bool:
         """
         :param dependency: the dependency to check 
-        :return: true if this repository knows how to handle the given [dependency]. 
+        :return: true if this repository knows how to handle the given `dependency`.
                  e.g., pypi does not know how to handle local file dependency
         """
         ...
@@ -30,10 +31,10 @@ class Repository(ABC):
         """
         IMPLEMENTATION NOTICE:
             do not try to filter pre-releases,
-            it is handled for you in the [match] method that call this one.
+            it is handled for you in the `match` method that call this one.
 
         :param dependency: the dependency to match
-        :return: list of all the packages in this repository that match the given [dependency],
+        :return: list of all the packages in this repository that match the given `dependency`,
         """
 
     def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
@@ -44,14 +45,15 @@ class Repository(ABC):
               pre-release or all the versions matching the dependency are pre-releases.
               Otherwise, will output all pre-releases matching the dependency
                                      
-        :return: list of all the packages in this repository that match the given [dependency]
+        :return: list of all the packages in this repository that match the given `dependency`
         """
 
         if isinstance(dependency, str):
             dependency = Dependency.parse_pep508(dependency)
 
         matched = self._do_match(dependency)
-        return self._filter_prereleases(matched, dependency) if check_prereleases else matched
+        filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched
+        return self._sort_by_priority(dependency, filtered)
 
     def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
         if dependency.version_spec.allows_pre_or_dev_releases():
@@ -59,12 +61,41 @@ class Repository(ABC):
         pre_release, rest = partition(packages, lambda it: it.version.is_pre_or_dev_release())
         return rest or packages
 
+    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+        """
+        sorts `matches` by the required priority
+        :param dependency: the dependency that resulted in the given `packages`
+        :param packages: the packages that were the result `_do_match(dependency)`
+        :return: sorted packages by priority (first is more important than last)
+        """
+        packages.sort(key=lambda it: it.version, reverse=True)
+        return packages
+
     def list(self, package_name: str) -> List[Package]:
         """
         :param package_name: the package to match 
-        :return: list of all the packages that match the given [package_name]
+        :return: list of all the packages that match the given `package_name`
         """
         dependency = Dependency(package_name, AnyVersion)
         if self.accepts(dependency):
             return self.match(dependency)
         raise UnsupportedOperation(f"Repository ({self.name}) does not support listing")
+
+
+class DelegatingRepository(Repository):
+
+    def __init__(self, repo: Repository):
+        super().__init__(repo.name)
+        self._repo = repo
+
+    def accepts(self, dependency: Dependency) -> bool:
+        return self._repo.accepts(dependency)
+
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        return self._repo._do_match(dependency)
+
+    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+        return self._repo._sort_by_priority(dependency, packages)
+
+    def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
+        return self._repo._filter_prereleases(packages, dependency)

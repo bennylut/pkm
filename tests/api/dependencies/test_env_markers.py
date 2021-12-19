@@ -1,11 +1,9 @@
 from pathlib import Path
-from typing import Dict, Set, List
+from typing import Dict
 from unittest import TestCase
 
 from pkm.api.dependencies.env_markers import EnvironmentMarker
-from pkm.api.environments.environment import Environment
-from pkm.api.packages import PackageDescriptor
-from pkm.api.versions.version import Version
+from pkm.api.environments.environment import UninitializedEnvironment
 
 
 class TestEnvMarkers(TestCase):
@@ -63,28 +61,12 @@ def assert_with_env(marker: str, expected: bool, **env_markers):
         f"expecting {marker} to be evaluated to {expected} for env: {env_markers}, but it was not"
 
 
-class _MockEnvironment(Environment):
+class _MockEnvironment(UninitializedEnvironment):
 
     def __init__(self, markers: Dict[str, str]):
+        super().__init__(Path("."))
         self._markers = markers
 
     @property
     def markers(self) -> Dict[str, str]:
         return self._markers
-
-    @property
-    def path(self) -> Path: raise NotImplemented()
-
-    @property
-    def interpreter_version(self) -> Version: raise NotImplemented()
-
-    @property
-    def interpreter_path(self) -> Path: raise NotImplemented()
-
-    @property
-    def compatibility_tags(self) -> Set[str]: raise NotImplemented()
-
-    @property
-    def installed_packages(self) -> List["PackageDescriptor"]: raise NotImplemented()
-
-    def reload(self): raise NotImplemented()

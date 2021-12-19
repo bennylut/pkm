@@ -74,9 +74,8 @@ class ManagedEnvironment(ABC):
                  (or none if it is a general environment / the application is not yet installed)
         """
 
-        app = self.application
-        if app:
-            return self.environment.installed_version(app.package_name)
+        if app := self.application:
+            return self.environment.site_packages.installed_package(app.package_name).version
         return None
 
     def is_application(self) -> bool:

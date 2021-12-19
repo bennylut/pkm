@@ -2,7 +2,8 @@ import configparser
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
-from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable
+from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
+    MutableMapping
 
 from pkm.config import toml
 
@@ -101,12 +102,12 @@ class Configuration(ABC):
     def _set(self, path: Sequence[str], value: Any):
         r = self._data
         for p in path[:-1]:
-            if not isinstance(r, Mapping):
+            if not isinstance(r, MutableMapping):
                 raise ValueError(f"path: {path} passing through a terminal value {r} at '{p}'")
 
             rp = r.get(p)
             if rp is None:
-                r = r[p] = {}
+                r[p] = r = {}
             else:
                 r = rp
 
@@ -114,7 +115,6 @@ class Configuration(ABC):
 
     def save(self) -> bool:
         self._do_save()
-        self._on_modification()
         return True
 
     def with_parent(self, new_parent: Optional["Configuration"]) -> "Configuration":
@@ -126,8 +126,51 @@ class Configuration(ABC):
     def _do_save(self):
         ...
 
-    def _on_modification(self):
-        ...
+
+_T = TypeVar('_T')
+
+
+class _ComputedConfigValue:
+
+    def __init__(self, func: Callable[[Any], _T], dependency_keys: Tuple[str, ...]):
+        self._func = func
+        self._dependency_keys = tuple(toml.key2path(key) for key in dependency_keys)
+        self.__doc__ = func.__doc__
+
+    def __set_name__(self, owner: Type, name):
+        if not issubclass(owner, Configuration):
+            raise ValueError(
+                "computed_config_value decorator can only be applied on methods of configuration derivatives")
+        self._attr = f"__computed_{name}"
+        self._stamp_attr = f"__computed_{name}_stamp"
+        self._configuration = owner
+
+    def __get__(self, instance, owner) -> _T:
+        if instance is None:
+            return self
+
+        new_stamp = tuple(id(instance[d]) for d in self._dependency_keys)
+        try:
+            old_stamp = getattr(instance, self._stamp_attr)
+            if old_stamp == new_stamp:
+                return getattr(instance, self._attr)
+        except AttributeError:
+            ...
+
+        new_value = self._func(instance)
+        setattr(instance, self._attr, new_value)
+        setattr(instance, self._stamp_attr, new_stamp)
+        return new_value
+
+
+_P = TypeVar("_P", bound=Callable[[Any], Any])
+
+
+def computed_based_on(*based_on_keys: str) -> Callable[[_P], _P]:
+    def _computed(func: _P) -> _P:
+        return cast(_P, _ComputedConfigValue(func, based_on_keys))
+
+    return _computed
 
 
 class FileConfiguration(Configuration, ABC):

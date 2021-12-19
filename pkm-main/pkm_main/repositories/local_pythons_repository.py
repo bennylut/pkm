@@ -6,15 +6,15 @@ from pathlib import Path
 from typing import List, Optional, Set
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment
-from pkm.api.packages import Package, PackageDescriptor
+from pkm.api.environments.environment import Environment, UninitializedEnvironment
+from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories import Repository
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
 
 from pkm_main.environments.interpreter_introspection import InterpreterIntrospection
-from pkm_main.environments.virtual_environment import UninitializedVirtualEnvironment, VirtualEnvironment
+from pkm_main.environments.virtual_environment import VirtualEnvironment
 
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
@@ -77,16 +77,16 @@ class LocalInterpreterPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def dependencies(self, environment: Environment, extras: Optional[List[str]] = None) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         return []
 
     def is_compatible_with(self, env: Environment):
-        return isinstance(env, UninitializedVirtualEnvironment)
+        return isinstance(env, UninitializedEnvironment)
 
     def to_environment(self) -> Environment:
         return VirtualEnvironment(path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: Environment):
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
         from virtualenv import cli_run
 
         args = [

@@ -2,8 +2,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.packages import PackageDescriptor
+from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.repositories import Repository, DelegatingRepository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.commons import unone
 from pkm.utils.iterators import groupby
@@ -65,8 +67,8 @@ class PackagesLock:
             for lock in locks_by_name
             if lock.env_markers_hash != env_hash]
 
-        for pd in env.installed_packages:
-            new_locks.append(_LockedVersion(env_hash, pd))
+        for package in env.site_packages.installed_packages():
+            new_locks.append(_LockedVersion(env_hash, package.descriptor))
 
         self._locked_packages = groupby(new_locks, lambda it: it.dependency.package_name)
 
@@ -96,3 +98,17 @@ class PackagesLock:
         configuration = TomlFileConfiguration.load(lock_file)
         locked_packages = [_LockedVersion.read(l) for l in configuration['lock']]
         return PackagesLock(locked_packages, lock_file)
+
+
+class LockPrioritizingRepository(DelegatingRepository):
+
+    def __init__(self, repo: Repository, lock: PackagesLock, env: Environment):
+        super().__init__(repo)
+        self._lock = lock
+        self._env = env
+
+    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+        packages = self._repo._sort_by_priority(dependency, packages)
+        locked_versions = {l.version for l in self._lock.locked_versions(self._env, dependency.package_name)}
+        packages.sort(key=lambda it: 0 if it.version in locked_versions else 1)
+        return packages

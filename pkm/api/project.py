@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Literal, Sequence
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages import Package
+from pkm.api.packages.package import Package
 from pkm.api.repositories import Repository
 
 

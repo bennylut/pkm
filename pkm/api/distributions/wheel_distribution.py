@@ -9,9 +9,10 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Callable, Dict, Set
+from typing import List, Callable, Dict, Set, Optional
 from zipfile import ZipFile
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import FileConfiguration
@@ -51,12 +52,12 @@ class WheelFileConfiguration(FileConfiguration):
 
 
 @dataclass
-class _FileCopyCommand:
+class _FileMoveCommand:
     source: Path
     target: Path
     is_script: bool
 
-    def copy(self, env: Environment):
+    def run(self, env: Environment):
         if self.is_script:
             with self.source.open('rb') as script_fd, self.target.open('wb+') as target_fd:
 
@@ -74,20 +75,20 @@ class _FileCopyCommand:
             os.chmod(self.target, st.st_mode | stat.S_IEXEC)
 
         else:
-            shutil.copy(self.source, self.target)
+            shutil.move(self.source, self.target)
 
     @staticmethod
-    def run_all(commands: List["_FileCopyCommand"], env: Environment):
+    def run_all(commands: List["_FileMoveCommand"], env: Environment):
         directories_to_create: Set[Path] = {c.target.parent for c in commands}
         for d in directories_to_create:
             d.mkdir(parents=True, exist_ok=True)
 
         for c in commands:
-            c.copy(env)
+            c.run(env)
 
     @classmethod
     def relocate(cls, source_dir: Path, target_dir: Path, scripts: bool = False,
-                 accept: Callable[[Path], bool] = lambda: True) -> List["_FileCopyCommand"]:
+                 accept: Callable[[Path], bool] = lambda _: True) -> List["_FileMoveCommand"]:
         result = []
         for file in source_dir.iterdir():
             if not accept(file):
@@ -95,21 +96,24 @@ class _FileCopyCommand:
             if file.is_dir():
                 result.extend(cls.relocate(file, target_dir / file.name))
             else:
-                result.append(_FileCopyCommand(file, target_dir / file.name, scripts))
+                result.append(_FileMoveCommand(file, target_dir / file.name, scripts))
 
         return result
 
 
-class WheelInstaller:
-    """
-    Implementation of wheel installer based on PEP427
-    as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
-    """
+class WheelDistribution:
 
-    def install(self, env: Environment, wheel: Path):
+    def __init__(self, wheel: Path):
+        self._wheel = wheel
+
+    def install(self, env: Environment, user_request: Optional[Dependency] = None):
+        """
+        Implementation of wheel installer based on PEP427
+        as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
+        """
         with TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            with ZipFile(wheel) as zip:
+            with ZipFile(self._wheel) as zip:
                 zip.extractall(tmp_path)
 
             dist_info = _find_dist_info(tmp_path)
@@ -124,7 +128,7 @@ class WheelInstaller:
             if not records_file.exists():
                 raise InstallationException("Unsigned wheel (no RECORD file found in dist-info)")
 
-            copy_commands: List[_FileCopyCommand] = []
+            copy_commands: List[_FileMoveCommand] = []
             for d in tmp_path.iterdir():
                 if d.is_dir():
                     if d.suffix == '.data':
@@ -133,10 +137,12 @@ class WheelInstaller:
                             if not target_path:
                                 raise InstallationException(
                                     f'wheel contains data entry with unsupported key: {k.name}')
-                            copy_commands.extend(_FileCopyCommand.relocate(k, target_path, k.name == 'scripts'))
+                            copy_commands.extend(_FileMoveCommand.relocate(k, target_path, k.name == 'scripts'))
                     else:
                         copy_commands.extend(
-                            _FileCopyCommand.relocate(d, site_packages / d.name, accept=lambda it: it != records_file))
+                            _FileMoveCommand.relocate(d, site_packages / d.name, accept=lambda it: it != records_file))
+                else:
+                    copy_commands.append(_FileMoveCommand(d, site_packages / d.name, False))
 
             # check that there are no file collisions
             for copy_command in copy_commands:
@@ -145,7 +151,7 @@ class WheelInstaller:
                         f"package files conflicts with other package files: {copy_command.target} already exist")
 
             # check that the records hash match
-            files_left_to_check: Dict[str, _FileCopyCommand] = {
+            files_left_to_check: Dict[str, _FileMoveCommand] = {
                 str(c.source.relative_to(tmp_path)): c for c in copy_commands}
             target_hashes: Dict[Path, HashSignature] = {}
 
@@ -165,14 +171,21 @@ class WheelInstaller:
                     f"e.g., {first_or_none(files_left_to_check.keys())}")
 
             # everything is good - start copying...
-            _FileCopyCommand.run_all(copy_commands, env)
+            _FileMoveCommand.run_all(copy_commands, env)
 
             # build the new records file
-            new_record_file = site_packages / dist_info.name / "RECORD"
+            new_dist_info = site_packages / dist_info.name
+            new_record_file = new_dist_info / "RECORD"
             new_record_file.parent.mkdir(parents=True, exist_ok=True)
             with new_record_file.open('w+', newline='') as new_record_fd:
                 csv.writer(new_record_fd).writerows(
-                    (f"{target.relative_to(site_packages)}", str(sig), target.stat().st_size) for target, sig in target_hashes.items())
+                    (f"{target.relative_to(site_packages)}", str(sig), target.stat().st_size) for target, sig in
+                    target_hashes.items())
+
+            # mark the installer and the requested flag
+            (new_dist_info / "INSTALLER").write_text("pkm")
+            if user_request:
+                (new_dist_info / "REQUESTED").write_text(str(user_request))
 
             # and finally, compile py to pyc
             with warnings.catch_warnings():

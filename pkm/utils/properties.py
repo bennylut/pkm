@@ -12,6 +12,7 @@ class cached_property:
         self._func = func
         self._attr = None
         self.__doc__ = func.__doc__
+        # TODO: mutation lock should be instance dependant and not global..
         self._mutation_lock = Lock()
 
     def __set_name__(self, owner, name):
