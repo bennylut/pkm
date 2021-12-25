@@ -1,97 +1,95 @@
 import hashlib
-from abc import abstractmethod, ABC
-from dataclasses import dataclass
 from io import UnsupportedOperation
 from pathlib import Path
-from typing import List, Set, Dict, Optional, Union
+from typing import List, Set, Dict, Optional, Union, TypeVar
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
 from pkm.api.repositories import Repository, DelegatingRepository
-from pkm.api.versions.version import Version, NamedVersion
+from pkm.api.versions.version import NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
-from pkm.utils.properties import cached_property
+from pkm.utils.commons import SupportsLessThanEq
+from pkm.utils.iterators import find_first
+from pkm.utils.properties import cached_property, clear_cached_properties
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
+_T = TypeVar("_T")
 
 
-@dataclass(frozen=True)
-class CompatibilityTag:
-    interpreter: str
-    abi: str
-    platform: str
+class Environment:
 
-    @classmethod
-    def parse_tags(cls, tag: str) -> "Set[CompatibilityTag]":
-        tags = set()
-        interpreters, abis, platforms = tag.split("-")
-        for interpreter in interpreters.split("."):
-            for abi in abis.split("."):
-                for platform_ in platforms.split("."):
-                    tags.add(cls(interpreter, abi, platform_))
-        return tags
-
-    def __str__(self):
-        return f'{self.interpreter}-{self.abi}-{self.platform}'
-
-
-class Environment(ABC):
+    def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, readonly: bool = False):
+        self._env_path = env_path
+        self._interpreter_path: Path = interpreter_path or _find_interpreter(env_path)
+        if not self._interpreter_path:
+            raise ValueError("could not determine the environment interpreter path")
+        self._readonly = readonly
 
     @property
-    @abstractmethod
     def path(self) -> Path:
         """
         :return: the path for this environment root directory
         """
+        return self._env_path
 
-    @abstractmethod
-    def sysconfig_path(self, type: str) -> Optional[Path]:
-        """
-        :param type: the type of path to return (purelib, platlib, scripts, data)
-        :return: the path to site packages
-        """
+    @cached_property
+    def _introspection(self) -> EnvironmentIntrospection:
+        if self._readonly:
+            return EnvironmentIntrospection.compute(self._interpreter_path)
+        return EnvironmentIntrospection.load_or_compute(
+            self._env_path / 'etc/pkm/env_introspection.json', self._interpreter_path, True)
 
     @property
     def name(self) -> str:
         return self.path.name
 
+    @property
+    def paths(self) -> Dict[str, str]:
+        """
+        :return: environment paths as returned by `sysconfig.getpaths()`
+        """
+        return self._introspection.paths
+
     def __repr__(self):
         return f"Environment({self.path})"
 
-    @property
-    @abstractmethod
-    def interpreter_version(self) -> Version:
+    @cached_property
+    def interpreter_version(self) -> StandardVersion:
         """
         :return: the version of the environment's python interpreter
         """
+        return StandardVersion(release=tuple(self._introspection.interpreter_version))
 
-    @property
-    @abstractmethod
+    @cached_property
     def interpreter_path(self) -> Path:
         """
         :return: the path for the environment's python interpreter
         """
+        return self._interpreter_path
 
-    @property
-    @abstractmethod
-    def compatibility_tags(self) -> Set[str]:
+    def compatibility_tag_score(self, tag: str) -> Optional[SupportsLessThanEq]:
         """
-        :return: pep425 compatibility tags
+        compute the compatibility score for the given pep425 compatibility tag
+        :param tag: the pep425 compatibility tag
+        :return: an opaque score object that support __le__ and __eq__ operations (read: comparable)
+                 which can be treated as a score (read: higher is better)
         """
+        return self._introspection.compatibility_score(tag)
 
-    @property
-    @abstractmethod
+    @cached_property
     def markers(self) -> Dict[str, str]:
         """
         :return: pep508 environment markers  
         """
+        return self._introspection.compute_markers()
 
     @cached_property
     def site_packages(self) -> SitePackages:
-        return SitePackages({self.sysconfig_path('platlib'), self.sysconfig_path('purelib')})
+        return self._introspection.create_site_packages(False)
 
     @cached_property
     def markers_hash(self) -> str:
@@ -102,11 +100,11 @@ class Environment(ABC):
         marker_str = ';'.join(f"{k}={v}" for k, v in sorted_markers)
         return hashlib.md5(marker_str).hexdigest()
 
-    @abstractmethod
     def reload(self):
         """
         reload volatile information about this environment (like the installed packages)
         """
+        clear_cached_properties(self)
 
     def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True):
         """
@@ -135,8 +133,9 @@ class Environment(ABC):
 
         self.reload()
 
-        for package, dep in new_deps.items():
-            self.site_packages.installed_package(package).mark_user_requested(dep)
+        if user_requested:
+            for package, dep in new_deps.items():
+                self.site_packages.installed_package(package).mark_user_requested(dep)
 
     def remove(self, packages: _PACKAGE_NAMES_T) -> Set[str]:
         """
@@ -185,6 +184,19 @@ class Environment(ABC):
 
         return resolve_dependencies(dependency, self, repository)
 
+    @classmethod
+    def create(cls, path: Path, python: Package):
+        ue = UninitializedEnvironment(path)
+        if not python.is_compatible_with(ue):
+            raise UnsupportedOperation("incompatible interpreter")
+
+        python.install_to(ue)
+        return Environment(path)
+
+    @staticmethod
+    def is_valid(path: Path) -> bool:
+        return _find_interpreter(path) is not None
+
 
 def _sync_package(env: Environment, packages: List[Package]):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
@@ -209,33 +221,12 @@ class UninitializedEnvironment(Environment):
     """
 
     def __init__(self, path: Path):
+        super().__init__(path, path / '__uninitialized_interpreter__')
         self._path = path
 
     @property
-    def path(self) -> Path:
-        return self._path
-
-    @property
-    def interpreter_version(self) -> Version:
+    def _introspection(self) -> EnvironmentIntrospection:
         raise UnsupportedOperation('uninitialized environment')
-
-    @property
-    def interpreter_path(self) -> Path:
-        raise UnsupportedOperation('uninitialized environment')
-
-    def install(self, dependency: Dependency, repository: Repository, requested: bool = True):
-        raise UnsupportedOperation('uninitialized environment')
-
-    @property
-    def compatibility_tags(self) -> Set[str]:
-        return set()
-
-    def sysconfig_path(self, type: str) -> Optional[Path]:
-        return None
-
-    @property
-    def markers(self) -> Dict[str, str]:
-        return dict()
 
     def reload(self):
         pass
@@ -311,3 +302,7 @@ def _coerce_package_names(package_names: _PACKAGE_NAMES_T) -> List[str]:
     if isinstance(package_names, str):
         return [package_names]
     return package_names
+
+
+def _find_interpreter(env_root: Path) -> Optional[Path]:
+    return find_first((env_root / "bin/python", env_root / "bin/python.exe"), lambda it: it.exists())

@@ -67,9 +67,9 @@ class PEP508DependencyParser(SimpleParser):
         extras: List[str] = []
 
         while self.is_not_empty():
-            self.read_ws()
+            self.match_ws()
             extras.append(self._read_identifier())
-            self.read_ws()
+            self.match_ws()
             if not self.match(','):
                 break
 
@@ -89,25 +89,25 @@ class PEP508DependencyParser(SimpleParser):
         return self.subparser(PEP508EnvMarkerParser).read_marker()
 
     def read_dependency(self) -> Dependency:
-        self.read_ws()
+        self.match_ws()
         package_name = self._read_identifier()
-        self.read_ws()
+        self.match_ws()
 
         extras: Optional[List[str]] = None
         if self.peek() == '[':
             extras = self._read_extras()
-            self.read_ws()
+            self.match_ws()
 
         url: Optional[str] = None
         if self.match('@'):
-            self.read_ws()
+            self.match_ws()
             url = self.read_url()
-            self.read_ws()
+            self.match_ws()
 
         version_spec: Optional[VersionSpecifier] = None if url else AnyVersion
         if not url and self.peek() != ';':
             version_spec = self._read_version_spec()
-            self.read_ws()
+            self.match_ws()
 
         env_marker: Optional[EnvironmentMarker] = None
         if self.match(";", '') and self.is_not_empty():

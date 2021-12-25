@@ -385,7 +385,7 @@ class _Reader(SimpleParser):
     def read_non_data(self, allow_new_lines: bool = True) -> str:
         result = ''
         while self.is_not_empty():
-            result += self.read_ws(allow_new_lines)
+            result += self.match_ws(allow_new_lines)
             n = self.peek()
             if n == '#':  # comment
                 result += self.until_match('\n')
@@ -463,12 +463,12 @@ class _Reader(SimpleParser):
         table_list_key = False
 
         if table_key:
-            self.read_ws(False)
+            self.match_ws(False)
             table_list_key = self.match('[')
 
         parts = []
         while self.is_not_empty():
-            self.read_ws(False)
+            self.match_ws(False)
             n = self.peek()
             if n in '"\'':
                 parts.append(self.read_str())
@@ -478,7 +478,7 @@ class _Reader(SimpleParser):
                 self.raise_err('non-key character')
 
             pp = self.position
-            self.read_ws(False)
+            self.match_ws(False)
             if not self.match('.'):
                 self.position = pp
                 break
@@ -489,7 +489,7 @@ class _Reader(SimpleParser):
             self.match_or_err(']', 'expecting table key termination')
 
         if table_list_key:
-            self.read_ws()
+            self.match_ws()
             self.match_or_err(']', 'expecting table list key termination')
             key = self.style.lastify(key)
 

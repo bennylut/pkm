@@ -8,8 +8,7 @@ from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Calla
 from pkm.config import toml
 
 
-class Configuration(ABC):
-    DEFAULT_SUBDIR = "etc/pkm"
+class Configuration:
 
     def __init__(
             self, *,
@@ -27,30 +26,8 @@ class Configuration(ABC):
             r = self._parent[item]
         return r
 
-    def __setitem__(self, key: Sequence[str], value: Any):
-        if isinstance(key, str):
-            key = toml.key2path(key)
-
-        self._set(key, value)
-
-    def __delitem__(self, key: Sequence[str]):
-        if isinstance(key, str):
-            key = toml.key2path(key)
-
-        self._del(key)
-
     def __contains__(self, item: Sequence[str]):
         return self[item] is not None
-
-    def get_or_put(self, key: Sequence[str], value_computer: Callable[[], Any]) -> Any:
-        if isinstance(key, str):
-            key = toml.key2path(key)
-
-        result = self[key]
-        if result is None:
-            self[key] = result = value_computer()
-
-        return result
 
     def _get(self, path: Sequence[str]) -> Any:
         r = self._data
@@ -63,20 +40,6 @@ class Configuration(ABC):
             r = r.get(p)
 
         return r
-
-    def _del(self, path: Sequence[str]):
-        r = self._data
-        for p in path[:-1]:
-            if r is None:
-                return
-
-            if not isinstance(r, Mapping):
-                raise ValueError(f"path: {path} passing through a terminal value {r} at '{p}'")
-
-            r = r.get(p)
-
-        if r is not None:
-            del r[path[-1]]
 
     def _subs_chain(self) -> Iterator["Configuration"]:
         result = []
@@ -99,6 +62,33 @@ class Configuration(ABC):
 
         return result
 
+    def with_parent(self, new_parent: Optional["Configuration"]) -> "Configuration":
+        cp = copy(self)
+        cp._parent = new_parent
+        return cp
+
+
+class MutableConfiguration(Configuration, ABC):
+    def __setitem__(self, key: Sequence[str], value: Any):
+        if isinstance(key, str):
+            key = toml.key2path(key)
+
+        self._set(key, value)
+
+    def __delitem__(self, key: Sequence[str]):
+        if isinstance(key, str):
+            key = toml.key2path(key)
+
+        self._del(key)
+
+    @abstractmethod
+    def _do_save(self):
+        ...
+
+    def save(self) -> bool:
+        self._do_save()
+        return True
+
     def _set(self, path: Sequence[str], value: Any):
         r = self._data
         for p in path[:-1]:
@@ -113,22 +103,32 @@ class Configuration(ABC):
 
         r[path[-1]] = value
 
-    def save(self) -> bool:
-        self._do_save()
-        return True
+    def get_or_put(self, key: Sequence[str], value_computer: Callable[[], Any]) -> Any:
+        if isinstance(key, str):
+            key = toml.key2path(key)
 
-    def with_parent(self, new_parent: Optional["Configuration"]) -> "Configuration":
-        cp = copy(self)
-        cp._parent = new_parent
-        return cp
+        result = self[key]
+        if result is None:
+            self[key] = result = value_computer()
 
-    @abstractmethod
-    def _do_save(self):
-        ...
+        return result
+
+    def _del(self, path: Sequence[str]):
+        r = self._data
+        for p in path[:-1]:
+            if r is None:
+                return
+
+            if not isinstance(r, Mapping):
+                raise ValueError(f"path: {path} passing through a terminal value {r} at '{p}'")
+
+            r = r.get(p)
+
+        if r is not None:
+            del r[path[-1]]
 
 
 _T = TypeVar('_T')
-
 
 class _ComputedConfigValue:
 
@@ -173,7 +173,7 @@ def computed_based_on(*based_on_keys: str) -> Callable[[_P], _P]:
     return _computed
 
 
-class FileConfiguration(Configuration, ABC):
+class FileConfiguration(MutableConfiguration, ABC):
     def __init__(self, *, path: Path, parent: Optional["Configuration"] = None, data: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent, data=data)
         self._path = path
@@ -207,7 +207,7 @@ class TomlFileConfiguration(FileConfiguration):
         return cls(path=file, parent=parent, data=data)
 
 
-class InMemConfiguration(Configuration):
+class InMemConfiguration(MutableConfiguration):
     def _do_save(self):
         pass
 
