@@ -121,8 +121,7 @@ class WheelDistribution:
             wheel_file = WheelFileConfiguration.load(dist_info / 'WHEEL')
             wheel_file.validate_supported_version()
 
-            site_packages = env.sysconfig_path(
-                'purelib' if wheel_file['Root-Is-Purelib'] == 'true' else 'platlib')
+            site_packages = Path(env.paths['purelib' if wheel_file['Root-Is-Purelib'] == 'true' else 'platlib'])
 
             records_file = dist_info / "RECORD"
             if not records_file.exists():
@@ -133,11 +132,11 @@ class WheelDistribution:
                 if d.is_dir():
                     if d.suffix == '.data':
                         for k in d.iterdir():
-                            target_path = env.sysconfig_path(k.name)
+                            target_path = env.paths.get(k.name)
                             if not target_path:
                                 raise InstallationException(
                                     f'wheel contains data entry with unsupported key: {k.name}')
-                            copy_commands.extend(_FileMoveCommand.relocate(k, target_path, k.name == 'scripts'))
+                            copy_commands.extend(_FileMoveCommand.relocate(k, Path(target_path), k.name == 'scripts'))
                     else:
                         copy_commands.extend(
                             _FileMoveCommand.relocate(d, site_packages / d.name, accept=lambda it: it != records_file))

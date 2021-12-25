@@ -14,7 +14,6 @@ from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
 
 from pkm_main.environments.interpreter_introspection import InterpreterIntrospection
-from pkm_main.environments.virtual_environment import VirtualEnvironment
 
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
@@ -84,7 +83,7 @@ class LocalInterpreterPackage(Package):
         return isinstance(env, UninitializedEnvironment)
 
     def to_environment(self) -> Environment:
-        return VirtualEnvironment(path=self._interpreter.parent, interpreter_path=self._interpreter)
+        return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
     def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
         from virtualenv import cli_run

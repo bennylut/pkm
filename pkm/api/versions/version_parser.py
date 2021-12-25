@@ -25,7 +25,7 @@ _PRE_RELEASE_TYPE_NORMALIZER = {
 class VersionParser(SimpleParser):
 
     def read_version(self) -> StandardVersion:
-        self.read_ws()
+        self.match_ws()
 
         self.match('v')
 
@@ -68,26 +68,26 @@ class VersionParser(SimpleParser):
         if self.peek_prev() == '.':
             self.position -= 1
 
-        self.read_ws()
+        self.match_ws()
 
         return StandardVersion(release=tuple(release), epoch=epoch, pre_release=pre_release, post_release=post_release,
                        dev_release=dev_release, local_label=local_label)
 
     # noinspection PyShadowingBuiltins
     def _read_single_specifier(self) -> VersionSpecifier:
-        self.read_ws()
+        self.match_ws()
 
         if self.match('*'):
             return AnyVersion
 
         if self.match('==='):
-            self.read_ws()
+            self.match_ws()
             version_str = self.until(lambda i, t: t[i].isspace() or t[i] == ',')
             return SpecificVersion(NamedVersion(version_str))
 
         exclusion_inclusion = self.match_any('==', '!=')
         if exclusion_inclusion:
-            self.read_ws()
+            self.match_ws()
             version = self.read_version()
             if self.match('.*'):
                 result = VersionRange(
@@ -104,7 +104,7 @@ class VersionParser(SimpleParser):
             return result
 
         if self.match('~='):
-            self.read_ws()
+            self.match_ws()
             version = self.read_version()
 
             if len(version.release) == 1:
@@ -119,7 +119,7 @@ class VersionParser(SimpleParser):
 
         comparison = self.match_any('>=', '>', '<=', '<')
         if comparison:
-            self.read_ws()
+            self.match_ws()
             version = SpecificVersion(self.read_version())
             min, max, imin, imax = None, None, False, False
 
@@ -133,13 +133,13 @@ class VersionParser(SimpleParser):
         self.raise_err('unknown operator')
 
     def read_specifier(self):
-        self.read_ws()
+        self.match_ws()
         paren = self.match('(')
 
         specifier = AnyVersion
         while self.is_not_empty():
             specifier = specifier.intersect(self._read_single_specifier())
-            self.read_ws()
+            self.match_ws()
             if not self.match(',') and self.is_not_empty():
                 if not paren or self.match(')'):
                     break

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional, Literal
-
 from dataclasses import dataclass, replace
+from typing import Tuple, Optional, Literal
 
 
 class Version(ABC):
@@ -101,7 +100,8 @@ class StandardVersion(Version):
 
         v1, v2 = StandardVersion.normalized(self, other)
         for s, o in zip(v1.release, v2.release):
-            if s == o: continue
+            if s == o:
+                continue
             return s < o
 
         if self.dev_release != other.dev_release:
@@ -171,5 +171,5 @@ class StandardVersion(Version):
 
     @classmethod
     def parse(cls, txt: str) -> "StandardVersion":
-        from version_parser import VersionParser
+        from pkm.api.versions.version_parser import VersionParser
         return VersionParser(txt.lower()).read_version()

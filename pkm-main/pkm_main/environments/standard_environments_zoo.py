@@ -15,7 +15,6 @@ from pkm.utils.commons import unone, unone_raise
 from pkm.utils.iterators import without_nones
 from pkm.utils.properties import cached_property, clear_cached_properties
 
-from pkm_main.environments.virtual_environment import VirtualEnvironment
 from pkm_main.repositories.local_pythons_repository import LocalPythonsRepository
 
 _PKM_ENV_INFO_SUFFIX = "etc/pkm/envinfo.toml"
@@ -47,7 +46,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
             raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
         interpreter.install_to(env)
-        return StandardManagedEnvironment(VirtualEnvironment(env.path))
+        return StandardManagedEnvironment(Environment(env.path))
 
     def create_application_environment(
             self, application: Union[str, Dependency], repository: Repository, name: Optional[str] = None,
@@ -66,7 +65,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
 
         for interpreter in interpreters:
             try:
-                env = VirtualEnvironment.create(path, interpreter)
+                env = Environment.create(path, interpreter)
                 env.install(application, repository, True)
             except (UnsupportedOperation, UnsolvableProblemException) as e:
                 shutil.rmtree(path)
@@ -80,7 +79,6 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
 
         raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
-
     def list(self, match: Literal['applications', 'general', 'all'] = 'all') -> Iterator["ManagedEnvironment"]:
         if match in ('applications', 'all'):
             yield from without_nones(self._try_load(p) for p in (self._path / 'apps').iterdir())
@@ -89,8 +87,8 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
             yield from without_nones(self._try_load(p) for p in (self._path / 'envs').iterdir())
 
     def _try_load(self, path: Path) -> Optional["ManagedEnvironment"]:
-        if VirtualEnvironment.is_valid(path):
-            return StandardManagedEnvironment(VirtualEnvironment(path))
+        if Environment.is_valid(path):
+            return StandardManagedEnvironment(Environment(path))
         return None
 
     def load_environment(self, name: str, application: bool) -> "ManagedEnvironment":

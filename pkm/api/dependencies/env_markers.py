@@ -94,7 +94,7 @@ class PEP508EnvMarkerParser(SimpleParser):
         return _op
 
     def _read_marker_expr(self) -> _MARKER_PRED_T:
-        self.read_ws()
+        self.match_ws()
 
         if self.match("("):
             result = self._read_marker_compound_expr()
@@ -102,18 +102,18 @@ class PEP508EnvMarkerParser(SimpleParser):
             return result
 
         left = self._read_marker_var()
-        self.read_ws()
+        self.match_ws()
         op = self._read_marker_op()
-        self.read_ws()
+        self.match_ws()
         right = self._read_marker_var()
 
         return lambda e, x: op(left(e, x), right(e, x))
 
     def _read_marker_compound_expr(self) -> _MARKER_PRED_T:
-        self.read_ws()
+        self.match_ws()
 
         expr: Optional[_MARKER_PRED_T] = None
-        self.read_ws()
+        self.match_ws()
 
         ors: List[_MARKER_PRED_T] = []
         while self.is_not_empty() and self.peek() not in ';)':
@@ -134,7 +134,7 @@ class PEP508EnvMarkerParser(SimpleParser):
             else:
                 expr = self._read_marker_expr()
 
-            self.read_ws()
+            self.match_ws()
 
         if ors:
             ors.append(expr)

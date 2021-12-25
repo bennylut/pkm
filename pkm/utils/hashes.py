@@ -17,7 +17,7 @@ class HashDigester(Protocol):
 
 
 @dataclass
-class HashSignature():
+class HashSignature:
     hash_type: str
     hash_value: str
 

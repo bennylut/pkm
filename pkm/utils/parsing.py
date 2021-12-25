@@ -1,3 +1,4 @@
+import os
 from typing import Optional, NoReturn, Callable, List, Type, TypeVar
 
 _URL_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%")
@@ -6,6 +7,13 @@ _T = TypeVar("_T")
 
 
 class SimpleParser:
+    """
+    simple base class for parsers.
+    functions semantics:
+        match* -> return the matched data, if nothing matched return the empty string
+        read* -> return a complex object resulted by parsing the content, if cannot create the requested object raise error
+    """
+
     def __init__(self, text: str, file_name: Optional[str] = None):
         self.text = text
         self.file_name = file_name
@@ -45,14 +53,6 @@ class SimpleParser:
         self.position = p
         return result
 
-    # def subparse(self, subparser_t: Type[_P], cmd: Callable[[_P], _T]) -> _T:
-    #     subparser: SimpleParser = subparser_t(text=self.text)
-    #     subparser.position = self.position
-    #
-    #     result = cmd(subparser)
-    #     self.position = subparser.position
-    #     return result
-
     def read_url(self, supported_schemas: Optional[List[str]] = None) -> str:
         p = self.position
 
@@ -69,7 +69,7 @@ class SimpleParser:
         p = self.position
         for i, substr in enumerate(substrs):
             if i != 0:
-                self.read_ws(False)
+                self.match_ws(False)
 
             if self.peek(len(substr)) != substr:
                 self.position = p
@@ -151,7 +151,18 @@ class SimpleParser:
     def __repr__(self):
         return str(self)
 
-    def read_ws(self, allow_new_lines: bool = True) -> str:
+    def match_line(self, include_line_end: bool = True) -> str:
+        result = self.until_match(os.linesep)
+        if include_line_end:
+            result += os.linesep
+            self.position += len(os.linesep)
+        return result
+
+    def read_blank_line(self, include_line_end: bool = True):
+        if content := self.match_line(include_line_end).strip():
+            self.raise_err(f'unexpected content: {content}')
+
+    def match_ws(self, allow_new_lines: bool = True) -> str:
         p = self.position
         while self.is_not_empty():
             n = self.peek()

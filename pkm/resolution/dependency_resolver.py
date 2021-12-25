@@ -63,7 +63,7 @@ class _PkmPackageInstallationProblem(Problem):
     def get_versions(self, package: str) -> List[Version]:
 
         package_name, extras = _decode_package_and_extras(package)
-        pacakges = self._repo.list(package_name)
+        pacakges = [p for p in self._repo.list(package_name) if p.is_compatible_with(self._env)]
 
         for package in pacakges:
             self.opened_packages[package.descriptor] = package

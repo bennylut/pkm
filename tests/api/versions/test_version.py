@@ -38,6 +38,7 @@ class TestVersion(TestCase):
         assert v123 < v200, '1.2.3 expected to be before 2.0.0'
         assert v123 < v2, '1.2.3 expected to be before 2'
         assert v2 == v200, '2 expected to be equals to 2.0.0'
+        assert StandardVersion.parse('3') == StandardVersion.parse('3.0'), '3.0 expected to be equals to 3'
 
 
 def assert_version(version: Version, expected_str: str) -> None:

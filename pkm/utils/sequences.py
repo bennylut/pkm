@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Iterable, Sequence, Optional
+from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any
 
 from pkm.utils.commons import SupportHashCode, SupportsLessThan
 
@@ -40,3 +40,13 @@ def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], SupportsLessThan]]) -
     return max(range(len(seq)), key=okey)
 
 
+def index_of_or_none(seq: Sequence[_T], value: Any) -> Optional[int]:
+    """
+    :param seq: the sequence to search in
+    :param value: the value to search for
+    :return: the index of `value` in `seq` or `None` if `value not in seq`
+    """
+    try:
+        return seq.index(value)
+    except ValueError:
+        return None
