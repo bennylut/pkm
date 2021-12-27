@@ -24,9 +24,7 @@ class Environment:
 
     def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, readonly: bool = False):
         self._env_path = env_path
-        self._interpreter_path: Path = interpreter_path or _find_interpreter(env_path)
-        if not self._interpreter_path:
-            raise ValueError("could not determine the environment interpreter path")
+        self._interpreter_path = interpreter_path
         self._readonly = readonly
 
     @property
@@ -39,9 +37,9 @@ class Environment:
     @cached_property
     def _introspection(self) -> EnvironmentIntrospection:
         if self._readonly:
-            return EnvironmentIntrospection.compute(self._interpreter_path)
+            return EnvironmentIntrospection.compute(self.interpreter_path)
         return EnvironmentIntrospection.load_or_compute(
-            self._env_path / 'etc/pkm/env_introspection.json', self._interpreter_path, True)
+            self._env_path / 'etc/pkm/env_introspection.json', self.interpreter_path, True)
 
     @property
     def name(self) -> str:
@@ -69,6 +67,10 @@ class Environment:
         """
         :return: the path for the environment's python interpreter
         """
+        if self._interpreter_path is None:
+            self._interpreter_path = _find_interpreter(self._env_path)
+            if not self._interpreter_path:
+                raise ValueError("could not determine the environment interpreter path")
         return self._interpreter_path
 
     def compatibility_tag_score(self, tag: str) -> Optional[SupportsLessThanEq]:
@@ -128,7 +130,7 @@ class Environment:
         user_request = _UserRequestPackage(list(all_deps.values()))
         installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request)
 
-        installation = self._compute_clean_install(user_request.to_dependency(), installation_repo)
+        installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
         _sync_package(self, installation)
 
         self.reload()
@@ -160,7 +162,7 @@ class Environment:
         user_request = _UserRequestPackage(list(requested_deps.values()))
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
-        installation = self._compute_clean_install(user_request.to_dependency(), installation_repo)
+        installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
         _sync_package(self, installation)
 
         kept = {p.name for p in installation}
@@ -172,26 +174,11 @@ class Environment:
         self.reload()
         return {p for p in packages if p not in kept}
 
-    def _compute_clean_install(self, dependency: Dependency, repository: Repository) -> List[Package]:
-        """
-        compute the list of packages from the given `repository` that should be installed in this
-        environment in order to have the given `dependency` fulfilled.
-        while computing this list, you should not take into consideration any packages that are already in this environment
-        :param dependency: the dependency to fulfil
-        :param repository: the repository contains the packages
-        :return: the computed list of packages
-        """
-
-        return resolve_dependencies(dependency, self, repository)
-
     @classmethod
     def create(cls, path: Path, python: Package):
-        ue = UninitializedEnvironment(path)
-        if not python.is_compatible_with(ue):
-            raise UnsupportedOperation("incompatible interpreter")
-
+        ue = Environment(path)
         python.install_to(ue)
-        return Environment(path)
+        return ue
 
     @staticmethod
     def is_valid(path: Path) -> bool:
@@ -212,24 +199,24 @@ def _sync_package(env: Environment, packages: List[Package]):
     for package_to_remove in preinstalled.values():
         package_to_remove.uninstall()
 
-
-class UninitializedEnvironment(Environment):
-    """
-    defines an uninitialized (= empty/non-existing directory) virtual environment
-    use this together with a package from the local-pythons repository to install a specific python version
-    into this environment, then you can call the [to_initialized] method to get a virtual-env instance.
-    """
-
-    def __init__(self, path: Path):
-        super().__init__(path, path / '__uninitialized_interpreter__')
-        self._path = path
-
-    @property
-    def _introspection(self) -> EnvironmentIntrospection:
-        raise UnsupportedOperation('uninitialized environment')
-
-    def reload(self):
-        pass
+#
+# class UninitializedEnvironment(Environment):
+#     """
+#     defines an uninitialized (= empty/non-existing directory) virtual environment
+#     use this together with a package from the local-pythons repository to install a specific python version
+#     into this environment, then you can call the [to_initialized] method to get a virtual-env instance.
+#     """
+#
+#     def __init__(self, path: Path):
+#         super().__init__(path, path / '__uninitialized_interpreter__')
+#         self._path = path
+#
+#     @property
+#     def _introspection(self) -> EnvironmentIntrospection:
+#         raise UnsupportedOperation('uninitialized environment')
+#
+#     def reload(self):
+#         pass
 
 
 class _UserRequestPackage(Package):

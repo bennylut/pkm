@@ -32,7 +32,8 @@ result = {
     'sysconfig': {
         'paths': sysconfig.get_paths(),
         'vars': sysconfig.get_config_vars(),
-        'platform': sysconfig.get_platform()
+        'platform': sysconfig.get_platform(),
+        'is_python_build': sysconfig.is_python_build(True)
     },
 
     'sys': {
@@ -164,7 +165,7 @@ class EnvironmentIntrospection(Configuration):
             yield _normalize_string(abi)
 
     @property
-    def _is_32bit_interpreter(self):
+    def is_32bit_interpreter(self):
         return self._data['sys']['maxsize'] <= 2 ** 32
 
     @cached_property
@@ -242,7 +243,7 @@ class EnvironmentIntrospection(Configuration):
         if my_platform_type == "Darwin":
             my_plat_version_str, _, my_cpu_arch = self._data['platform']['mac_ver']
             my_plat_version = tuple(int(it) for it in my_plat_version_str.split("."))[:2]
-            my_arch = _mac_arch(my_cpu_arch, self._is_32bit_interpreter)
+            my_arch = _mac_arch(my_cpu_arch, self.is_32bit_interpreter)
             my_plat_supported_binary_formats = _mac_binary_formats(my_plat_version, my_arch)
             if my_plat_version[0] >= 11 and my_arch != "x86_64":
                 my_plat_supported_binary_formats.append('universal2')
@@ -262,7 +263,7 @@ class EnvironmentIntrospection(Configuration):
 
         elif my_platform_type == "Linux":
             my_linux = my_platform
-            if self._is_32bit_interpreter:
+            if self.is_32bit_interpreter:
                 if my_platform == "linux_x86_64":
                     my_linux = "linux_i686"
                 elif my_platform == "linux_aarch64":
