@@ -34,6 +34,10 @@ class StandardPackage(Package):
         return self._descriptor
 
     def _best_artifact_for(self, env: Environment) -> Optional[StandardPackageArtifact]:
+
+        if self.name == 'pyhocon':
+            print("HERE")
+
         env_interpreter = env.interpreter_version
 
         best_source_dist: Optional[StandardPackageArtifact] = None
@@ -45,8 +49,8 @@ class StandardPackage(Package):
             package_type = artifact.distribution
             python_version = artifact.python_implementation_spec
 
-            # if python_version and not python_version.startswith(('cp', 'py')):
-            #     python_version = None  # guard from malformed python versions
+            if python_version == 'source':
+                python_version = None  # guard from malformed python versions
 
             file_name: str = artifact.file_name
             is_binary = package_type == 'bdist_wheel'
@@ -67,6 +71,7 @@ class StandardPackage(Package):
                     if best_binary_dist_score is None or best_binary_dist_score < score:
                         best_binary_dist = artifact
                         best_binary_dist_score = score
+
             else:
                 if python_version and env.compatibility_tag_score(f'{python_version}-none-any') is None:
                     continue

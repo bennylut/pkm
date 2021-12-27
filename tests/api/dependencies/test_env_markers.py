@@ -3,7 +3,7 @@ from typing import Dict
 from unittest import TestCase
 
 from pkm.api.dependencies.env_markers import EnvironmentMarker
-from pkm.api.environments.environment import UninitializedEnvironment
+from pkm.api.environments.environment import Environment
 
 
 class TestEnvMarkers(TestCase):
@@ -61,7 +61,7 @@ def assert_with_env(marker: str, expected: bool, **env_markers):
         f"expecting {marker} to be evaluated to {expected} for env: {env_markers}, but it was not"
 
 
-class _MockEnvironment(UninitializedEnvironment):
+class _MockEnvironment(Environment):
 
     def __init__(self, markers: Dict[str, str]):
         super().__init__(Path("."))
