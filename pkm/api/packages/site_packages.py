@@ -8,6 +8,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.logging.console import console
 from pkm.utils.files import is_empty_directory
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -125,7 +126,9 @@ class InstalledPackage(Package):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:
+        console.log(f"uninstalling {self._desc}")
         if self.readonly:
+            console.log("could not uninstall, package is readonly")
             return False
 
         root = self._dist_info.parent

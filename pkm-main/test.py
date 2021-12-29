@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from pkm.api.environments.environment import Environment
@@ -20,7 +21,14 @@ env_path = Path("/home/bennyl/projects/pkm-new/workspace/env-zoo/envs/yyy")
 env = Environment(env_path)
 http = HttpClient(workspace / "cache/http")
 pypi = PyPiRepository(http)
+
+import time
+
+start = time.time()
 env.install('allennlp *', pypi)
+end = time.time()
+print(f"TOOK: {end - start}")
+
 
 # env.install()
 #
