@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List, TYPE_CHECKING
 
 from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentMarker
+from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import NamedVersion
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion, SpecificVersion
@@ -90,7 +91,7 @@ class PEP508DependencyParser(SimpleParser):
 
     def read_dependency(self) -> Dependency:
         self.match_ws()
-        package_name = self._read_identifier().lower()
+        package_name = PackageDescriptor.normalize_name(self._read_identifier())
         self.match_ws()
 
         extras: Optional[List[str]] = None

@@ -224,7 +224,9 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
+
             preinstalled_package.uninstall()
+
             
         package_to_install.install_to(env, build_packages_repo)
 

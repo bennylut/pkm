@@ -1,12 +1,12 @@
 ## RUNNING:
+ 
 
 ## DONE IN THIS VERSION
-- implement initial pep517, pep518 source installer
-- build pkm singleton with the source repository, workspace, http client, etc.
-- add case-insensitivity to package names
+- package name normalized
+- double installation seems to fail (with directory already exists) - it should not try to install existing packages..
+
 
 ## BACKLOG:
-- double installation seems to fail (with directory already exists) - it should not try to install existing packages..
 - need to correctly get dependencies from source packages
 - support backend-path in build-system (as described in pep 518, 517)
 - implement pep660 editable source installer
@@ -24,6 +24,7 @@
 - find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
   source)
 - installation can be made parallel
+- building6 can be made parallel
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - implement entrypoints awareness for installer

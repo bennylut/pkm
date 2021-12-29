@@ -1,8 +1,8 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
+import re
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 
@@ -18,7 +18,7 @@ class PackageDescriptor:
     version: Version
 
     def __post_init__(self):
-        super().__setattr__('name', self.name.lower())
+        super().__setattr__('name', PackageDescriptor.normalize_name(self.name))
 
     def to_dependency(self) -> "Dependency":
         from pkm.api.dependencies.dependency import Dependency
@@ -33,6 +33,10 @@ class PackageDescriptor:
     @classmethod
     def read(cls, data: Dict[str, Any]) -> "PackageDescriptor":
         return cls(data['name'], Version.parse(data['version']))
+
+    @staticmethod
+    def normalize_name(package_name: str) -> str:
+        return re.sub(r"[-_.]+", "-", package_name).lower()
 
 
 class Package(ABC):
@@ -51,13 +55,13 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :return: a list of all the package dependencies (for any environment and extras)
         """
 
-    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List[Dependency]:
+    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :param extras: the extras to include in the dependencies calculation
@@ -77,7 +81,7 @@ class Package(ABC):
     @abstractmethod
     def install_to(self, env: "Environment",
                    build_packages_repo: "Repository",
-                   user_request: Optional[Dependency] = None):
+                   user_request: Optional["Dependency"] = None):
         """
         installs this package into the given [env]
         :param env: the environment to install this package into
