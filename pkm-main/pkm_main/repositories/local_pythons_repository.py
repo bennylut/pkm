@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import List, Optional, Set
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment, UninitializedEnvironment
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories import Repository
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
@@ -18,8 +18,7 @@ from pkm_main.environments.interpreter_introspection import InterpreterIntrospec
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
 
-class LocalPythonsRepository(Repository):
-    _INSTANCE: Optional["LocalPythonsRepository"] = None
+class _LocalPythonsRepository(Repository):
 
     def __init__(self):
         super().__init__('local-pythons')
@@ -52,12 +51,8 @@ class LocalPythonsRepository(Repository):
             for p in self._interpreters
             if dependency.version_spec.allows_version(p.version)]
 
-    @classmethod
-    def instance(cls) -> "LocalPythonsRepository":
-        if not cls._INSTANCE:
-            cls._INSTANCE = LocalPythonsRepository()
 
-        return cls._INSTANCE
+LocalPythonsRepository = _LocalPythonsRepository()
 
 
 class LocalInterpreterPackage(Package):
@@ -80,12 +75,13 @@ class LocalInterpreterPackage(Package):
         return []
 
     def is_compatible_with(self, env: Environment):
-        return isinstance(env, UninitializedEnvironment)
+        return not env.path.exists() or next(env.path.iterdir(), None) is None
 
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment", build_packages_repo: Repository,
+                   user_request: Optional[Dependency] = None):
         from virtualenv import cli_run
 
         args = [

@@ -2,11 +2,10 @@ from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories import Repository
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
-from pkm_main.utils.http.http_client import HttpException
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -44,7 +43,9 @@ class _PkmPackageInstallationProblem(Problem):
 
         try:
             dependencies = self.opened_packages[descriptor].dependencies(self._env, extras)
-        except (ValueError, HttpException) as e:
+        except (ValueError, IOError) as e:
+            import traceback
+            traceback.print_exc()
             raise MalformedPackageException(str(descriptor)) from e
 
         result: List[Term] = []

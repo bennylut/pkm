@@ -1,13 +1,14 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from io import UnsupportedOperation
 from pathlib import Path
 from typing import Optional, Any, Dict, List
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.distributions.source_distribution import SourceDistribution
 from pkm.distributions.wheel_distribution import WheelDistribution
 from pkm.logging.console import console
 from pkm.utils.commons import SupportsLessThanEq
@@ -16,14 +17,22 @@ from pkm.utils.strings import without_suffix
 
 @dataclass
 class StandardPackageArtifact:
-    file_name: str  # in pypi: 'filename'
-    distribution: str  # Literal['bdist_wheel', 'sdist']  # in pypi: 'packagetype'
-    python_version_spec: Optional[VersionSpecifier] = None  # in pypi: 'requires_python'
-    python_implementation_spec: Optional[str] = None  # in pypi: 'python_version'
+    # in pypi: 'filename'
+    file_name: str
+    # Literal['bdist_wheel', 'sdist']  # in pypi: 'packagetype'
+    distribution: str
+    # in pypi: 'requires_python'
+    python_version_spec: Optional[VersionSpecifier] = None
+    # in pypi: 'python_version' : 'cp', 'py', 'pp', etc.
+    python_implementation: Optional[str] = None
     other_info: Dict[str, Any] = field(default_factory=dict)
 
+    @classmethod
+    def from_wheel(cls, wheel: Path):
+        return StandardPackageArtifact(wheel.name, 'bdist_wheel')
 
-class StandardPackage(Package):
+
+class AbstractPackage(Package):
 
     def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact]):
         self._descriptor = descriptor
@@ -35,9 +44,6 @@ class StandardPackage(Package):
 
     def _best_artifact_for(self, env: Environment) -> Optional[StandardPackageArtifact]:
 
-        if self.name == 'pyhocon':
-            print("HERE")
-
         env_interpreter = env.interpreter_version
 
         best_source_dist: Optional[StandardPackageArtifact] = None
@@ -47,7 +53,7 @@ class StandardPackage(Package):
         for artifact in self._artifacts:
             requires_python = artifact.python_version_spec
             package_type = artifact.distribution
-            python_version = artifact.python_implementation_spec
+            python_version = artifact.python_implementation
 
             if python_version == 'source':
                 python_version = None  # guard from malformed python versions
@@ -90,10 +96,10 @@ class StandardPackage(Package):
         :return: the stored artifact
         """
 
-    def install_to(self, env: Environment, user_request: Optional[Dependency] = None):
+    def install_to(self, env: Environment, build_packages_repo: Repository, user_request: Optional[Dependency] = None):
         artifact = self._best_artifact_for(env)
-        with self._retrieve_artifact(artifact) as artifact_path:
-            if artifact.distribution == 'bdist_wheel':
-                WheelDistribution(artifact_path).install(env, user_request)
-            else:
-                raise UnsupportedOperation("installing non-wheel packages is not supported yet")
+        artifact_path = self._retrieve_artifact(artifact)
+        if artifact.distribution == 'bdist_wheel':
+            WheelDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
+        else:
+            SourceDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)

@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.utils.files import is_empty_directory
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -120,7 +121,7 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment", build_packages_repo: Repository, user_request: Optional[Dependency] = None):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:

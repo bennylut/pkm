@@ -486,6 +486,7 @@ class Solver:
             self._propagate(next_package)
             next_package = self._make_next_decision()
 
+        print(f"reached into conclusion: {self._solution.decisions()}")
         return self._solution.decisions()
 
     def _propagate(self, next_package: str):

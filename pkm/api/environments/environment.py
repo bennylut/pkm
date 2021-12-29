@@ -1,13 +1,15 @@
 import hashlib
-from io import UnsupportedOperation
+import os
+import subprocess
 from pathlib import Path
+from subprocess import CompletedProcess
 from typing import List, Set, Dict, Optional, Union, TypeVar
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
-from pkm.api.repositories import Repository, DelegatingRepository
+from pkm.api.repositories.repository import Repository, DelegatingRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
@@ -102,6 +104,32 @@ class Environment:
         marker_str = ';'.join(f"{k}={v}" for k, v in sorted_markers)
         return hashlib.md5(marker_str).hexdigest()
 
+    def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess:
+        """
+        execute the given command in a new process, the process will be executed with its path adjusted to include this
+        venv binaries and scripts
+
+        :param args: the command to execute
+        :param subprocess_run_kwargs: any argument that is accepted by `subprocess.run` (aside from args)
+        :return: a `CompletedProcess` instance describing the completion of the requested process
+        """
+        env = {}
+        if extra_env := subprocess_run_kwargs.get('env'):
+            env.update(extra_env)
+        else:
+            env.update(os.environ)
+
+        bin_name = 'Scripts' if self._introspection.is_windows_env() else 'bin'
+        path_addition = str(self._env_path / bin_name)
+
+        if 'PATH' not in env:
+            env['PATH'] = path_addition
+        else:
+            env['PATH'] = f"{path_addition}{os.pathsep}{env['PATH']}"
+
+        subprocess_run_kwargs['env'] = env
+        return subprocess.run(args, **subprocess_run_kwargs)
+
     def reload(self):
         """
         reload volatile information about this environment (like the installed packages)
@@ -131,13 +159,15 @@ class Environment:
         installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request)
 
         installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
-        _sync_package(self, installation)
+        _sync_package(self, installation, repository)
 
         self.reload()
 
         if user_requested:
             for package, dep in new_deps.items():
-                self.site_packages.installed_package(package).mark_user_requested(dep)
+                if installed_package := self.site_packages.installed_package(package):
+                    # note that the package may not get installed if the dependency is not required for our specific environment
+                    installed_package.mark_user_requested(dep)
 
     def remove(self, packages: _PACKAGE_NAMES_T) -> Set[str]:
         """
@@ -163,7 +193,7 @@ class Environment:
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
         installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
-        _sync_package(self, installation)
+        _sync_package(self, installation, None)
 
         kept = {p.name for p in installation}
 
@@ -174,49 +204,32 @@ class Environment:
         self.reload()
         return {p for p in packages if p not in kept}
 
-    @classmethod
-    def create(cls, path: Path, python: Package):
-        ue = Environment(path)
-        python.install_to(ue)
-        return ue
-
     @staticmethod
     def is_valid(path: Path) -> bool:
-        return _find_interpreter(path) is not None
+        """
+        :param path: a path that may contain a python environment
+        :return: true if this path contains a python environment
+        """
+        return (path / "pyvenv.cfg").exists() and _find_interpreter(path) is not None
 
 
-def _sync_package(env: Environment, packages: List[Package]):
+def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository]):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
     toinstall: Dict[str, Package] = {p.name: p for p in packages}
-
+    
+    if toinstall and not build_packages_repo:
+        raise ValueError("sync requires installation but no build-packages repository was provided")
+    
     for package_to_install in toinstall.values():
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
             preinstalled_package.uninstall()
-        package_to_install.install_to(env)
+            
+        package_to_install.install_to(env, build_packages_repo)
 
     for package_to_remove in preinstalled.values():
         package_to_remove.uninstall()
-
-#
-# class UninitializedEnvironment(Environment):
-#     """
-#     defines an uninitialized (= empty/non-existing directory) virtual environment
-#     use this together with a package from the local-pythons repository to install a specific python version
-#     into this environment, then you can call the [to_initialized] method to get a virtual-env instance.
-#     """
-#
-#     def __init__(self, path: Path):
-#         super().__init__(path, path / '__uninitialized_interpreter__')
-#         self._path = path
-#
-#     @property
-#     def _introspection(self) -> EnvironmentIntrospection:
-#         raise UnsupportedOperation('uninitialized environment')
-#
-#     def reload(self):
-#         pass
 
 
 class _UserRequestPackage(Package):
@@ -233,7 +246,7 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None): pass
+    def install_to(self, env: "Environment", build_packages_repo: Repository, user_request: Optional[Dependency] = None): pass
 
     def to_dependency(self) -> Dependency:
         return Dependency(self.name, SpecificVersion(self.version))
@@ -282,7 +295,7 @@ def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:
         return [Dependency.parse_pep508(dependencies)]
     if isinstance(dependencies, Dependency):
         return [dependencies]
-    return [d for deps in dependencies for d in deps]
+    return [cd for dep in dependencies for cd in _coerce_dependencies(dep)]
 
 
 def _coerce_package_names(package_names: _PACKAGE_NAMES_T) -> List[str]:

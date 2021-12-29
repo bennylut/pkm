@@ -90,7 +90,7 @@ class PEP508DependencyParser(SimpleParser):
 
     def read_dependency(self) -> Dependency:
         self.match_ws()
-        package_name = self._read_identifier()
+        package_name = self._read_identifier().lower()
         self.match_ws()
 
         extras: Optional[List[str]] = None
@@ -113,4 +113,4 @@ class PEP508DependencyParser(SimpleParser):
         if self.match(";", '') and self.is_not_empty():
             env_marker = self.read_emarker()
 
-        return Dependency(package_name, version_spec or NamedVersion(url), extras=extras, env_marker=env_marker)
+        return Dependency(package_name, version_spec or SpecificVersion(NamedVersion(url)), extras=extras, env_marker=env_marker)

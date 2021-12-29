@@ -1,8 +1,6 @@
 from abc import abstractmethod
 import re
-from typing import Match
-
-from typing_extensions import Protocol
+from typing import Match, Protocol
 
 
 class Console(Protocol):

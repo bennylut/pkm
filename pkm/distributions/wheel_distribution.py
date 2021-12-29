@@ -14,9 +14,13 @@ from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
+from pkm.api.packages.package import PackageDescriptor
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import FileConfiguration
+from pkm.distributions.distribution import Distribution
 from pkm.logging.console import console
+from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
 
@@ -101,12 +105,16 @@ class _FileMoveCommand:
         return result
 
 
-class WheelDistribution:
-
-    def __init__(self, wheel: Path):
+class WheelDistribution(Distribution):
+    def __init__(self, package: PackageDescriptor, wheel: Path):
         self._wheel = wheel
+        self._package = package
 
-    def install(self, env: Environment, user_request: Optional[Dependency] = None):
+    @property
+    def owner_package(self) -> PackageDescriptor:
+        return self._package
+
+    def install_to(self, env: Environment, build_packages_repo: Repository, user_request: Optional[Dependency] = None):
         """
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
@@ -116,7 +124,7 @@ class WheelDistribution:
             with ZipFile(self._wheel) as zip:
                 zip.extractall(tmp_path)
 
-            dist_info = _find_dist_info(tmp_path)
+            dist_info = _find_dist_info(tmp_path, self._package)
 
             wheel_file = WheelFileConfiguration.load(dist_info / 'WHEEL')
             wheel_file.validate_supported_version()
@@ -160,7 +168,11 @@ class WheelDistribution:
                     if cc := files_left_to_check.pop(file, None):
                         parsed_sig = HashSignature.parse_urlsafe_base64_nopad_encoded(hash_sig)
                         if not parsed_sig.validate_against(cc.source):
-                            raise InstallationException(f"File signature not matched for: {file}")
+                            if any(it.name.endswith('.dist-info') for it in cc.source.parents):
+                                console.log(
+                                    f"Weak Warning: mismatch hash signature for {cc.source}")
+                            else:
+                                raise InstallationException(f"File signature not matched for: {file}")
                         target_hashes[cc.target] = parsed_sig
 
             # check that there are no records with missing signatures
@@ -178,7 +190,7 @@ class WheelDistribution:
             new_record_file.parent.mkdir(parents=True, exist_ok=True)
             with new_record_file.open('w+', newline='') as new_record_fd:
                 csv.writer(new_record_fd).writerows(
-                    (f"{target.relative_to(site_packages)}", str(sig), target.stat().st_size) for target, sig in
+                    (str(path_to(site_packages, target)), str(sig), target.stat().st_size) for target, sig in
                     target_hashes.items())
 
             # mark the installer and the requested flag
@@ -194,11 +206,11 @@ class WheelDistribution:
                         compileall.compile_file(cc.target, force=True, quiet=True)
 
 
-def _find_dist_info(unpacked_wheel: Path) -> Path:
-    dist_info = list(unpacked_wheel.rglob("*.dist-info"))
+def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> Path:
+    dist_info = list(unpacked_wheel.glob("*.dist-info"))
     if not dist_info:
-        raise InstallationException(f"wheel does not contain dist-info")
+        raise InstallationException(f"wheel for {package} does not contain dist-info")
     if len(dist_info) != 1:
-        raise InstallationException(f"wheel contains more than one possible dist-info")
+        raise InstallationException(f"wheel for {package} contains more than one possible dist-info")
 
     return dist_info[0]

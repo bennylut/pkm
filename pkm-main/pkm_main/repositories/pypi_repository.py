@@ -6,8 +6,8 @@ import pkginfo
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.standard_package import StandardPackage, StandardPackageArtifact
-from pkm.api.repositories import Repository
+from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 
@@ -52,7 +52,7 @@ class PyPiRepository(Repository):
 
 
 # noinspection PyProtectedMember
-class PypiPackage(StandardPackage):
+class PypiPackage(AbstractPackage):
 
     def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact], repo: PyPiRepository):
         super().__init__(descriptor, artifacts)

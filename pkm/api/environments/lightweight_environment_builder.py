@@ -21,7 +21,7 @@ class _LightweightEnvironmentBuilder:
 
         ispc = _introspection_for(interpreter_path)
         sys_platform = ispc['sys.platform']
-        is_windows = sys_platform == 'win32'
+        is_windows = ispc.is_windows_env()
         sys_vinfo = ispc['sys.version_info']
 
         env_path.mkdir(parents=True, exist_ok=True)

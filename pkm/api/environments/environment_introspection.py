@@ -83,6 +83,9 @@ class EnvironmentIntrospection(Configuration):
     def paths(self):
         return self._data['sysconfig']['paths']
 
+    def is_windows_env(self) -> bool:
+        return self['sys']['platform'] == 'win32'
+
     def compute_markers(self) -> Dict[str, str]:
         """
         :return: pep508 environment markers

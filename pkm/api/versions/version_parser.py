@@ -43,12 +43,13 @@ class VersionParser(SimpleParser):
         # pre_release_type = self.peek_prev() != '.' and self.match_any(*_PRE_RELEASE_TYPE_NORMALIZER.keys())
         pre_release_type = self.match_any(*_PRE_RELEASE_TYPE_NORMALIZER.keys())
         if pre_release_type:
+            self.match_any('.', '-', '_')
             pre_release_num = 0 if not self.peek().isdigit() else int(self.read_digits())
             pre_release = (_PRE_RELEASE_TYPE_NORMALIZER[pre_release_type], pre_release_num)
 
         post_release = None
 
-        if self.peek_prev().isdigit():
+        if (prev := self.peek_prev()).isdigit() or prev in _PRE_RELEASE_TYPE_NORMALIZER:
             self.match_any('.', '-', '_')
         if self.match_any('post', 'r', 'rev') or (self.peek_prev() == '-' and self.peek().isdigit()):
             self.match('-')

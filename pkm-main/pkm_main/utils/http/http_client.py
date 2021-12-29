@@ -22,7 +22,7 @@ from pkm_main.utils.http.cache_directive import TF_HTTP, CacheDirective
 locale.setlocale(locale.LC_ALL, 'en_US.utf8')
 
 
-class HttpException(RuntimeError):
+class HttpException(IOError):
 
     def __init__(self, msg: str, response: Optional[HTTPResponse]) -> None:
         super().__init__(msg)

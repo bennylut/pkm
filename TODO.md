@@ -1,12 +1,18 @@
 ## RUNNING:
 
 ## DONE IN THIS VERSION
-- implement lightweight virtualenv (pep 405) will be used for installation and maybe later for main environments
-- remove uninitialized-environment (instead the same functionality can be achived with simple environment)
-- pypi package installation support
-- sync will not make packages installed by the environment itself (wheel, pip and setuptools) to be removed 
+- implement initial pep517, pep518 source installer
+- build pkm singleton with the source repository, workspace, http client, etc.
+- add case-insensitivity to package names
 
 ## BACKLOG:
+- double installation seems to fail (with directory already exists) - it should not try to install existing packages..
+- need to correctly get dependencies from source packages
+- support backend-path in build-system (as described in pep 518, 517)
+- implement pep660 editable source installer
+- add to pkm singleton http client and pypi.
+- hierarchical PyProjectConfiguration
+- `pkm shell` support custom environment variables loading like in pipenv
 - lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
 - decide on a single "singleton" pattern implementation and stick with it!
 - documentation for simple parser
@@ -15,7 +21,6 @@
   dependencies! it seems that the http.client is lowlevel enough to be used without limitations 
 - support the `pkm build [installer] --fat` usecase (creates a standalone .py installer with embedded data), without
   fat, dependencies will get downloaded
-- implement pep517, pep518, pep660 source installer
 - find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
   source)
 - installation can be made parallel
@@ -52,5 +57,5 @@
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
 
-## Ideas (may be irrelevant to pkm and should have their own library):
+## Ideas (may be irrelevant to pkm and may have their own library):
 - automatic monkey patching of a module by import hooks - this hooks can be defined in the project level = extension methods  

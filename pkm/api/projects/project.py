@@ -3,7 +3,7 @@ from typing import List, Optional, Literal, Sequence
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
-from pkm.api.repositories import Repository
+from pkm.api.repositories.repository import Repository
 
 
 class Project(Package, ABC):

@@ -48,6 +48,8 @@ class TestDependency(TestCase):
                       package_name="pyOpenSSL", version_spec=VersionSpecifier.parse(">=0.14"),
                       env_marker="python_version<=\"2.7\" and extra == \'secure\'")
 
+        assert_parsed('botocore (<2.0a.0,>=1.12.36)', package_name='botocore', version_spec=VersionSpecifier.parse("<2.0a.0,>=1.12.36"))
+
 
 def assert_parsed(text: str, **kwargs):
     assert_dependency(Dependency.parse_pep508(text), **kwargs)
@@ -58,7 +60,7 @@ def assert_dependency(d: Dependency, **kwargs):
         if key == 'env_marker':
             assert str(d.env_marker) == value, f"expecting env-marker to be {value} but it was {d.env_marker}"
         elif key == 'url':
-            assert d.is_url_dependency, f"expecting url dependency but got non url one"
+            assert d.is_url_dependency, f"expecting url dependency but got non-url one"
             assert d.url == value, f"expecting url dependency to have the url: {value} but it was {d.url}"
         else:
             assert getattr(d, key) == value, f"expecting {key} to be {value} but it was {getattr(d, key)}"
