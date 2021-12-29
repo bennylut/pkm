@@ -4,11 +4,12 @@ from pathlib import Path
 from typing import Literal, Optional, Iterator, Union
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment, UninitializedEnvironment
+from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.environments.environments_zoo import ManagedEnvironment
+from pkm.api.environments.lightweight_environment_builder import LightweightEnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor
-from pkm.api.repositories import Repository
+from pkm.api.repositories.repository import Repository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone, unone_raise
@@ -37,15 +38,16 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         if path.exists():
             raise FileExistsError(f"environment named {name} already exists")
 
-        env = UninitializedEnvironment(path)
-        interpreters = LocalPythonsRepository.instance().match(python)
-        interpreter = max((i for i in interpreters if i.is_compatible_with(env)), key=lambda it: it.version,
-                          default=None)
+        env = Environment(path)
+        interpreters = LocalPythonsRepository.match(python)
+        interpreter = max(
+            (i for i in interpreters if i.is_compatible_with(env)),
+            key=lambda it: it.version, default=None)
 
         if not interpreter:
             raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
-        interpreter.install_to(env)
+        interpreter.install_to(env, LocalPythonsRepository)
         return StandardManagedEnvironment(Environment(env.path))
 
     def create_application_environment(
@@ -61,11 +63,11 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         python = unone(python, lambda: 'python *')
         python = Dependency.parse_pep508(python) if isinstance(python, str) else python
 
-        interpreters = sorted(LocalPythonsRepository.instance().match(python), key=lambda it: it.version, reverse=True)
+        interpreters = sorted(LocalPythonsRepository.match(python), key=lambda it: it.version, reverse=True)
 
         for interpreter in interpreters:
             try:
-                env = Environment.create(path, interpreter)
+                env = LightweightEnvironmentBuilder.create(path, interpreter)
                 env.install(application, repository, True)
             except (UnsupportedOperation, UnsolvableProblemException) as e:
                 shutil.rmtree(path)
@@ -115,5 +117,5 @@ class StandardManagedEnvironment(ManagedEnvironment):
 
     def delete(self):
         shutil.rmtree(self._env.path)
-        self._env = UninitializedEnvironment(self._env.path)
+        self._env.reload()
         clear_cached_properties(self)

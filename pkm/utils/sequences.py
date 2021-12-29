@@ -50,3 +50,9 @@ def index_of_or_none(seq: Sequence[_T], value: Any) -> Optional[int]:
         return seq.index(value)
     except ValueError:
         return None
+
+
+def single_or_fail(seq: Sequence[_T]) -> _T:
+    if (l := len(seq)) != 1:
+        raise ValueError(f"expecting single element, found: {l}")
+    return seq[0]

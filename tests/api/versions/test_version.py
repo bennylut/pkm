@@ -28,6 +28,7 @@ class TestVersion(TestCase):
         assert_version(Version.parse("1.0+ubuntu-1"), "1.0+ubuntu.1")
         assert_version(Version.parse("v1.0+ubuntu-1"), "1.0+ubuntu.1")
         assert_version(Version.parse("1.0-1"), "1.0.post1")
+        assert_version(Version.parse("2.0a.0"), "2.0a0")
 
 
     def test_version_comparison(self):

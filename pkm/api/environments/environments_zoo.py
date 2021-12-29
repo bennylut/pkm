@@ -3,7 +3,7 @@ from typing import Optional, Literal, Iterator, Union
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.repositories import Repository
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 
 

@@ -4,15 +4,25 @@ from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import SpecificVersion
 
 if TYPE_CHECKING:
+    from pkm.api.repositories.repository import Repository
     from pkm.api.environments.environment import Environment
+    from pkm.api.dependencies.dependency import Dependency
 
 
 @dataclass(frozen=True)
 class PackageDescriptor:
     name: str
     version: Version
+
+    def __post_init__(self):
+        super().__setattr__('name', self.name.lower())
+
+    def to_dependency(self) -> "Dependency":
+        from pkm.api.dependencies.dependency import Dependency
+        return Dependency(self.name, SpecificVersion(self.version))
 
     def write(self) -> Dict[str, Any]:
         return {
@@ -65,10 +75,14 @@ class Package(ABC):
         """
 
     @abstractmethod
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment",
+                   build_packages_repo: "Repository",
+                   user_request: Optional[Dependency] = None):
         """
         installs this package into the given [env]
         :param env: the environment to install this package into
+        :param build_packages_repo: in the case where installing this package requires build, any packages required for
+               the build system will be fetched from this repo
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
         """
@@ -78,4 +92,3 @@ class Package(ABC):
 
     def __repr__(self):
         return f"Package({str(self)})"
-

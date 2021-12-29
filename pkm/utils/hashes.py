@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from pkm.logging.console import console
+
 _SIG_DELIM_RX = re.compile("\\s*=\\s*")
 
 
@@ -34,7 +36,11 @@ class HashSignature:
                 hash_computer.update(chunk)
 
         computed_hash = self._encode_hash(hash_computer)
-        return computed_hash == self.hash_value
+        eqhash = computed_hash == self.hash_value
+        if not eqhash:
+            console.log(f"Warning: {file} signature does not correspond to its actual content ({computed_hash} != {self.hash_value})")
+
+        return eqhash
 
     def __str__(self):
         return f"{self.hash_type}={self.hash_value}"

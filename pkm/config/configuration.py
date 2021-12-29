@@ -178,6 +178,9 @@ class FileConfiguration(MutableConfiguration, ABC):
         super().__init__(parent=parent, data=data)
         self._path = path
 
+    def exists_on_disk(self) -> bool:
+        return self._path.exists()
+
     @abstractmethod
     def generate_content(self) -> str:
         ...
