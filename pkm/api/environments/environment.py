@@ -243,7 +243,7 @@ class _UserRequestPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
         return self._request
 
     def is_compatible_with(self, env: "Environment") -> bool: return True

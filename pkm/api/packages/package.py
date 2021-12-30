@@ -55,21 +55,27 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", build_packages_repo: "Repository") -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
+        :param build_packages_repo: in the case where installing this package requires build, any packages required for
+               the build system will be fetched from this repo
         :return: a list of all the package dependencies (for any environment and extras)
         """
 
-    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+    def dependencies(self, environment: "Environment", build_packages_repo: "Repository",
+                     extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
+        :param build_packages_repo: in the case where installing this package requires build, any packages required for
+               the build system will be fetched from this repo
         :param extras: the extras to include in the dependencies calculation
         :return: the list of dependencies this package has in order to be installed into the given 
         [environment] with the given [extras] 
         """
 
-        return [d for d in self._all_dependencies(environment) if d.is_applicable_for(environment, extras)]
+        return [d for d in self._all_dependencies(environment, build_packages_repo) if
+                d.is_applicable_for(environment, extras)]
 
     @abstractmethod
     def is_compatible_with(self, env: "Environment") -> bool:

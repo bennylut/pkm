@@ -63,7 +63,7 @@ class DummyPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def dependencies(self, environment: Environment, extras: Optional[List[str]] = None) -> List[Dependency]:
+    def dependencies(self, environment: Environment, build_packages_repo: Repository, extras: Optional[List[str]] = None) -> List[Dependency]:
         return []
 
     def is_compatible_with(self, env: Environment):

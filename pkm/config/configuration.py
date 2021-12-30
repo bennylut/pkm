@@ -82,11 +82,11 @@ class MutableConfiguration(Configuration, ABC):
         self._del(key)
 
     @abstractmethod
-    def _do_save(self):
+    def save_to(self, path: Optional[Path] = None):
         ...
 
     def save(self) -> bool:
-        self._do_save()
+        self.save_to(None)
         return True
 
     def _set(self, path: Sequence[str], value: Any):
@@ -129,6 +129,7 @@ class MutableConfiguration(Configuration, ABC):
 
 
 _T = TypeVar('_T')
+
 
 class _ComputedConfigValue:
 
@@ -185,9 +186,10 @@ class FileConfiguration(MutableConfiguration, ABC):
     def generate_content(self) -> str:
         ...
 
-    def _do_save(self):
-        self._path.parent.mkdir(exist_ok=True, parents=True)
-        self._path.write_text(self.generate_content())
+    def save_to(self, path: Optional[Path] = None):
+        path = path or self._path
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.write_text(self.generate_content())
 
     def exists(self) -> bool:
         return self._path.exists()
