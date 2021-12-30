@@ -69,28 +69,16 @@ class PypiPackage(AbstractPackage):
 
         return resource.data
 
-    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
         json: Dict[str, Any] = self._repo._http \
             .get(f'https://pypi.org/pypi/{self.name}/{self.version}/json') \
             .read_data_as_json()
 
         requires_dist = json['info'].get('requires_dist')
         if requires_dist is None:
-            # we cannot know if that means that we dont have dependencies or that a tool choose to not specify them
-            # so we must download it..
-            artifact = self._best_artifact_for(environment)
-            if not artifact:
-                raise UnsupportedOperation(
-                    "attempting to compute dependencies for environment that is not supported by this package")
-
-            resource = self._retrieve_artifact(artifact)
-            filename = artifact.file_name
-            if filename.endswith('.whl'):
-                info = pkginfo.Wheel(str(resource))
-            else:
-                info = pkginfo.SDist(str(resource))
-
-            requires_dist = info.requires_dist
+            deps = super(PypiPackage, self)._all_dependencies(environment, build_packages_repo)
+            # deps = super()._all_dependencies(environment, build_packages_repo)
+            return deps
 
         return [Dependency.parse_pep508(dstr) for dstr in requires_dist]
 

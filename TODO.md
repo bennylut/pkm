@@ -1,13 +1,13 @@
 ## RUNNING:
- 
 
 ## DONE IN THIS VERSION
-- package name normalized
-- double installation seems to fail (with directory already exists) - it should not try to install existing packages..
-
+- need to correctly get dependencies from source packages 
 
 ## BACKLOG:
-- need to correctly get dependencies from source packages
+- when installation fails, environment is dirty
+- when installing multiple packages, you always have to re-solve all of your previous installations, find a way around it..
+  - add pubgrub support for package pagination 
+  - use package pagination to only check for non installed packages if there is a conflict
 - support backend-path in build-system (as described in pep 518, 517)
 - implement pep660 editable source installer
 - add to pkm singleton http client and pypi.

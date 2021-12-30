@@ -2,16 +2,16 @@ from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.repositories.repository import Repository
 
 
-def resolve_dependencies(root: Dependency, env: "Environment", repo: Repository) -> List[Package]:
+def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository") -> List[Package]:
     problem = _PkmPackageInstallationProblem(env, repo, root)
     solver = Solver(problem, root.package_name)
     solution: Dict[str, Version] = solver.solve()
@@ -30,7 +30,7 @@ def resolve_dependencies(root: Dependency, env: "Environment", repo: Repository)
 
 class _PkmPackageInstallationProblem(Problem):
 
-    def __init__(self, env: "Environment", repo: Repository, root: Dependency):
+    def __init__(self, env: "Environment", repo: "Repository", root: Dependency):
         self._env = env
         self._repo = repo
         self._root = root
@@ -42,7 +42,7 @@ class _PkmPackageInstallationProblem(Problem):
         descriptor = PackageDescriptor(package_name, version)
 
         try:
-            dependencies = self.opened_packages[descriptor].dependencies(self._env, extras)
+            dependencies = self.opened_packages[descriptor].dependencies(self._env, self._repo, extras)
         except (ValueError, IOError) as e:
             import traceback
             traceback.print_exc()

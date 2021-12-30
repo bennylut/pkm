@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
+from io import UnsupportedOperation
 from pathlib import Path
 from typing import Optional, Any, Dict, List
 
@@ -103,3 +104,18 @@ class AbstractPackage(Package):
             WheelDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
         else:
             SourceDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
+
+    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+        artifact = self._best_artifact_for(environment)
+        if not artifact:
+            raise UnsupportedOperation(
+                "attempting to compute dependencies for environment that is not supported by this package")
+
+        resource = self._retrieve_artifact(artifact)
+        filename = artifact.file_name
+        if filename.endswith('.whl'):
+            info = WheelDistribution(self.descriptor, resource).extract_metadata(environment, build_packages_repo)
+        else:
+            info = SourceDistribution(self.descriptor, resource).extract_metadata(environment, build_packages_repo)
+
+        return info.dependencies

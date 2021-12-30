@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 
 from pkm.api.environments.environment import Environment
@@ -25,10 +24,10 @@ pypi = PyPiRepository(http)
 import time
 
 start = time.time()
-env.install('allennlp *', pypi)
+env.install('allennlp', pypi)
+# env.install(['wheel', 'pip', 'setuptools'], pypi)
 end = time.time()
 print(f"TOOK: {end - start}")
-
 
 # env.install()
 #

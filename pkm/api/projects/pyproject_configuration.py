@@ -18,7 +18,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
     def build_system(self) -> BuildSystemConfig:
         build_system = self['build-system']
         requirements = [Dependency.parse_pep508(dep) for dep in build_system['requires']]
-        build_backend = build_system.get('build-backend') or "__legacy__" # TODO: the '__legacy__' key should move to a shared location
+        build_backend = build_system.get('build-backend')
         backend_path = build_system.get('backend-path')
 
         return BuildSystemConfig(requirements, build_backend, backend_path)

@@ -15,6 +15,7 @@ from zipfile import ZipFile
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import FileConfiguration
@@ -23,6 +24,8 @@ from pkm.logging.console import console
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
+
+_METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
 
 class InstallationException(IOError):
@@ -106,9 +109,19 @@ class _FileMoveCommand:
 
 
 class WheelDistribution(Distribution):
+
     def __init__(self, package: PackageDescriptor, wheel: Path):
         self._wheel = wheel
         self._package = package
+
+    def extract_metadata(self, env: Environment, build_packages_repo: Repository) -> PackageMetadata:
+        with ZipFile(self._wheel) as zip:
+            for name in zip.namelist():
+                if _METADATA_FILE_RX.fullmatch(name):
+                    with TemporaryDirectory() as tdir:
+                        zip.extract(name, tdir)
+                        return PackageMetadata.load(Path(tdir) / name)
+        raise FileNotFoundError("could not find metadata in wheel")
 
     @property
     def owner_package(self) -> PackageDescriptor:
@@ -154,8 +167,16 @@ class WheelDistribution(Distribution):
             # check that there are no file collisions
             for copy_command in copy_commands:
                 if copy_command.target.exists():
-                    raise InstallationException(
-                        f"package files conflicts with other package files: {copy_command.target} already exist")
+
+                    console.log(f"package files conflicts with other package files: {copy_command.target} already exist")
+
+                    if not copy_command.target.is_dir():
+                        # shutil.rmtree(copy_command.target)
+                    # else:
+                        copy_command.target.unlink()
+
+                    # raise InstallationException(
+                    #     f"package files conflicts with other package files: {copy_command.target} already exist")
 
             # check that the records hash match
             files_left_to_check: Dict[str, _FileMoveCommand] = {
