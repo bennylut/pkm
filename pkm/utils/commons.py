@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from typing import TypeVar, Optional, Callable, Protocol, Any, Type
 
 _T = TypeVar("_T")
@@ -18,10 +19,10 @@ def unone(v: Optional[_T], on_none: Callable[[], _T]) -> _T:
 
 def unone_raise(v: Optional[_T], on_none: Callable[[], Exception] = lambda: ValueError('unexpected None')) -> _T:
     """
-        :param v: the value to check
-        :param on_none: callable to execute in the case where v is None
-        :return:  `v` if `v` is not None otherwise raises the exception returned by `on_none()`
-        """
+    :param v: the value to check
+    :param on_none: callable to execute in the case where v is None
+    :return:  `v` if `v` is not None otherwise raises the exception returned by `on_none()`
+    """
     if v is None:
         raise on_none()
     return v
@@ -36,6 +37,12 @@ def take_if(value: _T, predicate: Callable[[_T], bool]) -> Optional[_T]:
     if predicate(value):
         return value
     return None
+
+
+# Common Exceptions
+
+class IllegalStateException(Exception):
+    ...
 
 
 # Common protocols
@@ -54,3 +61,14 @@ class SupportHashCode(Protocol):
     def __hash__(self): ...
 
     def __eq__(self, other): ...
+
+
+class Closeable(ABC):
+    @abstractmethod
+    def close(self): ...
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

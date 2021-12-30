@@ -1,26 +1,23 @@
 ## RUNNING:
 
 ## DONE IN THIS VERSION
-- decide on a single "singleton" pattern implementation and stick with it!
-- when installing multiple packages, you always have to re-solve all of your previous installations, find a way around
-  it..
-    - fast-path: set the installed packages as constant (which will allow you to not require them in the user-request)
-    - slow-path: upon failure, retry with current solution
+- get rid of urlib3 and rename pkm-main into pkm-cli and have a lightweight installation in pkm without any
+  dependencies! it seems that the http.client is lowlevel enough to be used without limitations
+- add to pkm singleton http client and pypi.
+
 
 ## BACKLOG:
+- build a "closing" server that does not respect keep alive and try to fail the http client connection pool  
 - when installation fails, environment is dirty
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
 - support backend-path in build-system (as described in pep 518, 517)
 - implement pep660 editable source installer
-- add to pkm singleton http client and pypi.
 - hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv
 - lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
 - documentation for simple parser
 - test pkm on windows, think how to test it on osx
-- if we get rid of urlib3 we can rename pkm-main into pkm-cli and have a lightweight installation in pkm without any
-  dependencies! it seems that the http.client is lowlevel enough to be used without limitations
 - support the `pkm build [installer] --fat` usecase (creates a standalone .py installer with embedded data), without
   fat, dependencies will get downloaded
 - find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
