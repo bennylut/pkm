@@ -13,6 +13,7 @@ from pkm.api.repositories.repository import Repository, DelegatingRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
+from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import SupportsLessThanEq
 from pkm.utils.iterators import find_first
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -153,12 +154,24 @@ class Environment:
         preinstalled_packages = list(self.site_packages.installed_packages())
         pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
         new_deps = {d.package_name: d for d in _coerce_dependencies(dependencies)}
-
         all_deps = {**pre_requested_deps, **new_deps}
-        user_request = _UserRequestPackage(list(all_deps.values()))
-        installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request)
 
-        installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
+        try:
+            # first we try the fast path: only adding packages without updating
+            user_request = _UserRequestPackage(list(new_deps.values()))
+            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
+            installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
+            installation_names = {i.name for i in installation}
+            for preinstalled in preinstalled_packages:
+                if preinstalled.name not in installation_names:
+                    installation.append(preinstalled)
+
+        except UnsolvableProblemException:
+            # if we cannot we try the slow path in which we allow preinstalled packages dependencies to be updated
+            user_request = _UserRequestPackage(list(all_deps.values()))
+            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
+            installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
+
         _sync_package(self, installation, repository)
 
         self.reload()
@@ -216,10 +229,10 @@ class Environment:
 def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository]):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
     toinstall: Dict[str, Package] = {p.name: p for p in packages}
-    
+
     if toinstall and not build_packages_repo:
         raise ValueError("sync requires installation but no build-packages repository was provided")
-    
+
     for package_to_install in toinstall.values():
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
@@ -227,7 +240,6 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
 
             preinstalled_package.uninstall()
 
-            
         package_to_install.install_to(env, build_packages_repo)
 
     for package_to_remove in preinstalled.values():
@@ -248,7 +260,8 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, env: "Environment", build_packages_repo: Repository, user_request: Optional[Dependency] = None): pass
+    def install_to(self, env: "Environment", build_packages_repo: Repository,
+                   user_request: Optional[Dependency] = None): pass
 
     def to_dependency(self) -> Dependency:
         return Dependency(self.name, SpecificVersion(self.version))
@@ -272,20 +285,26 @@ class _RemovalRepository(Repository):
 
 
 class _InstallationRepository(DelegatingRepository):
-    def __init__(self, repo: Repository, installed_packages: List[InstalledPackage], user_request: Package):
+    def __init__(
+            self, repo: Repository, installed_packages: List[InstalledPackage], user_request: Package,
+            limit_to_installed: bool):
+
         super().__init__(repo)
         self._user_request = user_request
         self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
+        self._limit_to_installed = limit_to_installed
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
+        if self._limit_to_installed and (installed := self._installed_packages.get(dependency.package_name)):
+            return [installed]
+
         return self._repo._do_match(dependency)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         packages = self._repo._sort_by_priority(dependency, packages)
-
         if installed := self._installed_packages.get(dependency.package_name):
             packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
 
