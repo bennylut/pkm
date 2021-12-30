@@ -4,7 +4,9 @@ from pathlib import Path
 import sys
 import os
 
+from pkm.api.repositories.pypi_repository import PyPiRepository
 from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
+from pkm.utils.http.http_client import HttpClient
 
 ENV_PKM_HOME = "PKM_HOME"
 
@@ -12,14 +14,17 @@ ENV_PKM_HOME = "PKM_HOME"
 @dataclass
 class _PkmRepositories:
     source_builds: SourceBuildsRepository
+    pypi: PyPiRepository
 
 
 class _Pkm:
     def __init__(self):
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
+        self.httpclient = HttpClient(workspace / 'resources/http')
         self.repositories = _PkmRepositories(
-            SourceBuildsRepository(workspace / 'source-builds')
+            SourceBuildsRepository(workspace / 'source-builds'),
+            PyPiRepository(self.httpclient)
         )
 
 
