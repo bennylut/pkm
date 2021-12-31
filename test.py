@@ -34,7 +34,7 @@ env = Environment(env_path)
 import time
 
 start = time.time()
-# env.install('pandas', pkm.repositories.pypi)
+env.remove('allennlp')
 env.install('allennlp', pkm.repositories.pypi)
 end = time.time()
 print(f"TOOK: {end - start}")

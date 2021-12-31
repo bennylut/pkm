@@ -5,6 +5,8 @@ from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
+from pkm.utils.dicts import get_or_put
+from pkm.utils.promises import Promise
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -35,7 +37,15 @@ class _PkmPackageInstallationProblem(Problem):
         self._repo = repo
         self._root = root
 
+        from pkm.api.pkm import pkm
+        self._threads = pkm.threads
+
         self.opened_packages: Dict[PackageDescriptor, Package] = {}
+        self._prefetched_packages: Dict[str, Promise[List[Package]]] = {}
+
+    def _prefetch(self, package_name: str) -> Promise[List[Package]]:
+        return get_or_put(self._prefetched_packages, package_name,
+                          lambda: Promise.execute(self._threads, self._repo.list, package_name))
 
     def get_dependencies(self, package: str, version: Version) -> List[Term]:
         package_name, extras = _decode_package_and_extras(package)
@@ -43,9 +53,11 @@ class _PkmPackageInstallationProblem(Problem):
 
         try:
             dependencies = self.opened_packages[descriptor].dependencies(self._env, self._repo, extras)
+
+            for d in dependencies:
+                self._prefetch(d.package_name)
+
         except (ValueError, IOError) as e:
-            import traceback
-            traceback.print_exc()
             raise MalformedPackageException(str(descriptor)) from e
 
         result: List[Term] = []
@@ -64,7 +76,9 @@ class _PkmPackageInstallationProblem(Problem):
     def get_versions(self, package: str) -> List[Version]:
 
         package_name, extras = _decode_package_and_extras(package)
-        pacakges = [p for p in self._repo.list(package_name) if p.is_compatible_with(self._env)]
+
+        all_packages = self._prefetch(package_name).result()
+        pacakges = [p for p in all_packages if p.is_compatible_with(self._env)]
 
         for package in pacakges:
             self.opened_packages[package.descriptor] = package

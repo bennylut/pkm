@@ -20,6 +20,7 @@ from pkm.utils.http.cache_directive import TF_HTTP, CacheDirective
 from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
+_next_connection_number = 0
 
 class HttpException(IOError):
 
@@ -103,7 +104,11 @@ class _Connections(Closeable):
             if self._connections:
                 result = self._connections.pop()
 
-        result = result or self._ctype(host=self._host, port=self._port)
+        if not result:
+            result = self._ctype(host=self._host, port=self._port)
+            global _next_connection_number
+            result.number = _next_connection_number
+            _next_connection_number += 1
         return cast(HTTPConnection, _ConnectionProxy(result, self))
 
     def _release(self, conn: HTTPConnection):
@@ -125,7 +130,7 @@ class _Connections(Closeable):
 
 class _ConnectionPool(Closeable):
 
-    def __init__(self, cached_amount: int = 5):
+    def __init__(self, cached_amount: int = 24):
         self._connections: Dict[str, _Connections] = {}
         self._cached_amount = cached_amount
         self._lock = Lock()
@@ -279,6 +284,7 @@ class HttpClient:
         while num_connection_retries < self._max_connection_retries and num_redirects_performed <= self._max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
+                    print(f"[CONN] using connection {conn.number}")
                     conn.request(mtd, str(url), headers=headers)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):

@@ -15,6 +15,7 @@ from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.iterators import find_first
+from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
 
@@ -234,18 +235,23 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
     if toinstall and not build_packages_repo:
         raise ValueError("sync requires installation but no build-packages repository was provided")
 
+    promises: List[Promise] = []
+    from pkm.api.pkm import pkm
+
     for package_to_install in toinstall.values():
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
 
-            preinstalled_package.uninstall()
+            promises.append(Promise.execute(pkm.threads, preinstalled_package.uninstall))
 
-        package_to_install.install_to(env, build_packages_repo)
+        promises.append(Promise.execute(pkm.threads, package_to_install.install_to, env, build_packages_repo))
 
     for package_to_remove in preinstalled.values():
-        package_to_remove.uninstall()
+        promises.append(Promise.execute(pkm.threads, package_to_remove.uninstall))
 
+    for promise in promises:
+        promise.result()
 
 class _UserRequestPackage(Package):
     def __init__(self, request: List[Dependency]):
