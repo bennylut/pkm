@@ -12,7 +12,7 @@ from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.distributions.source_distribution import SourceDistribution
 from pkm.distributions.wheel_distribution import WheelDistribution
 from pkm.logging.console import console
-from pkm.utils.commons import SupportsLessThanEq
+from pkm.utils.types import SupportsLessThanEq
 from pkm.utils.strings import without_suffix
 
 

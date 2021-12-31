@@ -4,7 +4,7 @@ from threading import Lock, Condition
 from typing import TypeVar, Generic, Callable, Any, Optional, List
 import typing
 
-from typing_extensions import ParamSpec
+from pkm.utils.types import ParamSpec
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")

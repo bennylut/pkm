@@ -145,7 +145,6 @@ class InstalledPackage(Package):
                 record_path.unlink(missing_ok=True)
                 parents.add(record_path.parent)
 
-        record_file.unlink(missing_ok=True)
         for parent in sorted(parents, key=lambda it: len(str(it)), reverse=True):
             if not parent.exists():
                 continue
@@ -161,6 +160,8 @@ class InstalledPackage(Package):
                     shutil.rmtree(precompiled)
                 if is_empty_directory(path):
                     path.rmdir()
+
+        shutil.rmtree(self._dist_info)
 
         self.site.reload()
 

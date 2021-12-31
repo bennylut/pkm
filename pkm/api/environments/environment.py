@@ -14,9 +14,9 @@ from pkm.api.versions.version import NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
-from pkm.utils.commons import SupportsLessThanEq
 from pkm.utils.iterators import find_first
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.types import SupportsLessThanEq
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
@@ -197,10 +197,11 @@ class Environment:
 
         self.reload()
 
+        packages = _coerce_package_names(packages)
         preinstalled_packages = list(self.site_packages.installed_packages())
-        requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
+        requested_deps = {p.name: p.user_request for p in preinstalled_packages if p.user_request}
         for package_name in packages:
-            requested_deps.pop(package_name)
+            requested_deps.pop(package_name, None)
 
         user_request = _UserRequestPackage(list(requested_deps.values()))
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
@@ -228,7 +229,7 @@ class Environment:
 
 def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository]):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
-    toinstall: Dict[str, Package] = {p.name: p for p in packages}
+    toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
 
     if toinstall and not build_packages_repo:
         raise ValueError("sync requires installation but no build-packages repository was provided")
