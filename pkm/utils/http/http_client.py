@@ -7,11 +7,10 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from gzip import GzipFile
 from http.client import HTTPSConnection, HTTPConnection, HTTPResponse
-from io import BytesIO
 from pathlib import Path
 from threading import Lock
-from typing import List, Deque, Dict, Type, Optional, cast, Union, Any, ContextManager
-from urllib.parse import urlsplit, SplitResultBytes, SplitResult
+from typing import Deque, Dict, Type, Optional, cast, Any, ContextManager
+from urllib.parse import urlsplit
 
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.logging.console import console
@@ -242,7 +241,7 @@ class _GzipResponseWrapper:
 
 class HttpClient:
 
-    def __init__(self, resources_dir: Path, max_redirects: int = 3):
+    def __init__(self, resources_dir: Path, max_redirects: int = 3, max_connection_retries: int = 2):
         self._resources_dir = resources_dir
         resources_dir.mkdir(exist_ok=True, parents=True)
 
@@ -250,6 +249,7 @@ class HttpClient:
         self._fetch_inprogress: Dict[str, Promise[FetchedResource]] = {}
         self._fetch_lock = Lock()
         self._max_redirects = max_redirects
+        self._max_connection_retries = max_connection_retries
 
     def _add_standard_headers(self, headers: Dict[str, str]):
         headers['user-agent'] = f'pkm'
@@ -273,26 +273,36 @@ class HttpClient:
     @contextmanager
     def _request(self, mtd: str, url: Url, headers: Dict[str, str]) -> ContextManager[HTTPResponse]:
         conn: HTTPConnection
-        for i in range(self._max_redirects):
+        num_redirects_performed = 0
+        num_connection_retries = 0
+
+        while num_connection_retries < self._max_connection_retries and num_redirects_performed <= self._max_redirects:
             with self._pool.connection_for(url) as conn:
-                conn.request(mtd, str(url), headers=headers)
-                with conn.getresponse() as response:
-                    if response.status in (301, 302, 303, 307, 308):
-                        if not (new_location := response.headers.get("Location")):
-                            raise HttpException("server responded with redirect but without supplying a new location")
-                        if new_location.startswith("/"):
-                            url = replace(url, path=new_location)
+                try:
+                    conn.request(mtd, str(url), headers=headers)
+                    with conn.getresponse() as response:
+                        if response.status in (301, 302, 303, 307, 308):
+                            num_redirects_performed += 1
+                            num_connection_retries = 0
+                            if not (new_location := response.headers.get("Location")):
+                                raise HttpException(
+                                    "server responded with redirect but without supplying a new location")
+                            if new_location.startswith("/"):
+                                url = replace(url, path=new_location)
+                            else:
+                                url = Url.parse(new_location)
+                            response.read()
                         else:
-                            url = Url.parse(new_location)
-                        print(f"MOVING to {url}..")
-                        print(f"read: {response.read()}")
-                    else:
-                        if response.headers.get('Content-Encoding') == 'gzip':
-                            yield cast(HTTPResponse, _GzipResponseWrapper(response))
-                        else:
-                            yield response
-                        return
-        raise HttpException("max redirects reached")
+                            if response.headers.get('Content-Encoding') == 'gzip':
+                                yield cast(HTTPResponse, _GzipResponseWrapper(response))
+                            else:
+                                yield response
+                            return
+                except ConnectionError:
+                    num_connection_retries += 1
+
+        error = "max redirects reached" if num_redirects_performed > self._max_redirects else "connection failed"
+        raise HttpException(error)
 
     def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None) -> Optional[FetchedResource]:
 

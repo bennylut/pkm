@@ -10,7 +10,7 @@ from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.versions.version import StandardVersion
 from pkm.config.configuration import Configuration
-from pkm.utils.commons import SupportsLessThan, SupportsLessThanEq
+from pkm.utils.types import SupportsLessThan, SupportsLessThanEq
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
 

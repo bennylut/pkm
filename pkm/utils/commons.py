@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import TypeVar, Optional, Callable, Protocol, Any, Type
+from typing import TypeVar, Optional, Callable, Type
 
 _T = TypeVar("_T")
 # noinspection PyTypeChecker
@@ -45,23 +45,7 @@ class IllegalStateException(Exception):
     ...
 
 
-# Common protocols
-
-class SupportsLessThan(Protocol):
-    def __lt__(self, __other: Any) -> bool: ...
-
-
-class SupportsLessThanEq(Protocol):
-    def __lt__(self, __other: Any) -> bool: ...
-
-    def __eq__(self, other: Any) -> bool: ...
-
-
-class SupportHashCode(Protocol):
-    def __hash__(self): ...
-
-    def __eq__(self, other): ...
-
+# Common classes
 
 class Closeable(ABC):
     @abstractmethod

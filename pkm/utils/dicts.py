@@ -1,6 +1,6 @@
 from typing import TypeVar, MutableMapping, Optional, Callable
 
-from pkm.utils.sequences import SupportHashCode
+from pkm.utils.types import SupportHashCode
 
 _K = TypeVar("_K", bound=SupportHashCode)
 _V = TypeVar("_V")

@@ -1,8 +1,6 @@
-from io import UnsupportedOperation
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-import pkginfo
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor

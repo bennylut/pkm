@@ -1,18 +1,22 @@
 ## RUNNING:
 
 ## DONE IN THIS VERSION
-- get rid of urlib3 and rename pkm-main into pkm-cli and have a lightweight installation in pkm without any
-  dependencies! it seems that the http.client is lowlevel enough to be used without limitations
-- add to pkm singleton http client and pypi.
+- add max connection retries to http client 
+- bug fix: uninstall left dist-info behind 
 
-
-## BACKLOG:
-- build a "closing" server that does not respect keep alive and try to fail the http client connection pool  
+## BACKLOG: 
+- allow dependency exclusion
+- allow forced versions
+- allow additional repositories, check pytorch recipe
+- implement pep660 editable source installer
+  - check the editables module, decide if you want to support this behavior
+- hierarchical site packages:
+  - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency resolution?)
+  - project x can be a child of project px and inherit its environment using pth and import hooks
 - when installation fails, environment is dirty
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
 - support backend-path in build-system (as described in pep 518, 517)
-- implement pep660 editable source installer
 - hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv
 - lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
@@ -58,4 +62,4 @@
 ## Ideas (may be irrelevant to pkm and may have their own library):
 
 - automatic monkey patching of a module by import hooks - this hooks can be defined in the project level = extension
-  methods  
+  methods, this can be done with pth files and import hooks!  

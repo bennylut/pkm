@@ -34,9 +34,10 @@ env = Environment(env_path)
 import time
 
 start = time.time()
-env.install('numpy', pkm.repositories.pypi)
+# env.install('pandas', pkm.repositories.pypi)
+env.install('allennlp', pkm.repositories.pypi)
 end = time.time()
-# print(f"TOOK: {end - start}")
+print(f"TOOK: {end - start}")
 #
 # # env.install()
 # #

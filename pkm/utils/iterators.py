@@ -1,6 +1,6 @@
 from typing import TypeVar, Iterable, Callable, Dict, List, Optional, Tuple, Iterator
 
-from pkm.utils.commons import SupportHashCode
+from pkm.utils.types import SupportHashCode
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")

@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any
 
-from pkm.utils.commons import SupportHashCode, SupportsLessThan
+from pkm.utils.types import SupportHashCode, SupportsLessThan
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
