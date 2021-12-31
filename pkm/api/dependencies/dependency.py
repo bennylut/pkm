@@ -6,7 +6,7 @@ from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import NamedVersion
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion, SpecificVersion
-from pkm.utils.parsing import SimpleParser
+from pkm.utils.parsers import SimpleParser
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:

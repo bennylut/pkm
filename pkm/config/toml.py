@@ -5,7 +5,7 @@ from numbers import Number
 from pathlib import Path
 from typing import Optional, Dict, Any, Mapping, List, Tuple, Union, MutableMapping, Callable
 
-from pkm.utils.parsing import SimpleParser
+from pkm.utils.parsers import SimpleParser
 
 _KEY_RX = re.compile(r'[a-zA-Z0-9\-_]+')
 KEY_T = Tuple

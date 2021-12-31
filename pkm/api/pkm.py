@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -22,6 +23,7 @@ class _Pkm:
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
         self.httpclient = HttpClient(workspace / 'resources/http')
+        self.threads = ThreadPoolExecutor()
         self.repositories = _PkmRepositories(
             SourceBuildsRepository(workspace / 'source-builds'),
             PyPiRepository(self.httpclient)

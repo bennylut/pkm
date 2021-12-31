@@ -1,10 +1,14 @@
 ## RUNNING:
 
 ## DONE IN THIS VERSION
-- add max connection retries to http client 
-- bug fix: uninstall left dist-info behind 
+- installation made parallel
+- building made parallel
+- implement version prefetching for pubgrub
+
 
 ## BACKLOG: 
+- leftover __pycache__ on main dir..
+- add some flag to disable parallelizm in installation (mainly usefull for debug?)
 - allow dependency exclusion
 - allow forced versions
 - allow additional repositories, check pytorch recipe
@@ -16,6 +20,7 @@
 - when installation fails, environment is dirty
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
+    - dont forget to handle overwriten files 
 - support backend-path in build-system (as described in pep 518, 517)
 - hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv
@@ -26,8 +31,6 @@
   fat, dependencies will get downloaded
 - find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
   source)
-- installation can be made parallel
-- building can be made parallel
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - implement entrypoints awareness for installer
@@ -39,7 +42,6 @@
 - check that when downloading packages for install, the hash is being validated
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - prepare an installation test from export that uses many known python packages and several python versions
-- implement version prefetching for pubgrub, consider prefetching previous version also
 - create problem exporter for debug
 - create project that reference venv(s?), pyproject & other configuration files, source roots
 - design pkm toml namespace

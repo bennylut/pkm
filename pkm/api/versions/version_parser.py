@@ -1,7 +1,7 @@
 from typing import List
 
 from dataclasses import replace
-from pkm.utils.parsing import SimpleParser
+from pkm.utils.parsers import SimpleParser
 from pkm.api.versions.version import Version, NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion
 

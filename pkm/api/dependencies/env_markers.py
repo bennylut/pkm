@@ -2,7 +2,7 @@ from typing import Callable, Optional, List, Sequence, TYPE_CHECKING
 
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from pkm.utils.parsing import SimpleParser
+from pkm.utils.parsers import SimpleParser
 
 _EXTRAS_COLLECTION_T = List
 _EXTRAS_T = _EXTRAS_COLLECTION_T[str]
