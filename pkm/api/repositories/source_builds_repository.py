@@ -51,7 +51,7 @@ class SourceBuildsRepository(Repository):
             raise BuildError(f"cycle detected involving: {ongoingbuilds}")
 
         ongoingbuilds.add(package)
-        pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml')
+        pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml', package)
         buildsys: BuildSystemConfig = pyproject.build_system
 
         with TemporaryDirectory() as tdir:
