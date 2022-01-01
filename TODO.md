@@ -1,14 +1,28 @@
-## RUNNING:
+## CURRENT MILESTONE:
 
+- let pkm build and install itself
 
-## DONE IN THIS VERSION
-- implement pep621 and 631 for project layout in toml (note that it goes very good with the source override vision)
+## RUNNING TASKS:
 
-## BACKLOG: 
-- create buildsys (with buildable project), how to create platform/abi dependent projects?
-- consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects, build system)
+## TASKS DONE IN THIS VERSION
+- create buildsys
+- handle package naming constraints (from: https://packaging.python.org/en/latest/specifications/core-metadata/)
+    - The name of the distribution. The name field is the primary identifier for a distribution. A valid name consists
+      only of ASCII letters and numbers, period, underscore and hyphen. It must start and end with a letter or number.
+      Distribution names are limited to those which match the following regex (run with
+      re.IGNORECASE): `^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$`
+
+## BACKLOG TASKS:
+- content information (author and maintainer) name and email must be validated, 
+  - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
+  - email should be a valid email address
+- buildsys support editable installs
+- how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
+- build the monitor framework and start composing the cli
+- consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects,
+  build system)
 - implement pep660 editable source installer
-  - check the editables module, decide if you want to support this behavior
+    - check the editables module, decide if you want to support this behavior
 - move standard model zoo to pkm
 - leftover __pycache__ on main dir..
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
@@ -16,12 +30,13 @@
 - allow forced versions
 - allow additional repositories, check pytorch recipe
 - hierarchical site packages:
-  - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency resolution?)
-  - project x can be a child of project px and inherit its environment using pth and import hooks
+    - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
+      resolution?)
+    - project x can be a child of project px and inherit its environment using pth and import hooks
 - when installation fails, environment is dirty
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
-    - dont forget to handle overwriten files 
+    - dont forget to handle overwriten files
 - support backend-path in build-system (as described in pep 518, 517)
 - hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv

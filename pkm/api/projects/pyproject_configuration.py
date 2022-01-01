@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import List, Optional, Union, Dict, Mapping, Any
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.versions.version import Version
+from pkm.api.packages.package import PackageDescriptor
+from pkm.api.versions.version import Version, StandardVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
 from pkm.utils.dicts import remove_by_value, remove_none_values, without_keys
@@ -63,7 +65,7 @@ class ProjectConfig:
     # The actual text or Path to a text file containing the full description of this project.
     readme: Union[Path, str, None]
     # The Python version requirements of the project.
-    requires_python: Version
+    requires_python: Optional[VersionSpecifier]
     # The project licence identifier or path to the actual licence file
     license: Union[str, Path, None]
     # The people or organizations considered to be the "authors" of the project.
@@ -86,6 +88,40 @@ class ProjectConfig:
     # data in the corresponding field means that a user tool provides it dynamically
     dynamic: Optional[List[str]]
 
+    def package_descriptor(self) -> PackageDescriptor:
+        return PackageDescriptor(self.name, self.version)
+
+    def readme_content(self) -> str:
+        if not self.readme:
+            return ""
+
+        if isinstance(self.readme, str):
+            return self.readme
+
+        if self.readme.exists():
+            return self.readme.read_text()
+
+        return ""
+
+    def readme_content_type(self) -> str:
+        if self.readme and isinstance(self.readme, Path):
+            readme_suffix = self.readme.suffix
+            if readme_suffix == '.md':
+                return 'text/markdown'
+            elif readme_suffix == '.rst':
+                return 'text/x-rst'
+
+        return 'text/plain'
+
+    def license_content(self) -> str:
+        if not self.license:
+            return ""
+
+        if isinstance(self.license, str):
+            return self.license
+
+        return self.license.read_text()
+
     def to_config(self, project_path: Path) -> Dict[str, Any]:
         readme_value = self.readme if isinstance(self.readme, str) \
             else {'file': str(path_to(project_path, self.readme))}
@@ -99,7 +135,7 @@ class ProjectConfig:
 
         project = {
             'name': self.name, 'version': str(self.version), 'description': self.description,
-            'readme': readme_value, 'requires-python': str(self.requires_python),
+            'readme': readme_value, 'requires-python': str(self.requires_python) if self.requires_python else None,
             'license': {'file': self.license} if isinstance(self.license, Path) else {'text': self.license},
             'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
             'maintainers': [c.to_config() for c in self.maintainers] if self.maintainers is not None else None,
@@ -129,7 +165,7 @@ class ProjectConfig:
             else:
                 readme = str(readme_entry)
 
-        requires_python = Version.parse(project['requires-python'])
+        requires_python = Version.parse(project['requires-python']) if 'requires-python' in project else None
 
         license = None
         if license_table := project.get('license'):
@@ -182,7 +218,7 @@ _LEGACY_BUILDSYS = {
 
 _LEGACY_PROJECT = {
     'dynamic': [
-        'name', 'version', 'description', 'readme', 'requires-python', 'license', 'authors', 'maintainers', 'keywords',
+        'description', 'readme', 'requires-python', 'license', 'authors', 'maintainers', 'keywords',
         'classifiers', 'urls', 'scripts', 'gui-scripts', 'entry-points', 'dependencies', 'optional-dependencies']}
 
 
@@ -194,8 +230,8 @@ class PyProjectConfiguration(TomlFileConfiguration):
         project: Dict[str, Any] = self['project']
         return ProjectConfig.from_config(project_path, project)
 
-    @project.setter
-    def project(self, value: ProjectConfig):
+    @project.modifier
+    def set_project(self, value: ProjectConfig):
         project_path = self.path.parent
         self['project'] = value.to_config(project_path)
 
@@ -209,7 +245,16 @@ class PyProjectConfiguration(TomlFileConfiguration):
         return BuildSystemConfig(requirements, build_backend, backend_path)
 
     @classmethod
-    def load_effective(cls, pyproject_file: Path):
+    def load_effective(cls, pyproject_file: Path,
+                       package: Optional[PackageDescriptor] = None) -> "PyProjectConfiguration":
+        """
+        load the effective pyproject file (with missing essential values filled with their legacy values)
+        for example, if no build-system is available, this method will fill in the legacy build-system
+        :param pyproject_file: the pyproject.toml to load
+        :param package: the package that this pyproject belongs to, if given,
+                        it will be used in case of missing name and version values
+        :return: the loaded pyproject
+        """
         pyproject = PyProjectConfiguration.load(pyproject_file)
         source_tree = pyproject_file.parent
 
@@ -230,6 +275,10 @@ class PyProjectConfiguration(TomlFileConfiguration):
 
         # ensure project:
         if not pyproject['project']:
-            pyproject['project'] = _LEGACY_PROJECT
+            pyproject['project'] = {
+                **_LEGACY_PROJECT,
+                'name': (package or source_tree).name,
+                'version': str(package.version) if package else '1.0.0'}
 
+        pyproject['project.name'] = PackageDescriptor.normalize_name(pyproject['project.name'])
         return pyproject

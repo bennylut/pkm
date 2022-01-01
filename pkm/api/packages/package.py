@@ -36,7 +36,25 @@ class PackageDescriptor:
 
     @staticmethod
     def normalize_name(package_name: str) -> str:
-        return re.sub(r"[-_.]+", "-", package_name).lower()
+        """
+        normalize package names (see: https://packaging.python.org/en/latest/specifications/core-metadata/)
+
+        A valid name consists only of ASCII letters and numbers, period, underscore and hyphen.
+        It must start and end with a letter or number.
+        Distribution names are limited to those which match the following regex (run with re.IGNORECASE):
+        `^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$`
+
+        this function replace any non valid chars in the name with '-'
+        and then consecutive runs of chars in '-_.' are replaced with a single dash
+        finally '-' chars are removed from the start and end of the name
+
+        :param package_name: the package name to normalize
+        :return: the normalized name
+        """
+        # .sub(r"[-_.]+", "-", package_name)
+        if not (result := re.sub("[^A-Z0-9]+", '-', package_name, flags=re.IGNORECASE).strip('-').lower()):
+            raise ValueError(f"empty name after normalization (un-normalized name: '{package_name}')")
+        return result
 
 
 class Package(ABC):

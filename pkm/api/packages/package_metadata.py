@@ -1,22 +1,31 @@
+import re
+from dataclasses import replace
 from email.message import EmailMessage
 from email.parser import Parser
 from pathlib import Path
 from typing import List
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.dependencies.env_markers import EnvironmentMarker
+from pkm.api.projects.pyproject_configuration import ProjectConfig
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.config.configuration import FileConfiguration, computed_based_on
 from pkm.utils.dicts import get_or_put
 
+_METADATA_VERSION = '2.2'
+
 _MULTI_FIELDS = {
     'Provides-Extra', 'Platform', 'Supported-Platform', 'Classifier', 'Requires-Dist', 'Provides-Dist',
-    'Obsoletes-Dist', 'Requires-External', 'Project-URL'
+    'Obsoletes-Dist', 'Requires-External', 'Project-URL', 'Dynamic'
 }
 
 
 class PackageMetadata(FileConfiguration):
-    """implementation of the package metadata 2.1 specification as described in pep 566"""
+    """
+    implementation of the package metadata 2.1 specification as described in pep 566
+    see also: https://packaging.python.org/en/latest/specifications/core-metadata/
+    """
 
     @computed_based_on("Metadata-Version")
     def metadata_version(self) -> StandardVersion:
@@ -60,6 +69,47 @@ class PackageMetadata(FileConfiguration):
             msg.set_payload(payload)
 
         return msg.as_string()
+
+    @classmethod
+    def from_project_config(cls, prjc: ProjectConfig) -> "PackageMetadata":
+
+        # filling authors and maintainers according to pep-621:
+        # 1. If only name is provided, the value goes in Author/Maintainer as appropriate.
+        # 2. If only email is provided, the value goes in Author-email/Maintainer-email as appropriate.
+        # 3. If both email and name are provided, the value goes in Author-email/Maintainer-email as appropriate, with the format {name} <{email}> (with appropriate quoting, e.g. using email.headerregistry.Address).
+        # 4. Multiple values should be separated by commas.
+
+        author_names = [a.name for a in (prjc.authors or []) if a.name]
+        author_emails = [a.email for a in (prjc.authors or []) if a.email]
+
+        maintainer_names = [a.name for a in (prjc.authors or []) if a.name]
+        maintainer_emails = [a.email for a in (prjc.authors or []) if a.email]
+
+        # filling dependencies and attaching extra environment marker when needed
+        all_deps = [d for d in prjc.dependencies]
+        optional_deps = prjc.optional_dependencies or {}
+        for od_group, deps in optional_deps.items():
+            extra_rx = re.compile(f'extra\\s*==\\s*(\'{od_group}\'|"{od_group}")')
+            for dep in deps:
+                if not extra_rx.match(str(dep.env_marker)):
+                    new_marker = f"{str(dep.env_marker).rstrip(';')};extra=\'{od_group}\'"
+                    all_deps.append(replace(dep, env_marker=EnvironmentMarker.parse_pep508(new_marker)))
+                else:
+                    all_deps.append(dep)
+
+        data = {
+            'Metadata-Version': _METADATA_VERSION,
+            'Name': prjc.name, 'Version': str(prjc.version), 'Dynamic': prjc.dynamic or [],
+            'Summary': prjc.description, 'Description': prjc.readme_content(),
+            'Description-Content-Type': prjc.readme_content_type(), 'Keywords': prjc.keywords or [],
+            'Author': ', '.join(author_names), 'Author-email': ', '.join(author_emails),
+            'Maintainer': ', '.join(maintainer_names), 'Maintainer-email': ', '.join(maintainer_emails),
+            'License': prjc.license_content(), 'Classifier': prjc.classifiers,
+            'Requires-Dist': [str(d) for d in all_deps], 'Requires-Python': str(prjc.requires_python),
+            'Provides-Extra': list(optional_deps.keys())
+        }
+
+        return PackageMetadata(data=data, path=None)
 
     @classmethod
     def load(cls, path: Path) -> "PackageMetadata":

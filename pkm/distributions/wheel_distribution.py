@@ -48,6 +48,14 @@ class WheelFileConfiguration(FileConfiguration):
             console.log(f'advanced wheel version: {wv} detected, will be treated as version 1.0')
 
     @classmethod
+    def create(cls, generator: str, purelib: bool):
+        return cls(path=None, data={
+            'Wheel-Version': '1.0',
+            'Generator': generator,
+            'Root-Is-Purelib': 'true' if purelib else 'false'
+        })
+
+    @classmethod
     def load(cls, path: Path):
         if not path.exists():
             raise InstallationException(f"wheel does not contain WHEEL file in dist-info")
@@ -168,11 +176,12 @@ class WheelDistribution(Distribution):
             for copy_command in copy_commands:
                 if copy_command.target.exists():
 
-                    console.log(f"package files conflicts with other package files: {copy_command.target} already exist")
+                    console.log(
+                        f"package files conflicts with other package files: {copy_command.target} already exist")
 
                     if not copy_command.target.is_dir():
                         # shutil.rmtree(copy_command.target)
-                    # else:
+                        # else:
                         copy_command.target.unlink()
 
                     # raise InstallationException(

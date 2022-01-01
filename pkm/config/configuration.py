@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
-    MutableMapping
+    MutableMapping, Generic
 
 from pkm.config import toml
 from pkm.utils.commons import UnsupportedOperationException
@@ -134,7 +134,7 @@ _C1R = TypeVar("_C1R", bound=Callable[[Any], Any])
 _C1N = TypeVar("_C1N", bound=Callable[[Any], None])
 
 
-class _ComputedConfigValue:
+class _ComputedConfigValue(Generic[_T]):
 
     def __init__(self, func: Callable[[Any], _T], dependency_keys: Tuple[str, ...]):
         self._func = func
@@ -150,11 +150,11 @@ class _ComputedConfigValue:
         self._stamp_attr = f"__computed_{name}_stamp"
         self._configuration = owner
 
-    def setter(self, func: _C1N) -> _C1N:
+    def modifier(self, func: _C1N) -> _C1N:
         self._setter = func
         return func
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: _T):
         if instance is None or self._setter is None:
             raise UnsupportedOperationException('immutable field')
 
@@ -179,15 +179,15 @@ class _ComputedConfigValue:
         return new_value
 
 
-def computed_based_on(*based_on_keys: str) -> Callable[[_C1R], _ComputedConfigValue]:
-    def _computed(func: _C1R) -> _ComputedConfigValue:
-        return cast(_C1R, _ComputedConfigValue(func, based_on_keys))
+def computed_based_on(*based_on_keys: str) -> Callable[[Callable[[Any], _T]], _ComputedConfigValue[_T]]:
+    def _computed(func: Callable[[Any], _T]) -> _ComputedConfigValue[_T]:
+        return _ComputedConfigValue(func, based_on_keys)
 
     return _computed
 
 
 class FileConfiguration(MutableConfiguration, ABC):
-    def __init__(self, *, path: Path, parent: Optional["Configuration"] = None, data: Optional[Dict[str, Any]] = None):
+    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None, data: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent, data=data)
         self._path = path
 
