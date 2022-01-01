@@ -51,9 +51,7 @@ class SourceBuildsRepository(Repository):
             raise BuildError(f"cycle detected involving: {ongoingbuilds}")
 
         ongoingbuilds.add(package)
-        pyproject = _read_effective_pyproject_toml(source_tree)
-        if not pyproject:
-            raise MalformedPackageException(f"cannot resolve {package}'s build system")
+        pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml')
         buildsys: BuildSystemConfig = pyproject.build_system
 
         with TemporaryDirectory() as tdir:
@@ -201,27 +199,3 @@ class _PrebuiltPackage(AbstractPackage):
         return self._metadata.dependencies
 
 
-_LEGACY_BUILDSYS = {
-    'requires': ['setuptools', 'wheel', 'pip'],
-    'build-backend': 'setuptools.build_meta:__legacy__'
-}
-
-
-def _read_effective_pyproject_toml(source_tree: Path) -> Optional[PyProjectConfiguration]:
-    pyproject_file = source_tree / 'pyproject.toml'
-    pyproject = PyProjectConfiguration.load(pyproject_file)
-    if pyproject['build-system'] is None:
-        if not (source_tree / 'setup.py').exists():
-            return None
-
-        pyproject['build-system'] = _LEGACY_BUILDSYS
-
-    if pyproject['build-system.requires'] is None:
-        pyproject['build-system.requires'] = []
-
-    if pyproject['build-system.build-backend'] is None:
-        pyproject['build-system.build-backend'] = _LEGACY_BUILDSYS['build-backend']
-        pyproject['build-system.requires'] = list(
-            set(*_LEGACY_BUILDSYS['requires'], *pyproject['build-system.requires']))
-
-    return pyproject

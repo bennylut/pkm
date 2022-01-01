@@ -1,19 +1,20 @@
 ## RUNNING:
 
-## DONE IN THIS VERSION
-- installation made parallel
-- building made parallel
-- implement version prefetching for pubgrub
 
+## DONE IN THIS VERSION
+- implement pep621 and 631 for project layout in toml (note that it goes very good with the source override vision)
 
 ## BACKLOG: 
+- create buildsys (with buildable project), how to create platform/abi dependent projects?
+- consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects, build system)
+- implement pep660 editable source installer
+  - check the editables module, decide if you want to support this behavior
+- move standard model zoo to pkm
 - leftover __pycache__ on main dir..
-- add some flag to disable parallelizm in installation (mainly usefull for debug?)
+- add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
 - allow forced versions
 - allow additional repositories, check pytorch recipe
-- implement pep660 editable source installer
-  - check the editables module, decide if you want to support this behavior
 - hierarchical site packages:
   - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency resolution?)
   - project x can be a child of project px and inherit its environment using pth and import hooks
@@ -35,7 +36,6 @@
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - implement entrypoints awareness for installer
 - support `pkm new notebook`
-- implement pep621 and 631 for project layout in toml (note that it goes very good with the source override vision)
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - commandline: pkm install -g, -ga, -ge env
@@ -46,7 +46,6 @@
 - create project that reference venv(s?), pyproject & other configuration files, source roots
 - design pkm toml namespace
 - git and url dependencies installation support
-- create buildsys (with buildable project), how to create platform/abi dependent projects?
 - publish project
 - project operations: install dependency, remove dependency, create project, build project
 - move to src layout?

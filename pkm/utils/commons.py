@@ -45,6 +45,10 @@ class IllegalStateException(Exception):
     ...
 
 
+class UnsupportedOperationException(Exception):
+    ...
+
+
 # Common classes
 
 class Closeable(ABC):
