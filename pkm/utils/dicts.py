@@ -1,4 +1,4 @@
-from typing import TypeVar, MutableMapping, Optional, Callable
+from typing import TypeVar, MutableMapping, Optional, Callable, Dict, Mapping
 
 from pkm.utils.types import SupportHashCode
 
@@ -33,6 +33,26 @@ def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], 
         d[key] = value = value_provider()
 
     return value
+
+
+def without_keys(d: Mapping[_K, _V], *keys: _K) -> Dict[_K, _V]:
+    """
+    creates a new dict with the same content as `d` minus the keys that are in `keys`
+    :param d: the mapping to clone
+    :param keys: the keys to leave out
+    :return: the newly created dict
+    """
+    remove_set = set(keys)
+    return {k: v for k, v in d.items() if k not in remove_set}
+
+
+def remove_none_values(d: "_M[_K, _V]") -> "_M[_K, _V]":
+    """
+    remove from `d` all items with value equals to None and return back `d`
+    :param d: the dict to remove from
+    :return: `d` after the required changes
+    """
+    return remove_by_value(d)
 
 
 def remove_by_value(

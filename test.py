@@ -32,12 +32,12 @@ env = Environment(env_path)
 # pypi = PyPiRepository(http)
 #
 import time
-
-start = time.time()
-env.remove('allennlp')
-env.install('allennlp', pkm.repositories.pypi)
-end = time.time()
-print(f"TOOK: {end - start}")
+env.install(['pip', 'setuptools', 'wheel'], pkm.repositories.pypi)
+# env.remove('allennlp')
+# start = time.time()
+# env.install('allennlp', pkm.repositories.pypi)
+# end = time.time()
+# print(f"TOOK: {end - start}")
 #
 # # env.install()
 # #

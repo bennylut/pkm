@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Calla
     MutableMapping
 
 from pkm.config import toml
+from pkm.utils.commons import UnsupportedOperationException
 
 
 class Configuration:
@@ -129,6 +130,8 @@ class MutableConfiguration(Configuration, ABC):
 
 
 _T = TypeVar('_T')
+_C1R = TypeVar("_C1R", bound=Callable[[Any], Any])
+_C1N = TypeVar("_C1N", bound=Callable[[Any], None])
 
 
 class _ComputedConfigValue:
@@ -137,6 +140,7 @@ class _ComputedConfigValue:
         self._func = func
         self._dependency_keys = tuple(toml.key2path(key) for key in dependency_keys)
         self.__doc__ = func.__doc__
+        self._setter = None
 
     def __set_name__(self, owner: Type, name):
         if not issubclass(owner, Configuration):
@@ -145,6 +149,17 @@ class _ComputedConfigValue:
         self._attr = f"__computed_{name}"
         self._stamp_attr = f"__computed_{name}_stamp"
         self._configuration = owner
+
+    def setter(self, func: _C1N) -> _C1N:
+        self._setter = func
+        return func
+
+    def __set__(self, instance, value):
+        if instance is None or self._setter is None:
+            raise UnsupportedOperationException('immutable field')
+
+        self._setter(instance, value)
+        setattr(instance, self._stamp_attr, None)
 
     def __get__(self, instance, owner) -> _T:
         if instance is None:
@@ -164,12 +179,9 @@ class _ComputedConfigValue:
         return new_value
 
 
-_P = TypeVar("_P", bound=Callable[[Any], Any])
-
-
-def computed_based_on(*based_on_keys: str) -> Callable[[_P], _P]:
-    def _computed(func: _P) -> _P:
-        return cast(_P, _ComputedConfigValue(func, based_on_keys))
+def computed_based_on(*based_on_keys: str) -> Callable[[_C1R], _ComputedConfigValue]:
+    def _computed(func: _C1R) -> _ComputedConfigValue:
+        return cast(_C1R, _ComputedConfigValue(func, based_on_keys))
 
     return _computed
 
