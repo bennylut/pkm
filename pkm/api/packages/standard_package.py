@@ -7,6 +7,7 @@ from typing import Optional, Any, Dict, List
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.distributions.source_distribution import SourceDistribution
@@ -97,7 +98,8 @@ class AbstractPackage(Package):
         :return: the stored artifact
         """
 
-    def install_to(self, env: Environment, build_packages_repo: Repository, user_request: Optional[Dependency] = None):
+    def install_to(self, env: Environment, build_packages_repo: Optional[Repository] = None, user_request: Optional[Dependency] = None):
+        build_packages_repo = build_packages_repo or pkm.repositories.pypi
         artifact = self._best_artifact_for(env)
         artifact_path = self._retrieve_artifact(artifact)
         if artifact.distribution == 'bdist_wheel':

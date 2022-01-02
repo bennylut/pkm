@@ -272,6 +272,7 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
     for promise in promises:
         promise.result()
 
+
 class _UserRequestPackage(Package):
     def __init__(self, request: List[Dependency]):
         self._desc = PackageDescriptor("installation request", NamedVersion(""))
@@ -286,7 +287,7 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, env: "Environment", build_packages_repo: Repository,
+    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
                    user_request: Optional[Dependency] = None): pass
 
     def to_dependency(self) -> Dependency:

@@ -76,7 +76,8 @@ class PackageMetadata(FileConfiguration):
         # filling authors and maintainers according to pep-621:
         # 1. If only name is provided, the value goes in Author/Maintainer as appropriate.
         # 2. If only email is provided, the value goes in Author-email/Maintainer-email as appropriate.
-        # 3. If both email and name are provided, the value goes in Author-email/Maintainer-email as appropriate, with the format {name} <{email}> (with appropriate quoting, e.g. using email.headerregistry.Address).
+        # 3. If both email and name are provided, the value goes in Author-email/Maintainer-email as appropriate,
+        #    with the format {name} <{email}> (with appropriate quoting, e.g. using email.headerregistry.Address).
         # 4. Multiple values should be separated by commas.
 
         author_names = [a.name for a in (prjc.authors or []) if a.name]
@@ -85,17 +86,8 @@ class PackageMetadata(FileConfiguration):
         maintainer_names = [a.name for a in (prjc.authors or []) if a.name]
         maintainer_emails = [a.email for a in (prjc.authors or []) if a.email]
 
-        # filling dependencies and attaching extra environment marker when needed
-        all_deps = [d for d in prjc.dependencies]
-        optional_deps = prjc.optional_dependencies or {}
-        for od_group, deps in optional_deps.items():
-            extra_rx = re.compile(f'extra\\s*==\\s*(\'{od_group}\'|"{od_group}")')
-            for dep in deps:
-                if not extra_rx.match(str(dep.env_marker)):
-                    new_marker = f"{str(dep.env_marker).rstrip(';')};extra=\'{od_group}\'"
-                    all_deps.append(replace(dep, env_marker=EnvironmentMarker.parse_pep508(new_marker)))
-                else:
-                    all_deps.append(dep)
+        extras = list((prjc.optional_dependencies or {}).keys())
+        all_deps = prjc.all_dependencies
 
         data = {
             'Metadata-Version': _METADATA_VERSION,
@@ -106,7 +98,7 @@ class PackageMetadata(FileConfiguration):
             'Maintainer': ', '.join(maintainer_names), 'Maintainer-email': ', '.join(maintainer_emails),
             'License': prjc.license_content(), 'Classifier': prjc.classifiers,
             'Requires-Dist': [str(d) for d in all_deps], 'Requires-Python': str(prjc.requires_python),
-            'Provides-Extra': list(optional_deps.keys())
+            'Provides-Extra': extras
         }
 
         return PackageMetadata(data=data, path=None)

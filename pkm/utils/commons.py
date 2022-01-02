@@ -48,6 +48,8 @@ class IllegalStateException(Exception):
 class UnsupportedOperationException(Exception):
     ...
 
+class NoSuchElementException(Exception):
+    ...
 
 # Common classes
 

@@ -104,13 +104,13 @@ class Package(ABC):
 
     @abstractmethod
     def install_to(self, env: "Environment",
-                   build_packages_repo: "Repository",
+                   build_packages_repo: Optional["Repository"] = None,
                    user_request: Optional["Dependency"] = None):
         """
         installs this package into the given [env]
         :param env: the environment to install this package into
         :param build_packages_repo: in the case where installing this package requires build, any packages required for
-               the build system will be fetched from this repo
+               the build system will be fetched from this repo, if None is given and build is required, will use pypi
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
         """

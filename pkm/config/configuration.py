@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
-    MutableMapping, Generic
+    MutableMapping, Generic, Union
 
 from pkm.config import toml
 from pkm.utils.commons import UnsupportedOperationException
@@ -180,14 +180,15 @@ class _ComputedConfigValue(Generic[_T]):
 
 
 def computed_based_on(*based_on_keys: str) -> Callable[[Callable[[Any], _T]], _ComputedConfigValue[_T]]:
-    def _computed(func: Callable[[Any], _T]) -> _ComputedConfigValue[_T]:
+    def _computed(func: Callable[[Any], Any]):
         return _ComputedConfigValue(func, based_on_keys)
 
     return _computed
 
 
 class FileConfiguration(MutableConfiguration, ABC):
-    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None, data: Optional[Dict[str, Any]] = None):
+    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None,
+                 data: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent, data=data)
         self._path = path
 

@@ -1,3 +1,4 @@
+from dataclasses import FrozenInstanceError
 from threading import Lock
 
 from typing import TypeVar, Callable, Any
@@ -16,7 +17,7 @@ class cached_property:
         self._mutation_lock = Lock()
 
     def __set_name__(self, owner, name):
-        self._attr = f"_lazy_{name}"
+        self._attr = f"_cached_{name}"
 
     def __get__(self, instance, owner) -> _T:
         if instance is None:
@@ -28,7 +29,11 @@ class cached_property:
             except AttributeError:
                 with self._mutation_lock:
                     if not hasattr(instance, self._attr):
-                        setattr(instance, self._attr, self._func(instance))
+                        value = self._func(instance)
+                        try:
+                            setattr(instance, self._attr, value)
+                        except FrozenInstanceError:
+                            super(instance.__class__, instance).__setattr__(self._attr, value)
 
     def __set__(self, instance, value: _T):
         setattr(instance, self._attr, value)

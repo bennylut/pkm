@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import os
 
+from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
 from pkm.api.repositories.pypi_repository import PyPiRepository
 from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 from pkm.utils.http.http_client import HttpClient
@@ -16,6 +17,7 @@ ENV_PKM_HOME = "PKM_HOME"
 class _PkmRepositories:
     source_builds: SourceBuildsRepository
     pypi: PyPiRepository
+    installed_pythons: InstalledPythonsRepository
 
 
 class _Pkm:
@@ -26,7 +28,8 @@ class _Pkm:
         self.threads = ThreadPoolExecutor()
         self.repositories = _PkmRepositories(
             SourceBuildsRepository(workspace / 'source-builds'),
-            PyPiRepository(self.httpclient)
+            PyPiRepository(self.httpclient),
+            InstalledPythonsRepository()
         )
 
 

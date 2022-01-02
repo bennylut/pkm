@@ -122,7 +122,8 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", build_packages_repo: Repository, user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
+                   user_request: Optional[Dependency] = None):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:

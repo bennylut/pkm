@@ -12,34 +12,36 @@ from pkm.api.packages.package import PackageDescriptor
 from pkm.api.repositories.repository import Repository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.resolution.pubgrub import UnsolvableProblemException
-from pkm.utils.commons import unone, unone_raise
+from pkm.utils.commons import unone, unone_raise, UnsupportedOperationException
 from pkm.utils.iterators import without_nones
 from pkm.utils.properties import cached_property, clear_cached_properties
 
-from pkm_main.repositories.local_pythons_repository import LocalPythonsRepository
+from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
 
-_PKM_ENV_INFO_SUFFIX = "etc/pkm/envinfo.toml"
+_PKM_ENV_INFO_SUFFIX = "etc/pkm/zoo-info.toml"
 
 
 class StandardEnvironmentsZoo(EnvironmentsZoo):
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, allow_applications: bool = True):
         self._path = path
+        self._with_applications = allow_applications
 
         if not self._path.exists():
             self._path.mkdir(parents=True)
-            (self._path / "apps").mkdir()
-            (self._path / "envs").mkdir()
+            if allow_applications:
+                (self._path / "apps").mkdir()
+                (self._path / "envs").mkdir()
 
     def create_environment(self, name: str, python: Union[Dependency, str]) -> "ManagedEnvironment":
         python = Dependency.parse_pep508(python) if isinstance(python, str) else python
 
-        path = self._path / "envs" / name
+        path = (self._path / "envs" / name) if self._with_applications else (self._path / name)
         if path.exists():
             raise FileExistsError(f"environment named {name} already exists")
 
         env = Environment(path)
-        interpreters = LocalPythonsRepository.match(python)
+        interpreters = InstalledPythonsRepository.match(python)
         interpreter = max(
             (i for i in interpreters if i.is_compatible_with(env)),
             key=lambda it: it.version, default=None)
@@ -47,12 +49,15 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         if not interpreter:
             raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
-        interpreter.install_to(env, LocalPythonsRepository)
+        interpreter.install_to(env, InstalledPythonsRepository)
         return StandardManagedEnvironment(Environment(env.path))
 
     def create_application_environment(
             self, application: Union[str, Dependency], repository: Repository, name: Optional[str] = None,
             python: Optional[Union[str, Dependency]] = None) -> "ManagedEnvironment":
+
+        if not self._with_applications:
+            raise UnsupportedOperationException("this environment zoo does not support applications")
 
         application = Dependency.parse_pep508(application) if isinstance(application, str) else application
         name = unone(name, lambda: application.package_name)
@@ -63,7 +68,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         python = unone(python, lambda: 'python *')
         python = Dependency.parse_pep508(python) if isinstance(python, str) else python
 
-        interpreters = sorted(LocalPythonsRepository.match(python), key=lambda it: it.version, reverse=True)
+        interpreters = sorted(InstalledPythonsRepository.match(python), key=lambda it: it.version, reverse=True)
 
         for interpreter in interpreters:
             try:
@@ -82,11 +87,14 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
     def list(self, match: Literal['applications', 'general', 'all'] = 'all') -> Iterator["ManagedEnvironment"]:
-        if match in ('applications', 'all'):
-            yield from without_nones(self._try_load(p) for p in (self._path / 'apps').iterdir())
+        if not self._with_applications:
+            yield from without_nones(self._try_load(p) for p in self._path.iterdir())
+        else:
+            if match in ('applications', 'all'):
+                yield from without_nones(self._try_load(p) for p in (self._path / 'apps').iterdir())
 
-        if match in ('general', 'all'):
-            yield from without_nones(self._try_load(p) for p in (self._path / 'envs').iterdir())
+            if match in ('general', 'all'):
+                yield from without_nones(self._try_load(p) for p in (self._path / 'envs').iterdir())
 
     def _try_load(self, path: Path) -> Optional["ManagedEnvironment"]:
         if Environment.is_valid(path):
@@ -94,7 +102,10 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         return None
 
     def load_environment(self, name: str, application: bool) -> "ManagedEnvironment":
-        path = (self._path / 'apps' / name) if application else (self._path / 'envs' / name)
+        path = self._path / name
+        if self._with_applications:
+            path = (self._path / 'apps' / name) if application else (self._path / 'envs' / name)
+
         return unone_raise(self._try_load(path), lambda: KeyError('no such environment found'))
 
 
