@@ -5,19 +5,23 @@ from pathlib import Path
 import sys
 import os
 
-from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
-from pkm.api.repositories.pypi_repository import PyPiRepository
-from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
+from typing import TYPE_CHECKING
 from pkm.utils.http.http_client import HttpClient
+from pkm.utils.properties import cached_property
+
+if TYPE_CHECKING:
+    from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
+    from pkm.api.repositories.pypi_repository import PyPiRepository
+    from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 
 ENV_PKM_HOME = "PKM_HOME"
 
 
 @dataclass
 class _PkmRepositories:
-    source_builds: SourceBuildsRepository
-    pypi: PyPiRepository
-    installed_pythons: InstalledPythonsRepository
+    source_builds: "SourceBuildsRepository"
+    pypi: "PyPiRepository"
+    installed_pythons: "InstalledPythonsRepository"
 
 
 class _Pkm:
@@ -26,8 +30,15 @@ class _Pkm:
         workspace.mkdir(exist_ok=True, parents=True)
         self.httpclient = HttpClient(workspace / 'resources/http')
         self.threads = ThreadPoolExecutor()
-        self.repositories = _PkmRepositories(
-            SourceBuildsRepository(workspace / 'source-builds'),
+
+    @cached_property
+    def repositories(self) -> _PkmRepositories:
+        from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
+        from pkm.api.repositories.pypi_repository import PyPiRepository
+        from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
+
+        return _PkmRepositories(
+            SourceBuildsRepository(self.workspace / 'source-builds'),
             PyPiRepository(self.httpclient),
             InstalledPythonsRepository()
         )
@@ -59,7 +70,7 @@ def _default_home_directory():
     elif system == 'darwin':
         path = Path('~/Library/Application Support/')
     else:
-        path = Path(os.getenv('XDG_DATA_HOME', os.path.expanduser("~/.local/share")))
+        path = Path(os.getenv('XDG_DATA_HOME', "~/.local/share"))
 
     return (path / 'pkm').expanduser().resolve()
 

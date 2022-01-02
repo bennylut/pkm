@@ -1,6 +1,7 @@
 import os.path
 import platform
 import re
+import subprocess
 from io import UnsupportedOperation
 from pathlib import Path
 from typing import List, Optional, Set
@@ -13,8 +14,6 @@ from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
-
-from pkm_main.environments.interpreter_introspection import InterpreterIntrospection
 
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
@@ -30,13 +29,17 @@ class InstalledPythonsRepository(Repository):
         interpreters_in_path = _interpreters_in_path()
         for interpreter_path in interpreters_in_path:
             try:
-                introspection = InterpreterIntrospection.remote(interpreter_path)
+                cmdout = subprocess.run(
+                    [str(interpreter_path), "-c", "import platform; print(platform.python_version)"],
+                    capture_output=True)
+                cmdout.check_returncode()
+
                 result.append(LocalInterpreterPackage(
                     interpreter_path,
-                    PackageDescriptor("python", Version.parse(introspection.version)),
+                    PackageDescriptor("python", Version.parse(str(cmdout.stdout))),
                     _DEFAULT_PKG_EXTRAS))
 
-            except UnsupportedOperation:
+            except ChildProcessError:
                 ...  # skip this interpreter
 
         return result

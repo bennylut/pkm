@@ -1,12 +1,12 @@
 ## CURRENT MILESTONE:
-
-- let pkm build and install itself
+- pkm publish itself
 
 ## RUNNING TASKS:
+
+## DONE IN THIS VERSION
+- MILESTONE: pkm build and install itself
 - create project that reference venv, pyproject & other configuration files, source roots
 - support non src layouts, try to build pkm using pkm 
-
-## TASKS DONE IN THIS VERSION
 
 
 ## BACKLOG TASKS:

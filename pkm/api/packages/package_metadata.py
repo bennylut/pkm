@@ -1,12 +1,9 @@
-import re
-from dataclasses import replace
 from email.message import EmailMessage
 from email.parser import Parser
 from pathlib import Path
 from typing import List
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.projects.pyproject_configuration import ProjectConfig
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
@@ -53,6 +50,9 @@ class PackageMetadata(FileConfiguration):
     def generate_content(self) -> str:
         msg = EmailMessage()
         for key, value in self._data.items():
+            if value is None:
+                continue
+
             if key in _MULTI_FIELDS and not isinstance(value, List):
                 raise ValueError(f'{key} expected to be a list, found: {value}')
 
