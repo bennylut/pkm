@@ -3,19 +3,20 @@
 - let pkm build and install itself
 
 ## RUNNING TASKS:
+- create project that reference venv(s?), pyproject & other configuration files, source roots
+- support non src layouts, try to build pkm using pkm 
 
 ## TASKS DONE IN THIS VERSION
-- create buildsys
-- handle package naming constraints (from: https://packaging.python.org/en/latest/specifications/core-metadata/)
-    - The name of the distribution. The name field is the primary identifier for a distribution. A valid name consists
-      only of ASCII letters and numbers, period, underscore and hyphen. It must start and end with a letter or number.
-      Distribution names are limited to those which match the following regex (run with
-      re.IGNORECASE): `^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$`
+- design pkm toml project namespace
+- support backend-path in build-system (as described in pep 518, 517)
+- test backend-path by attempting to build poetry-core
 
 ## BACKLOG TASKS:
-- content information (author and maintainer) name and email must be validated, 
+- check, are cycles detected correctly in sdist builds? (especially under parallelization conditions)
+- content information (author and maintainer) name and email should be validated, 
   - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
   - email should be a valid email address
+  - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
 - buildsys support editable installs
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - build the monitor framework and start composing the cli
@@ -24,7 +25,7 @@
 - implement pep660 editable source installer
     - check the editables module, decide if you want to support this behavior
 - move standard model zoo to pkm
-- leftover __pycache__ on main dir..
+- bug: leftover __pycache__ on site packages dir after uninstall 
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
 - allow forced versions
@@ -37,7 +38,6 @@
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
     - dont forget to handle overwriten files
-- support backend-path in build-system (as described in pep 518, 517)
 - hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv
 - lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
@@ -50,7 +50,7 @@
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - implement entrypoints awareness for installer
-- support `pkm new notebook`
+- support the `pkm new notebook` usecase 
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - commandline: pkm install -g, -ga, -ge env
@@ -58,8 +58,6 @@
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
-- create project that reference venv(s?), pyproject & other configuration files, source roots
-- design pkm toml namespace
 - git and url dependencies installation support
 - publish project
 - project operations: install dependency, remove dependency, create project, build project
@@ -68,8 +66,7 @@
 - cli
 - make-like task system
 - source definition and configuration (can it be translated to pep508 dependency?)
-- dependency forced versions
-- properties and build profiles
+- properties and build profiles (note that properties should only apply on pkm namespace)
 - documentation site
 - entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)

@@ -52,7 +52,7 @@ class PackageMetadata(FileConfiguration):
 
     def generate_content(self) -> str:
         msg = EmailMessage()
-        for key, value in self._data:
+        for key, value in self._data.items():
             if key in _MULTI_FIELDS and not isinstance(value, List):
                 raise ValueError(f'{key} expected to be a list, found: {value}')
 

@@ -59,6 +59,8 @@ class SourceBuildsRepository(Repository):
             build_env = LightweightEnvironmentBuilder.create(tdir_path / 'venv', target_env.interpreter_path)
             if buildsys.requirements:
                 build_env.install(buildsys.requirements, build_packages_repo)
+            if buildsys.backend_path:
+                build_env.install_link('build_backend', [source_tree / pth for pth in buildsys.backend_path])
 
             # start build cycle:
             wheels_path = (tdir_path / "wheels").absolute()

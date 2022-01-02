@@ -17,7 +17,7 @@ from pkm.utils.files import path_to
 class BuildSystemConfig:
     requirements: List[Dependency]
     build_backend: str
-    backend_path: Optional[str]
+    backend_path: Optional[List[str]]
 
 
 @dataclass(frozen=True, eq=True)
