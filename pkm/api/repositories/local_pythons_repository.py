@@ -7,6 +7,7 @@ from typing import List, Optional, Set
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
+from pkm.api.environments.lightweight_environment_builder import LightweightEnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
@@ -18,7 +19,7 @@ from pkm_main.environments.interpreter_introspection import InterpreterIntrospec
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
 
-class _LocalPythonsRepository(Repository):
+class InstalledPythonsRepository(Repository):
 
     def __init__(self):
         super().__init__('local-pythons')
@@ -52,9 +53,6 @@ class _LocalPythonsRepository(Repository):
             if dependency.version_spec.allows_version(p.version)]
 
 
-LocalPythonsRepository = _LocalPythonsRepository()
-
-
 class LocalInterpreterPackage(Package):
 
     def __init__(self, interpreter: Path, desc: PackageDescriptor, extras: Set[str]):
@@ -71,7 +69,7 @@ class LocalInterpreterPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment", build_packages_repo: "Repository") -> List["Dependency"]:
         return []
 
     def is_compatible_with(self, env: Environment):
@@ -80,26 +78,9 @@ class LocalInterpreterPackage(Package):
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: "Environment", build_packages_repo: Repository,
+    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
                    user_request: Optional[Dependency] = None):
-        from virtualenv import cli_run
-
-        args = [
-            "--python", str(self._interpreter.absolute())
-        ]
-
-        if 'pip' not in self._extras:
-            args.append('--no-pip')
-
-        if 'wheel' not in self._extras:
-            args.append('--no-wheel')
-
-        if 'setuptools' not in self._extras:
-            args.append('--no-setuptools')
-
-        args.append(str(env.path.absolute()))
-
-        cli_run(args)
+        LightweightEnvironmentBuilder.create(env.path, self._interpreter.absolute())
 
 
 _OS = platform.system()

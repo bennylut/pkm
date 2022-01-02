@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union, Dict, Mapping, Any
+from typing import List, Optional, Union, Dict, Mapping, Any, re
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -11,6 +12,7 @@ from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
 from pkm.utils.dicts import remove_by_value, remove_none_values, without_keys
 from pkm.utils.files import path_to
+from pkm.utils.properties import cached_property
 
 
 @dataclass(frozen=True, eq=True)
@@ -87,6 +89,20 @@ class ProjectConfig:
     # a list of field names (from the above fields), each field name that appears in this list means that the absense of
     # data in the corresponding field means that a user tool provides it dynamically
     dynamic: Optional[List[str]]
+
+    @cached_property
+    def all_dependencies(self) -> List[Dependency]:
+        all_deps = [d for d in self.dependencies]
+        optional_deps = self.optional_dependencies or {}
+        for od_group, deps in optional_deps.items():
+            extra_rx = re.compile(f'extra\\s*==\\s*(\'{od_group}\'|"{od_group}")')
+            for dep in deps:
+                if not extra_rx.match(str(dep.env_marker)):
+                    new_marker = f"{str(dep.env_marker).rstrip(';')};extra=\'{od_group}\'"
+                    all_deps.append(replace(dep, env_marker=EnvironmentMarker.parse_pep508(new_marker)))
+                else:
+                    all_deps.append(dep)
+        return all_deps
 
     def package_descriptor(self) -> PackageDescriptor:
         return PackageDescriptor(self.name, self.version)
@@ -223,6 +239,7 @@ _LEGACY_PROJECT = {
 
 
 class PyProjectConfiguration(TomlFileConfiguration):
+    project: ProjectConfig  # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
 
     @computed_based_on("project")
     def project(self) -> ProjectConfig:

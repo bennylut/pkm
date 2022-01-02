@@ -69,4 +69,4 @@ class DummyPackage(Package):
     def is_compatible_with(self, env: Environment):
         return True
 
-    def install_to(self, env: "Environment", build_packages_repo: Repository, user_request: Optional[Dependency] = None): pass
+    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None, user_request: Optional[Dependency] = None): pass

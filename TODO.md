@@ -3,15 +3,16 @@
 - let pkm build and install itself
 
 ## RUNNING TASKS:
-- create project that reference venv(s?), pyproject & other configuration files, source roots
+- create project that reference venv, pyproject & other configuration files, source roots
 - support non src layouts, try to build pkm using pkm 
 
 ## TASKS DONE IN THIS VERSION
-- design pkm toml project namespace
-- support backend-path in build-system (as described in pep 518, 517)
-- test backend-path by attempting to build poetry-core
+
 
 ## BACKLOG TASKS:
+- handle project install with extras
+- multi venv in project - usecase and flow
+- bug: cached_property: mutation lock should be instance dependent and not global 
 - check, are cycles detected correctly in sdist builds? (especially under parallelization conditions)
 - content information (author and maintainer) name and email should be validated, 
   - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
