@@ -12,8 +12,10 @@ from pkm.api.packages.site_packages import SitePackages, InstalledPackage
 from pkm.api.repositories.repository import Repository, DelegatingRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.distributions.pth_link import PthLink
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
+from pkm.utils.commons import unone
 from pkm.utils.iterators import find_first
 from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -137,6 +139,23 @@ class Environment:
         reload volatile information about this environment (like the installed packages)
         """
         clear_cached_properties(self)
+
+    def install_link(self, name: str, paths: List[Path], imports: Optional[List[str]] = None):
+        """
+        installs a pth link (named `name`.pth) in the site packages (purelib)
+        :param name:
+        :param imports: imports to execute at runtime when reading this link
+                        (example: `imports` = ['abc'] will import the abc package when the interpreter attached to this
+                        environment gets executed and meets the created link)
+        :param paths: the paths to add in the created link
+        """
+
+        imports = unone(imports, list)
+        pth_file = self.site_packages.purelib_path / f"{name}.pth"
+        if pth_file.exists():
+            raise FileExistsError(f"the file {pth_file} already exists")
+
+        PthLink(pth_file, imports, paths).save()
 
     def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True):
         """
