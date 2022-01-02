@@ -12,6 +12,7 @@ from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
 from pkm.utils.dicts import remove_by_value, remove_none_values, without_keys
 from pkm.utils.files import path_to
+from pkm.utils.iterators import without_nones
 from pkm.utils.properties import cached_property
 
 
@@ -24,8 +25,8 @@ class BuildSystemConfig:
 
 @dataclass(frozen=True, eq=True)
 class ContactInfo:
-    name: Optional[str]
-    email: Optional[str]
+    name: Optional[str] = None
+    email: Optional[str] = None
 
     @classmethod
     def from_config(cls, contact: Dict[str, Any]) -> "ContactInfo":
@@ -49,6 +50,22 @@ class EntryPointConfig:
     @staticmethod
     def to_config(entries: List["EntryPointConfig"]) -> Dict[str, str]:
         return {e.name: e.object_reference for e in entries}
+
+
+@dataclass(frozen=True, eq=True)
+class PkmProjectConfig:
+    packages: Optional[List[str]] = None
+
+    def to_config(self) -> Dict[str, Any]:
+        return remove_none_values({
+            'packages': self.packages
+        })
+
+    @classmethod
+    def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional["PkmProjectConfig"]:
+        if not config:
+            return None
+        return PkmProjectConfig(**config)
 
 
 @dataclass(frozen=True, eq=True)
@@ -92,7 +109,7 @@ class ProjectConfig:
 
     @cached_property
     def all_dependencies(self) -> List[Dependency]:
-        all_deps = [d for d in self.dependencies]
+        all_deps = [d for d in (self.dependencies or [])]
         optional_deps = self.optional_dependencies or {}
         for od_group, deps in optional_deps.items():
             extra_rx = re.compile(f'extra\\s*==\\s*(\'{od_group}\'|"{od_group}")')
@@ -181,7 +198,7 @@ class ProjectConfig:
             else:
                 readme = str(readme_entry)
 
-        requires_python = Version.parse(project['requires-python']) if 'requires-python' in project else None
+        requires_python = VersionSpecifier.parse(project['requires-python']) if 'requires-python' in project else None
 
         license = None
         if license_table := project.get('license'):
@@ -239,7 +256,13 @@ _LEGACY_PROJECT = {
 
 
 class PyProjectConfiguration(TomlFileConfiguration):
-    project: ProjectConfig  # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
+    # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
+    project: ProjectConfig
+    pkm_project: PkmProjectConfig
+
+    @computed_based_on("tool.pkm.project")
+    def pkm_project(self) -> PkmProjectConfig:
+        return PkmProjectConfig.from_config(self['tool.pkm.project'])
 
     @computed_based_on("project")
     def project(self) -> ProjectConfig:

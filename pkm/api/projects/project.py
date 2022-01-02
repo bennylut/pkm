@@ -59,12 +59,12 @@ class Project(Package):
             self._pyproject.project,
             dependencies=[d for d in self._pyproject.project.dependencies if d.package_name not in package_names_set])
 
-    def update_dependencies(self, new_dependencies: Optional[List[Dependency]] = None):
+    def install_dependencies(self, new_dependencies: Optional[List[Dependency]] = None):
         """
         install the dependencies of this project to its assigned environments
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
         """
-        deps = {d.package_name: d for d in self._pyproject.project.dependencies}
+        deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
         new_deps = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
 
         all_deps = {**deps, **new_deps}
@@ -74,7 +74,6 @@ class Project(Package):
         self._pyproject.project = replace(
             self._pyproject.project,
             dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
-
 
     def _reload(self):
         clear_cached_properties(self)
@@ -136,8 +135,9 @@ class Project(Package):
             bc.copy_sources(bc.build_dir)
 
             wheel_path = target_dir / bc.wheel_file_name()
+            target_dir.mkdir(parents=True, exist_ok=True)
             with ZipFile(wheel_path, 'w') as wheel:
-                for file in bc.build_dir.glob('*'):
+                for file in bc.build_dir.rglob('*'):
                     wheel.write(file, file.relative_to(bc.build_dir))
 
         return wheel_path
@@ -173,7 +173,7 @@ class _BuildContext:
 
     def wheel_file_name(self) -> str:
         project_cfg = self.pyproject.project
-        min_interpreter: StandardVersion = project_cfg.requires_python.min \
+        min_interpreter: StandardVersion = project_cfg.requires_python.min.version \
             if project_cfg.requires_python else StandardVersion((3,))
 
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
@@ -201,11 +201,24 @@ class _BuildContext:
         WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(wheel_file)
 
     def copy_sources(self, dst: Path):
-        src_dir = self.pyproject.path.parent / 'src'
-        if not src_dir.exists():
-            raise UnsupportedOperationException("currently only the src layout is supported for source trees")
+        project_path = self.pyproject.path.parent
 
-        shutil.copytree(src_dir, dst, ignore=ignore_patterns('__pycache__'))
+        if package_dirs := self.pyproject.pkm_project.packages:
+            for package_dir in package_dirs:
+                source = project_path / package_dir
+                destination = dst / package_dir
+                if source.exists():
+                    shutil.copytree(source, destination, ignore=ignore_patterns('__pycache__'))
+                else:
+                    raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
+                                            " has no corresponding directory in project")
+        else:
+            src_dir = self.pyproject.path.parent / 'src'
+            if not src_dir.exists():
+                raise FileNotFoundError(
+                    "could not find source directory and packages are not specified in pyproject.toml")
+
+            shutil.copytree(src_dir, dst, ignore=ignore_patterns('__pycache__'))
 
 
 @contextmanager
