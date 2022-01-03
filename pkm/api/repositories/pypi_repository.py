@@ -1,15 +1,21 @@
+import hashlib
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import Authentication
+from pkm.api.repositories.repository import Repository, RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.http.cache_directive import CacheDirective
-from pkm.utils.http.http_client import HttpClient
+from pkm.utils.http.http_client import HttpClient, HttpException
+from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
+from pkm.utils.io_streams import chunks
+from pkm.utils.properties import cached_property
 
 
 class PyPiRepository(Repository):
@@ -21,9 +27,14 @@ class PyPiRepository(Repository):
     def accepts(self, dependency: Dependency) -> bool:
         return not dependency.is_url_dependency
 
+    @cached_property
+    def publisher(self) -> Optional["RepositoryPublisher"]:
+        return PyPiPublisher(self._http)
+
     def _do_match(self, dependency: Dependency) -> List[Package]:
         json: Dict[str, Any] = self._http \
-            .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json', cache=CacheDirective.ask_for_update()) \
+            .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
+                            cache=CacheDirective.ask_for_update()) \
             .read_data_as_json()
 
         package_info: Dict[str, Any] = json['info']
@@ -81,7 +92,6 @@ class PypiPackage(AbstractPackage):
 def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[StandardPackageArtifact]:
     requires_python = release.get('requires_python')
     package_type = release.get('packagetype')
-    python_version: Optional[str] = release.get('python_version')
 
     file_name: str = release.get('filename')
     is_binary = package_type == 'bdist_wheel' or file_name.endswith('.whl')
@@ -92,6 +102,53 @@ def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[Stan
     return StandardPackageArtifact(
         file_name, 'bdist_wheel' if is_binary else 'sdist',
         VersionSpecifier.parse(requires_python) if requires_python else None,
-        python_version,
         release
     )
+
+
+# https://warehouse.pypa.io/api-reference/legacy.html
+class PyPiPublisher(RepositoryPublisher):
+    def __init__(self, http: HttpClient):
+        super().__init__('pypi')
+        self._http = http
+
+    def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
+        data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}
+        file_type = 'bdist_wheel' if distribution.suffix == '.whl' else 'sdist'
+        py_version = distribution.name.split("-")[0] if distribution.suffix == '.whl' else 'source'
+
+        md5, sha256, blake2 = hashlib.md5(), hashlib.sha256(), hashlib.blake2b()
+        with distribution.open('rb') as d_fd:
+            for chunk in chunks(d_fd):
+                md5.update(chunk)
+                sha256.update(chunk)
+                blake2.update(chunk)
+
+        data.update({
+            'filetype': file_type,
+            'pyversion': py_version,
+            'md5_digest': md5.hexdigest(),
+            'sha256_digest': sha256.hexdigest(),
+            'blake2_256_digest': blake2.hexdigest(),
+            ':action': 'file_upload',
+            'protocol_version': '1'
+        })
+
+        fields: List[FormField] = []
+        for k, v in data.items():
+            if isinstance(v, (Tuple, List)):
+                for iv in v:
+                    fields.append(FormField(k, iv))
+            else:
+                fields.append(FormField(k, v))
+
+        with distribution.open('rb') as d_fd:
+            fields.append(FormField('content', d_fd, filename=distribution.name)
+                          .set_content_type("application/octet-stream"))
+
+        payload = MultipartFormDataPayload(fields=fields)
+        headers = dict([auth.as_basic_auth_header()])
+
+        with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers) as response:
+            if response.status != 200:
+                raise HttpException(f"publish failed, server responded with {response.status} [{response.msg}]")

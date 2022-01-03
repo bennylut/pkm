@@ -1,11 +1,15 @@
 from abc import abstractmethod, ABC
+from base64 import b64encode
+from dataclasses import dataclass
 from io import UnsupportedOperation
-from typing import List, Union
+from pathlib import Path
+from typing import List, Union, Optional, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.versions.version_specifiers import AnyVersion
 from pkm.utils.iterators import partition
+from pkm.api.packages.package_metadata import PackageMetadata
 
 
 class Repository(ABC):
@@ -81,6 +85,13 @@ class Repository(ABC):
             return self.match(dependency)
         raise UnsupportedOperation(f"Repository ({self.name}) does not support listing")
 
+    @property
+    def publisher(self) -> Optional["RepositoryPublisher"]:
+        """
+        :return: if this repository is 'publishable' returns its publisher
+        """
+        return None
+
 
 class DelegatingRepository(Repository):
 
@@ -99,3 +110,25 @@ class DelegatingRepository(Repository):
 
     def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
         return self._repo._filter_prereleases(packages, dependency)
+
+
+class RepositoryPublisher:
+    def __init__(self, repository_name: str):
+        self.repository_name = repository_name
+
+    # noinspection PyMethodMayBeStatic
+    def required_authentication_fields(self) -> List[str]:
+        return ['username', 'password']
+
+    @abstractmethod
+    def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
+        ...
+
+
+@dataclass(frozen=True, eq=True)
+class Authentication:
+    username: str
+    password: str
+
+    def as_basic_auth_header(self) -> Tuple[str, str]:
+        return 'Authorization', f'Basic {b64encode(f"{self.username}:{self.password}".encode()).decode("ascii")}'

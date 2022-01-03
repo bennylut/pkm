@@ -1,11 +1,13 @@
 import hashlib
+import io
 import re
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, IO, Union, Dict
 
 from pkm.logging.console import console
+from pkm.utils.io_streams import chunks
 
 _SIG_DELIM_RX = re.compile("\\s*=\\s*")
 
@@ -16,6 +18,24 @@ class HashDigester(Protocol):
 
     def hexdigest(self) -> str:
         ...
+
+    def update(self, __data: Union[bytes, bytearray, memoryview]) -> None:
+        ...
+
+
+def stream(hd: HashDigester, file: Union[IO, Path], chunk_size: int = io.DEFAULT_BUFFER_SIZE):
+    """
+    streams a file into `hd` (via `hd.update(chunk)`) using chunks of the given `chunk_size`
+    :param hd: the hash digester to stream into
+    :param file: the file to stream
+    :param chunk_size: the size of the chunk to use, defaults to `io.DEFAULT_BUFFER_SIZE`
+    """
+    if isinstance(file, Path):
+        with file.open('rb') as source_fd:
+            stream(hd, source_fd, chunk_size)
+    else:
+        for chunk in chunks(file, chunk_size):
+            hd.update(chunk)
 
 
 @dataclass
@@ -31,16 +51,9 @@ class HashSignature:
             raise KeyError(f"Cannot validate archive, Unsupported Hash {self.hash_type}")
 
         hash_computer = getattr(hashlib, self.hash_type)()
-        with file.open('rb') as source_fd:
-            while chunk := source_fd.read(8192):
-                hash_computer.update(chunk)
-
+        stream(hash_computer, file)
         computed_hash = self._encode_hash(hash_computer)
-        eqhash = computed_hash == self.hash_value
-        if not eqhash:
-            console.log(f"Warning: {file} signature does not correspond to its actual content ({computed_hash} != {self.hash_value})")
-
-        return eqhash
+        return computed_hash == self.hash_value
 
     def __str__(self):
         return f"{self.hash_type}={self.hash_value}"

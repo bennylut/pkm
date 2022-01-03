@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from shutil import ignore_patterns
 from tempfile import TemporaryDirectory
-from typing import List, Optional, ContextManager
+from typing import List, Optional, ContextManager, Union, Iterable
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
@@ -14,7 +14,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion
 from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
@@ -45,6 +45,13 @@ class Project(Package):
             wheel = self.build_wheel(tdir)
             WheelDistribution(self.descriptor, wheel) \
                 .install_to(env, build_packages_repo or pkm.repositories.pypi, user_request)
+
+    @cached_property
+    def directories(self) -> "ProjectDirectories":
+        """
+        :return: common project directories
+        """
+        return ProjectDirectories.create(self._pyproject)
 
     def remove_dependencies(self, packages: List[str]):
         """
@@ -94,12 +101,15 @@ class Project(Package):
             python_versions[0].install_to(default_env)
         return default_env
 
-    def build_sdist(self, target_dir: Path) -> Path:
+    def build_sdist(self, target_dir: Optional[Path]) -> Path:
         """
         build a source distribution from this project
         :param target_dir: the directory to put the created archive in
         :return: the path to the created archive
         """
+
+        target_dir = target_dir or (self.directories.dist / str(self.version))
+
         with _build_context() as bc:
             sdist_path = target_dir / bc.sdist_file_name()
             data_dir = bc.build_dir / sdist_path[:-len('.tar.gz')]
@@ -117,13 +127,16 @@ class Project(Package):
 
         return sdist_path
 
-    def build_wheel(self, target_dir: Path, only_meta: bool = False) -> Path:
+    def build_wheel(self, target_dir: Optional[Path], only_meta: bool = False) -> Path:
         """
         build a wheel distribution from this project
         :param target_dir: directory to put the resulted wheel in
         :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
+
+        target_dir = target_dir or (self.directories.dist / str(self.version))
+
         with _build_context() as bc:
             if only_meta:
                 dist_info_path = target_dir / bc.dist_info_dir_name()
@@ -141,6 +154,32 @@ class Project(Package):
                     wheel.write(file, file.relative_to(bc.build_dir))
 
         return wheel_path
+
+    def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
+                distributions_dir: Optional[Path] = None):
+
+        """
+        publish this project distributions, as found in the given `distributions_dir` to the given `repository`.
+        using `auth` for authentication
+
+        :param repository: the repository to publish to
+        :param auth: authentication for this repository
+        :param distributions_dir: directory containing the distributions (archives like wheels and sdists) to publish
+        """
+
+        distributions_dir = distributions_dir or (self.directories.dist / str(self.version))
+
+        if not distributions_dir.exists():
+            raise FileNotFoundError(f"{distributions_dir} does not exists")
+
+        publisher = repository if isinstance(repository, RepositoryPublisher) else repository.publisher
+        if not publisher:
+            raise UnsupportedOperationException(f"the given repository ({repository.name}) is not publishable")
+
+        metadata = PackageMetadata.from_project_config(self._pyproject.project)
+        for distribution in distributions_dir.iterdir():
+            if distribution.is_file():
+                publisher.publish(auth, metadata, distribution)
 
     @classmethod
     def load(cls, path: Path) -> "Project":
@@ -201,24 +240,15 @@ class _BuildContext:
         WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(wheel_file)
 
     def copy_sources(self, dst: Path):
-        project_path = self.pyproject.path.parent
+        dirs = ProjectDirectories.create(self.pyproject)
 
-        if package_dirs := self.pyproject.pkm_project.packages:
-            for package_dir in package_dirs:
-                source = project_path / package_dir
-                destination = dst / package_dir
-                if source.exists():
-                    shutil.copytree(source, destination, ignore=ignore_patterns('__pycache__'))
-                else:
-                    raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
-                                            " has no corresponding directory in project")
-        else:
-            src_dir = self.pyproject.path.parent / 'src'
-            if not src_dir.exists():
-                raise FileNotFoundError(
-                    "could not find source directory and packages are not specified in pyproject.toml")
-
-            shutil.copytree(src_dir, dst, ignore=ignore_patterns('__pycache__'))
+        for package_dir in dirs.src_packages:
+            destination = dst / package_dir.name
+            if package_dir.exists():
+                shutil.copytree(package_dir, destination, ignore=ignore_patterns('__pycache__'))
+            else:
+                raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
+                                        " has no corresponding directory in project")
 
 
 @contextmanager
@@ -232,3 +262,23 @@ def _build_context() -> ContextManager[_BuildContext]:
         build_dir = Path(tdir)
 
         yield _BuildContext(pyproject, build_dir, project_name_underscores)
+
+
+@dataclass()
+class ProjectDirectories:
+    src_packages: List[Path]
+    dist: Path
+
+    @classmethod
+    def create(cls, pyproject: PyProjectConfiguration) -> "ProjectDirectories":
+        project_path = pyproject.path.parent
+        packages_relative = pyproject.pkm_project.packages
+        if packages_relative:
+            packages = [project_path / p for p in packages_relative]
+        else:
+            if not (src_dir := project_path / 'src').exists():
+                raise FileNotFoundError("source directory is not found and "
+                                        "`tool.pkm.project.packages` is not declared in pyproject.toml")
+            packages = [p for p in src_dir.iterdir() if p.is_dir()]
+
+        return ProjectDirectories(packages, project_path / 'dist')

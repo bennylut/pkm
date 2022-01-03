@@ -25,8 +25,6 @@ class StandardPackageArtifact:
     distribution: str
     # in pypi: 'requires_python'
     python_version_spec: Optional[VersionSpecifier] = None
-    # in pypi: 'python_version' : 'cp', 'py', 'pp', etc.
-    python_implementation: Optional[str] = None
     other_info: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -55,10 +53,6 @@ class AbstractPackage(Package):
         for artifact in self._artifacts:
             requires_python = artifact.python_version_spec
             package_type = artifact.distribution
-            python_version = artifact.python_implementation
-
-            if python_version == 'source':
-                python_version = None  # guard from malformed python versions
 
             file_name: str = artifact.file_name
             is_binary = package_type == 'bdist_wheel'
@@ -81,8 +75,6 @@ class AbstractPackage(Package):
                         best_binary_dist_score = score
 
             else:
-                if python_version and env.compatibility_tag_score(f'{python_version}-none-any') is None:
-                    continue
                 best_source_dist = best_source_dist or artifact  # TODO: are there any ordering for source dists?
 
         return best_binary_dist or best_source_dist
