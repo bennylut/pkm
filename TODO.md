@@ -2,12 +2,11 @@
 - pkm publish itself
 
 ## RUNNING TASKS:
+- publish project to pypi
 
 ## DONE IN THIS VERSION
-- MILESTONE: pkm build and install itself
-- create project that reference venv, pyproject & other configuration files, source roots
-- support non src layouts, try to build pkm using pkm 
-
+- move standard model zoo to pkm
+- project operations: install dependency, remove dependency, create project, build project
 
 ## BACKLOG TASKS:
 - handle project install with extras
@@ -25,7 +24,6 @@
   build system)
 - implement pep660 editable source installer
     - check the editables module, decide if you want to support this behavior
-- move standard model zoo to pkm
 - bug: leftover __pycache__ on site packages dir after uninstall 
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
@@ -60,8 +58,6 @@
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
 - git and url dependencies installation support
-- publish project
-- project operations: install dependency, remove dependency, create project, build project
 - move to src layout?
 - manage multiple envs per project
 - cli
@@ -72,6 +68,7 @@
 - entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
+- be able to execute tests
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

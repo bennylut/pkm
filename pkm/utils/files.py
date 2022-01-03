@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 def is_empty_directory(path: Path) -> bool:
     """
     check if the given `path` is a directory and is empty

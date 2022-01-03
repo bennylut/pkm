@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
-    MutableMapping, Generic, Union
+    MutableMapping, Generic, Union, Iterable
 
 from pkm.config import toml
 from pkm.utils.commons import UnsupportedOperationException
@@ -16,7 +16,7 @@ class Configuration:
             parent: Optional["Configuration"] = None,
             data: Optional[Dict[str, Any]] = None):
         self._parent = parent
-        self._data = data if data is not None else {}
+        self._data: Dict[str, Any] = data if data is not None else {}
 
     def __getitem__(self, item: Sequence[str]) -> Any:
         if isinstance(item, str):
@@ -67,6 +67,9 @@ class Configuration:
         cp = copy(self)
         cp._parent = new_parent
         return cp
+
+    def items(self) -> Iterable[Tuple[str, Any]]:
+        return cast(Iterable[Tuple[str, Any]], self._data.items())
 
 
 class MutableConfiguration(Configuration, ABC):

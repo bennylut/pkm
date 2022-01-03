@@ -9,7 +9,7 @@ from gzip import GzipFile
 from http.client import HTTPSConnection, HTTPConnection, HTTPResponse
 from pathlib import Path
 from threading import Lock
-from typing import Deque, Dict, Type, Optional, cast, Any, ContextManager
+from typing import Deque, Dict, Type, Optional, cast, Any, ContextManager, IO, Union, Iterable
 from urllib.parse import urlsplit
 
 from pkm.config.configuration import TomlFileConfiguration
@@ -21,6 +21,7 @@ from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
 _next_connection_number = 0
+
 
 class HttpException(IOError):
 
@@ -276,7 +277,9 @@ class HttpClient:
         return FetchedResource(fetch_file, data_file, self._resources_dir)
 
     @contextmanager
-    def _request(self, mtd: str, url: Url, headers: Dict[str, str]) -> ContextManager[HTTPResponse]:
+    def _request(self, mtd: str, url: Url, headers: Dict[str, str],
+                 payload: Union[IO, str, bytes, None, Iterable[bytes]] = None) -> ContextManager[HTTPResponse]:
+
         conn: HTTPConnection
         num_redirects_performed = 0
         num_connection_retries = 0
@@ -284,8 +287,8 @@ class HttpClient:
         while num_connection_retries < self._max_connection_retries and num_redirects_performed <= self._max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
-                    print(f"[CONN] using connection {conn.number}")
-                    conn.request(mtd, str(url), headers=headers)
+                    print(f"[CONN] using connection {conn.number}")  # noqa
+                    conn.request(mtd, str(url), headers=headers, body=payload)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):
                             num_redirects_performed += 1
@@ -309,6 +312,18 @@ class HttpClient:
 
         error = "max redirects reached" if num_redirects_performed > self._max_redirects else "connection failed"
         raise HttpException(error)
+
+    @contextmanager
+    def post(
+            self, url: str, payload: Union[IO, str, bytes, None, Iterable[bytes]] = None,
+            headers: Optional[Dict[str, str]] = None) -> ContextManager[HTTPResponse]:
+
+        headers = headers or {}
+        url = Url.parse(url)
+        self._add_standard_headers(headers)
+
+        with self._request("POST", url, headers, payload) as response:
+            yield response
 
     def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None) -> Optional[FetchedResource]:
 
