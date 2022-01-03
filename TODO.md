@@ -1,15 +1,10 @@
 ## CURRENT MILESTONE:
-- pkm publish itself
+
 
 ## RUNNING TASKS:
 
 ## DONE IN THIS VERSION
-- move standard model zoo to pkm
-- project operations: install dependency, remove dependency, create project, build project
-- publish project to pypi
-- bug: uploading to pypi allows redirect but if such will happen file data is already consumed
-- bug: package metadata use file name instead of content for readme
-- bug: when building source dists, src is the root package even if defined otherwise
+
 
 ## BACKLOG TASKS:
 - handle project install with extras, usecase: test dependencies

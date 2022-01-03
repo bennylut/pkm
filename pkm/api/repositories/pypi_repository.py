@@ -152,7 +152,10 @@ class PyPiPublisher(RepositoryPublisher):
                 ("Content-Type", payload.content_type()),
             ])
 
-            with self._http.post("https://test.pypi.org/legacy/", payload, headers=headers, max_redirects=0) as response:
+            # for tests we can use: "https://test.pypi.org/legacy/"
+            with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers,
+                                 max_redirects=0) as response:
+
                 if response.status != 200:
                     content = response.read()
                     raise HttpException(f"publish failed, server responded with {response.status}, {content}")
