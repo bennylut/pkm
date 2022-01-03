@@ -1,5 +1,6 @@
 import io
-from typing import IO, Iterable, Protocol, runtime_checkable, Iterator
+from io import IOBase
+from typing import IO, Protocol, runtime_checkable, Iterator, Union
 
 
 # @contextmanager
@@ -18,7 +19,7 @@ class _HasReadInto(Protocol):
         ...
 
 
-def chunks(io_stream: IO, chunk_size: int = io.DEFAULT_BUFFER_SIZE, reuse: bool = True) -> Iterator[bytes]:
+def chunks(io_stream: Union[IO, IOBase], chunk_size: int = io.DEFAULT_BUFFER_SIZE, reuse: bool = True) -> Iterator[bytes]:
     """
     :param io_stream: the stream to iterate on
     :param chunk_size: the required size of each chunk (last chunk may have a different size)

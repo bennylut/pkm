@@ -1,7 +1,7 @@
 import io
 import mimetypes
 from io import IOBase
-from typing import List, Optional, Iterator, Dict, Union, IO
+from typing import List, Optional, Iterator, Union, IO
 from uuid import uuid4
 
 from pkm.utils.io_streams import chunks
@@ -11,13 +11,13 @@ _FORM_FIELD_SORTED_HEADERS = ["Content-Disposition", "Content-Type", "Content-Lo
 
 class FormField:
 
-    def __init__(self, name: str, payload: Union[IO, str, bytes], filename: Optional[str] = None,
-                 headers: Optional[Dict[str, str]] = None):
+    def __init__(self, name: str, payload: Union[IO, str, bytes], filename: Optional[str] = None):
         self.name: str = name
         self.payload = payload
         self.filename = filename or name
-        self.headers = headers or {
-            "Content-Disposition": "form-data",
+        filename_header_part = f'; filename="{filename}"' if filename else ""
+        self.headers = {
+            "Content-Disposition": f'form-data; name="{name}"{filename_header_part}',
             "Content-Type": _guess_content_type(filename)
         }
 
@@ -26,7 +26,7 @@ class FormField:
         return self
 
     # credits: this method is adapted from urllib3.fields.RequestField.render_headers
-    def render_headers(self) -> str:
+    def render(self) -> str:
         lines = [f"{k}: {self.headers[k]}" for k in _FORM_FIELD_SORTED_HEADERS if k in self.headers]
         lines.extend(f"{k}: {v}" for k, v in self.headers.items() if v and k not in _FORM_FIELD_SORTED_HEADERS)
         lines.append("\r\n")
@@ -50,17 +50,17 @@ class MultipartFormDataPayload:
 
         for field in self._fields:
             yield boundary
-            yield field.render_headers().encode()
+            yield field.render().encode()
 
             payload = field.payload
-            if isinstance(payload, IO):
+            if isinstance(payload, IOBase):
                 yield from chunks(payload, chunk_size)
             elif isinstance(payload, str):
                 yield payload.encode()
             elif isinstance(payload, bytes):
                 yield payload
             else:
-                raise ValueError(f'unsupported payload type for field: {field.name}')
+                raise ValueError(f'unsupported payload type for field: {field.name}: {type(field.payload)}')
 
             yield newline
 

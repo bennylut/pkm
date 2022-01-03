@@ -21,6 +21,7 @@ from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
 _next_connection_number = 0
+HTTPConnection.debuglevel = 1
 
 
 class HttpException(IOError):
@@ -39,8 +40,13 @@ class Url:
     query_string: str
     fragment: str
 
-    def connection_key(self) -> str:
+    def connection_part(self) -> str:
         return f"{self.scheme}://{self.host}:{self.port}"
+
+    def resource_part(self) -> str:
+        query_str = "" if not self.query_string else f"?{self.query_string}"
+        fragment_str = "" if not self.fragment else f"#{self.fragment}"
+        return f"{self.path}{query_str}{fragment_str}"
 
     def __str__(self):
         default_port = (self.scheme == 'https' and self.port == 443) or (self.scheme == 'http' and self.port == 80)
@@ -138,7 +144,7 @@ class _ConnectionPool(Closeable):
         self._closed = False
 
     def connection_for(self, url: Url) -> HTTPConnection:
-        connection_key = url.connection_key()
+        connection_key = url.connection_part()
         with self._lock:
             if self._closed:
                 raise IllegalStateException("already closed")
@@ -277,18 +283,23 @@ class HttpClient:
         return FetchedResource(fetch_file, data_file, self._resources_dir)
 
     @contextmanager
-    def _request(self, mtd: str, url: Url, headers: Dict[str, str],
-                 payload: Union[IO, str, bytes, None, Iterable[bytes]] = None) -> ContextManager[HTTPResponse]:
+    def _request(
+            self, mtd: str, url: Url, headers: Dict[str, str],
+            payload: Union[IO, str, bytes, None, Iterable[bytes]] = None, *,
+            max_redirects: int = -1
+    ) -> ContextManager[HTTPResponse]:
 
         conn: HTTPConnection
         num_redirects_performed = 0
         num_connection_retries = 0
 
-        while num_connection_retries < self._max_connection_retries and num_redirects_performed <= self._max_redirects:
+        max_redirects = self._max_redirects if max_redirects < 0 else max_redirects
+
+        while num_connection_retries < self._max_connection_retries and num_redirects_performed <= max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
-                    print(f"[CONN] using connection {conn.number}")  # noqa
-                    conn.request(mtd, str(url), headers=headers, body=payload)
+                    print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
+                    conn.request(mtd, url.resource_part(), headers=headers, body=payload)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):
                             num_redirects_performed += 1
@@ -316,13 +327,13 @@ class HttpClient:
     @contextmanager
     def post(
             self, url: str, payload: Union[IO, str, bytes, None, Iterable[bytes]] = None,
-            headers: Optional[Dict[str, str]] = None) -> ContextManager[HTTPResponse]:
+            headers: Optional[Dict[str, str]] = None, *, max_redirects: int = -1) -> ContextManager[HTTPResponse]:
 
         headers = headers or {}
         url = Url.parse(url)
         self._add_standard_headers(headers)
 
-        with self._request("POST", url, headers, payload) as response:
+        with self._request("POST", url, headers, payload, max_redirects=max_redirects) as response:
             yield response
 
     def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None) -> Optional[FetchedResource]:
