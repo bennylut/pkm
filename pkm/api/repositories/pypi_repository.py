@@ -115,9 +115,9 @@ class PyPiPublisher(RepositoryPublisher):
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
         data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}
         file_type = 'bdist_wheel' if distribution.suffix == '.whl' else 'sdist'
-        py_version = distribution.name.split("-")[0] if distribution.suffix == '.whl' else 'source'
+        py_version = distribution.name.split("-")[2] if distribution.suffix == '.whl' else 'source'
 
-        md5, sha256, blake2 = hashlib.md5(), hashlib.sha256(), hashlib.blake2b()
+        md5, sha256, blake2 = hashlib.md5(), hashlib.sha256(), hashlib.blake2b(digest_size=256 // 8)
         with distribution.open('rb') as d_fd:
             for chunk in chunks(d_fd):
                 md5.update(chunk)
@@ -146,9 +146,13 @@ class PyPiPublisher(RepositoryPublisher):
             fields.append(FormField('content', d_fd, filename=distribution.name)
                           .set_content_type("application/octet-stream"))
 
-        payload = MultipartFormDataPayload(fields=fields)
-        headers = dict([auth.as_basic_auth_header()])
+            payload = MultipartFormDataPayload(fields=fields)
+            headers = dict([
+                auth.as_basic_auth_header(),
+                ("Content-Type", payload.content_type()),
+            ])
 
-        with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers) as response:
-            if response.status != 200:
-                raise HttpException(f"publish failed, server responded with {response.status} [{response.msg}]")
+            with self._http.post("https://test.pypi.org/legacy/", payload, headers=headers, max_redirects=0) as response:
+                if response.status != 200:
+                    content = response.read()
+                    raise HttpException(f"publish failed, server responded with {response.status}, {content}")

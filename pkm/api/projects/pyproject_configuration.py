@@ -1,18 +1,17 @@
 from dataclasses import dataclass, replace
-from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union, Dict, Mapping, Any, re
+from typing import List, Optional, Union, Dict, Mapping, Any
+import re
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.packages.package import PackageDescriptor
-from pkm.api.versions.version import Version, StandardVersion
+from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
-from pkm.utils.dicts import remove_by_value, remove_none_values, without_keys
+from pkm.utils.dicts import remove_none_values, without_keys
 from pkm.utils.files import path_to
-from pkm.utils.iterators import without_nones
 from pkm.utils.properties import cached_property
 
 

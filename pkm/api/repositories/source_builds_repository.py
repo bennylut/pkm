@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from textwrap import dedent
-from typing import Optional, Set, Dict, List, Literal, Any
+from typing import Set, Dict, List, Literal, Any
 from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
@@ -19,7 +19,6 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Bui
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.distributions.wheel_distribution import WheelDistribution
-from pkm.resolution.pubgrub import MalformedPackageException
 from pkm.utils.sequences import single_or_fail
 
 _BUILD_KEY_T = int
