@@ -2,14 +2,17 @@
 - pkm publish itself
 
 ## RUNNING TASKS:
-- publish project to pypi
 
 ## DONE IN THIS VERSION
 - move standard model zoo to pkm
 - project operations: install dependency, remove dependency, create project, build project
+- publish project to pypi
+- bug: uploading to pypi allows redirect but if such will happen file data is already consumed
+- bug: package metadata use file name instead of content for readme
+- bug: when building source dists, src is the root package even if defined otherwise
 
 ## BACKLOG TASKS:
-- handle project install with extras
+- handle project install with extras, usecase: test dependencies
 - multi venv in project - usecase and flow
 - bug: cached_property: mutation lock should be instance dependent and not global 
 - check, are cycles detected correctly in sdist builds? (especially under parallelization conditions)

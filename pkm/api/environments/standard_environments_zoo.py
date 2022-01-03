@@ -9,14 +9,13 @@ from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.environments.environments_zoo import ManagedEnvironment
 from pkm.api.environments.lightweight_environment_builder import LightweightEnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone, unone_raise, UnsupportedOperationException
 from pkm.utils.iterators import without_nones
 from pkm.utils.properties import cached_property, clear_cached_properties
-
-from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
 
 _PKM_ENV_INFO_SUFFIX = "etc/pkm/zoo-info.toml"
 
@@ -41,7 +40,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
             raise FileExistsError(f"environment named {name} already exists")
 
         env = Environment(path)
-        interpreters = InstalledPythonsRepository.match(python)
+        interpreters = pkm.repositories.installed_pythons.match(python)
         interpreter = max(
             (i for i in interpreters if i.is_compatible_with(env)),
             key=lambda it: it.version, default=None)
@@ -49,7 +48,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         if not interpreter:
             raise FileNotFoundError(f"could not find locally installed interpreter matching {python}")
 
-        interpreter.install_to(env, InstalledPythonsRepository)
+        interpreter.install_to(env)
         return StandardManagedEnvironment(Environment(env.path))
 
     def create_application_environment(
@@ -68,7 +67,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         python = unone(python, lambda: 'python *')
         python = Dependency.parse_pep508(python) if isinstance(python, str) else python
 
-        interpreters = sorted(InstalledPythonsRepository.match(python), key=lambda it: it.version, reverse=True)
+        interpreters = sorted(pkm.repositories.installed_pythons.match(python), key=lambda it: it.version, reverse=True)
 
         for interpreter in interpreters:
             try:

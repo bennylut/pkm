@@ -1,11 +1,12 @@
 import shutil
 import tarfile
+import zipfile
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
 from shutil import ignore_patterns
 from tempfile import TemporaryDirectory
-from typing import List, Optional, ContextManager, Union, Iterable
+from typing import List, Optional, ContextManager, Union
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
@@ -101,7 +102,7 @@ class Project(Package):
             python_versions[0].install_to(default_env)
         return default_env
 
-    def build_sdist(self, target_dir: Optional[Path]) -> Path:
+    def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
         """
         build a source distribution from this project
         :param target_dir: the directory to put the created archive in
@@ -109,25 +110,30 @@ class Project(Package):
         """
 
         target_dir = target_dir or (self.directories.dist / str(self.version))
+        target_dir.mkdir(parents=True, exist_ok=True)
 
-        with _build_context() as bc:
+        with self._build_context() as bc:
             sdist_path = target_dir / bc.sdist_file_name()
-            data_dir = bc.build_dir / sdist_path[:-len('.tar.gz')]
+            data_dir = bc.build_dir / sdist_path.name[:-len('.tar.gz')]
             data_dir.mkdir()
 
             dist_info_path = bc.build_dir / 'dist-info'
             bc.build_dist_info(dist_info_path)
-            shutil.copy(dist_info_path / "METADATA", data_dir / "PKG_INFO")
+            shutil.copy(dist_info_path / "METADATA", data_dir / "PKG-INFO")
             shutil.copy(bc.pyproject.path, data_dir / 'pyproject.toml')
-            bc.copy_sources(data_dir / 'src')
+
+            if bc.pyproject.pkm_project.packages:
+                bc.copy_sources(data_dir)
+            else:
+                bc.copy_sources(data_dir / 'src')
 
             with tarfile.open(sdist_path, 'w:gz', format=tarfile.PAX_FORMAT) as sdist:
                 for file in data_dir.glob('*'):
-                    sdist.write(file, file.relative_to(bc.build_dir))
+                    sdist.add(file, file.relative_to(bc.build_dir))
 
         return sdist_path
 
-    def build_wheel(self, target_dir: Optional[Path], only_meta: bool = False) -> Path:
+    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False) -> Path:
         """
         build a wheel distribution from this project
         :param target_dir: directory to put the resulted wheel in
@@ -137,7 +143,7 @@ class Project(Package):
 
         target_dir = target_dir or (self.directories.dist / str(self.version))
 
-        with _build_context() as bc:
+        with self._build_context() as bc:
             if only_meta:
                 dist_info_path = target_dir / bc.dist_info_dir_name()
                 bc.build_dist_info(dist_info_path)
@@ -149,7 +155,7 @@ class Project(Package):
 
             wheel_path = target_dir / bc.wheel_file_name()
             target_dir.mkdir(parents=True, exist_ok=True)
-            with ZipFile(wheel_path, 'w') as wheel:
+            with ZipFile(wheel_path, 'w', compression=zipfile.ZIP_DEFLATED) as wheel:
                 for file in bc.build_dir.rglob('*'):
                     wheel.write(file, file.relative_to(bc.build_dir))
 
@@ -180,6 +186,17 @@ class Project(Package):
         for distribution in distributions_dir.iterdir():
             if distribution.is_file():
                 publisher.publish(auth, metadata, distribution)
+
+    @contextmanager
+    def _build_context(self) -> ContextManager["_BuildContext"]:
+        project_cfg: ProjectConfig = self._pyproject.project
+
+        project_name_underscores = project_cfg.name.replace('-', '_')
+
+        with TemporaryDirectory() as tdir:
+            build_dir = Path(tdir)
+
+            yield _BuildContext(self._pyproject, build_dir, project_name_underscores)
 
     @classmethod
     def load(cls, path: Path) -> "Project":
@@ -216,7 +233,7 @@ class _BuildContext:
             if project_cfg.requires_python else StandardVersion((3,))
 
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
-        return f"{req_interpreter}-none-any.whl"
+        return f"{self.project_name_underscore}-{self.pyproject.project.version}-{req_interpreter}-none-any.whl"
 
     def sdist_file_name(self) -> str:
         return f"{self.project_name_underscore}-{self.pyproject.project.version}.tar.gz"
@@ -250,18 +267,6 @@ class _BuildContext:
                 raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
                                         " has no corresponding directory in project")
 
-
-@contextmanager
-def _build_context() -> ContextManager[_BuildContext]:
-    pyproject = PyProjectConfiguration.load_effective(Path("pyproject.toml"), None)
-    project_cfg: ProjectConfig = pyproject.project
-
-    project_name_underscores = project_cfg.name.replace('-', '_')
-
-    with TemporaryDirectory() as tdir:
-        build_dir = Path(tdir)
-
-        yield _BuildContext(pyproject, build_dir, project_name_underscores)
 
 
 @dataclass()

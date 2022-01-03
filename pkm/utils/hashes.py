@@ -4,9 +4,8 @@ import re
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, IO, Union, Dict
+from typing import Protocol, IO, Union
 
-from pkm.logging.console import console
 from pkm.utils.io_streams import chunks
 
 _SIG_DELIM_RX = re.compile("\\s*=\\s*")

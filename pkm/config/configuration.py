@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
-    MutableMapping, Generic, Union, Iterable
+    MutableMapping, Generic, Iterable
 
 from pkm.config import toml
 from pkm.utils.commons import UnsupportedOperationException

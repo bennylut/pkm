@@ -2,7 +2,6 @@ import os.path
 import platform
 import re
 import subprocess
-from io import UnsupportedOperation
 from pathlib import Path
 from typing import List, Optional, Set
 
