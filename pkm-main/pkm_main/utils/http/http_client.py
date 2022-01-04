@@ -6,6 +6,8 @@ import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import socket
+from socket import AddressFamily
 from threading import Lock
 from typing import Any, Dict, Optional
 from urllib.parse import SplitResult as ParsedUrl
@@ -19,7 +21,19 @@ from urllib3 import HTTPResponse, Retry
 
 from pkm_main.utils.http.cache_directive import TF_HTTP, CacheDirective
 
+# Sad Hacks:
+# this sad hack is made because
 locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+original_getaddrinfo = socket.getaddrinfo
+
+
+def get_addr_info_prefer_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    result = original_getaddrinfo(host, port, family, type, proto, flags)
+    result.sort(key=lambda it: it[0] == AddressFamily.AF_INET6)
+    return result
+
+
+socket.getaddrinfo = get_addr_info_prefer_ipv4
 
 
 class HttpException(IOError):

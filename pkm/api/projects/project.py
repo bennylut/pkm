@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from shutil import ignore_patterns
 from tempfile import TemporaryDirectory
-from typing import List, Optional, ContextManager, Union
+from typing import List, Optional, ContextManager, Union, Tuple, Dict
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
@@ -14,11 +14,12 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig
+from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion
 from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
+from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 
@@ -28,6 +29,10 @@ class Project(Package):
         self._path = pyproject.path.absolute().parent
         self._pyproject = pyproject
         self._descriptor = pyproject.project.package_descriptor()
+
+    @property
+    def pyproject(self) -> PyProjectConfiguration:
+        return self._pyproject
 
     @property
     def descriptor(self) -> PackageDescriptor:
@@ -210,15 +215,33 @@ class _ProjectRepository(Repository):
         super().__init__(f"{project.name}'s repository")
         self.project = project
 
+        built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = [
+            (ri, pkm.repository_builders[ri.type].build(ri.name, **ri.args))
+            for ri in project.pyproject.pkm_repositories]
+
+        self._default_repo = pkm.repositories.pypi
+        if default_repo := first_or_none(
+                r for ri, r in built_repositories
+                if len(ri.packages) == 1 and ri.packages[0] == "*"):
+            self._default_repo = default_repo
+
+        self.package_to_repo: Dict[str, Repository] = {
+            p: r
+            for ri, r in built_repositories
+            for p in ri.packages
+        }
+
+    def _repository_for(self, d: Dependency) -> Repository:
+        return self.package_to_repo.get(d.package_name, self._default_repo)
+
     def _do_match(self, dependency: Dependency) -> List[Package]:
         if dependency.package_name == self.project.name:
             return [self.project]
 
-        # TODO: the usage of pypi is only temporary until we will handle the use-case of custom repositories
-        return pkm.repositories.pypi.match(dependency, False)
+        return self._repository_for(dependency).match(dependency, False)
 
     def accepts(self, dependency: Dependency) -> bool:
-        return pkm.repositories.pypi.accepts(dependency)
+        return self._repository_for(dependency).accepts(dependency)
 
 
 @dataclass
@@ -266,7 +289,6 @@ class _BuildContext:
             else:
                 raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
                                         " has no corresponding directory in project")
-
 
 
 @dataclass()

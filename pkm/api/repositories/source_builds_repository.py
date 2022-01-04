@@ -19,10 +19,10 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Bui
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.distributions.wheel_distribution import WheelDistribution
+from pkm.logging.console import console
 from pkm.utils.sequences import single_or_fail
 
 _BUILD_KEY_T = int
-
 
 
 class BuildError(IOError):
@@ -42,6 +42,7 @@ class SourceBuildsRepository(Repository):
                required_artifact: Literal['metadata', 'wheel'],
                source_tree: Path, target_env: Environment, build_packages_repo: Repository):
 
+        console.log(f"INNER BUILDING {package}...")
         package_dir = self._version_dir(package)
         artifacts_dir = package_dir / 'artifacts'
         metadata_file = package_dir / "METADATA"
@@ -109,15 +110,17 @@ class SourceBuildsRepository(Repository):
     def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment,
               build_packages_repo: Repository) -> Package:
 
+        console.log(f"BUILDING {package}...")
         self._build(threading.current_thread().ident, package, 'wheel', source_tree, target_env, build_packages_repo)
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path, target_env: Environment,
                               build_packages_repo: Repository) -> PackageMetadata:
-
+        console.log(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
-            self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env, build_packages_repo)
+            self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env,
+                        build_packages_repo)
 
         return PackageMetadata.load(metadata_file)
 
@@ -198,5 +201,3 @@ class _PrebuiltPackage(AbstractPackage):
 
     def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
         return self._metadata.dependencies
-
-

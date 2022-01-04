@@ -29,13 +29,13 @@ class InstalledPythonsRepository(Repository):
         for interpreter_path in interpreters_in_path:
             try:
                 cmdout = subprocess.run(
-                    [str(interpreter_path), "-c", "import platform; print(platform.python_version)"],
+                    [str(interpreter_path), "-c", "import platform; print(platform.python_version())"],
                     capture_output=True)
                 cmdout.check_returncode()
 
                 result.append(LocalInterpreterPackage(
                     interpreter_path,
-                    PackageDescriptor("python", Version.parse(str(cmdout.stdout))),
+                    PackageDescriptor("python", Version.parse(cmdout.stdout.decode().strip())),
                     _DEFAULT_PKG_EXTRAS))
 
             except ChildProcessError:

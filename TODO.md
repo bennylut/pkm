@@ -1,12 +1,25 @@
-## CURRENT MILESTONE:
-
+## CURRENT STORY:
+- pkm cli
+  - requires its own project -> support multi-module projects
+    - requires multi-module repository -> support repository instances and configuration
 
 ## RUNNING TASKS:
 
+
 ## DONE IN THIS VERSION
+- bug: local label versions are not handled correctly
+- allow configurable repository instances
+- implement simple repository
+- pytorch recipe with simple repository checked and working
 
 
 ## BACKLOG TASKS:
+- version local label - check if specific version can ask for a local-label
+- pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
+- validate the usefulness of the `Repository.accepts` method
+- check if metadata 2.2 and then when dependencies are none and not dynamic we dont need to download the archive
+- pkm.repository_builders should be pluggable
+- connect lock to project
 - handle project install with extras, usecase: test dependencies
 - multi venv in project - usecase and flow
 - bug: cached_property: mutation lock should be instance dependent and not global 
@@ -26,7 +39,7 @@
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
 - allow forced versions
-- allow additional repositories, check pytorch recipe
+
 - hierarchical site packages:
     - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
       resolution?)

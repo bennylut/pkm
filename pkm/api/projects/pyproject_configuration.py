@@ -1,3 +1,4 @@
+from copy import copy
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Mapping, Any
@@ -65,6 +66,34 @@ class PkmProjectConfig:
         if not config:
             return None
         return PkmProjectConfig(**config)
+
+
+@dataclass(frozen=True, eq=True)
+class PkmRepositoryInstanceConfig:
+    type: str
+    packages: List[str]
+    name: Optional[str]
+    args: Dict[str, Any]
+
+    def to_config(self) -> Dict[str, Any]:
+        return remove_none_values({
+            **self.args,
+            'type': self.type,
+            'packages': self.packages,
+            'name': self.name
+        })
+
+    @classmethod
+    def from_config(cls, config: Dict[str, Any]) -> "PkmRepositoryInstanceConfig":
+        config = copy(config)
+        type_ = config.pop('type')
+        name = config.pop('name', None)
+        packages = config.pop('packages')
+        args = config
+        if packages == "*":
+            packages = ["*"]
+
+        return PkmRepositoryInstanceConfig(type_, packages, name, args)
 
 
 @dataclass(frozen=True, eq=True)
@@ -155,8 +184,10 @@ class ProjectConfig:
         return self.license.read_text()
 
     def to_config(self, project_path: Path) -> Dict[str, Any]:
-        readme_value = self.readme if isinstance(self.readme, str) \
-            else {'file': str(path_to(project_path, self.readme))}
+        readme_value = None
+        if self.readme:
+            readme_value = self.readme if isinstance(self.readme, str) \
+                else {'file': str(path_to(project_path, self.readme))}
 
         ep: Dict[str, List[EntryPointConfig]] = self.entry_points or {}
         ep_no_scripts: Dict[str, List[EntryPointConfig]] = without_keys(ep, 'scripts', 'gui-scripts')
@@ -188,7 +219,7 @@ class ProjectConfig:
 
         # decide the readme value
         readme = None
-        if readme_entry := project['readme']:
+        if readme_entry := project.get('readme'):
             if isinstance(readme_entry, Mapping):
                 if readme_file := readme_entry.get('file'):
                     readme = project_path / readme_file
@@ -263,6 +294,10 @@ class PyProjectConfiguration(TomlFileConfiguration):
     def pkm_project(self) -> PkmProjectConfig:
         return PkmProjectConfig.from_config(self['tool.pkm.project'])
 
+    @computed_based_on("tool.pkm.repositories")
+    def pkm_repositories(self) -> List[PkmRepositoryInstanceConfig]:
+        return [PkmRepositoryInstanceConfig.from_config(it) for it in (self["tool.pkm.repositories"] or [])]
+
     @computed_based_on("project")
     def project(self) -> ProjectConfig:
         project_path = self._path.parent
@@ -310,7 +345,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
         if pyproject['build-system.build-backend'] is None:
             pyproject['build-system.build-backend'] = _LEGACY_BUILDSYS['build-backend']
             pyproject['build-system.requires'] = list(
-                set(*_LEGACY_BUILDSYS['requires'], *pyproject['build-system.requires']))
+                {*_LEGACY_BUILDSYS['requires'], *pyproject['build-system.requires']})
 
         # ensure project:
         if not pyproject['project']:

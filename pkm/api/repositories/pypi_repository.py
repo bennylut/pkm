@@ -100,9 +100,7 @@ def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[Stan
         return None
 
     return StandardPackageArtifact(
-        file_name, 'bdist_wheel' if is_binary else 'sdist',
-        VersionSpecifier.parse(requires_python) if requires_python else None,
-        release
+        file_name, VersionSpecifier.parse(requires_python) if requires_python else None, release
     )
 
 
@@ -155,7 +153,6 @@ class PyPiPublisher(RepositoryPublisher):
             # for tests we can use: "https://test.pypi.org/legacy/"
             with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers,
                                  max_redirects=0) as response:
-
                 if response.status != 200:
                     content = response.read()
                     raise HttpException(f"publish failed, server responded with {response.status}, {content}")

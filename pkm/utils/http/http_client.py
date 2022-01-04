@@ -1,6 +1,8 @@
 import hashlib
 import json
+import locale
 import shutil
+import socket
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
@@ -8,6 +10,7 @@ from datetime import datetime
 from gzip import GzipFile
 from http.client import HTTPSConnection, HTTPConnection, HTTPResponse
 from pathlib import Path
+from socket import AddressFamily
 from threading import Lock
 from typing import Deque, Dict, Type, Optional, cast, Any, ContextManager, IO, Union, Iterable
 from urllib.parse import urlsplit
@@ -22,6 +25,27 @@ from pkm.utils.properties import clear_cached_properties, cached_property
 
 _next_connection_number = 0
 HTTPConnection.debuglevel = 1
+
+
+# Sad Hacks:
+# ------------
+# this sad hack is made because http timestamp parsing requires en_us locale, can probably write my own parser/writer
+# to remove this hack
+locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+
+# this sad hack is made because for some reason,
+# many services still has problem with ipv6 (like cloudfront occasionally)
+# and some are just slower to accept connections (like pypi)
+original_getaddrinfo = socket.getaddrinfo
+
+
+def get_addr_info_prefer_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    result = original_getaddrinfo(host, port, family, type, proto, flags)
+    result.sort(key=lambda it: it[0] == AddressFamily.AF_INET6)
+    return result
+
+
+socket.getaddrinfo = get_addr_info_prefer_ipv4
 
 
 class HttpException(IOError):
@@ -71,6 +95,8 @@ class Url:
             host = parts.netloc
             port = '80' if scheme == 'http' else '443'
 
+        if not scheme or not host:
+            raise ValueError("no schema or host in url")
         return Url(scheme, host, int(port), parts.path, parts.query, parts.fragment)
 
 
@@ -112,7 +138,7 @@ class _Connections(Closeable):
                 result = self._connections.pop()
 
         if not result:
-            result = self._ctype(host=self._host, port=self._port)
+            result = self._ctype(host=self._host, port=self._port, timeout=10)
             global _next_connection_number
             result.number = _next_connection_number
             _next_connection_number += 1
@@ -334,6 +360,17 @@ class HttpClient:
         self._add_standard_headers(headers)
 
         with self._request("POST", url, headers, payload, max_redirects=max_redirects) as response:
+            yield response
+
+    @contextmanager
+    def get(self, url: str, headers: Optional[Dict[str, str]] = None, *,
+            max_redirects: int = -1) -> ContextManager[HTTPResponse]:
+
+        headers = headers or {}
+        url = Url.parse(url)
+        self._add_standard_headers(headers)
+
+        with self._request("GET", url, headers, max_redirects=max_redirects) as response:
             yield response
 
     def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None) -> Optional[FetchedResource]:

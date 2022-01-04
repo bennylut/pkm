@@ -3,7 +3,7 @@ from base64 import b64encode
 from dataclasses import dataclass
 from io import UnsupportedOperation
 from pathlib import Path
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Protocol, Dict, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
@@ -122,7 +122,13 @@ class RepositoryPublisher:
 
     @abstractmethod
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
-        ...
+        """
+        publish a `distribution` belonging to the given `package_meta` into the repository
+        :param auth: authentication object filled with the fields that were
+                     returned by the method `required_authentication_fields`
+        :param package_meta: metadata for the package that this distribution belongs to
+        :param distribution: the distribution archive (e.g., wheel, sdist)
+        """
 
 
 @dataclass(frozen=True, eq=True)
@@ -132,3 +138,18 @@ class Authentication:
 
     def as_basic_auth_header(self) -> Tuple[str, str]:
         return 'Authorization', f'Basic {b64encode(f"{self.username}:{self.password}".encode()).decode("ascii")}'
+
+
+class RepositoryBuilder(ABC):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    @abstractmethod
+    def build(self, name: Optional[str], **kwargs: Any) -> Repository:
+        """
+        build a new repository instance using the given `kwargs`
+        :param name: name for the created repository
+        :param kwargs: arguments for the instance creation, may be defined by derived classes
+        :return: the created instance
+        """

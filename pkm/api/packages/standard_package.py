@@ -19,17 +19,12 @@ from pkm.utils.strings import without_suffix
 
 @dataclass
 class StandardPackageArtifact:
-    # in pypi: 'filename'
     file_name: str
-    # Literal['bdist_wheel', 'sdist']  # in pypi: 'packagetype'
-    distribution: str
-    # in pypi: 'requires_python'
-    python_version_spec: Optional[VersionSpecifier] = None
+    requires_python: Optional[VersionSpecifier] = None
     other_info: Dict[str, Any] = field(default_factory=dict)
 
-    @classmethod
-    def from_wheel(cls, wheel: Path):
-        return StandardPackageArtifact(wheel.name, 'bdist_wheel')
+    def is_wheel(self):
+        return self.file_name.endswith(".whl")
 
 
 class AbstractPackage(Package):
@@ -51,11 +46,10 @@ class AbstractPackage(Package):
         best_binary_dist_score: Optional[SupportsLessThanEq] = None
 
         for artifact in self._artifacts:
-            requires_python = artifact.python_version_spec
-            package_type = artifact.distribution
+            requires_python = artifact.requires_python
 
             file_name: str = artifact.file_name
-            is_binary = package_type == 'bdist_wheel'
+            is_binary = artifact.is_wheel()
 
             if requires_python:
                 try:
@@ -90,11 +84,12 @@ class AbstractPackage(Package):
         :return: the stored artifact
         """
 
-    def install_to(self, env: Environment, build_packages_repo: Optional[Repository] = None, user_request: Optional[Dependency] = None):
+    def install_to(self, env: Environment, build_packages_repo: Optional[Repository] = None,
+                   user_request: Optional[Dependency] = None):
         build_packages_repo = build_packages_repo or pkm.repositories.pypi
         artifact = self._best_artifact_for(env)
         artifact_path = self._retrieve_artifact(artifact)
-        if artifact.distribution == 'bdist_wheel':
+        if artifact.is_wheel():
             WheelDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
         else:
             SourceDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)

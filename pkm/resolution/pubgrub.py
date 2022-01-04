@@ -651,6 +651,8 @@ class Solver:
                         d.package: PackageDependency(d)
                         for d in version_dependencies}
                 except MalformedPackageException:
+                    import traceback
+                    traceback.print_exc()
                     print(f"version: {version} discovered to be malformed")
                     continue  # retry with another version
             break

@@ -53,6 +53,23 @@ def index_of_or_none(seq: Sequence[_T], value: Any) -> Optional[int]:
 
 
 def single_or_fail(seq: Sequence[_T]) -> _T:
+    """
+    :param seq: the seq to access
+    :return: the first element of this sequence if `len(seq) == 1`  otherwise raise `ValueError`
+    """
     if (l := len(seq)) != 1:
         raise ValueError(f"expecting single element, found: {l}")
     return seq[0]
+
+
+def get_or_default(seq: Sequence[_T], index: int, default: _T) -> _T:
+    """
+    :param seq: the sequence to access
+    :param index: the index to get
+    :param default: the value to return if `-len(seq) > index > len(seq)`
+    :return: the value of `seq[index]` if such exists (no IndexError had been thrown upon accessing index),
+             otherwise returns the `default` value
+    """
+    if -len(seq) > index > len(seq):
+        return default
+    return seq[index]

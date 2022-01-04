@@ -245,8 +245,8 @@ class VersionRange(VersionSpecifier):
     # note that pep440 pre-release filtering rules should be implemented in the repository and not here
     def allows_version(self, version: "Version"):
 
-        if version.is_local():
-            return False
+        # if version.is_local():
+        #     return False
 
         if self.is_any():
             # return not version.is_pre_or_dev_release() and not version.is_post_release()

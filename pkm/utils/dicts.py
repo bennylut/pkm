@@ -34,7 +34,6 @@ def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], 
 
     return value
 
-
 def without_keys(d: Mapping[_K, _V], *keys: _K) -> Dict[_K, _V]:
     """
     creates a new dict with the same content as `d` minus the keys that are in `keys`

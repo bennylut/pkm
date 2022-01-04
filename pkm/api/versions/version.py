@@ -34,6 +34,10 @@ class Version(ABC):
 class NamedVersion(Version):
     name: str
 
+    def __post_init__(self):
+        if self.name == 'dateutil':
+            print("HERE")
+
     def is_pre_or_dev_release(self) -> bool:
         return False
 

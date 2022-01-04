@@ -5,14 +5,17 @@ from pathlib import Path
 import sys
 import os
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
+
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
+    from pkm.api.repositories.repository import RepositoryBuilder
     from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
     from pkm.api.repositories.pypi_repository import PyPiRepository
     from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
+    from pkm.api.repositories.simple_repository import SimpleRepository, SimpleRepositoryBuilder
 
 ENV_PKM_HOME = "PKM_HOME"
 
@@ -21,6 +24,7 @@ ENV_PKM_HOME = "PKM_HOME"
 class _PkmRepositories:
     source_builds: "SourceBuildsRepository"
     pypi: "PyPiRepository"
+    pypi_simple: "SimpleRepository"
     installed_pythons: "InstalledPythonsRepository"
 
 
@@ -32,7 +36,17 @@ class _Pkm:
         self.threads = ThreadPoolExecutor()
 
     @cached_property
+    def repository_builders(self) -> Dict[str, "RepositoryBuilder"]:
+        from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
+        return {
+            b.name: b for b in (
+                SimpleRepositoryBuilder(self.httpclient),
+            )
+        }
+
+    @cached_property
     def repositories(self) -> _PkmRepositories:
+        from pkm.api.repositories.simple_repository import SimpleRepository
         from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
         from pkm.api.repositories.pypi_repository import PyPiRepository
         from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
@@ -40,6 +54,7 @@ class _Pkm:
         return _PkmRepositories(
             SourceBuildsRepository(self.workspace / 'source-builds'),
             PyPiRepository(self.httpclient),
+            SimpleRepository('pypi_simple', self.httpclient, 'https://pypi.org/simple'),
             InstalledPythonsRepository()
         )
 
