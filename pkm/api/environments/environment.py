@@ -106,7 +106,7 @@ class Environment:
         """
         sorted_markers = sorted(self.markers.items(), key=lambda item: item[0])
         marker_str = ';'.join(f"{k}={v}" for k, v in sorted_markers)
-        return hashlib.md5(marker_str).hexdigest()
+        return hashlib.md5(marker_str.encode()).hexdigest()
 
     def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess:
         """

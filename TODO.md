@@ -1,22 +1,18 @@
 ## CURRENT STORY:
+
 - pkm cli
-  - requires its own project -> support multi-module projects
-    - ~~requires multi-module repository -> support repository instances and configuration~~
+    - requires its own project -> support multi-module projects
+        - ~~requires multi-module repository -> support repository instances and configuration~~
 
 ## RUNNING TASKS:
 
+
 ## DONE IN THIS VERSION
-- buildsys - sign wheel archives
-- buildsys support editable installs
-- implement pep660 editable source installer
-  - to specify editable requirement, add editable / local repository
-  - extend repository config to support packages = {...} syntax
-
-
+- connect lock to project
 
 ## BACKLOG TASKS:
-- modules support 
-- connect lock to project
+
+- modules support
 - check that when downloading packages for install, the hash is being validated
 - check the "editables" module, decide if you want to support this behavior
 - version local label - check if specific version can ask for a local-label
@@ -26,17 +22,17 @@
 - pkm.repository_builders should be pluggable
 - handle project install with extras, usecase: test dependencies
 - multi venv in project - usecase and flow
-- bug: cached_property: mutation lock should be instance dependent and not global 
+- bug: cached_property: mutation lock should be instance dependent and not global
 - check, are cycles detected correctly in sdist builds? (especially under parallelization conditions)
-- content information (author and maintainer) name and email should be validated, 
-  - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
-  - email should be a valid email address
-  - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
+- content information (author and maintainer) name and email should be validated,
+    - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
+    - email should be a valid email address
+    - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - build the monitor framework and start composing the cli
 - consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects,
   build system)
-- bug: leftover __pycache__ on site packages dir after uninstall 
+- bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
 - allow forced versions
@@ -59,7 +55,7 @@
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - implement entrypoints awareness for installer
-- support the `pkm new notebook` usecase 
+- support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - commandline: pkm install -g, -ga, -ge env

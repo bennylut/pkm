@@ -64,7 +64,8 @@ class PkmProjectConfig:
     @classmethod
     def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional["PkmProjectConfig"]:
         if not config:
-            return None
+            return PkmProjectConfig()
+
         return PkmProjectConfig(**config)
 
 
@@ -205,11 +206,14 @@ class ProjectConfig:
             for extra, deps in self.optional_dependencies.items()
         } if self.optional_dependencies else None
 
+        license_ = None
+        if self.license:
+            license_ = {'file': self.license} if isinstance(self.license, Path) else {'text': self.license}
+
         project = {
             'name': self.name, 'version': str(self.version), 'description': self.description,
             'readme': readme_value, 'requires-python': str(self.requires_python) if self.requires_python else None,
-            'license': {'file': self.license} if isinstance(self.license, Path) else {'text': self.license},
-            'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
+            'license': license_, 'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
             'maintainers': [c.to_config() for c in self.maintainers] if self.maintainers is not None else None,
             'keywords': self.keywords, 'classifiers': self.classifiers, 'urls': self.urls,
             'scripts': EntryPointConfig.to_config(ep['scripts']) if 'scripts' in ep else None,

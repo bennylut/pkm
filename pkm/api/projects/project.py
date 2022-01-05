@@ -21,6 +21,7 @@ from pkm.api.repositories.repository import Repository, RepositoryPublisher, Aut
 from pkm.api.versions.version import StandardVersion
 from pkm.distributions.pth_link import PthLink
 from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
+from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
@@ -58,6 +59,10 @@ class Project(Package):
                 .install_to(env, build_packages_repo or pkm.repositories.pypi, user_request)
 
     @cached_property
+    def lock(self) -> PackagesLock:
+        return PackagesLock.load(self.directories.etc_pkm / 'packages-lock.toml')
+
+    @cached_property
     def directories(self) -> "ProjectDirectories":
         """
         :return: common project directories
@@ -73,9 +78,15 @@ class Project(Package):
         package_names_set = set(packages)
         self._default_env.remove(packages)
 
+        # update files
+
+        self.lock.update_lock(self._default_env)
+        self.lock.save()
+
         self._pyproject.project = replace(
             self._pyproject.project,
             dependencies=[d for d in self._pyproject.project.dependencies if d.package_name not in package_names_set])
+        self._pyproject.save()
 
     def install_dependencies(self, new_dependencies: Optional[List[Dependency]] = None):
         """
@@ -87,18 +98,23 @@ class Project(Package):
 
         all_deps = {**deps, **new_deps}
 
-        self._default_env.install(list(all_deps.values()), self._repository)
+        repository = _ProjectRepository(self, self._default_env)
+
+        self._default_env.install(list(all_deps.values()), repository)
+
+        # update files
+
+        self.lock.update_lock(self._default_env)
+        self.lock.save()
 
         self._pyproject.project = replace(
             self._pyproject.project,
             dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
+        self._pyproject.save()
 
     def _reload(self):
         clear_cached_properties(self)
 
-    @cached_property
-    def _repository(self) -> "_ProjectRepository":
-        return _ProjectRepository(self)
 
     @cached_property
     def _default_env(self) -> Environment:
@@ -218,9 +234,10 @@ class Project(Package):
 
 class _ProjectRepository(Repository):
 
-    def __init__(self, project: Project):
+    def __init__(self, project: Project, env: Environment):
         super().__init__(f"{project.name}'s repository")
         self.project = project
+        self._env = env
 
         built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = []
         for rcfg in project.pyproject.pkm_repositories:
@@ -248,6 +265,9 @@ class _ProjectRepository(Repository):
             return [self.project]
 
         return self._repository_for(dependency).match(dependency, False)
+
+    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+        return self.project.lock.sort_packages_by_lock_preference(self._env, packages)
 
     def accepts(self, dependency: Dependency) -> bool:
         return self._repository_for(dependency).accepts(dependency)
@@ -326,6 +346,7 @@ def _sign_build(build_dir: Path, signature_file: Path):
 class ProjectDirectories:
     src_packages: List[Path]
     dist: Path
+    etc_pkm: Path
 
     @classmethod
     def create(cls, pyproject: PyProjectConfiguration) -> "ProjectDirectories":
@@ -339,4 +360,6 @@ class ProjectDirectories:
                                         "`tool.pkm.project.packages` is not declared in pyproject.toml")
             packages = [p for p in src_dir.iterdir() if p.is_dir()]
 
-        return ProjectDirectories(packages, project_path / 'dist')
+        etc_pkm = project_path / 'etc' / 'pkm'
+        etc_pkm.mkdir(parents=True, exist_ok=True)
+        return ProjectDirectories(packages, project_path / 'dist', etc_pkm)

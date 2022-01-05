@@ -110,6 +110,10 @@ class DelegatingRepository(Repository):
     def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
         return self._repo._filter_prereleases(packages, dependency)
 
+    @property
+    def publisher(self) -> Optional["RepositoryPublisher"]:
+        return self._repo.publisher
+
 
 class RepositoryPublisher:
     def __init__(self, repository_name: str):
