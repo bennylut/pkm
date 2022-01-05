@@ -11,7 +11,7 @@ from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.environments.lightweight_environment_builder import LightweightEnvironmentBuilder
+from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
@@ -30,17 +30,18 @@ class BuildError(IOError):
 
 
 class SourceBuildsRepository(Repository):
-    def __init__(self, workspace: Path):
+    def __init__(self, workspace: Path, build_packages_repo: Repository):
         super().__init__("source-builds")
         self._workspace = workspace
         self._ongoing_builds: Dict[_BUILD_KEY_T, Set[PackageDescriptor]] = defaultdict(set)
+        self._build_packages_repo = build_packages_repo
 
     def _version_dir(self, package: PackageDescriptor) -> Path:
         return self._workspace / package.name / quote_plus(str(package.version))
 
     def _build(self, build_key: _BUILD_KEY_T, package: PackageDescriptor,
-               required_artifact: Literal['metadata', 'wheel'],
-               source_tree: Path, target_env: Environment, build_packages_repo: Repository):
+               required_artifact: str,  # ['metadata', 'wheel', 'editable']
+               source_tree: Path, target_env: Environment):
 
         console.log(f"INNER BUILDING {package}...")
         package_dir = self._version_dir(package)
@@ -56,9 +57,9 @@ class SourceBuildsRepository(Repository):
 
         with TemporaryDirectory() as tdir:
             tdir_path = Path(tdir)
-            build_env = LightweightEnvironmentBuilder.create(tdir_path / 'venv', target_env.interpreter_path)
+            build_env = LightweightEnvironments.create(tdir_path / 'venv', target_env.interpreter_path)
             if buildsys.requirements:
-                build_env.install(buildsys.requirements, build_packages_repo)
+                build_env.install(buildsys.requirements, self._build_packages_repo)
             if buildsys.backend_path:
                 build_env.install_link('build_backend', [source_tree / pth for pth in buildsys.backend_path])
 
@@ -69,12 +70,14 @@ class SourceBuildsRepository(Repository):
             requires_wheel = True
 
             # 1. check for wheel extra requirements
-            extra_requirements = _exec_build_cycle_script(
-                source_tree, build_env, buildsys, 'get_requires_for_build_wheel', [None])
+            command = 'get_requires_for_build_editable' \
+                if required_artifact == 'editable' else 'get_requires_for_build_wheel'
+
+            extra_requirements = _exec_build_cycle_script(source_tree, build_env, buildsys, command, [None])
 
             if extra_requirements.status == 'success':
                 build_env.install([Dependency.parse_pep508(d) for d in extra_requirements.result],
-                                  build_packages_repo)
+                                  self._build_packages_repo)
 
             if required_artifact == 'metadata':
                 # 2. try to build metadata only
@@ -90,8 +93,9 @@ class SourceBuildsRepository(Repository):
 
             if requires_wheel:
                 # 2. build the wheel
+                command = 'build_editable' if required_artifact == 'editable' else 'build_wheel'
                 wheel_output = _exec_build_cycle_script(
-                    source_tree, build_env, buildsys, 'build_wheel', [str(wheels_path), None, None])
+                    source_tree, build_env, buildsys, command, [str(wheels_path), None, None])
 
                 wheel_path = wheels_path / wheel_output.result
 
@@ -99,7 +103,8 @@ class SourceBuildsRepository(Repository):
                     raise BuildError("build backend did not produced expected wheel")
 
                 if not metadata_file.exists():
-                    metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env, build_packages_repo)
+                    metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env,
+                                                                                       self._build_packages_repo)
 
                 # done setting up, storing in package dir
                 artifacts_dir.mkdir(exist_ok=True, parents=True)
@@ -107,20 +112,18 @@ class SourceBuildsRepository(Repository):
                 if not metadata_file.exists():
                     metadata.save_to(metadata_file)
 
-    def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment,
-              build_packages_repo: Repository) -> Package:
-
+    def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool) -> Package:
         console.log(f"BUILDING {package}...")
-        self._build(threading.current_thread().ident, package, 'wheel', source_tree, target_env, build_packages_repo)
+        package_type = 'wheel' if not editable else 'editable'
+        self._build(threading.current_thread().ident, package, package_type, source_tree, target_env)
         return single_or_fail(self.match(package.to_dependency()))
 
-    def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path, target_env: Environment,
-                              build_packages_repo: Repository) -> PackageMetadata:
+    def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
+                              target_env: Environment) -> PackageMetadata:
         console.log(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
-            self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env,
-                        build_packages_repo)
+            self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env)
 
         return PackageMetadata.load(metadata_file)
 
@@ -185,13 +188,14 @@ class _PrebuiltPackage(AbstractPackage):
     def __init__(self, name: str, version: Version, path: Path):
         artifacts_path = (path / 'artifacts')
         if artifacts_path.exists():
-            artifacts = [StandardPackageArtifact.from_wheel(wheel) for wheel in artifacts_path.iterdir()]
+            artifacts = [StandardPackageArtifact(wheel.name) for wheel in artifacts_path.iterdir()]
         else:
             artifacts = []
 
         super().__init__(
             PackageDescriptor(name, version),
-            artifacts)
+            artifacts,
+        )
 
         self._path = path
         self._metadata = PackageMetadata.load(path / "METADATA")
@@ -199,5 +203,5 @@ class _PrebuiltPackage(AbstractPackage):
     def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
         return self._path / 'artifacts' / artifact.file_name
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         return self._metadata.dependencies

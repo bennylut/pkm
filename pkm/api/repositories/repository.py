@@ -3,13 +3,13 @@ from base64 import b64encode
 from dataclasses import dataclass
 from io import UnsupportedOperation
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Protocol, Dict, Any
+from typing import List, Union, Optional, Tuple, Dict, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
+from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import AnyVersion
 from pkm.utils.iterators import partition
-from pkm.api.packages.package_metadata import PackageMetadata
 
 
 class Repository(ABC):
@@ -21,14 +21,13 @@ class Repository(ABC):
     def name(self) -> str:
         return self._name
 
-    @abstractmethod
     def accepts(self, dependency: Dependency) -> bool:
         """
         :param dependency: the dependency to check 
         :return: true if this repository knows how to handle the given `dependency`.
                  e.g., pypi does not know how to handle local file dependency
         """
-        ...
+        return not dependency.is_url_dependency
 
     @abstractmethod
     def _do_match(self, dependency: Dependency) -> List[Package]:
@@ -146,10 +145,12 @@ class RepositoryBuilder(ABC):
         self.name = name
 
     @abstractmethod
-    def build(self, name: Optional[str], **kwargs: Any) -> Repository:
+    def build(self, name: Optional[str], package_settings: Dict[str, Any],
+              **kwargs: Any) -> Repository:
         """
         build a new repository instance using the given `kwargs`
         :param name: name for the created repository
+        :param package_settings: for each required package, its settings object as provided by the user
         :param kwargs: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """

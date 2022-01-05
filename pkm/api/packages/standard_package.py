@@ -29,9 +29,10 @@ class StandardPackageArtifact:
 
 class AbstractPackage(Package):
 
-    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact]):
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact], build_packages_repo: Optional[Repository] = None):
         self._descriptor = descriptor
         self._artifacts = artifacts
+        self._build_packages_repo = build_packages_repo
 
     @property
     def descriptor(self) -> PackageDescriptor:
@@ -94,7 +95,7 @@ class AbstractPackage(Package):
         else:
             SourceDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         artifact = self._best_artifact_for(environment)
         if not artifact:
             raise UnsupportedOperation(
@@ -103,8 +104,10 @@ class AbstractPackage(Package):
         resource = self._retrieve_artifact(artifact)
         filename = artifact.file_name
         if filename.endswith('.whl'):
-            info = WheelDistribution(self.descriptor, resource).extract_metadata(environment, build_packages_repo)
+            info = WheelDistribution(self.descriptor, resource)\
+                .extract_metadata(environment, self._build_packages_repo)
         else:
-            info = SourceDistribution(self.descriptor, resource).extract_metadata(environment, build_packages_repo)
+            info = SourceDistribution(self.descriptor, resource)\
+                .extract_metadata(environment, self._build_packages_repo)
 
         return info.dependencies

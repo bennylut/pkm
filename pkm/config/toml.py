@@ -304,6 +304,7 @@ class _Writer:
 
         return result
 
+    # noinspection PyUnusedLocal
     def _write_hidden_table(self, data: Mapping[str, Any], key: KEY_T, vstyle: _ValueStyle) -> str:
         result = ''
 
@@ -553,11 +554,11 @@ class _Reader(SimpleParser):
                 break
 
             item_key = (*key, len(result))
-            next = self.read_inline_value(item_key)
-            item_style = self.style.value_style(item_key, next)
+            next_ = self.read_inline_value(item_key)
+            item_style = self.style.value_style(item_key, next_)
             item_style.prolog = item_prolog
             item_style.epilog = self.read_non_data()
-            result.append(next)
+            result.append(next_)
 
             p = self.position
             if not self.match(', ') and not self.match(','):

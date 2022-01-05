@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import List, Union, Tuple, Dict, Optional, Callable
+from typing import List, Union, Tuple, Dict, Optional, Callable, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -25,9 +25,6 @@ class SimpleRepository(Repository):
         self._url = url
         self._base_url = Url.parse(url).connection_part()
         self._packages: Dict[str, Dict[str, Package]] = {}  # name -> version -> package
-
-    def accepts(self, dependency: Dependency) -> bool:
-        return not dependency.is_url_dependency
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         if not (version_to_package := self._packages.get(dependency.package_name)):
@@ -113,7 +110,7 @@ class SimpleRepositoryBuilder(RepositoryBuilder):
         super().__init__("simple")
         self._http_client = http_client
 
-    def build(self, name: Optional[str], **kwargs) -> Repository:
+    def build(self, name: Optional[str], package_settings: Dict[str, Any], **kwargs: Any) -> Repository:
         if not (url := kwargs.get('url')):
             raise KeyError("url field is required to build 'simple' repository")
         return SimpleRepository(name or url, self._http_client, str(url).rstrip('/'))

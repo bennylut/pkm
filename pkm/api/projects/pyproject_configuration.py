@@ -71,7 +71,7 @@ class PkmProjectConfig:
 @dataclass(frozen=True, eq=True)
 class PkmRepositoryInstanceConfig:
     type: str
-    packages: List[str]
+    packages: Dict[str, Any]
     name: Optional[str]
     args: Dict[str, Any]
 
@@ -88,12 +88,21 @@ class PkmRepositoryInstanceConfig:
         config = copy(config)
         type_ = config.pop('type')
         name = config.pop('name', None)
-        packages = config.pop('packages')
-        args = config
-        if packages == "*":
-            packages = ["*"]
+        packages: List[Union[str, Dict]] = config.pop('packages')
 
-        return PkmRepositoryInstanceConfig(type_, packages, name, args)
+        packages_dict = {}
+
+        if packages == "*":
+            packages_dict['*'] = {}
+        else:
+            for package in packages:
+                if isinstance(package, str):
+                    packages_dict[package] = {}
+                else:
+                    packages_dict[package['name']] = package
+
+        args = config
+        return PkmRepositoryInstanceConfig(type_, packages_dict, name, args)
 
 
 @dataclass(frozen=True, eq=True)
@@ -230,9 +239,9 @@ class ProjectConfig:
 
         requires_python = VersionSpecifier.parse(project['requires-python']) if 'requires-python' in project else None
 
-        license = None
+        license_ = None
         if license_table := project.get('license'):
-            license = (project_path / license_table['file']) if 'file' in license_table else str(license_table['text'])
+            license_ = (project_path / license_table['file']) if 'file' in license_table else str(license_table['text'])
 
         authors = None
         if authors_array := project.get('authors'):
@@ -268,7 +277,7 @@ class ProjectConfig:
 
         return ProjectConfig(
             name=project['name'], version=version, description=project.get('description'), readme=readme,
-            requires_python=requires_python, license=license, authors=authors, maintainers=maintainers,
+            requires_python=requires_python, license=license_, authors=authors, maintainers=maintainers,
             keywords=project.get('keywords'), classifiers=project.get('classifiers'), urls=project.get('urls'),
             entry_points=entry_points, dependencies=dependencies, optional_dependencies=optional_dependencies,
             dynamic=project.get('dynamic'))

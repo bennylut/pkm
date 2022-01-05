@@ -39,6 +39,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.utf8')
 original_getaddrinfo = socket.getaddrinfo
 
 
+# noinspection PyShadowingBuiltins
 def get_addr_info_prefer_ipv4(host, port, family=0, type=0, proto=0, flags=0):
     result = original_getaddrinfo(host, port, family, type, proto, flags)
     result.sort(key=lambda it: it[0] == AddressFamily.AF_INET6)

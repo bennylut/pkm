@@ -7,6 +7,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.distributions.distribution import Distribution
 from pkm.utils.archives import extract_archive
@@ -28,8 +29,10 @@ class SourceDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def extract_metadata(self, env: Environment, build_packages_repo: Repository) -> PackageMetadata:
-        from pkm.api.pkm import pkm
+    def extract_metadata(self, env: Environment, build_packages_repo: Optional[Repository]) -> PackageMetadata:
+        if not build_packages_repo:
+            build_packages_repo = pkm.repositories.pypi
+
         builds = pkm.repositories.source_builds
 
         with self._source_tree() as source_tree:

@@ -12,8 +12,9 @@ _INTERPRETER_INTROSPECTIONS: Dict[str, EnvironmentIntrospection] = {}
 _PYVENV_SEP_RX = re.compile("\\s*=\\s*")
 
 
-class _LightweightEnvironmentBuilder:
-    def create(self, env_path: Path, interpreter_path: Path) -> Environment:
+class LightweightEnvironments:
+    @staticmethod
+    def create(env_path: Path, interpreter_path: Path) -> Environment:
         interpreter_path = interpreter_path.absolute()
 
         if env_path.exists():
@@ -71,8 +72,6 @@ class _LightweightEnvironmentBuilder:
 
         return Environment(env_path)
 
-
-LightweightEnvironmentBuilder = _LightweightEnvironmentBuilder()
 
 def _introspection_for(interpreter_path: Path) -> EnvironmentIntrospection:
     interpreter_key = str(interpreter_path.absolute())

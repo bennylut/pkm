@@ -1,13 +1,12 @@
+import re
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
-import re
 
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 
 if TYPE_CHECKING:
-    from pkm.api.repositories.repository import Repository
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
 
@@ -73,44 +72,40 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: "Repository") -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
-        :param build_packages_repo: in the case where installing this package requires build, any packages required for
-               the build system will be fetched from this repo
         :return: a list of all the package dependencies (for any environment and extras)
         """
 
-    def dependencies(self, environment: "Environment", build_packages_repo: "Repository",
+    def dependencies(self, environment: "Environment",
                      extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
-        :param build_packages_repo: in the case where installing this package requires build, any packages required for
-               the build system will be fetched from this repo
         :param extras: the extras to include in the dependencies calculation
         :return: the list of dependencies this package has in order to be installed into the given 
         [environment] with the given [extras] 
         """
 
-        return [d for d in self._all_dependencies(environment, build_packages_repo) if
+        return [d for d in self._all_dependencies(environment) if
                 d.is_applicable_for(environment, extras)]
 
     @abstractmethod
+    # def is_compatible_with(self, env: "Environment", build_packages_repo: "Repository") -> bool:
+    #:param build_packages_repo: in the case where installing this package requires build, any packages required for
+    #           the build system will be fetched from this repo (on install defualt to pypi on none)
     def is_compatible_with(self, env: "Environment") -> bool:
         """
-        :param env: the environment to check 
-        :return: true if this package can be installed given its dependencies into the given environment 
+        :param env: the environment to check
+        :return: true if this package can be installed given its dependencies into the given environment
         """
 
     @abstractmethod
     def install_to(self, env: "Environment",
-                   build_packages_repo: Optional["Repository"] = None,
                    user_request: Optional["Dependency"] = None):
         """
         installs this package into the given `env`
         :param env: the environment to install this package into
-        :param build_packages_repo: in the case where installing this package requires build, any packages required for
-               the build system will be fetched from this repo, if None is given and build is required, will use pypi
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
         """

@@ -154,6 +154,7 @@ class HttpClient:
         self._fetch_inprogress: Dict[str, Promise[FetchedResource]] = {}
         self._fetch_lock = Lock()
 
+    # noinspection PyMethodMayBeStatic
     def _add_standard_headers(self, headers: Dict[str, str]):
         headers['user-agent'] = f'pkm'
         headers['accept-encoding'] = 'gzip,deflate'

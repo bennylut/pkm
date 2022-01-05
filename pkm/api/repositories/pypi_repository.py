@@ -24,9 +24,6 @@ class PyPiRepository(Repository):
         super().__init__('pypi')
         self._http = http
 
-    def accepts(self, dependency: Dependency) -> bool:
-        return not dependency.is_url_dependency
-
     @cached_property
     def publisher(self) -> Optional["RepositoryPublisher"]:
         return PyPiPublisher(self._http)
@@ -77,25 +74,22 @@ class PypiPackage(AbstractPackage):
 
         return resource.data
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         json: Dict[str, Any] = self._repo._http \
             .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json') \
             .read_data_as_json()
 
         requires_dist = json['info'].get('requires_dist')
         if requires_dist is None:
-            return super(PypiPackage, self)._all_dependencies(environment, build_packages_repo)
+            return super(PypiPackage, self)._all_dependencies(environment)
 
         return [Dependency.parse_pep508(dstr) for dstr in requires_dist]
 
 
 def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[StandardPackageArtifact]:
     requires_python = release.get('requires_python')
-    package_type = release.get('packagetype')
 
     file_name: str = release.get('filename')
-    is_binary = package_type == 'bdist_wheel' or file_name.endswith('.whl')
-
     if not file_name:
         return None
 

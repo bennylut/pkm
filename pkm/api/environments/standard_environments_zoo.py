@@ -7,7 +7,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.environments.environments_zoo import ManagedEnvironment
-from pkm.api.environments.lightweight_environment_builder import LightweightEnvironmentBuilder
+from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
@@ -71,7 +71,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
 
         for interpreter in interpreters:
             try:
-                env = LightweightEnvironmentBuilder.create(path, interpreter)
+                env = LightweightEnvironments.create(path, interpreter)
                 env.install(application, repository, True)
             except (UnsupportedOperation, UnsolvableProblemException) as e:
                 shutil.rmtree(path)
@@ -94,7 +94,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
 
             if match in ('general', 'all'):
                 yield from without_nones(self._try_load(p) for p in (self._path / 'envs').iterdir())
-
+    
     def _try_load(self, path: Path) -> Optional["ManagedEnvironment"]:
         if Environment.is_valid(path):
             return StandardManagedEnvironment(Environment(path))

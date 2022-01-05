@@ -116,7 +116,7 @@ class InstalledPackage(Package):
         self._user_request = request
         return True
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         return self._meta.dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:

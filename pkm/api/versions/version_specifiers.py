@@ -254,18 +254,18 @@ class VersionRange(VersionSpecifier):
         if self.is_none():
             return False
 
-        min, max = self.min, self.max
-        if (min is not None and self.includes_min and min.version == version) \
-                or (max is not None and self.includes_max and max.version == version):
+        min_, max_ = self.min, self.max
+        if (min_ is not None and self.includes_min and min_.version == version) \
+                or (max_ is not None and self.includes_max and max_.version == version):
             return True
 
-        if version.is_post_release() and (min is None or not min.version.is_post_release()):
+        if version.is_post_release() and (min_ is None or not min_.version.is_post_release()):
             return False
 
         # if version.is_pre_or_dev_release() and (max is None or not max.version.is_pre_or_dev_release()):
         #     return False
 
-        return (min is None or min.version < version) and (max is None or version < max.version)
+        return (min_ is None or min_.version < version) and (max_ is None or version < max_.version)
 
     def inverse(self) -> "VersionSpecifier":
         new_segments: List["VersionSpecifier"] = []

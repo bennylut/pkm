@@ -7,6 +7,7 @@ import os
 
 from typing import TYPE_CHECKING, Dict
 
+
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
@@ -38,9 +39,12 @@ class _Pkm:
     @cached_property
     def repository_builders(self) -> Dict[str, "RepositoryBuilder"]:
         from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
+        from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
+
         return {
             b.name: b for b in (
                 SimpleRepositoryBuilder(self.httpclient),
+                LocalPackagesRepositoryBuilder(self.repositories.pypi)
             )
         }
 
@@ -51,9 +55,11 @@ class _Pkm:
         from pkm.api.repositories.pypi_repository import PyPiRepository
         from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 
+        pypi = PyPiRepository(self.httpclient)
+
         return _PkmRepositories(
-            SourceBuildsRepository(self.workspace / 'source-builds'),
-            PyPiRepository(self.httpclient),
+            SourceBuildsRepository(self.workspace / 'source-builds', pypi),
+            pypi,
             SimpleRepository('pypi_simple', self.httpclient, 'https://pypi.org/simple'),
             InstalledPythonsRepository()
         )

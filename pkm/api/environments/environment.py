@@ -155,7 +155,7 @@ class Environment:
         if pth_file.exists():
             raise FileExistsError(f"the file {pth_file} already exists")
 
-        PthLink(pth_file, imports, paths).save()
+        PthLink(pth_file, paths, imports).save()
 
     def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True):
         """
@@ -282,7 +282,7 @@ class _UserRequestPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: Repository) -> List[Dependency]:
+    def _all_dependencies(self, environment: "Environment") -> List[Dependency]:
         return self._request
 
     def is_compatible_with(self, env: "Environment") -> bool: return True

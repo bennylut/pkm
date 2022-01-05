@@ -133,7 +133,7 @@ class EnvironmentIntrospection(Configuration):
                         if score is not None and (max_score is None or max_score < score):
                             max_score = score
             return max_score
-        except:
+        except: # noqa
             import traceback
             traceback.print_exc()
             return None

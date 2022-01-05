@@ -1,25 +1,29 @@
 ## CURRENT STORY:
 - pkm cli
   - requires its own project -> support multi-module projects
-    - requires multi-module repository -> support repository instances and configuration
+    - ~~requires multi-module repository -> support repository instances and configuration~~
 
 ## RUNNING TASKS:
 
-
 ## DONE IN THIS VERSION
-- bug: local label versions are not handled correctly
-- allow configurable repository instances
-- implement simple repository
-- pytorch recipe with simple repository checked and working
+- buildsys - sign wheel archives
+- buildsys support editable installs
+- implement pep660 editable source installer
+  - to specify editable requirement, add editable / local repository
+  - extend repository config to support packages = {...} syntax
+
 
 
 ## BACKLOG TASKS:
+- modules support 
+- connect lock to project
+- check that when downloading packages for install, the hash is being validated
+- check the "editables" module, decide if you want to support this behavior
 - version local label - check if specific version can ask for a local-label
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
 - validate the usefulness of the `Repository.accepts` method
 - check if metadata 2.2 and then when dependencies are none and not dynamic we dont need to download the archive
 - pkm.repository_builders should be pluggable
-- connect lock to project
 - handle project install with extras, usecase: test dependencies
 - multi venv in project - usecase and flow
 - bug: cached_property: mutation lock should be instance dependent and not global 
@@ -28,18 +32,14 @@
   - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
   - email should be a valid email address
   - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
-- buildsys support editable installs
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - build the monitor framework and start composing the cli
 - consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects,
   build system)
-- implement pep660 editable source installer
-    - check the editables module, decide if you want to support this behavior
 - bug: leftover __pycache__ on site packages dir after uninstall 
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - allow dependency exclusion
 - allow forced versions
-
 - hierarchical site packages:
     - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
       resolution?)
@@ -48,7 +48,6 @@
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
     - dont forget to handle overwriten files
-- hierarchical PyProjectConfiguration
 - `pkm shell` support custom environment variables loading like in pipenv
 - lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
 - documentation for simple parser
@@ -64,7 +63,6 @@
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - commandline: pkm install -g, -ga, -ge env
-- check that when downloading packages for install, the hash is being validated
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
@@ -73,13 +71,12 @@
 - manage multiple envs per project
 - cli
 - make-like task system
-- source definition and configuration (can it be translated to pep508 dependency?)
 - properties and build profiles (note that properties should only apply on pkm namespace)
 - documentation site
 - entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
-- be able to execute tests
+- common tasks: test, build doc, etc.
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

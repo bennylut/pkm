@@ -1,3 +1,5 @@
+import csv
+import os
 import shutil
 import tarfile
 import zipfile
@@ -17,8 +19,11 @@ from pkm.api.pkm import pkm
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion
+from pkm.distributions.pth_link import PthLink
 from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
+from pkm.utils.files import path_to
+from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -38,7 +43,7 @@ class Project(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
-    def _all_dependencies(self, environment: "Environment", build_packages_repo: "Repository") -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         return self._pyproject.project.all_dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
@@ -138,11 +143,12 @@ class Project(Package):
 
         return sdist_path
 
-    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False) -> Path:
+    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
         """
         build a wheel distribution from this project
         :param target_dir: directory to put the resulted wheel in
         :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
+        :param editable: if True, a wheel for editable install will be created
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
 
@@ -156,7 +162,8 @@ class Project(Package):
 
             dist_info_path = bc.build_dir / bc.dist_info_dir_name()
             bc.build_dist_info(dist_info_path)
-            bc.copy_sources(bc.build_dir)
+            bc.copy_sources(bc.build_dir, editable)
+            _sign_build(bc.build_dir, dist_info_path / "RECORD")
 
             wheel_path = target_dir / bc.wheel_file_name()
             target_dir.mkdir(parents=True, exist_ok=True)
@@ -215,20 +222,22 @@ class _ProjectRepository(Repository):
         super().__init__(f"{project.name}'s repository")
         self.project = project
 
-        built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = [
-            (ri, pkm.repository_builders[ri.type].build(ri.name, **ri.args))
-            for ri in project.pyproject.pkm_repositories]
+        built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = []
+        for rcfg in project.pyproject.pkm_repositories:
+            if not (builder := pkm.repository_builders.get(rcfg.type)):
+                raise KeyError(f"unknown repository type: {rcfg.type}")
+            built_repositories.append((rcfg, builder.build(rcfg.name, rcfg.packages, **rcfg.args)))
 
         self._default_repo = pkm.repositories.pypi
         if default_repo := first_or_none(
-                r for ri, r in built_repositories
-                if len(ri.packages) == 1 and ri.packages[0] == "*"):
+                repository for repository_config, repository in built_repositories
+                if '*' in repository_config.packages):
             self._default_repo = default_repo
 
         self.package_to_repo: Dict[str, Repository] = {
-            p: r
-            for ri, r in built_repositories
-            for p in ri.packages
+            package_name: repository
+            for repository_config, repository in built_repositories
+            for package_name in repository_config.packages.keys()
         }
 
     def _repository_for(self, d: Dependency) -> Repository:
@@ -250,19 +259,22 @@ class _BuildContext:
     build_dir: Path
     project_name_underscore: str
 
+    def _project_and_version_file_prefix(self):
+        return f"{self.project_name_underscore}-{self.pyproject.project.version}"
+
     def wheel_file_name(self) -> str:
         project_cfg = self.pyproject.project
         min_interpreter: StandardVersion = project_cfg.requires_python.min.version \
             if project_cfg.requires_python else StandardVersion((3,))
 
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
-        return f"{self.project_name_underscore}-{self.pyproject.project.version}-{req_interpreter}-none-any.whl"
+        return f"{self._project_and_version_file_prefix()}-{req_interpreter}-none-any.whl"
 
     def sdist_file_name(self) -> str:
-        return f"{self.project_name_underscore}-{self.pyproject.project.version}.tar.gz"
+        return f"{self._project_and_version_file_prefix()}.tar.gz"
 
     def dist_info_dir_name(self) -> str:
-        return f'{self.project_name_underscore}-{self.pyproject.project.version}.dist-info'
+        return f'{self._project_and_version_file_prefix()}.dist-info'
 
     def build_dist_info(self, dst: Path):
         metadata_file = dst / "METADATA"
@@ -279,8 +291,15 @@ class _BuildContext:
         # TODO: probably later we will want to add the version of pkm in the generator..
         WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(wheel_file)
 
-    def copy_sources(self, dst: Path):
+    def copy_sources(self, dst: Path, link_only: bool = False):
         dirs = ProjectDirectories.create(self.pyproject)
+
+        if link_only:
+            PthLink(
+                dst / f"{self._project_and_version_file_prefix()}.pth",
+                links=[p.absolute() for p in dirs.src_packages]
+            ).save()
+            return
 
         for package_dir in dirs.src_packages:
             destination = dst / package_dir.name
@@ -290,6 +309,18 @@ class _BuildContext:
                 raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
                                         " has no corresponding directory in project")
 
+def _sign_build(build_dir: Path, signature_file: Path):
+    records: List[Tuple[str, str, str]] = []
+    for file in build_dir.rglob("*"):
+        if not file.is_dir():
+            records.append((
+                str(file.relative_to(build_dir)), # path
+                str(HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file)), # signature
+                str(file.lstat().st_size) # size
+            ))
+
+    with signature_file.open('w', newline='') as signature_file_fd:
+        csv.writer(signature_file_fd).writerows(records)
 
 @dataclass()
 class ProjectDirectories:

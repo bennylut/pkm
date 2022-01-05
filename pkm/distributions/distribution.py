@@ -29,7 +29,7 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def extract_metadata(self, env: Environment, build_packages_repo: Repository) -> PackageMetadata:
+    def extract_metadata(self, env: Environment, build_packages_repo: Optional[Repository]) -> PackageMetadata:
         """
         extracts and returns metadata from this distribution
         :param env: the environment that this metadata should be relevant to

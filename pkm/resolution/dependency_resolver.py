@@ -52,7 +52,7 @@ class _PkmPackageInstallationProblem(Problem):
         descriptor = PackageDescriptor(package_name, version)
 
         try:
-            dependencies = self.opened_packages[descriptor].dependencies(self._env, self._repo, extras)
+            dependencies = self.opened_packages[descriptor].dependencies(self._env, extras)
 
             for d in dependencies:
                 self._prefetch(d.package_name)

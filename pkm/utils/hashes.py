@@ -42,8 +42,8 @@ class HashSignature:
     hash_type: str
     hash_value: str
 
-    def _encode_hash(self, hash: HashDigester) -> str:
-        return hash.hexdigest()
+    def _encode_hash(self, hashd: HashDigester) -> str:
+        return type(self).encode_hash(hashd)
 
     def validate_against(self, file: Path) -> bool:
         if not hasattr(hashlib, self.hash_type):
@@ -61,6 +61,10 @@ class HashSignature:
         return f"HashSignature({self})"
 
     @classmethod
+    def encode_hash(cls, hashd: HashDigester):
+        return hashd.hexdigest()
+
+    @classmethod
     def parse_hex_encoded(cls, signature: str) -> "HashSignature":
         parts = _SIG_DELIM_RX.split(signature)
         if len(parts) != 2:
@@ -76,7 +80,16 @@ class HashSignature:
 
         return _UrlsafeBase64NopadHashSignature(*parts)
 
+    @classmethod
+    def create_urlsafe_base64_nopad_encoded(cls, hash_function: str, file: Path) -> "HashSignature":
+        hashd = getattr(hashlib, hash_function)()
+        stream(hashd, file)
+        encoded = _UrlsafeBase64NopadHashSignature.encode_hash(hashd)
+        return _UrlsafeBase64NopadHashSignature(hash_function, encoded)
+
 
 class _UrlsafeBase64NopadHashSignature(HashSignature):
-    def _encode_hash(self, hash: HashDigester) -> str:
-        return urlsafe_b64encode(hash.digest()).decode("latin1").rstrip("=")
+
+    @classmethod
+    def encode_hash(cls, hashd: HashDigester):
+        return urlsafe_b64encode(hashd.digest()).decode("latin1").rstrip("=")
