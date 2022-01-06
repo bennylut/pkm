@@ -5,6 +5,7 @@ from pkm.utils.types import SupportHashCode
 _T = TypeVar("_T")
 _U = TypeVar("_U")
 _K = TypeVar("_K", bound=SupportHashCode)
+_SENTINAL = object()
 
 
 def groupby(seq: Iterable[_T], key: Callable[[_T], _K]) -> Dict[_K, List[_T]]:
@@ -49,6 +50,20 @@ def partition(seq: Iterable[_T], match: Callable[[_T], bool]) -> Tuple[List[_T],
             f.append(item)
 
     return t, f
+
+
+def single_or_fail(seq: Iterable[_T]) -> _T:
+    """
+    :param seq: the iterable to access
+    :return: the first element of this iterable if the number of elements in it is 1 otherwise raise `ValueError`
+    """
+    i = iter(seq)
+    if (single := next(i, _SENTINAL)) is _SENTINAL:
+        raise ValueError(f"expecting single element, found 0")
+    if next(i, _SENTINAL) is not _SENTINAL:
+        raise ValueError(f"expecting single element, found multiple")
+
+    return single
 
 
 def distinct(it: Iterable[_T], key: Callable[[_T], _K] = lambda x: x) -> Iterator[_T]:

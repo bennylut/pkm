@@ -6,13 +6,12 @@
 
 ## RUNNING TASKS:
 
-
 ## DONE IN THIS VERSION
-- connect lock to project
+- multi-module project support
+
 
 ## BACKLOG TASKS:
-
-- modules support
+- toml - lists user style - support column and grid and auto detect it
 - check that when downloading packages for install, the hash is being validated
 - check the "editables" module, decide if you want to support this behavior
 - version local label - check if specific version can ask for a local-label
@@ -73,6 +72,7 @@
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
 - common tasks: test, build doc, etc.
+- create pyproject from environment
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

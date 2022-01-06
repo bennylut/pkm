@@ -95,8 +95,8 @@ class _StyleSheet:
 
     def value_style(self, key: KEY_T, value: Any, display: str = 'auto') -> _ValueStyle:
         predefined_style = self.values.get(key)
-        if not predefined_style or predefined_style.value_sig is not type(value) and predefined_style.value_sig != id(
-                value):
+        if not predefined_style or \
+                (predefined_style.value_sig is not type(value) and predefined_style.value_sig != id(value)):
             predefined_style = _DEFAULT_VALUE_STYLE
 
         if isinstance(value, (Table, Array)):
@@ -184,7 +184,7 @@ class _Writer:
         return f"{style.prolog}{v}{style.epilog}"
 
     def _write_list(self, data: List[Any], key: KEY_T, vstyle: _ValueStyle) -> str:
-        if vstyle.display == 'inline':
+        if vstyle.display == 'inline': # TODO: support inline column and inline grid
             return self._write_inline_list(data, key, vstyle)
         return self._write_table_list(data, key, vstyle)
 
@@ -378,7 +378,7 @@ class _Writer:
         return f"{vstyle.prolog}{items}{vstyle.epilog}"
 
 
-class _Reader(SimpleParser):
+class _TomlParser(SimpleParser):
     def __init__(self, text: str, file_name: Optional[str]):
         super().__init__(text, file_name)
         self.style = _StyleSheet()
@@ -698,11 +698,11 @@ class _Reader(SimpleParser):
 
 
 def key2path(key: str) -> KEY_T:
-    return _Reader(key, None).read_key(())
+    return _TomlParser(key, None).read_key(())
 
 
 def loads(data: str, file_name: Optional[str] = None) -> Tuple[Dict[str, Any], DUMPS_T]:
-    reader = _Reader(data, file_name)
+    reader = _TomlParser(data, file_name)
     data = reader.read()
 
     return data, lambda x: _Writer(reader.style).write(x)

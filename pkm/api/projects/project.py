@@ -1,5 +1,4 @@
 import csv
-import os
 import shutil
 import tarfile
 import zipfile
@@ -8,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from shutil import ignore_patterns
 from tempfile import TemporaryDirectory
-from typing import List, Optional, ContextManager, Union, Tuple, Dict
+from typing import List, Optional, ContextManager, Union, Tuple, Dict, TYPE_CHECKING
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
@@ -23,10 +22,12 @@ from pkm.distributions.pth_link import PthLink
 from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
-from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property, clear_cached_properties
+
+if TYPE_CHECKING:
+    from pkm.api.projects.project_group import ProjectGroup
 
 
 class Project(Package):
@@ -39,6 +40,15 @@ class Project(Package):
     @property
     def pyproject(self) -> PyProjectConfiguration:
         return self._pyproject
+
+    @cached_property
+    def group(self) -> Optional["ProjectGroup"]:
+        from pkm.api.projects.project_group import ProjectGroup
+        return ProjectGroup.of(self)
+
+    @property
+    def path(self) -> Path:
+        return self._path
 
     @property
     def descriptor(self) -> PackageDescriptor:
@@ -96,25 +106,26 @@ class Project(Package):
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
         new_deps = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
 
-        all_deps = {**deps, **new_deps}
+        self._pyproject.project = replace(
+            self._pyproject.project,
+            dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
+
+        # all_deps = {**deps, **new_deps, self.name: self.descriptor.to_dependency()}
 
         repository = _ProjectRepository(self, self._default_env)
 
-        self._default_env.install(list(all_deps.values()), repository)
+        # self._default_env.install(list(all_deps.values()), repository)
+        self._default_env.install(self.descriptor.to_dependency(), repository)
 
         # update files
 
         self.lock.update_lock(self._default_env)
         self.lock.save()
 
-        self._pyproject.project = replace(
-            self._pyproject.project,
-            dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
         self._pyproject.save()
 
     def _reload(self):
         clear_cached_properties(self)
-
 
     @cached_property
     def _default_env(self) -> Environment:
@@ -239,6 +250,15 @@ class _ProjectRepository(Repository):
         self.project = project
         self._env = env
 
+        group_settings = {
+            p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
+            for p in (project.group.project_children_recursive if project.group else [])
+        }
+        group_settings[project.name] = {'path': str(project.path.absolute()), 'name': project.name,
+                                        'version': str(project.version)}
+        self._group_repo = pkm.repository_builders['local'].build('project-group', group_settings)
+        # self._group_repo = ProjectGroupRepository(project.group) if project.group else None
+
         built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = []
         for rcfg in project.pyproject.pkm_repositories:
             if not (builder := pkm.repository_builders.get(rcfg.type)):
@@ -261,8 +281,8 @@ class _ProjectRepository(Repository):
         return self.package_to_repo.get(d.package_name, self._default_repo)
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        if dependency.package_name == self.project.name:
-            return [self.project]
+        if (gr := self._group_repo) and gr.accepts(dependency) and (gpacs := gr.match(dependency, False)):
+            return gpacs
 
         return self._repository_for(dependency).match(dependency, False)
 
@@ -329,18 +349,20 @@ class _BuildContext:
                 raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
                                         " has no corresponding directory in project")
 
+
 def _sign_build(build_dir: Path, signature_file: Path):
     records: List[Tuple[str, str, str]] = []
     for file in build_dir.rglob("*"):
         if not file.is_dir():
             records.append((
-                str(file.relative_to(build_dir)), # path
-                str(HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file)), # signature
-                str(file.lstat().st_size) # size
+                str(file.relative_to(build_dir)),  # path
+                str(HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file)),  # signature
+                str(file.lstat().st_size)  # size
             ))
 
     with signature_file.open('w', newline='') as signature_file_fd:
         csv.writer(signature_file_fd).writerows(records)
+
 
 @dataclass()
 class ProjectDirectories:

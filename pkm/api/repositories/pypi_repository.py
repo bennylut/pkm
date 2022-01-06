@@ -11,6 +11,7 @@ from pkm.api.repositories.repository import Authentication
 from pkm.api.repositories.repository import Repository, RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.utils.commons import NoSuchElementException
 from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
@@ -29,10 +30,13 @@ class PyPiRepository(Repository):
         return PyPiPublisher(self._http)
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        json: Dict[str, Any] = self._http \
-            .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
-                            cache=CacheDirective.ask_for_update()) \
-            .read_data_as_json()
+        try:
+            json: Dict[str, Any] = self._http \
+                .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
+                                cache=CacheDirective.ask_for_update()) \
+                .read_data_as_json()
+        except HttpException as e:
+            raise NoSuchElementException(f"package: '{dependency.package_name}' does not exists in repository: '{self.name}'")
 
         package_info: Dict[str, Any] = json['info']
         packages: List[PypiPackage] = []

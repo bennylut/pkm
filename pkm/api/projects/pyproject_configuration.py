@@ -55,10 +55,12 @@ class EntryPointConfig:
 @dataclass(frozen=True, eq=True)
 class PkmProjectConfig:
     packages: Optional[List[str]] = None
+    group: Optional[str] = None
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({
-            'packages': self.packages
+            'packages': self.packages,
+            'group': self.group
         })
 
     @classmethod
@@ -302,6 +304,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
     # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
     project: ProjectConfig
     pkm_project: PkmProjectConfig
+    pkm_repositories: List[PkmRepositoryInstanceConfig]
 
     @computed_based_on("tool.pkm.project")
     def pkm_project(self) -> PkmProjectConfig:

@@ -216,16 +216,20 @@ class FileConfiguration(MutableConfiguration, ABC):
 
 
 class TomlFileConfiguration(FileConfiguration):
+
+    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None,
+                 data: Optional[Dict[str, Any]] = None, dumps: Optional[Callable] = None):
+        super().__init__(path=path, parent=parent, data=data)
+        self._dumps = dumps
+
     def generate_content(self) -> str:
-        dumps = toml.dumps
-        if self._path.exists():
-            _, dumps = toml.load(self._path)
+        dumps = self._dumps or toml.dumps
         return dumps(self._data)
 
     @classmethod
     def load(cls, file: Path, parent: Optional[Configuration] = None) -> "TomlFileConfiguration":
-        data, _ = toml.load(file) if file.exists() else ({}, None)
-        return cls(path=file, parent=parent, data=data)
+        data, dumps = toml.load(file) if file.exists() else ({}, None)
+        return cls(path=file, parent=parent, data=data, dumps=dumps)
 
 
 class InMemConfiguration(MutableConfiguration):

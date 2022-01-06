@@ -2,10 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories.repository import Repository, DelegatingRepository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.commons import unone
 from pkm.utils.iterators import groupby
