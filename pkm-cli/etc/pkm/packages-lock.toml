@@ -1,0 +1,23 @@
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "rich", version = "10.16.2"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "commonmark", version = "0.9.1"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pygments", version = "2.11.2"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pkm", version = "0.3.0"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "colorama", version = "0.4.4"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pkm-cli", version = "0.1.0"}

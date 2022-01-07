@@ -1,22 +1,29 @@
 ## CURRENT STORY:
 
 - pkm cli
-    - requires its own project -> support multi-module projects
+    - ~~requires its own project -> support multi-module projects~~
         - ~~requires multi-module repository -> support repository instances and configuration~~
 
 ## RUNNING TASKS:
+- build the monitor framework
+- build pkm cli
 
 ## DONE IN THIS VERSION
-- multi-module project support
-
+- move to src layout
+- bug: toml writer wrote dotted tables out of place
+- initial monitors implementation
+- organize the pkm-cli project
+- move to multi-module layout
 
 ## BACKLOG TASKS:
+- toml parser/writer need unit tests
+- when adding dependency to project through pkm (install_dependencies) currently the `*` version is used, after
+  installation, use instead `~=installed_version`
 - toml - lists user style - support column and grid and auto detect it
 - check that when downloading packages for install, the hash is being validated
 - check the "editables" module, decide if you want to support this behavior
 - version local label - check if specific version can ask for a local-label
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
-- validate the usefulness of the `Repository.accepts` method
 - check if metadata 2.2 and then when dependencies are none and not dynamic we dont need to download the archive
 - pkm.repository_builders should be pluggable
 - handle project install with extras, usecase: test dependencies
@@ -28,13 +35,11 @@
     - email should be a valid email address
     - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
-- build the monitor framework and start composing the cli
 - consider creating a wrapper class for object_reference, it seems that it is used in multiple locations (projects,
   build system)
 - bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
-- allow dependency exclusion
-- allow forced versions
+- tool.pkm.dependency-overwrites: allow forced versions and dependency exclusion 
 - hierarchical site packages:
     - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
       resolution?)
@@ -62,11 +67,9 @@
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
 - git and url dependencies installation support
-- move to src layout?
 - manage multiple envs per project
-- cli
 - make-like task system
-- properties and build profiles (note that properties should only apply on pkm namespace)
+- properties and build profiles (note that properties should be resolved before sdist packaging)
 - documentation site
 - entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)

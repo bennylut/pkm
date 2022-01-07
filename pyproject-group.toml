@@ -1,0 +1,3 @@
+[project-group]
+children=["pkm", "pkm-cli"]
+
