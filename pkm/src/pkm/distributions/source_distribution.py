@@ -8,7 +8,6 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Repository
 from pkm.distributions.distribution import Distribution
 from pkm.utils.archives import extract_archive
 
@@ -28,14 +27,11 @@ class SourceDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def extract_metadata(self, env: Environment, build_packages_repo: Optional[Repository]) -> PackageMetadata:
-        if not build_packages_repo:
-            build_packages_repo = pkm.repositories.pypi
-
+    def extract_metadata(self, env: Environment) -> PackageMetadata:
         builds = pkm.repositories.source_builds
 
         with self._source_tree() as source_tree:
-            return builds.build_or_get_metadata(self.owner_package, source_tree, env, build_packages_repo)
+            return builds.build_or_get_metadata(self.owner_package, source_tree, env)
 
     @contextmanager
     def _source_tree(self) -> ContextManager[Path]:
@@ -58,15 +54,15 @@ class SourceDistribution(Distribution):
 
             yield source_tree
 
-    def install_to(self, env: Environment, build_packages_repo: Repository, user_request: Optional[Dependency] = None):
+    def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False):
         from pkm.api.pkm import pkm
         builds = pkm.repositories.source_builds
 
         prebuilt = builds.match(self.owner_package.to_dependency())
         if prebuilt and prebuilt[0].is_compatible_with(env):
-            return prebuilt[0].install_to(env, build_packages_repo, user_request)
+            return prebuilt[0].install_to(env, user_request)
 
         with self._source_tree() as source_tree:
             builds \
-                .build(self.owner_package, source_tree, env, build_packages_repo) \
-                .install_to(env, build_packages_repo, user_request)
+                .build(self.owner_package, source_tree, env, editable) \
+                .install_to(env, user_request)

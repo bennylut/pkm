@@ -7,16 +7,14 @@ from typing import Optional, Any, Dict, List
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.distributions.source_distribution import SourceDistribution
 from pkm.distributions.wheel_distribution import WheelDistribution
-from pkm.logging.console import console
 from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
-from pkm.utils.types import SupportsLessThanEq
 from pkm.utils.strings import without_suffix
+from pkm.utils.types import SupportsLessThanEq
 
 
 @dataclass
@@ -60,7 +58,7 @@ class AbstractPackage(Package):
                     if not requires_python.allows_version(env_interpreter):
                         continue
                 except ValueError:
-                    console.log(
+                    print(
                         'could not parse python requirements for artifact:'
                         f' {file_name} of {self.name}=={self.version}, skipping it')
                     continue
@@ -91,13 +89,12 @@ class AbstractPackage(Package):
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
                    *, monitor: FetchResourceMonitor = no_monitor()):
-        build_packages_repo = self._build_packages_repo or pkm.repositories.pypi
         artifact = self._best_artifact_for(env)
         artifact_path = self._retrieve_artifact(artifact, monitor)
         if artifact.is_wheel():
-            WheelDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
+            WheelDistribution(self.descriptor, artifact_path).install_to(env, user_request)
         else:
-            SourceDistribution(self.descriptor, artifact_path).install_to(env, build_packages_repo, user_request)
+            SourceDistribution(self.descriptor, artifact_path).install_to(env, user_request)
 
     def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
         artifact = self._best_artifact_for(environment)
@@ -109,9 +106,9 @@ class AbstractPackage(Package):
         filename = artifact.file_name
         if filename.endswith('.whl'):
             info = WheelDistribution(self.descriptor, resource) \
-                .extract_metadata(environment, self._build_packages_repo)
+                .extract_metadata(environment)
         else:
             info = SourceDistribution(self.descriptor, resource) \
-                .extract_metadata(environment, self._build_packages_repo)
+                .extract_metadata(environment)
 
         return info.dependencies

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python= ">=3.8, <4.0"
 authors = [{name="bennyl"}]
 license.text = "MIT License"
-dependencies=[ "rich >=10.15, <11.0",  "pkm *"]
+dependencies=[ "questionary *",  "pkm *",  "jinja2 *"]
 
 [build-system]
 backend-path="../pkm/src"

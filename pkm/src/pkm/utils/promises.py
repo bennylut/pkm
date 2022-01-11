@@ -107,6 +107,7 @@ class _SimplePromise(Promise[_T]):
                 deferred = Deferred()
 
                 def callback_wrapper():
+                    # noinspection PyShadowingNames
                     try:
                         deferred.complete(callback(self))
                     except Exception as e:

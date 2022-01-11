@@ -19,7 +19,6 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Bui
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.distributions.wheel_distribution import WheelDistribution
-from pkm.logging.console import console
 from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.sequences import single_or_fail
 
@@ -44,7 +43,7 @@ class SourceBuildsRepository(Repository):
                required_artifact: str,  # ['metadata', 'wheel', 'editable']
                source_tree: Path, target_env: Environment):
 
-        console.log(f"INNER BUILDING {package}...")
+        print(f"INNER BUILDING {package}...")
         package_dir = self._version_dir(package)
         artifacts_dir = package_dir / 'artifacts'
         metadata_file = package_dir / "METADATA"
@@ -104,8 +103,7 @@ class SourceBuildsRepository(Repository):
                     raise BuildError("build backend did not produced expected wheel")
 
                 if not metadata_file.exists():
-                    metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env,
-                                                                                       self._build_packages_repo)
+                    metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env)
 
                 # done setting up, storing in package dir
                 artifacts_dir.mkdir(exist_ok=True, parents=True)
@@ -114,14 +112,14 @@ class SourceBuildsRepository(Repository):
                     metadata.save_to(metadata_file)
 
     def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool) -> Package:
-        console.log(f"BUILDING {package}...")
+        print(f"BUILDING {package}...")
         package_type = 'wheel' if not editable else 'editable'
         self._build(threading.current_thread().ident, package, package_type, source_tree, target_env)
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
                               target_env: Environment) -> PackageMetadata:
-        console.log(f"BUILDING OR GETTING META {package}...")
+        print(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
             self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env)

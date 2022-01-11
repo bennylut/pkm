@@ -1,7 +1,17 @@
 import typing
-from typing import Any, TypeVar, Protocol
+from typing import Any, TypeVar, Protocol, Generic, Iterator
 
 import sys
+
+_T = TypeVar("_T")
+
+
+class IterableWithLen(Generic[_T]):
+    def __len__(self) -> int:
+        ...
+
+    def __iter__(self) -> Iterator[_T]:
+        ...
 
 
 class SupportsLessThan(Protocol):

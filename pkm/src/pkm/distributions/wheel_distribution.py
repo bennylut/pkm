@@ -16,11 +16,9 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import FileConfiguration
 from pkm.distributions.distribution import Distribution
-from pkm.logging.console import console
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
@@ -45,7 +43,7 @@ class WheelFileConfiguration(FileConfiguration):
         if wv.release[0] != 1:
             raise InstallationException(f"unsupported wheel version: {wv}")
         if wv.release[1] != 0:
-            console.log(f'advanced wheel version: {wv} detected, will be treated as version 1.0')
+            print(f'advanced wheel version: {wv} detected, will be treated as version 1.0')
 
     @classmethod
     def create(cls, generator: str, purelib: bool):
@@ -122,12 +120,12 @@ class WheelDistribution(Distribution):
         self._wheel = wheel
         self._package = package
 
-    def extract_metadata(self, env: Environment, build_packages_repo: Repository) -> PackageMetadata:
-        with ZipFile(self._wheel) as zip:
-            for name in zip.namelist():
+    def extract_metadata(self, env: Environment) -> PackageMetadata:
+        with ZipFile(self._wheel) as zipf:
+            for name in zipf.namelist():
                 if _METADATA_FILE_RX.fullmatch(name):
                     with TemporaryDirectory() as tdir:
-                        zip.extract(name, tdir)
+                        zipf.extract(name, tdir)
                         return PackageMetadata.load(Path(tdir) / name)
         raise FileNotFoundError("could not find metadata in wheel")
 
@@ -135,15 +133,15 @@ class WheelDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def install_to(self, env: Environment, build_packages_repo: Repository, user_request: Optional[Dependency] = None):
+    def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False):
         """
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
         """
         with TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            with ZipFile(self._wheel) as zip:
-                zip.extractall(tmp_path)
+            with ZipFile(self._wheel) as zipf:
+                zipf.extractall(tmp_path)
 
             dist_info = _find_dist_info(tmp_path, self._package)
 
@@ -154,7 +152,8 @@ class WheelDistribution(Distribution):
 
             records_file = dist_info / "RECORD"
             if not records_file.exists():
-                raise InstallationException(f"Unsigned wheel for package {self._package} (no RECORD file found in dist-info)")
+                raise InstallationException(
+                    f"Unsigned wheel for package {self._package} (no RECORD file found in dist-info)")
 
             copy_commands: List[_FileMoveCommand] = []
             for d in tmp_path.iterdir():
@@ -176,8 +175,7 @@ class WheelDistribution(Distribution):
             for copy_command in copy_commands:
                 if copy_command.target.exists():
 
-                    console.log(
-                        f"package files conflicts with other package files: {copy_command.target} already exist")
+                    print(f"package files conflicts with other package files: {copy_command.target} already exist")
 
                     if not copy_command.target.is_dir():
                         # shutil.rmtree(copy_command.target)
@@ -199,8 +197,7 @@ class WheelDistribution(Distribution):
                         parsed_sig = HashSignature.parse_urlsafe_base64_nopad_encoded(hash_sig)
                         if not parsed_sig.validate_against(cc.source):
                             if any(it.name.endswith('.dist-info') for it in cc.source.parents):
-                                console.log(
-                                    f"Weak Warning: mismatch hash signature for {cc.source}")
+                                print(f"Weak Warning: mismatch hash signature for {cc.source}")
                             else:
                                 raise InstallationException(f"File signature not matched for: {file}")
                         target_hashes[cc.target] = parsed_sig

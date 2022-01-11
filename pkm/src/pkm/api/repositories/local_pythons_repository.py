@@ -12,6 +12,7 @@ from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.utils.http.http_monitors import FetchResourceMonitor
+from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
 
@@ -22,6 +23,9 @@ class InstalledPythonsRepository(Repository):
 
     def __init__(self):
         super().__init__('local-pythons')
+
+    def list(self, package_name: str = 'python') -> List[Package]:
+        return super().list(package_name)
 
     @cached_property
     def _interpreters(self) -> List["LocalInterpreterPackage"]:
@@ -81,8 +85,8 @@ class LocalInterpreterPackage(Package):
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
-                   user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
+                   *, monitor: FetchResourceMonitor = no_monitor()):
         LightweightEnvironments.create(env.path, self._interpreter.absolute())
 
 

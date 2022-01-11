@@ -6,6 +6,40 @@ from pkm.resolution.pubgrub import *
 
 class TestSolver(TestCase):
 
+    def test_exact_local_labels_version(self):
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo ==1.0.0'],
+            'foo 1.0.0+local': [],
+            'foo 2.0.0': [],
+        })
+
+        solution = Solver(problem).solve()
+        assert_solution({'root': '1.0.0', 'foo': '1.0.0+local'}, solution)
+
+    def test_range_local_labels_version(self):
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo <=1.0.0+local'],
+            'foo 1.0.0+local': [],
+            'foo 1.0.0': [],
+            'foo 2.0.0': [],
+        })
+
+        solution = Solver(problem).solve()
+        assert_solution({'root': '1.0.0', 'foo': '1.0.0+local'}, solution)
+
+    def test_range_with_unrelated_local_involved_version(self):
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo <=1.0.0'],
+            'foo 1.0.0+local': [],
+            'foo 1.0.0': [],
+            'foo 2.0.0': [],
+        })
+
+        solution = Solver(problem).solve()
+        assert_solution({'root': '1.0.0', 'foo': '1.0.0'}, solution)
+
+
+
     def test_star_version(self):
         problem = ExampleProblem({
             'root 1.0.0': ['foo *'],

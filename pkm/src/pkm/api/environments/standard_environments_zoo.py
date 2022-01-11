@@ -73,7 +73,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
             try:
                 env = LightweightEnvironments.create(path, interpreter)
                 env.install(application, repository, True)
-            except (UnsupportedOperation, UnsolvableProblemException) as e:
+            except (UnsupportedOperation, UnsolvableProblemException):
                 shutil.rmtree(path)
                 continue
 

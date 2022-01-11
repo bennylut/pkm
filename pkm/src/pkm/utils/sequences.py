@@ -75,3 +75,4 @@ def get_or_default(seq: Sequence[_T], index: int, default: _T) -> _T:
     if -len(seq) > index > len(seq):
         return default
     return seq[index]
+

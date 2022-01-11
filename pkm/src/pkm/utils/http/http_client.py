@@ -25,7 +25,7 @@ from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
 _next_connection_number = 0
-HTTPConnection.debuglevel = 1
+HTTPConnection.debuglevel = 0
 
 # Sad Hacks:
 # ------------
@@ -226,15 +226,15 @@ class FetchedResource:
         fetch_hash = fetch_info[f'hash.{hash_function}']
 
         if not fetch_hash:
-            hash = hashlib.new(hash_function)
+            hash_ = hashlib.new(hash_function)
             with open(self.data, 'rb') as f:
                 while True:
-                    next = f.read(8192)
-                    if not next:
+                    next_ = f.read(8192)
+                    if not next_:
                         break
-                    hash.update(next)
+                    hash_.update(next_)
 
-            fetch_hash = hash.hexdigest()
+            fetch_hash = hash_.hexdigest()
             fetch_info[f'hash.{hash_function}'] = fetch_hash
             fetch_info.save()
 
@@ -325,7 +325,7 @@ class HttpClient:
         while num_connection_retries < self._max_connection_retries and num_redirects_performed <= max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
-                    print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
+                    # print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
                     conn.request(mtd, url.resource_part(), headers=headers, body=payload)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):
@@ -377,69 +377,69 @@ class HttpClient:
     def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None,
                        monitor: FetchResourceMonitor = no_monitor()) -> Optional[FetchedResource]:
 
-        if not cache:
-            cache = CacheDirective.allways()
+        with monitor:
+            if not cache:
+                cache = CacheDirective.allways()
 
-        with self._fetch_lock:
+            with self._fetch_lock:
 
-            # If I am already requesting this url - no need to actually do it twice, note that
-            # this may pose a problem if one of the recipients will delete the files, i it revealed to be a problem
-            # we can fix it by adding a ref-counting delete operation for the FetchedResource for example
-            promise = self._fetch_inprogress.get(url)
-            if promise:
-                monitor.on_cache_hit()
-                return promise.result()
-
-            def _fetch() -> Optional[FetchedResource]:
-                headers = {}
-                parsed_url = Url.parse(url)
-                cache_files = self._resource_files_of(parsed_url)
-                fetch_info = TomlFileConfiguration.load(cache_files.fetch_info)  # TODO: maybe add the response headers
-                self._add_standard_headers(headers)
-
-                use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
-                if use_cached_data:
+                # If I am already requesting this url - no need to actually do it twice, note that
+                # this may pose a problem if one of the recipients will delete the files, if it revealed to be a problem
+                # we can fix it by adding a ref-counting delete operation for the FetchedResource for example
+                promise = self._fetch_inprogress.get(url)
+                if promise:
                     monitor.on_cache_hit()
-                else:
-                    # console.log(f"[Start]: GET {url}...")
-                    response: Optional[HTTPResponse] = None
+                    return promise.result()
 
-                    try:
-                        cache.add_headers(fetch_info, headers)
-                        with self._request("GET", parsed_url, headers=headers) as response:
-                            clength = int(response.headers.get('content-length', '-1'))
-                            monitor.on_download_start(clength, cache_files.data)
+                def _fetch() -> Optional[FetchedResource]:
+                    headers = {}
+                    parsed_url = Url.parse(url)
+                    cache_files = self._resource_files_of(parsed_url)
+                    fetch_info = TomlFileConfiguration.load(cache_files.fetch_info)  # TODO: maybe add the response headers
+                    self._add_standard_headers(headers)
 
-                            # console.log(f"[MID] GET {url} resulted with status code: {response.status}...")
+                    use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
+                    if use_cached_data:
+                        monitor.on_cache_hit()
+                    else:
+                        # console.log(f"[Start]: GET {url}...")
+                        response: Optional[HTTPResponse] = None
 
-                            if response.status == 200:
-                                cache_files.save(response)
-                            elif response.status != 304:
-                                raise HttpException(
-                                    f"request to {url} ended with unexpected status code:"
-                                    f" {response.status} ({response.msg})", response)
-                    except Exception as e:
-                        if isinstance(e, HttpException):
-                            raise
-                        else:
-                            raise HttpException(str(e), response) from e
-                    finally:
-                        monitor.on_download_completed()
-                        # console.log(f"[End]: GET {url}..., releasing conn")
-                        with self._fetch_lock:
-                            del self._fetch_inprogress[url]
+                        # noinspection PyShadowingNames
+                        try:
+                            cache.add_headers(fetch_info, headers)
+                            with self._request("GET", parsed_url, headers=headers) as response:
+                                clength = int(response.headers.get('content-length', '-1'))
+                                monitor.on_download_start(clength, cache_files.data)
 
-                return cache_files
+                                # console.log(f"[MID] GET {url} resulted with status code: {response.status}...")
 
-            deffered: Deferred[Optional[FetchedResource]] = Deferred()
-            promise = self._fetch_inprogress[url] = deffered.promise()
+                                if response.status == 200:
+                                    cache_files.save(response)
+                                elif response.status != 304:
+                                    raise HttpException(
+                                        f"request to {url} ended with unexpected status code:"
+                                        f" {response.status} ({response.msg})", response)
+                        except Exception as e:
+                            if isinstance(e, HttpException):
+                                raise
+                            else:
+                                raise HttpException(str(e), response) from e
+                        finally:
+                            with self._fetch_lock:
+                                del self._fetch_inprogress[url]
 
-        try:
-            deffered.complete(_fetch())
-        except Exception as e:
-            deffered.fail(e)
+                    return cache_files
 
-        return promise.result()
+                deffered: Deferred[Optional[FetchedResource]] = Deferred()
+                promise = self._fetch_inprogress[url] = deffered.promise()
+
+            try:
+                deffered.complete(_fetch())
+            except Exception as e:
+                deffered.fail(e)
+
+            return promise.result()
 
     def clear_resources(self):
         shutil.rmtree(self._resources_dir)

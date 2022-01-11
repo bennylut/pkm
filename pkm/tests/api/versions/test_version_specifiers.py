@@ -81,17 +81,17 @@ class TestVersionSpecifiers(TestCase):
         assert_spec(parse('>=0.3.1, <=0.3.3').intersect(u), '>=0.3.1, <=0.3.2')
 
     def test_star_operations(self):
-        all = AnyVersion
+        all_ = AnyVersion
         v1 = SpecificVersion(StandardVersion((1, 0, 0)))
 
-        assert_spec(all.difference(v1), '!=1.0.0')
-        assert_spec(all.intersect(v1), '==1.0.0')
-        assert_spec(all.union(v1), '*')
+        assert_spec(all_.difference(v1), '!=1.0.0')
+        assert_spec(all_.intersect(v1), '==1.0.0')
+        assert_spec(all_.union(v1), '*')
 
         r1 = VersionRange(v1, SpecificVersion(StandardVersion((2, 0, 0))))
-        assert_spec(all.difference(r1), '<=1.0.0, >=2.0.0')
+        assert_spec(all_.difference(r1), '<=1.0.0, >=2.0.0')
 
-        assert_spec(all.inverse().inverse(), '*')
+        assert_spec(all_.inverse().inverse(), '*')
 
 
 def assert_spec(version: VersionSpecifier, expected_str: str) -> None:

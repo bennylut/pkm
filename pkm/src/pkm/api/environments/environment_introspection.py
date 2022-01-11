@@ -77,6 +77,7 @@ print(json.dumps(result))
 """
 
 
+# noinspection PyRedundantParentheses
 class EnvironmentIntrospection(Configuration):
 
     @property

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 class EnvironmentMarker:
 
+    # noinspection PyShadowingBuiltins
     def __init__(self, expr: str, exec: _MARKER_PRED_T):
         self._expr = expr
         self._exec = exec

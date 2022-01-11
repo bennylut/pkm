@@ -137,6 +137,26 @@ class Environment:
         subprocess_run_kwargs['env'] = env
         return subprocess.run(args, **subprocess_run_kwargs)
 
+    def symlink_pth_links(self):
+        """
+        run over this environment installed pth-links and attempt to create symlinks python packages that is found inside them
+        the method will skip creating symlinks if they may collide with a path that is already exists in the site-packages
+        """
+
+        ppath = self.site_packages.purelib_path
+        for pth_file in ppath.glob("*.pth"):
+            for link in PthLink.load(pth_file).links:
+                for maybe_package in link.iterdir():
+                    if maybe_package.is_dir() and (maybe_package / '__init__.py').exists():
+                        target_link = ppath / maybe_package.name
+                        if target_link.exists():
+                            if target_link.is_symlink():
+                                target_link.unlink()
+                            else:
+                                continue  # skip this link
+
+                        target_link.symlink_to(maybe_package)
+
     def reload(self):
         """
         reload volatile information about this environment (like the installed packages)
@@ -213,7 +233,17 @@ class Environment:
                         # is not required for our specific environment
                         installed_package.mark_user_requested(dep)
 
-    def remove(self, packages: _PACKAGE_NAMES_T, monitor: EnvironmentPackageUpdateMonitor = no_monitor()) -> Set[str]:
+    def force_remove(self, package: str):
+        """
+        forcefully remove the required package, will not remove its dependencies and will not check if other packages
+        depends on it - use this method with care (or don't use it at all :) )
+        :param package: the name of the package to be removed
+        """
+        if installed := self.site_packages.installed_package(package):
+            installed.uninstall()
+
+    def uninstall(self, packages: _PACKAGE_NAMES_T,
+                  monitor: EnvironmentPackageUpdateMonitor = no_monitor()) -> Set[str]:
         """
         attempt to remove the required packages from this env together will all the dependencies that may become orphan
         as a result of this step.
@@ -310,8 +340,8 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
-                   user_request: Optional[Dependency] = None): pass
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
+                   *, monitor: FetchResourceMonitor = no_monitor()): pass
 
     def to_dependency(self) -> Dependency:
         return Dependency(self.name, SpecificVersion(self.version))

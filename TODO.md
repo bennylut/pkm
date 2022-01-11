@@ -1,21 +1,24 @@
 ## CURRENT STORY:
-
 - pkm cli
-    - ~~requires its own project -> support multi-module projects~~
-        - ~~requires multi-module repository -> support repository instances and configuration~~
 
 ## RUNNING TASKS:
-- build the monitor framework
+- build documentation site
 - build pkm cli
+  - the new command: [project, project-group]
+  - the build command: 
+  - the install command: 
+  - the uninstall command:
 
 ## DONE IN THIS VERSION
-- move to src layout
-- bug: toml writer wrote dotted tables out of place
-- initial monitors implementation
-- organize the pkm-cli project
-- move to multi-module layout
+- drop console from pkm, only applicable in pkm-cli
+- scaffolding support
+- replace rich with combination of questionary and prompt_toolkit
+
 
 ## BACKLOG TASKS:
+- consider interactive ui mode
+- project group is a repository
+- support configuring the build-repository (when the user don't want to use pypi)
 - toml parser/writer need unit tests
 - when adding dependency to project through pkm (install_dependencies) currently the `*` version is used, after
   installation, use instead `~=installed_version`
@@ -70,7 +73,6 @@
 - manage multiple envs per project
 - make-like task system
 - properties and build profiles (note that properties should be resolved before sdist packaging)
-- documentation site
 - entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)

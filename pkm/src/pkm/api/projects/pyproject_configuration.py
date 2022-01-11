@@ -355,7 +355,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
         # ensure build-system:
         if pyproject['build-system'] is None:
             if not (source_tree / 'setup.py').exists():
-                raise MalformedPackageException(f"cannot infer project settings")
+                raise MalformedPackageException(f"cannot infer project settings for project: {pyproject_file.parent}")
 
             pyproject['build-system'] = _LEGACY_BUILDSYS
 

@@ -25,7 +25,7 @@ from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
 from pkm.utils.hashes import HashSignature
 from pkm.utils.http.http_monitors import FetchResourceMonitor
-from pkm.utils.iterators import first_or_none
+from pkm.utils.iterators import first_or_none, distinct
 from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -63,13 +63,13 @@ class Project(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
-                   user_request: Optional["Dependency"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
+                   *, monitor: FetchResourceMonitor = no_monitor()):
         with TemporaryDirectory() as tdir:
             tdir = Path(tdir)
             wheel = self.build_wheel(tdir)
             WheelDistribution(self.descriptor, wheel) \
-                .install_to(env, build_packages_repo or pkm.repositories.pypi, user_request)
+                .install_to(env, user_request)
 
     @cached_property
     def lock(self) -> PackagesLock:
@@ -89,11 +89,11 @@ class Project(Package):
         """
 
         package_names_set = set(packages)
-        self._default_env.remove(packages)
+        self.default_environment.uninstall(packages)
 
         # update files
 
-        self.lock.update_lock(self._default_env)
+        self.lock.update_lock(self.default_environment)
         self.lock.save()
 
         self._pyproject.project = replace(
@@ -117,22 +117,23 @@ class Project(Package):
                 self._pyproject.project,
                 dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
 
-            repository = _ProjectRepository(self, self._default_env)
-            self._default_env.install(
+            repository = _ProjectRepository(self, self.default_environment)
+            self.default_environment.force_remove(self.name)
+            self.default_environment.install(
                 self.descriptor.to_dependency(), repository, monitor=monitor.on_environment_installation())
 
             monitor.on_update_pyproject()
             self._pyproject.save()
 
             monitor.on_update_lock()
-            self.lock.update_lock(self._default_env)
+            self.lock.update_lock(self.default_environment)
             self.lock.save()
 
     def _reload(self):
         clear_cached_properties(self)
 
     @cached_property
-    def _default_env(self) -> Environment:
+    def default_environment(self) -> Environment:
         default_env = Environment(self._path / '.venv')
         if not default_env.path.exists():
             requirement = self._pyproject.project.requires_python
@@ -285,6 +286,9 @@ class _ProjectRepository(Repository):
         return self.package_to_repo.get(d.package_name, self._default_repo)
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
+        if dependency.package_name == self.project.name:
+            return [self.project]
+
         if (gr := self._group_repo) and gr.accepts(dependency) and (gpacs := gr.match(dependency, False)):
             return gpacs
 
@@ -341,7 +345,7 @@ class _BuildContext:
         if link_only:
             PthLink(
                 dst / f"{self._project_and_version_file_prefix()}.pth",
-                links=[p.absolute() for p in dirs.src_packages]
+                links=list(distinct(p.absolute().parent for p in dirs.src_packages))
             ).save()
             return
 

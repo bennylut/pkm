@@ -95,8 +95,9 @@ class PartialSolution:
         self._required_packages: Dict[str, int] = {}
         self._decisions: Dict[str, Assignment] = {}
 
-    def notify_state(self, monitor: DependencyResolutionMonitor):
-        monitor.on_state_update(self._decisions.keys(), self._required_packages.keys())
+    def notify_state(self, monitor: DependencyResolutionMonitor, current_package: str):
+        # noinspection PyTypeChecker
+        monitor.on_resolution_iteration(self._decisions.keys(), self._required_packages.keys(), current_package)
 
     def undecided_packages(self) -> List[str]:
         return [req for req in self._required_packages if req not in self._decisions]
@@ -111,7 +112,7 @@ class PartialSolution:
                     if acc.decision_level == decision_level)
 
     def backtrack(self, decision_level: int):
-        print(f"backtrack to decision_level: {decision_level}")
+        # print(f"backtrack to decision_level: {decision_level}")
 
         def filtered(lst: List[Assignment]) -> Iterable[Assignment]:
             return (ass for ass in lst if ass.decision_level <= decision_level)
@@ -167,11 +168,12 @@ class PartialSolution:
         self._assignments_by_order.append(assignment)
 
         if assignment.is_decision():
-            print(f"decided: {assignment}")
+            # print(f"decided: {assignment}")
             self._decisions[assignment.term.package] = assignment
-            print(f'entering decision level: {self._decision_level}')
+            # print(f'entering decision level: {self._decision_level}')
         else:
-            print(f"derrived: {assignment}")
+            ...
+            # print(f"derrived: {assignment}")
 
     def __repr__(self):
         return f"PartialSolution({self._assignments_by_order})"
@@ -500,7 +502,7 @@ class Solver:
 
             next_package = root_term.package
             while next_package is not None:
-                self._solution.notify_state(monitor)
+                self._solution.notify_state(monitor, next_package)
                 # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
                 self._propagate(next_package)
                 next_package = self._make_next_decision()
@@ -637,8 +639,8 @@ class Solver:
         package = min(undecided_packages,
                       key=lambda pack: (-self._package_trouble_level[pack], len(package_matching_versions[pack])))
 
-        # print(f"choosing to try and assign {package} with constraint:
-        # {self._solution.assignments_by_package[package][-1].accumulated}")
+        # print(f"choosing to try and assign {package} with constraint: "
+        #      f"{self._solution.assignments_by_package[package][-1].accumulated}")
         versions = list(package_matching_versions[package])  # defensive copy because we might change it
 
         while True:

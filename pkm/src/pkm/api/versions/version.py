@@ -16,6 +16,12 @@ class Version(ABC):
     def is_local(self) -> bool:
         ...
 
+    def without_patch(self):
+        return self
+
+    def without_local(self) -> "Version":
+        return self
+
     @abstractmethod
     def __lt__(self, other: "Version") -> bool:
         ...
@@ -65,6 +71,16 @@ class StandardVersion(Version):
     post_release: Optional[int] = None
     dev_release: Optional[int] = None
     local_label: Optional[str] = None
+
+    def without_local(self) -> "StandardVersion":
+        if self.is_local():
+            return replace(self, local_label=None)
+        return self
+
+    def without_patch(self):
+        if len(self.release) > 2:
+            return replace(self, release=self.release[:2])
+        return self
 
     def is_pre_or_dev_release(self) -> bool:
         return self.pre_release is not None or self.dev_release is not None

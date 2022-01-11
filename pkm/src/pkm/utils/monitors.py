@@ -21,10 +21,12 @@ class Monitor:
     def on_end(self):
         ...
 
+    # noinspection PyUnusedLocal
     def on_fail(self, err: Exception):
-        ...
+        return self.on_end()
 
 
+# noinspection PyUnusedLocal
 def _do_nothing(*args, **kwargs):
     return _NoMonitor
 

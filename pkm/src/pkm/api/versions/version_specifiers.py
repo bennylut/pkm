@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
-from typing import List, Optional, Union
-
 from dataclasses import dataclass, replace
+from typing import List, Optional
 
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.utils.iterators import distinct
@@ -23,6 +22,12 @@ class VersionSpecifier(ABC):
         return any(segment.allows_pre_or_dev_releases() for segment in self._segments())
 
     def intersect(self, other: "VersionSpecifier") -> "VersionSpecifier":
+
+        def no_local(v: Optional[SpecificVersion]):
+            if v is None:
+                return None
+            return v.version.without_local()
+
         new_segments: List[VersionSpecifier] = []
         for s1 in self._segments():
             if s1.is_none(): continue  # noqa
@@ -35,8 +40,10 @@ class VersionSpecifier(ABC):
                 min1, min2 = s1.min, s2.min
                 selected_min = min1
 
-                if min1 == min2:
+                if no_local(min1) == no_local(min2):
                     includes_min = s1.includes_min and s2.includes_min
+                    if min2 and min2.version.is_local():
+                        selected_min = min2
                 else:
                     includes_min = s1.includes_min
                     if min1 is None or (min2 is not None and min2 > min1):
@@ -46,8 +53,10 @@ class VersionSpecifier(ABC):
                 max1, max2 = s1.max, s2.max
                 selected_max = max1
 
-                if max1 == max2:
+                if no_local(max1) == no_local(max2):
                     includes_max = s1.includes_max and s2.includes_max
+                    if max2 and max2.version.is_local():
+                        selected_max = max2
                 else:
                     includes_max = s1.includes_max
 
@@ -98,7 +107,7 @@ class VersionSpecifier(ABC):
         return self.min == self.max and self.includes_min == self.includes_max == False  # noqa
 
     def is_any(self):
-        return (self.min is self.max is None) and self.includes_min == self.includes_max == True # noqa
+        return (self.min is self.max is None) and self.includes_min == self.includes_max == True  # noqa
 
     def _segments(self) -> List["VersionSpecifier"]:
         return [self]
@@ -163,10 +172,11 @@ class VersionSpecifier(ABC):
 class SpecificVersion(VersionSpecifier):
     version: Version
 
-    def allows_version(self, version: Union["Version", str]):
-        if isinstance(version, str):
-            return version == str(self.version)
-        return version == self.version
+    def allows_version(self, version: "Version"):
+        if self.version.is_local():
+            return version == self.version
+        else:
+            return version.without_local() == self.version
 
     def __str__(self):
         if isinstance(self.version, StandardVersion):
@@ -239,8 +249,8 @@ class VersionRange(VersionSpecifier):
         self.includes_min = self.includes_min if self.includes_min is not None else self.min is None
 
     def allows_pre_or_dev_releases(self) -> bool:
-        max = self.max
-        return max is not None and max.version.is_pre_or_dev_release()
+        max_ = self.max
+        return max_ is not None and max_.version.is_pre_or_dev_release()
 
     # note that pep440 pre-release filtering rules should be implemented in the repository and not here
     def allows_version(self, version: "Version"):

@@ -32,3 +32,12 @@ def endswith_any(s: str, suffixes: Iterable[str]) -> Optional[str]:
     :return: the first suffix of `s` in `suffixes` or `None` if no such suffix found
     """
     return next((sf for sf in suffixes if s.endswith(sf)), None)
+
+
+def startswith_any(s: str, prefixes: Iterable[str]) -> Optional[str]:
+    """
+    :param s: the string to check
+    :param prefixes: iterable of prefixes to search
+    :return: the first prefix of `s` in `prefixes` or `None` if no such prefix found
+    """
+    return next((pf for pf in prefixes if s.startswith(pf)), None)

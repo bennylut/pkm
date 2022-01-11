@@ -36,11 +36,11 @@ class PyPiRepository(Repository):
                 .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
                                 cache=CacheDirective.ask_for_update()) \
                 .read_data_as_json()
-        except HttpException as e:
+        except HttpException:
             raise NoSuchElementException(
                 f"package: '{dependency.package_name}' does not exists in repository: '{self.name}'")
 
-        package_info: Dict[str, Any] = json['info']
+        # package_info: Dict[str, Any] = json['info']
         packages: List[PypiPackage] = []
         releases: Dict[str, Any] = json['releases']
         for version_str, release in releases.items():

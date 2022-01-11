@@ -6,11 +6,10 @@ from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.logging.console import console
 from pkm.utils.files import is_empty_directory
 from pkm.utils.http.http_monitors import FetchResourceMonitor
+from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -123,14 +122,14 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", build_packages_repo: Optional[Repository] = None,
-                   user_request: Optional[Dependency] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
+                   *, monitor: FetchResourceMonitor = no_monitor()):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:
-        console.log(f"uninstalling {self._desc}")
+        print(f"uninstalling {self._desc}")
         if self.readonly:
-            console.log("could not uninstall, package is readonly")
+            print("could not uninstall, package is readonly")
             return False
 
         root = self._dist_info.parent
