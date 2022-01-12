@@ -10,9 +10,7 @@
   - the uninstall command:
 
 ## DONE IN THIS VERSION
-- drop console from pkm, only applicable in pkm-cli
-- scaffolding support
-- replace rich with combination of questionary and prompt_toolkit
+
 
 
 ## BACKLOG TASKS:
