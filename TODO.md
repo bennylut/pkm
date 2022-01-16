@@ -2,7 +2,6 @@
 - pkm cli
 
 ## RUNNING TASKS:
-- build documentation site
 - build pkm cli
   - the new command: [project, project-group]
   - the build command: 
@@ -10,10 +9,13 @@
   - the uninstall command:
 
 ## DONE IN THIS VERSION
-
+- build documentation site
 
 
 ## BACKLOG TASKS:
+- site: sidebar responsive to phones 
+- support building, publishing and installing self-contained-application packages
+- site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
 - consider interactive ui mode
 - project group is a repository
 - support configuring the build-repository (when the user don't want to use pypi)

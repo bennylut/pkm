@@ -1,0 +1,9 @@
+- [Introduction](/index)
+- [Installation](/installation)
+- [Quickstart](/quickstart)
+- Sub-Commands
+  - [`$ pkm new ...`](/commands/new)
+  - [`$ pkm install ...`](/commands/install)
+  - [`$ pkm remove ...`](/commands/remove)
+  - [`$ pkm build ...`](/commands/build)
+  - [`$ pkm publish ...`](/commands/publish)
