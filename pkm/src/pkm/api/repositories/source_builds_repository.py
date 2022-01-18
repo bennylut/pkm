@@ -10,6 +10,7 @@ from typing import Set, Dict, List, Literal, Any
 from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor, Package
@@ -18,7 +19,6 @@ from pkm.api.packages.standard_package import AbstractPackage, StandardPackageAr
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, BuildSystemConfig
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
-from pkm.distributions.wheel_distribution import WheelDistribution
 from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.sequences import single_or_fail
 

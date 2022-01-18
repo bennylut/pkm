@@ -246,9 +246,6 @@ class _CaseSensitiveConfigParser(configparser.ConfigParser):
     optionxform = staticmethod(str)
 
 
-_CASE_SENSITIVE_INI_PARSER = configparser.ConfigParser()
-
-
 class IniFileConfiguration(FileConfiguration):
     def generate_content(self) -> str:
         class StringWriter:
@@ -259,10 +256,28 @@ class IniFileConfiguration(FileConfiguration):
                 self.v.append(s)
 
         sw = StringWriter()
-        _CASE_SENSITIVE_INI_PARSER.write(sw)
+        cp = _CaseSensitiveConfigParser()
+
+        for key_or_section, value_or_content in self._data.items():
+            if isinstance(value_or_content, Mapping):
+                for key, value in value_or_content.items():
+                    cp.set(key_or_section, key, value)
+            else:
+                cp.set("", key_or_section, value_or_content)
+
+        cp.write(sw)
         return ''.join(sw.v)
 
     @classmethod
     def load(cls, file: Path) -> "IniFileConfiguration":
-        data = _CASE_SENSITIVE_INI_PARSER.read(str(file)) if file.exists() else {}
+        data = {}
+        if file.exists():
+            cp = _CaseSensitiveConfigParser()
+            cp.read(str(file))
+            for section_name, section_values in cp.items():
+                if section_name and section_name != cp.default_section:
+                    data[section_name] = {**section_values}
+                else:
+                    data.update(section_values)
+
         return cls(path=file, data=data)

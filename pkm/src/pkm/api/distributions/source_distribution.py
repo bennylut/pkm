@@ -8,7 +8,7 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.distributions.distribution import Distribution
+from pkm.api.distributions.distribution import Distribution
 from pkm.utils.archives import extract_archive
 
 

@@ -76,7 +76,7 @@ class HashSignature:
     def parse_urlsafe_base64_nopad_encoded(cls, signature: str) -> "HashSignature":
         parts = _SIG_DELIM_RX.split(signature)
         if len(parts) != 2:
-            raise ValueError('unsupported signature, expecting format <hash_type>=<hash_value>')
+            raise ValueError(f'unsupported signature, expecting format <hash_type>=<hash_value>, got: {signature}')
 
         return _UrlsafeBase64NopadHashSignature(*parts)
 

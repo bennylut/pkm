@@ -1,20 +1,24 @@
-## CURRENT STORY:
-- pkm cli
-
 ## RUNNING TASKS:
+- support building, publishing and installing self-contained-application packages
+- site: urls need to be relative to github
+
+## DONE IN THIS VERSION
+- implement entrypoints awareness for wheel installer
+- model distinfo
+  - relocate sign_build 
+  - refactor project's entrypoints
+  - use in wheel installer 
+- entry_points in pyproject
+
+## BACKLOG TASKS:
+- check entrypoint creation in windows
 - build pkm cli
   - the new command: [project, project-group]
   - the build command: 
   - the install command: 
   - the uninstall command:
-
-## DONE IN THIS VERSION
-- build documentation site
-
-
-## BACKLOG TASKS:
 - site: sidebar responsive to phones 
-- support building, publishing and installing self-contained-application packages
+- support windows entrypoints
 - site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
 - consider interactive ui mode
 - project group is a repository
@@ -61,7 +65,7 @@
   source)
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
-- implement entrypoints awareness for installer
+
 - support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
@@ -73,7 +77,6 @@
 - manage multiple envs per project
 - make-like task system
 - properties and build profiles (note that properties should be resolved before sdist packaging)
-- entry_points in pyproject
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
 - common tasks: test, build doc, etc.

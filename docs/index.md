@@ -15,8 +15,11 @@ management.
 - Install python applications and libraries (like <i>pip</i> and <i>pipx</i>)
 - Build and manage virtual environments (like <i>venv</i>)
 - Manage your python projects:
-    * Generate projects via templates (like <i>cookiecutter</i> and <i>copier</i>)
-    * Build, package and deploy projects (like <i>pipenv</i>, <i>poetry</i> and <i>twine</i>)
+    - Generate projects via templates (like <i>cookiecutter</i> and <i>copier</i>)
+    - Build, package and deploy projects (like <i>pipenv</i>, <i>poetry</i> and <i>twine</i>)
+    - Build self-contained applications 
+    - Build multi-package projects
+
 
     
  

@@ -40,10 +40,6 @@ class Version(ABC):
 class NamedVersion(Version):
     name: str
 
-    def __post_init__(self):
-        if self.name == 'dateutil':
-            print("HERE")
-
     def is_pre_or_dev_release(self) -> bool:
         return False
 
@@ -61,6 +57,12 @@ class NamedVersion(Version):
 
     def __eq__(self, other) -> bool:
         return isinstance(other, NamedVersion) and self.name == other.name
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"NamedVersion({str(self)})"
 
 
 @dataclass(frozen=True, repr=False)

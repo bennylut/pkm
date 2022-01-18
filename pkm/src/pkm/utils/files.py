@@ -1,6 +1,8 @@
 import os
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Callable
+from tempfile import TemporaryDirectory
+from typing import Optional, Callable, ContextManager
 
 
 def is_empty_directory(path: Path) -> bool:
@@ -51,3 +53,9 @@ def path_to(source: Path, destination: Path) -> Path:
         p = p.parent
         back += 1
     return Path((f'..{os.sep}' * back) + str(destination.relative_to(p)))
+
+
+@contextmanager
+def temp_dir() -> ContextManager[Path]:
+    with TemporaryDirectory() as tdir:
+        yield Path(tdir)

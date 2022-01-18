@@ -8,6 +8,17 @@
         display: flex;
         flex-direction: row;
 
+        i {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0px 3px;
+            margin: 0px -3px;
+            color: #76aa75;
+            border-radius: 2px;
+            font-style: inherit;
+        }
+
+
         [navigation] {
             padding: 8px 24px 0 0;
             background: #303030;
@@ -39,16 +50,6 @@
         [current-doc] {
             flex-grow: 1;
             padding: 24px 0 0 24px;
-
-            i {
-                background: rgba(0, 0, 0, 0.9);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                padding: 0px 3px;
-                margin: 0px -3px;
-                color: #76aa75;
-                border-radius: 2px;
-                font-style: inherit;
-            }
 
             blockquote {
                 background: #303030;

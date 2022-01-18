@@ -35,7 +35,7 @@ class TestVersionSpecifiers(TestCase):
         assert_spec(parse("~= 2.2"), ">=2.2, <3.0")
         assert_spec(parse("~= 1.4.5"), ">=1.4.5, <1.5.0")
         assert_spec(parse("!= 1.1"), "!=1.1")
-        assert_spec(parse("!= 1.1.*"), "<1.1, >=1.2")
+        assert_spec(parse("!= 1.1.*"), "<1.1; >=1.2")
         assert_spec(parse(">1.7"), '>1.7')
         assert_spec(parse(">1.7.post2"), '>1.7.post2')
         assert_spec(parse("=== bamba"), '===bamba')
@@ -43,6 +43,7 @@ class TestVersionSpecifiers(TestCase):
         assert_spec(parse(">1,<2,==5"), '<none>')
         assert_spec(parse(">1,<2,*"), '>1, <2')
         assert_spec(parse("(>=1.17.3)"), '>=1.17.3')
+        assert_spec(parse(">= '2.7'"), '>=2.7')
 
     def test_version_set_operations(self):
         v1 = SpecificVersion(StandardVersion((1, 2, 3)))

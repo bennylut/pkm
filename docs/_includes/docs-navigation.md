@@ -1,6 +1,9 @@
 - [Introduction](/index)
 - [Installation](/installation)
 - [Quickstart](/quickstart)
+- PyProject Reference
+  - [<i>[project]</i>](/pyproject/project)
+  - [<i>[tool.pkm]</i>](/pyproject/project)
 - Sub-Commands
   - [`$ pkm new ...`](/commands/new)
   - [`$ pkm install ...`](/commands/install)

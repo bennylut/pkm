@@ -1,5 +1,4 @@
 import compileall
-import csv
 import os
 import re
 import shutil
@@ -13,12 +12,12 @@ from typing import List, Callable, Dict, Set, Optional
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import DistInfo, Record
+from pkm.api.distributions.distribution import Distribution
+from pkm.api.distributions.executables import Executables
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.versions.version import Version, StandardVersion
-from pkm.config.configuration import FileConfiguration
-from pkm.distributions.distribution import Distribution
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
@@ -30,40 +29,6 @@ class InstallationException(IOError):
     ...
 
 
-class WheelFileConfiguration(FileConfiguration):
-
-    def generate_content(self) -> str:
-        return os.linesep.join(f'{k}: {v}' for k, v in self._data.items())
-
-    def validate_supported_version(self):
-        wv = Version.parse(self['Wheel-Version'] or 'unprovided')
-        if not isinstance(wv, StandardVersion):
-            raise InstallationException(f"unknown wheel version: {wv}")
-
-        if wv.release[0] != 1:
-            raise InstallationException(f"unsupported wheel version: {wv}")
-        if wv.release[1] != 0:
-            print(f'advanced wheel version: {wv} detected, will be treated as version 1.0')
-
-    @classmethod
-    def create(cls, generator: str, purelib: bool):
-        return cls(path=None, data={
-            'Wheel-Version': '1.0',
-            'Generator': generator,
-            'Root-Is-Purelib': 'true' if purelib else 'false'
-        })
-
-    @classmethod
-    def load(cls, path: Path):
-        if not path.exists():
-            raise InstallationException(f"wheel does not contain WHEEL file in dist-info")
-
-        seperator_rx = re.compile("\\s*:\\s*")
-        lines = (line.strip() for line in path.read_text().splitlines())
-        kvs = (seperator_rx.split(kv) for kv in lines if kv)
-        return cls(path=path, data={kv[0]: kv[1] for kv in kvs})
-
-
 @dataclass
 class _FileMoveCommand:
     source: Path
@@ -72,21 +37,7 @@ class _FileMoveCommand:
 
     def run(self, env: Environment):
         if self.is_script:
-            with self.source.open('rb') as script_fd, self.target.open('wb+') as target_fd:
-
-                first_line = script_fd.readline()
-                if first_line.startswith(b"#!python"):
-                    w = 'w' if first_line.startswith(b"#!pythonw") else ''
-                    target_fd.write(
-                        f"#!{env.interpreter_path.absolute()}{w}{os.linesep}".encode(sys.getfilesystemencoding()))
-                else:
-                    target_fd.write(first_line)
-
-                target_fd.write(script_fd.read())
-
-            st = os.stat(self.source)
-            os.chmod(self.target, st.st_mode | stat.S_IEXEC)
-
+            Executables.patch_shabang_for_env(self.source, self.target, env)
         else:
             shutil.move(self.source, self.target)
 
@@ -145,12 +96,14 @@ class WheelDistribution(Distribution):
 
             dist_info = _find_dist_info(tmp_path, self._package)
 
-            wheel_file = WheelFileConfiguration.load(dist_info / 'WHEEL')
+            wheel_file = dist_info.load_wheel_cfg()  # WheelFileConfiguration.load(dist_info / 'WHEEL')
             wheel_file.validate_supported_version()
+
+            entrypoints = dist_info.load_entrypoints_cfg().entrypoints
 
             site_packages = Path(env.paths['purelib' if wheel_file['Root-Is-Purelib'] == 'true' else 'platlib'])
 
-            records_file = dist_info / "RECORD"
+            records_file = dist_info.load_record_cfg()
             if not records_file.exists():
                 raise InstallationException(
                     f"Unsigned wheel for package {self._package} (no RECORD file found in dist-info)")
@@ -167,7 +120,8 @@ class WheelDistribution(Distribution):
                             copy_commands.extend(_FileMoveCommand.relocate(k, Path(target_path), k.name == 'scripts'))
                     else:
                         copy_commands.extend(
-                            _FileMoveCommand.relocate(d, site_packages / d.name, accept=lambda it: it != records_file))
+                            _FileMoveCommand.relocate(d, site_packages / d.name,
+                                                      accept=lambda it: it != records_file.path))
                 else:
                     copy_commands.append(_FileMoveCommand(d, site_packages / d.name, False))
 
@@ -190,17 +144,16 @@ class WheelDistribution(Distribution):
                 str(c.source.relative_to(tmp_path)): c for c in copy_commands}
             target_hashes: Dict[Path, HashSignature] = {}
 
-            with records_file.open('r', newline='') as records_fd:
-                for record in csv.reader(records_fd):
-                    file, hash_sig, _ = record
-                    if cc := files_left_to_check.pop(file, None):
-                        parsed_sig = HashSignature.parse_urlsafe_base64_nopad_encoded(hash_sig)
-                        if not parsed_sig.validate_against(cc.source):
-                            if any(it.name.endswith('.dist-info') for it in cc.source.parents):
-                                print(f"Weak Warning: mismatch hash signature for {cc.source}")
-                            else:
-                                raise InstallationException(f"File signature not matched for: {file}")
-                        target_hashes[cc.target] = parsed_sig
+            for record in records_file.records:
+                if cc := files_left_to_check.pop(record.file, None):
+                    if not record.hash_signature.validate_against(cc.source):
+                        if any(it.name.endswith('.dist-info') for it in cc.source.parents):
+                            print(f"Weak Warning: mismatch hash signature for {cc.source}")
+                        else:
+                            raise InstallationException(f"File signature not matched for: {record.file}")
+                    target_hashes[cc.target] = record.hash_signature
+                else:
+                    print(f"hash signature is provided for {record.file} but file not found..")
 
             # check that there are no records with missing signatures
             if files_left_to_check:
@@ -211,19 +164,35 @@ class WheelDistribution(Distribution):
             # everything is good - start copying...
             _FileMoveCommand.run_all(copy_commands, env)
 
+            # build entry points
+            generated_entrypoints = []
+            scripts_path = Path(env.paths.get("scripts", env.path / "bin"))
+            for entrypoint in entrypoints:
+                if entrypoint.is_script():
+                    generated_entrypoints.append(Executables.generate_for_entrypoint(entrypoint, env, scripts_path))
+
             # build the new records file
-            new_dist_info = site_packages / dist_info.name
-            new_record_file = new_dist_info / "RECORD"
-            new_record_file.parent.mkdir(parents=True, exist_ok=True)
-            with new_record_file.open('w+', newline='') as new_record_fd:
-                csv.writer(new_record_fd).writerows(
-                    (str(path_to(site_packages, target)), str(sig), target.stat().st_size) for target, sig in
-                    target_hashes.items())
+            new_dist_info = DistInfo.load(site_packages / dist_info.path.name)
+            new_record_file = new_dist_info.load_record_cfg()
+
+            new_record_file.records.extend(
+                Record(str(path_to(site_packages, target)), sig, target.stat().st_size)
+                for target, sig in target_hashes.items())
+
+            new_record_file.records.extend(
+                Record(
+                    str(path_to(site_packages, generated_ep)),
+                    HashSignature.create_urlsafe_base64_nopad_encoded('sha256', generated_ep),
+                    generated_ep.stat().st_size)
+                for generated_ep in generated_entrypoints
+            )
+
+            new_record_file.save()
 
             # mark the installer and the requested flag
-            (new_dist_info / "INSTALLER").write_text("pkm")
+            (new_dist_info.path / "INSTALLER").write_text("pkm")
             if user_request:
-                (new_dist_info / "REQUESTED").write_text(str(user_request))
+                (new_dist_info.path / "REQUESTED").write_text(str(user_request))
 
             # and finally, compile py to pyc
             with warnings.catch_warnings():
@@ -233,11 +202,11 @@ class WheelDistribution(Distribution):
                         compileall.compile_file(cc.target, force=True, quiet=True)
 
 
-def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> Path:
+def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInfo:
     dist_info = list(unpacked_wheel.glob("*.dist-info"))
     if not dist_info:
         raise InstallationException(f"wheel for {package} does not contain dist-info")
     if len(dist_info) != 1:
         raise InstallationException(f"wheel for {package} contains more than one possible dist-info")
 
-    return dist_info[0]
+    return DistInfo.load(dist_info[0])

@@ -27,6 +27,9 @@ class VersionParser(SimpleParser):
     def read_version(self) -> StandardVersion:
         self.match_ws()
 
+        wrapping_brakets = self.match("(", "")
+        wrapping_quotes = self.match("'", "") or self.match("\"", "")
+
         self.match('v')
 
         epoch = None
@@ -69,6 +72,12 @@ class VersionParser(SimpleParser):
         if self.peek_prev() == '.':
             self.position -= 1
 
+        self.match_ws()
+
+        if wrapping_quotes:
+            self.match_or_err(wrapping_quotes, f"expecting closing quote: [{wrapping_quotes}]")
+        if wrapping_brakets:
+            self.match_or_err(')', f"expecting closing quote: [)]")
         self.match_ws()
 
         return StandardVersion(release=tuple(release), epoch=epoch, pre_release=pre_release, post_release=post_release,

@@ -6,6 +6,7 @@ import re
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.dependencies.env_markers import EnvironmentMarker
+from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
@@ -38,18 +39,12 @@ class ContactInfo:
         })
 
 
-@dataclass(frozen=True, eq=True)
-class EntryPointConfig:
-    name: str
-    object_reference: str
+def _entrypoints_from_config(group: str, ep: Dict[str, str]) -> List[EntryPoint]:
+    return [EntryPoint(group, ep_name, ObjectReference.parse(ep_oref)) for ep_name, ep_oref in ep.items()]
 
-    @classmethod
-    def from_config(cls, ep: Dict[str, str]) -> List["EntryPointConfig"]:
-        return [EntryPointConfig(k, v) for k, v in ep.items()]
 
-    @staticmethod
-    def to_config(entries: List["EntryPointConfig"]) -> Dict[str, str]:
-        return {e.name: e.object_reference for e in entries}
+def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
+    return {e.name: str(e.ref) for e in entries}
 
 
 @dataclass(frozen=True, eq=True)
@@ -138,7 +133,7 @@ class ProjectConfig:
     # A mapping of URLs where the key is the URL label and the value is the URL itself.
     urls: Optional[Dict[str, str]]
     # list of entry points, following https://packaging.python.org/en/latest/specifications/entry-points/.
-    entry_points: Optional[Dict[str, List[EntryPointConfig]]]
+    entry_points: Optional[Dict[str, List[EntryPoint]]]
     # The dependencies of the project.
     dependencies: Optional[List[Dependency]]
     # The optional dependencies of the project, grouped by the 'extra' name that provides them.
@@ -203,8 +198,8 @@ class ProjectConfig:
             readme_value = self.readme if isinstance(self.readme, str) \
                 else {'file': str(path_to(project_path, self.readme))}
 
-        ep: Dict[str, List[EntryPointConfig]] = self.entry_points or {}
-        ep_no_scripts: Dict[str, List[EntryPointConfig]] = without_keys(ep, 'scripts', 'gui-scripts')
+        ep: Dict[str, List[EntryPoint]] = self.entry_points or {}
+        ep_no_scripts: Dict[str, List[EntryPoint]] = without_keys(ep, 'scripts', 'gui-scripts')
         optional_dependencies = {
             extra: [str(d) for d in deps]
             for extra, deps in self.optional_dependencies.items()
@@ -221,9 +216,9 @@ class ProjectConfig:
             'license': license_, 'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
             'maintainers': [c.to_config() for c in self.maintainers] if self.maintainers is not None else None,
             'keywords': self.keywords, 'classifiers': self.classifiers, 'urls': self.urls,
-            'scripts': EntryPointConfig.to_config(ep['scripts']) if 'scripts' in ep else None,
-            'gui-scripts': EntryPointConfig.to_config(ep['gui-scripts']) if 'gui-scripts' in ep else None,
-            'entry-points': {group: EntryPointConfig.to_config(entries)
+            'scripts': _entrypoints_to_config(ep['scripts']) if 'scripts' in ep else None,
+            'gui-scripts': _entrypoints_to_config(ep['gui-scripts']) if 'gui-scripts' in ep else None,
+            'entry-points': {group: _entrypoints_to_config(entries)
                              for group, entries in ep_no_scripts.items()} if ep_no_scripts else None,
             'dependencies': [str(d) for d in self.dependencies] if self.dependencies else None,
             'optional-dependencies': optional_dependencies, 'dynamic': self.dynamic
@@ -263,14 +258,14 @@ class ProjectConfig:
 
         entry_points = {}
         if scripts_table := project.get('scripts'):
-            entry_points['scripts'] = EntryPointConfig.from_config(scripts_table)
+            entry_points['scripts'] = _entrypoints_from_config(EntryPoint.G_CONSOLE_SCRIPTS, scripts_table)
 
         if gui_scripts_table := project.get('gui-scripts'):
-            entry_points['gui-scripts'] = EntryPointConfig.from_config(gui_scripts_table)
+            entry_points['gui-scripts'] = _entrypoints_from_config(EntryPoint.G_GUI_SCRIPTS, gui_scripts_table)
 
         if entry_points_tables := project.get('entry-points'):
             entry_points.update({
-                group: EntryPointConfig.from_config(entries)
+                group: _entrypoints_from_config(group, entries)
                 for group, entries in entry_points_tables
             })
 

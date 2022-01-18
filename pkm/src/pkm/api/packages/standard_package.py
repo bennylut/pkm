@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Optional, Any, Dict, List
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from pkm.distributions.source_distribution import SourceDistribution
-from pkm.distributions.wheel_distribution import WheelDistribution
+from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 from pkm.utils.strings import without_suffix

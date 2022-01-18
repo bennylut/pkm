@@ -11,6 +11,8 @@ from typing import List, Optional, ContextManager, Union, Tuple, Dict, TYPE_CHEC
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import WheelFileConfiguration, DistInfo
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -19,8 +21,7 @@ from pkm.api.projects.project_monitors import ProjectPackageUpdateMonitor
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion
-from pkm.distributions.pth_link import PthLink
-from pkm.distributions.wheel_distribution import WheelDistribution, WheelFileConfiguration
+from pkm.api.distributions.pth_link import PthLink
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
 from pkm.utils.hashes import HashSignature
@@ -193,9 +194,11 @@ class Project(Package):
                 return dist_info_path
 
             dist_info_path = bc.build_dir / bc.dist_info_dir_name()
-            bc.build_dist_info(dist_info_path)
+            dist_info = bc.build_dist_info(dist_info_path)
             bc.copy_sources(bc.build_dir, editable)
-            _sign_build(bc.build_dir, dist_info_path / "RECORD")
+            records_file = dist_info.load_record_cfg()
+            records_file.sign(bc.build_dir)
+            records_file.save()
 
             wheel_path = target_dir / bc.wheel_file_name()
             target_dir.mkdir(parents=True, exist_ok=True)
@@ -250,10 +253,10 @@ class Project(Package):
 
 class _ProjectRepository(Repository):
 
-    def __init__(self, project: Project, env: Environment):
+    def __init__(self, project: Project, env: Optional[Environment] = None):
         super().__init__(f"{project.name}'s repository")
         self.project = project
-        self._env = env
+        self._env = env or project.default_environment
 
         group_settings = {
             p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
@@ -324,20 +327,24 @@ class _BuildContext:
     def dist_info_dir_name(self) -> str:
         return f'{self._project_and_version_file_prefix()}.dist-info'
 
-    def build_dist_info(self, dst: Path):
-        metadata_file = dst / "METADATA"
-        license_file = dst / "LICENSE"
-        wheel_file = dst / "WHEEL"
+    def build_dist_info(self, dst: Path) -> DistInfo:
+        di = DistInfo.load(dst)
 
         dst.mkdir(exist_ok=True, parents=True)
         project_config: ProjectConfig = self.pyproject.project
 
-        PackageMetadata.from_project_config(project_config).save_to(metadata_file)
-        license_file.write_text(
+        PackageMetadata.from_project_config(project_config).save_to(di.metadata_path())
+        di.license_path().write_text(
             project_config.license_content())
 
         # TODO: probably later we will want to add the version of pkm in the generator..
-        WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(wheel_file)
+        WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(di.wheel_path())
+
+        entrypoints = di.load_entrypoints_cfg()
+        entrypoints.entrypoints = [e for entries in self.pyproject.project.entry_points.values() for e in entries]
+        entrypoints.save()
+
+        return di
 
     def copy_sources(self, dst: Path, link_only: bool = False):
         dirs = ProjectDirectories.create(self.pyproject)
@@ -356,20 +363,6 @@ class _BuildContext:
             else:
                 raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
                                         " has no corresponding directory in project")
-
-
-def _sign_build(build_dir: Path, signature_file: Path):
-    records: List[Tuple[str, str, str]] = []
-    for file in build_dir.rglob("*"):
-        if not file.is_dir():
-            records.append((
-                str(file.relative_to(build_dir)),  # path
-                str(HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file)),  # signature
-                str(file.lstat().st_size)  # size
-            ))
-
-    with signature_file.open('w', newline='') as signature_file_fd:
-        csv.writer(signature_file_fd).writerows(records)
 
 
 @dataclass()

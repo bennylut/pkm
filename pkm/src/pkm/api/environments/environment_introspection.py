@@ -22,6 +22,7 @@ import importlib.machinery
 import platform
 import os
 import site
+import struct
 
 if hasattr(sys, 'implementation'):
     sys_implementation = {'name': sys.implementation.name, 'version': sys.implementation.version}
@@ -65,7 +66,8 @@ result = {
 
     'os': {
         'conf': {cname: os.confstr(cname) for cname in os.confstr_names},
-        'name': os.name
+        'name': os.name,
+        'bits': struct.calcsize('P') * 8 
     },
     
     'site': {

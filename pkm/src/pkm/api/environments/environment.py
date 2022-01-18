@@ -1,9 +1,10 @@
 import hashlib
 import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import List, Set, Dict, Optional, Union, TypeVar
+from typing import List, Set, Dict, Optional, Union, TypeVar, Literal
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
@@ -11,9 +12,9 @@ from pkm.api.environments.environment_monitors import EnvironmentPackageUpdateMo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
 from pkm.api.repositories.repository import Repository, DelegatingRepository
-from pkm.api.versions.version import NamedVersion, StandardVersion
+from pkm.api.versions.version import NamedVersion, StandardVersion, Version
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.distributions.pth_link import PthLink
+from pkm.api.distributions.pth_link import PthLink
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
@@ -81,6 +82,20 @@ class Environment:
             if not self._interpreter_path:
                 raise ValueError("could not determine the environment interpreter path")
         return self._interpreter_path
+
+    @cached_property
+    def operating_platform(self) -> "OperatingPlatform":
+        emarkers = self.markers
+        ispc = self._introspection
+
+        return OperatingPlatform(
+            os=emarkers["platform_system"].lower(),
+            os_bits=ispc['os.bits'],
+            machine=emarkers["platform_machine"].lower(),
+            python_version=self.interpreter_version,
+            python_implementation=emarkers["platform_python_implementation"].lower(),
+            python_interpreter_bits=32 if ispc.is_32bit_interpreter else 64
+        )
 
     def compatibility_tag_score(self, tag: str) -> Optional[SupportsLessThanEq]:
         """
@@ -407,3 +422,19 @@ def _coerce_package_names(package_names: _PACKAGE_NAMES_T) -> List[str]:
 
 def _find_interpreter(env_root: Path) -> Optional[Path]:
     return find_first((env_root / "bin/python", env_root / "bin/python.exe"), lambda it: it.exists())
+
+
+@dataclass
+class OperatingPlatform:
+    os: str  # 'Linux', 'Darwin', 'Java', 'Windows' - the value returned by platform.system() in lowercase
+    os_bits: int  # 32 or 64
+    machine: str  # the value returned by platform.machine() in lowercase
+    python_version: Version
+    python_implementation: str  # the value returned by platform.python_implementation() in lowercase
+    python_interpreter_bits: int  # 32 or 64
+
+    def has_windows_os(self) -> bool:
+        return os == 'Windows'
+
+    def has_arm_cpu(self) -> bool:
+        return 'armv71' in self.machine or 'aarch64' in self.machine
