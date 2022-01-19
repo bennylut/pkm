@@ -260,8 +260,9 @@ class IniFileConfiguration(FileConfiguration):
 
         for key_or_section, value_or_content in self._data.items():
             if isinstance(value_or_content, Mapping):
+                cp.add_section(key_or_section)
                 for key, value in value_or_content.items():
-                    cp.set(key_or_section, key, value)
+                    cp.set(key_or_section, key, str(value))
             else:
                 cp.set("", key_or_section, value_or_content)
 

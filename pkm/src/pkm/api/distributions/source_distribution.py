@@ -4,17 +4,20 @@ from tempfile import TemporaryDirectory
 from typing import Optional, ContextManager
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distribution import Distribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.api.distributions.distribution import Distribution
+from pkm.api.repositories.repository import Repository
 from pkm.utils.archives import extract_archive
 
 
 class SourceDistribution(Distribution):
 
-    def __init__(self, package: PackageDescriptor, archive_or_source_tree: Path):
+    def __init__(self, package: PackageDescriptor, archive_or_source_tree: Path,
+                 build_requirements_repository: Optional[Repository] = None):
+        self._build_requirements_repository = build_requirements_repository
         self._package = package
         if archive_or_source_tree.is_dir():
             self._source_tree_path = archive_or_source_tree
@@ -57,12 +60,11 @@ class SourceDistribution(Distribution):
     def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False):
         from pkm.api.pkm import pkm
         builds = pkm.repositories.source_builds
-
         prebuilt = builds.match(self.owner_package.to_dependency())
         if prebuilt and prebuilt[0].is_compatible_with(env):
             return prebuilt[0].install_to(env, user_request)
 
         with self._source_tree() as source_tree:
             builds \
-                .build(self.owner_package, source_tree, env, editable) \
+                .build(self.owner_package, source_tree, env, editable, self._build_requirements_repository) \
                 .install_to(env, user_request)

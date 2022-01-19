@@ -1,7 +1,7 @@
 import csv
 import shutil
 from pathlib import Path
-from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING
+from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -14,6 +14,7 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.repositories.repository import Repository
 
 
 class SitePackages:
@@ -22,6 +23,13 @@ class SitePackages:
         self._platlib = platlib
         self._other_sites = other_sites
         self._is_read_only = is_read_only
+
+    def all_sites(self) -> Iterator[Path]:
+        yield self._purelib
+        if self._platlib != self._purelib:
+            yield self._platlib
+
+        yield from self._other_sites
 
     @property
     def purelib_path(self) -> Path:
@@ -123,7 +131,7 @@ class InstalledPackage(Package):
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:

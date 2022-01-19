@@ -395,7 +395,8 @@ class HttpClient:
                     headers = {}
                     parsed_url = Url.parse(url)
                     cache_files = self._resource_files_of(parsed_url)
-                    fetch_info = TomlFileConfiguration.load(cache_files.fetch_info)  # TODO: maybe add the response headers
+                    fetch_info = TomlFileConfiguration.load(
+                        cache_files.fetch_info)  # TODO: maybe add the response headers
                     self._add_standard_headers(headers)
 
                     use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)

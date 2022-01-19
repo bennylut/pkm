@@ -1,32 +1,21 @@
-import csv
-import shutil
-import tarfile
-import zipfile
-from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
-from shutil import ignore_patterns
 from tempfile import TemporaryDirectory
-from typing import List, Optional, ContextManager, Union, Tuple, Dict, TYPE_CHECKING
-from zipfile import ZipFile
+from typing import List, Optional, Union, Tuple, Dict, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import WheelFileConfiguration, DistInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
 from pkm.api.projects.project_monitors import ProjectPackageUpdateMonitor
-from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig, PkmRepositoryInstanceConfig
+from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
-from pkm.api.versions.version import StandardVersion
-from pkm.api.distributions.pth_link import PthLink
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
-from pkm.utils.hashes import HashSignature
 from pkm.utils.http.http_monitors import FetchResourceMonitor
-from pkm.utils.iterators import first_or_none, distinct
+from pkm.utils.iterators import first_or_none
 from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -42,7 +31,7 @@ class Project(Package):
         self._descriptor = pyproject.project.package_descriptor()
 
     @property
-    def pyproject(self) -> PyProjectConfiguration:
+    def config(self) -> PyProjectConfiguration:
         return self._pyproject
 
     @cached_property
@@ -65,7 +54,7 @@ class Project(Package):
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
         with TemporaryDirectory() as tdir:
             tdir = Path(tdir)
             wheel = self.build_wheel(tdir)
@@ -102,8 +91,8 @@ class Project(Package):
             dependencies=[d for d in self._pyproject.project.dependencies if d.package_name not in package_names_set])
         self._pyproject.save()
 
-    def install_dependencies(self, new_dependencies: Optional[List[Dependency]] = None, *,
-                             monitor: ProjectPackageUpdateMonitor = no_monitor()):
+    def install_with_dependencies(self, new_dependencies: Optional[List[Dependency]] = None, *,
+                                  monitor: ProjectPackageUpdateMonitor = no_monitor()):
         """
         install the dependencies of this project to its assigned environments
         :param monitor: monitor the progress of the execution of this method
@@ -118,7 +107,7 @@ class Project(Package):
                 self._pyproject.project,
                 dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
 
-            repository = _ProjectRepository(self, self.default_environment)
+            repository = _ProjectRepository(self)
             self.default_environment.force_remove(self.name)
             self.default_environment.install(
                 self.descriptor.to_dependency(), repository, monitor=monitor.on_environment_installation())
@@ -145,6 +134,18 @@ class Project(Package):
             python_versions[0].install_to(default_env)
         return default_env
 
+    def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
+        """
+        builds a package that contains application installer for this project
+        note that the installer is itself a project with the same name as this project appended with '-app'
+        and therefore on publishing will require different project registration
+
+        :param target_dir: the directory to put the installer in
+        :return: the path to the created installer package
+        """
+        from pkm.project_builders.application_builders import build_app_installer
+        return build_app_installer(self, target_dir)
+
     def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
         """
         build a source distribution from this project
@@ -152,29 +153,8 @@ class Project(Package):
         :return: the path to the created archive
         """
 
-        target_dir = target_dir or (self.directories.dist / str(self.version))
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        with self._build_context() as bc:
-            sdist_path = target_dir / bc.sdist_file_name()
-            data_dir = bc.build_dir / sdist_path.name[:-len('.tar.gz')]
-            data_dir.mkdir()
-
-            dist_info_path = bc.build_dir / 'dist-info'
-            bc.build_dist_info(dist_info_path)
-            shutil.copy(dist_info_path / "METADATA", data_dir / "PKG-INFO")
-            shutil.copy(bc.pyproject.path, data_dir / 'pyproject.toml')
-
-            if bc.pyproject.pkm_project.packages:
-                bc.copy_sources(data_dir)
-            else:
-                bc.copy_sources(data_dir / 'src')
-
-            with tarfile.open(sdist_path, 'w:gz', format=tarfile.PAX_FORMAT) as sdist:
-                for file in data_dir.glob('*'):
-                    sdist.add(file, file.relative_to(bc.build_dir))
-
-        return sdist_path
+        from pkm.project_builders.standard_builders import build_sdist
+        return build_sdist(self, target_dir)
 
     def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
         """
@@ -185,28 +165,26 @@ class Project(Package):
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
 
-        target_dir = target_dir or (self.directories.dist / str(self.version))
+        from pkm.project_builders.application_builders import is_application_installer_project, build_app_installation
+        from pkm.project_builders.standard_builders import build_wheel
 
-        with self._build_context() as bc:
-            if only_meta:
-                dist_info_path = target_dir / bc.dist_info_dir_name()
-                bc.build_dist_info(dist_info_path)
-                return dist_info_path
+        if not only_meta and is_application_installer_project(self):
+            return build_app_installation(self, _ProjectRepository(self), target_dir)
 
-            dist_info_path = bc.build_dir / bc.dist_info_dir_name()
-            dist_info = bc.build_dist_info(dist_info_path)
-            bc.copy_sources(bc.build_dir, editable)
-            records_file = dist_info.load_record_cfg()
-            records_file.sign(bc.build_dir)
-            records_file.save()
+        return build_wheel(self, target_dir, only_meta, editable)
 
-            wheel_path = target_dir / bc.wheel_file_name()
-            target_dir.mkdir(parents=True, exist_ok=True)
-            with ZipFile(wheel_path, 'w', compression=zipfile.ZIP_DEFLATED) as wheel:
-                for file in bc.build_dir.rglob('*'):
-                    wheel.write(file, file.relative_to(bc.build_dir))
+    def build(self, target_dir: Optional[Path] = None) -> List[Path]:
+        """
+        builds the project into all distributions that are required as part of its configuration
+        :param target_dir: directory to put the resulted distributions in
+        :return list of paths to all the distributions created
+        """
 
-        return wheel_path
+        result: List[Path] = [self.build_sdist(target_dir), self.build_wheel(target_dir)]
+        if self.config.pkm_project.application:
+            result.append(self.build_application_installer(target_dir))
+
+        return result
 
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
                 distributions_dir: Optional[Path] = None):
@@ -234,17 +212,6 @@ class Project(Package):
             if distribution.is_file():
                 publisher.publish(auth, metadata, distribution)
 
-    @contextmanager
-    def _build_context(self) -> ContextManager["_BuildContext"]:
-        project_cfg: ProjectConfig = self._pyproject.project
-
-        project_name_underscores = project_cfg.name.replace('-', '_')
-
-        with TemporaryDirectory() as tdir:
-            build_dir = Path(tdir)
-
-            yield _BuildContext(self._pyproject, build_dir, project_name_underscores)
-
     @classmethod
     def load(cls, path: Path) -> "Project":
         pyproject = PyProjectConfiguration.load(path / 'pyproject.toml')
@@ -268,7 +235,7 @@ class _ProjectRepository(Repository):
         # self._group_repo = ProjectGroupRepository(project.group) if project.group else None
 
         built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = []
-        for rcfg in project.pyproject.pkm_repositories:
+        for rcfg in project.config.pkm_repositories:
             if not (builder := pkm.repository_builders.get(rcfg.type)):
                 raise KeyError(f"unknown repository type: {rcfg.type}")
             built_repositories.append((rcfg, builder.build(rcfg.name, rcfg.packages, **rcfg.args)))
@@ -302,67 +269,6 @@ class _ProjectRepository(Repository):
 
     def accepts(self, dependency: Dependency) -> bool:
         return self._repository_for(dependency).accepts(dependency)
-
-
-@dataclass
-class _BuildContext:
-    pyproject: PyProjectConfiguration
-    build_dir: Path
-    project_name_underscore: str
-
-    def _project_and_version_file_prefix(self):
-        return f"{self.project_name_underscore}-{self.pyproject.project.version}"
-
-    def wheel_file_name(self) -> str:
-        project_cfg = self.pyproject.project
-        min_interpreter: StandardVersion = project_cfg.requires_python.min.version \
-            if project_cfg.requires_python else StandardVersion((3,))
-
-        req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
-        return f"{self._project_and_version_file_prefix()}-{req_interpreter}-none-any.whl"
-
-    def sdist_file_name(self) -> str:
-        return f"{self._project_and_version_file_prefix()}.tar.gz"
-
-    def dist_info_dir_name(self) -> str:
-        return f'{self._project_and_version_file_prefix()}.dist-info'
-
-    def build_dist_info(self, dst: Path) -> DistInfo:
-        di = DistInfo.load(dst)
-
-        dst.mkdir(exist_ok=True, parents=True)
-        project_config: ProjectConfig = self.pyproject.project
-
-        PackageMetadata.from_project_config(project_config).save_to(di.metadata_path())
-        di.license_path().write_text(
-            project_config.license_content())
-
-        # TODO: probably later we will want to add the version of pkm in the generator..
-        WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(di.wheel_path())
-
-        entrypoints = di.load_entrypoints_cfg()
-        entrypoints.entrypoints = [e for entries in self.pyproject.project.entry_points.values() for e in entries]
-        entrypoints.save()
-
-        return di
-
-    def copy_sources(self, dst: Path, link_only: bool = False):
-        dirs = ProjectDirectories.create(self.pyproject)
-
-        if link_only:
-            PthLink(
-                dst / f"{self._project_and_version_file_prefix()}.pth",
-                links=list(distinct(p.absolute().parent for p in dirs.src_packages))
-            ).save()
-            return
-
-        for package_dir in dirs.src_packages:
-            destination = dst / package_dir.name
-            if package_dir.exists():
-                shutil.copytree(package_dir, destination, ignore=ignore_patterns('__pycache__'))
-            else:
-                raise FileNotFoundError(f"the package {package_dir}, which is specified in pyproject.toml"
-                                        " has no corresponding directory in project")
 
 
 @dataclass()

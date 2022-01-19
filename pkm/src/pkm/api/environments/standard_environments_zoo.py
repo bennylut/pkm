@@ -94,7 +94,8 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
 
             if match in ('general', 'all'):
                 yield from without_nones(self._try_load(p) for p in (self._path / 'envs').iterdir())
-    
+
+    # noinspection PyMethodMayBeStatic
     def _try_load(self, path: Path) -> Optional["ManagedEnvironment"]:
         if Environment.is_valid(path):
             return StandardManagedEnvironment(Environment(path))

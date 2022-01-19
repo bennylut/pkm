@@ -86,7 +86,7 @@ class LocalInterpreterPackage(Package):
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
         LightweightEnvironments.create(env.path, self._interpreter.absolute())
 
 

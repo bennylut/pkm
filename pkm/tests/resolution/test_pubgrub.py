@@ -38,8 +38,6 @@ class TestSolver(TestCase):
         solution = Solver(problem).solve()
         assert_solution({'root': '1.0.0', 'foo': '1.0.0'}, solution)
 
-
-
     def test_star_version(self):
         problem = ExampleProblem({
             'root 1.0.0': ['foo *'],

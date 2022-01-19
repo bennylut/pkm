@@ -1,27 +1,28 @@
 ## RUNNING TASKS:
-- support building, publishing and installing self-contained-application packages
-- site: urls need to be relative to github
 
 ## DONE IN THIS VERSION
-- implement entrypoints awareness for wheel installer
-- model distinfo
-  - relocate sign_build 
-  - refactor project's entrypoints
-  - use in wheel installer 
-- entry_points in pyproject
+- site: urls need to be relative to github
+- be able to use project group as a repository
+- project building code were removed from api
+- support building, installing self-contained-application packages
 
 ## BACKLOG TASKS:
+- support publishing self-contained-application packages
+- support * in packages but not default (just scan before usage on supported repositories)
+- when publishing - register the project name if needed (ask the user?)
+- pkm install wheel from path
+- shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - check entrypoint creation in windows
 - build pkm cli
-  - the new command: [project, project-group]
-  - the build command: 
-  - the install command: 
-  - the uninstall command:
-- site: sidebar responsive to phones 
+    - the new command: [project, project-group]
+    - the build command
+    - the install command
+    - the uninstall command
+    - the shell command
+- site: sidebar responsive to phones
 - support windows entrypoints
 - site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
 - consider interactive ui mode
-- project group is a repository
 - support configuring the build-repository (when the user don't want to use pypi)
 - toml parser/writer need unit tests
 - when adding dependency to project through pkm (install_dependencies) currently the `*` version is used, after
@@ -46,7 +47,7 @@
   build system)
 - bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
-- tool.pkm.dependency-overwrites: allow forced versions and dependency exclusion 
+- tool.pkm.dependency-overwrites: allow forced versions and dependency exclusion
 - hierarchical site packages:
     - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
       resolution?)
@@ -80,7 +81,8 @@
 - python installation repository (no sudo! - download for os and install in data files - if possible)
 - try and treat python dependency like any other dependency (and suggest installing it if we must)
 - common tasks: test, build doc, etc.
-- create pyproject from environment
+- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
+  project based on it
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

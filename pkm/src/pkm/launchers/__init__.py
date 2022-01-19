@@ -2,14 +2,13 @@
 launchers are taken from:
 https://bitbucket.org/vinay.sajip/simple_launcher
 """
-import os
+import importlib.resources as resources
 from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
 from pkm.api.distributions.distinfo import EntryPoint
 from pkm.api.environments.environment import Environment
-import importlib.resources as resources
 
 
 def build_windows_script_launcher(

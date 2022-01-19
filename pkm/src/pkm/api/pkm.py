@@ -7,7 +7,6 @@ import os
 
 from typing import TYPE_CHECKING, Dict
 
-
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
@@ -40,11 +39,13 @@ class _Pkm:
     def repository_builders(self) -> Dict[str, "RepositoryBuilder"]:
         from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
         from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
+        from pkm.api.projects.project_group import ProjectGroupRepositoryBuilder
 
         return {
             b.name: b for b in (
                 SimpleRepositoryBuilder(self.httpclient),
-                LocalPackagesRepositoryBuilder(self.repositories.pypi)
+                LocalPackagesRepositoryBuilder(self.repositories.pypi),
+                ProjectGroupRepositoryBuilder()
             )
         }
 

@@ -12,12 +12,24 @@ from pkm.utils.monitors import no_monitor
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
+    from pkm.api.repositories.repository import Repository
 
 
 @dataclass(frozen=True)
 class PackageDescriptor:
     name: str
     version: Version
+
+    @property
+    def expected_source_package_name(self) -> str:
+        """
+        The expected name of the source package is the same name of the package
+         when hyphen is replaced with underscore, there is no guarantee that the
+         package author used this name, but this is considered the expected behavior.
+
+        :return: the expected name of the source package that is stored in this package,
+        """
+        return self.name.replace('-', '_')
 
     def __post_init__(self):
         super().__setattr__('name', PackageDescriptor.normalize_name(self.name))
@@ -53,7 +65,6 @@ class PackageDescriptor:
         :param package_name: the package name to normalize
         :return: the normalized name
         """
-        # .sub(r"[-_.]+", "-", package_name)
         if not (result := re.sub("[^A-Z0-9]+", '-', package_name, flags=re.IGNORECASE).strip('-').lower()):
             raise ValueError(f"empty name after normalization (un-normalized name: '{package_name}')")
         return result
@@ -105,13 +116,14 @@ class Package(ABC):
 
     @abstractmethod
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
         """
         installs this package into the given `env`
         :param env: the environment to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
         :param monitor: in case where installing the package requires fetching it, this will be used as a monitor
+        :param build_packages_repo: if provided, the repository that will be used for build packages dependencies
         """
 
     def __str__(self):

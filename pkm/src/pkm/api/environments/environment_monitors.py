@@ -5,6 +5,7 @@ from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import Monitor, no_monitor
 
 
+# noinspection PyMethodMayBeStatic
 class PackageInstallMonitor(Monitor):
     def on_package_may_download(self) -> FetchResourceMonitor:
         return no_monitor()

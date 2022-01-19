@@ -22,7 +22,7 @@ def put_if_absent(d: MutableMapping[_K, _V], key: _K, value: _V) -> bool:
     return True
 
 
-def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], _V]):
+def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], _V]) -> _V:
     """
     :param d: the dict to look in
     :param key: the key to get
@@ -33,6 +33,22 @@ def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], 
         d[key] = value = value_provider()
 
     return value
+
+
+def get_or_raise(d: MutableMapping[_K, _V], key: _K, err_provider: Callable[[], Exception]) -> _V:
+    """
+    attempt to get a value from `d` with the given `key`, if no such value exists raise the
+    exception returned by `err_provider`
+    :param d: the mapping to look in
+    :param key: the key to look for
+    :param err_provider: callable that may be called to provide an exception instance in case where `key` is not in `d`
+    :return: the value `d[key]`
+    """
+
+    if (result := d.get(key, _SENTINAL)) is _SENTINAL:
+        raise err_provider()
+
+    return result
 
 
 def without_keys(d: Mapping[_K, _V], *keys: _K) -> Dict[_K, _V]:

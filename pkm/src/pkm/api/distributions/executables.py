@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 import stat
 import sys
-from textwrap import dedent
+from pathlib import Path
 
 from pkm.api.distributions.distinfo import EntryPoint
 from pkm.api.environments.environment import Environment

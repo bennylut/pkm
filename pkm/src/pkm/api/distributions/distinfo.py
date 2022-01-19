@@ -3,8 +3,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from textwrap import dedent
-from typing import Optional, List, ClassVar, Tuple, Iterable, Dict
+from typing import Optional, List, ClassVar, Iterable, Dict
 
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
@@ -92,33 +91,24 @@ _OBJ_REF_RX = re.compile(r"(?P<mdl>[^:]*)(:(?P<obj>[^\[]*)\s*(\[\s*(?P<ext>[^\]]
 _EXT_DELIM_RX = re.compile("\\s*,\\s*")
 
 
-@dataclass
+@dataclass(frozen=True)
 class ObjectReference:
     module_path: str
-    object_path: Optional[str]
-    extras: Optional[List[str]]
+    object_path: Optional[str] = None
+    extras: Optional[List[str]] = None
 
     def __str__(self):
-        obj_str = f".{self.object_path}" if self.object_path else ""
+        obj_str = f":{self.object_path}" if self.object_path else ""
         ext_str = f" [{', '.join(self.extras)}]" if self.extras else ""
         return f"{self.module_path}{obj_str}{ext_str}"
 
     def execution_script_snippet(self) -> str:
-        if self.object_path:
-            return dedent(f"""
-            import sys
-            import {self.module_path}
-            
-            sys.exit({self.module_path}.{self.object_path}())
-            """)
-        else:
-            return dedent(f"""
-            import sys
-            import runpy
-            
-            runpy._run_module_as_main("{self.module_path}")
-            sys.exit(0)     
-            """)
+        if not self.object_path:
+            raise UnsupportedOperationException(
+                f"{str(self)} cannot be used as script generator - "
+                f"it must be of the format module.path:zero.arg.function.path")
+
+        return f"import sys;import {self.module_path};sys.exit({self.module_path}.{self.object_path}())"
 
     @classmethod
     def parse(cls, refstr: str) -> "ObjectReference":

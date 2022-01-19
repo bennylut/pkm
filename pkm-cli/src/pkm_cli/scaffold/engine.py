@@ -25,7 +25,7 @@ class ScaffoldingEngine:
             command_prefix: str = "pkm new") -> str:
 
         """
-        :param the directory holding the template
+        :param template_dir: the directory holding the template
         :param template_descriptor: the descriptor that used to resolve the template directory, if not provided,
                                     the template directory will be considered as the descriptor
         :param command_prefix: the prefix of the commandline that should be used to generate this template

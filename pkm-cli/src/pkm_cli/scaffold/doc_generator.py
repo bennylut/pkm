@@ -110,7 +110,7 @@ class _ArgsVisitor(ast.NodeVisitor):
 
             try:
                 arg_name = _materialize(node.args[0])
-            except:
+            except: # noqa
                 arg_name = _keyword_value(node, 'named_arg')
 
             if not arg_name or arg_name in self.arg_names:

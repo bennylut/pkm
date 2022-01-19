@@ -1,14 +1,17 @@
 from email.message import EmailMessage
 from email.parser import Parser
 from pathlib import Path
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.projects.pyproject_configuration import ProjectConfig
+
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.config.configuration import FileConfiguration, computed_based_on
 from pkm.utils.dicts import get_or_put, remove_none_values
+
+if TYPE_CHECKING:
+    from pkm.api.projects.pyproject_configuration import ProjectConfig
 
 _METADATA_VERSION = '2.1'
 
@@ -71,7 +74,7 @@ class PackageMetadata(FileConfiguration):
         return msg.as_string()
 
     @classmethod
-    def from_project_config(cls, prjc: ProjectConfig) -> "PackageMetadata":
+    def from_project_config(cls, prjc: "ProjectConfig") -> "PackageMetadata":
 
         # filling authors and maintainers according to pep-621:
         # 1. If only name is provided, the value goes in Author/Maintainer as appropriate.

@@ -1,12 +1,14 @@
 import hashlib
 import os
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import List, Set, Dict, Optional, Union, TypeVar, Literal
+from typing import List, Set, Dict, Optional, Union, TypeVar
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.environments.environment_monitors import EnvironmentPackageUpdateMonitor, PackageInstallMonitor
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -14,7 +16,6 @@ from pkm.api.packages.site_packages import SitePackages, InstalledPackage
 from pkm.api.repositories.repository import Repository, DelegatingRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion, Version
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.api.distributions.pth_link import PthLink
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
@@ -152,26 +153,6 @@ class Environment:
         subprocess_run_kwargs['env'] = env
         return subprocess.run(args, **subprocess_run_kwargs)
 
-    def symlink_pth_links(self):
-        """
-        run over this environment installed pth-links and attempt to create symlinks python packages that is found inside them
-        the method will skip creating symlinks if they may collide with a path that is already exists in the site-packages
-        """
-
-        ppath = self.site_packages.purelib_path
-        for pth_file in ppath.glob("*.pth"):
-            for link in PthLink.load(pth_file).links:
-                for maybe_package in link.iterdir():
-                    if maybe_package.is_dir() and (maybe_package / '__init__.py').exists():
-                        target_link = ppath / maybe_package.name
-                        if target_link.exists():
-                            if target_link.is_symlink():
-                                target_link.unlink()
-                            else:
-                                continue  # skip this link
-
-                        target_link.symlink_to(maybe_package)
-
     def reload(self):
         """
         reload volatile information about this environment (like the installed packages)
@@ -206,6 +187,7 @@ class Environment:
         :param repository: the repository to fetch this dependency from
         :param user_requested: indicator that the user requested this dependency themselves
             (this will be marked on the installation as per pep376)
+        :param monitor: monitor for the installation operation
         """
 
         with monitor:
@@ -304,6 +286,14 @@ class Environment:
         """
         return (path / "pyvenv.cfg").exists() and _find_interpreter(path) is not None
 
+    @classmethod
+    def current(cls) -> "Environment":
+        interpreter = Path(sys.executable)
+        if (interpreter.parent.parent / "pyvenv.cfg").exists():
+            return Environment(interpreter.parent.parent, interpreter)
+        else:  # this is a system environment
+            return Environment(Path("/"), interpreter, readonly=True)
+
 
 def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository],
                   monitor: EnvironmentPackageUpdateMonitor):
@@ -319,7 +309,7 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
     def install(p: Package):
         m: PackageInstallMonitor
         with monitor.on_install(p) as m:
-            p.install_to(env, monitor=m.on_package_may_download())
+            p.install_to(env, monitor=m.on_package_may_download(), build_packages_repo=build_packages_repo)
 
     def uninstall(p: InstalledPackage):
         with monitor.on_uninstall(p):
@@ -356,7 +346,8 @@ class _UserRequestPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()): pass
+                   *, monitor: FetchResourceMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None): pass
 
     def to_dependency(self) -> Dependency:
         return Dependency(self.name, SpecificVersion(self.version))

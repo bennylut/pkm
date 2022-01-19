@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import List, Optional, Union, Dict, Mapping, Any
+from typing import List, Optional, Union, Dict, Mapping, Any, Iterator
 import re
 
 from pkm.api.dependencies.dependency import Dependency
@@ -22,6 +22,21 @@ class BuildSystemConfig:
     requirements: List[Dependency]
     build_backend: str
     backend_path: Optional[List[str]]
+
+    def to_config(self) -> Dict[str, Any]:
+        return remove_none_values({
+            'requires': [str(d) for d in self.requirements] if self.requirements else None,
+            'build-backend': self.build_backend,
+            'backend-path': self.build_backend
+        })
+
+    @classmethod
+    def from_config(cls, cfg: Dict[str, Any]) -> "BuildSystemConfig":
+        requirements = [Dependency.parse_pep508(dep) for dep in (cfg.get('requires') or [])]
+        build_backend = cfg.get('build-backend')
+        backend_path = cfg.get('backend-path')
+
+        return BuildSystemConfig(requirements, build_backend, backend_path)
 
 
 @dataclass(frozen=True, eq=True)
@@ -51,11 +66,13 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
 class PkmProjectConfig:
     packages: Optional[List[str]] = None
     group: Optional[str] = None
+    application: bool = False
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({
             'packages': self.packages,
-            'group': self.group
+            'group': self.group,
+            'application': self.application
         })
 
     @classmethod
@@ -173,6 +190,16 @@ class ProjectConfig:
 
         return ""
 
+    def script_entrypoints(self) -> Iterator[EntryPoint]:
+        """
+        :return: iterator over the scripts (and gui scripts) entrypoints
+        """
+        if scripts := self.entry_points.get(EntryPoint.G_CONSOLE_SCRIPTS):
+            yield from scripts
+
+        if gui_scripts := self.entry_points.get(EntryPoint.G_GUI_SCRIPTS):
+            yield from gui_scripts
+
     def readme_content_type(self) -> str:
         if self.readme and isinstance(self.readme, Path):
             readme_suffix = self.readme.suffix
@@ -199,7 +226,9 @@ class ProjectConfig:
                 else {'file': str(path_to(project_path, self.readme))}
 
         ep: Dict[str, List[EntryPoint]] = self.entry_points or {}
-        ep_no_scripts: Dict[str, List[EntryPoint]] = without_keys(ep, 'scripts', 'gui-scripts')
+        ep_no_scripts: Dict[str, List[EntryPoint]] = without_keys(
+            ep, EntryPoint.G_CONSOLE_SCRIPTS, EntryPoint.G_GUI_SCRIPTS)
+
         optional_dependencies = {
             extra: [str(d) for d in deps]
             for extra, deps in self.optional_dependencies.items()
@@ -216,8 +245,10 @@ class ProjectConfig:
             'license': license_, 'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
             'maintainers': [c.to_config() for c in self.maintainers] if self.maintainers is not None else None,
             'keywords': self.keywords, 'classifiers': self.classifiers, 'urls': self.urls,
-            'scripts': _entrypoints_to_config(ep['scripts']) if 'scripts' in ep else None,
-            'gui-scripts': _entrypoints_to_config(ep['gui-scripts']) if 'gui-scripts' in ep else None,
+            'scripts': _entrypoints_to_config(
+                ep[EntryPoint.G_CONSOLE_SCRIPTS]) if EntryPoint.G_CONSOLE_SCRIPTS in ep else None,
+            'gui-scripts': _entrypoints_to_config(
+                ep[EntryPoint.G_GUI_SCRIPTS]) if EntryPoint.G_GUI_SCRIPTS in ep else None,
             'entry-points': {group: _entrypoints_to_config(entries)
                              for group, entries in ep_no_scripts.items()} if ep_no_scripts else None,
             'dependencies': [str(d) for d in self.dependencies] if self.dependencies else None,
@@ -258,10 +289,12 @@ class ProjectConfig:
 
         entry_points = {}
         if scripts_table := project.get('scripts'):
-            entry_points['scripts'] = _entrypoints_from_config(EntryPoint.G_CONSOLE_SCRIPTS, scripts_table)
+            entry_points[EntryPoint.G_CONSOLE_SCRIPTS] = _entrypoints_from_config(
+                EntryPoint.G_CONSOLE_SCRIPTS, scripts_table)
 
         if gui_scripts_table := project.get('gui-scripts'):
-            entry_points['gui-scripts'] = _entrypoints_from_config(EntryPoint.G_GUI_SCRIPTS, gui_scripts_table)
+            entry_points[EntryPoint.G_GUI_SCRIPTS] = _entrypoints_from_config(
+                EntryPoint.G_GUI_SCRIPTS, gui_scripts_table)
 
         if entry_points_tables := project.get('entry-points'):
             entry_points.update({
@@ -304,6 +337,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
     project: ProjectConfig
     pkm_project: PkmProjectConfig
     pkm_repositories: List[PkmRepositoryInstanceConfig]
+    build_system: BuildSystemConfig
 
     @computed_based_on("tool.pkm.project")
     def pkm_project(self) -> PkmProjectConfig:
@@ -314,9 +348,13 @@ class PyProjectConfiguration(TomlFileConfiguration):
         return [PkmRepositoryInstanceConfig.from_config(it) for it in (self["tool.pkm.repositories"] or [])]
 
     @computed_based_on("project")
-    def project(self) -> ProjectConfig:
+    def project(self) -> Optional[ProjectConfig]:
         project_path = self._path.parent
+
         project: Dict[str, Any] = self['project']
+        if project is None:
+            return None
+
         return ProjectConfig.from_config(project_path, project)
 
     @project.modifier
@@ -326,12 +364,18 @@ class PyProjectConfiguration(TomlFileConfiguration):
 
     @computed_based_on("build-system")
     def build_system(self) -> BuildSystemConfig:
-        build_system = self['build-system']
-        requirements = [Dependency.parse_pep508(dep) for dep in build_system['requires']]
-        build_backend = build_system.get('build-backend')
-        backend_path = build_system.get('backend-path')
+        return BuildSystemConfig.from_config(self['build-system'])
 
-        return BuildSystemConfig(requirements, build_backend, backend_path)
+    @build_system.modifier
+    def set_build_system(self, bs: BuildSystemConfig):
+        self['build-system'] = bs.to_config()
+
+    @property
+    def application_installer_project_name(self) -> Optional[str]:
+        if self.pkm_project.application:
+            return self.project.name + "-app"
+
+        return None
 
     @classmethod
     def load_effective(cls, pyproject_file: Path,
@@ -350,7 +394,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
         # ensure build-system:
         if pyproject['build-system'] is None:
             if not (source_tree / 'setup.py').exists():
-                raise MalformedPackageException(f"cannot infer project settings for project: {pyproject_file.parent}")
+                raise MalformedPackageException(f"cannot infer build system for project: {pyproject_file.parent}")
 
             pyproject['build-system'] = _LEGACY_BUILDSYS
 

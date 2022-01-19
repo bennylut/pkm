@@ -83,7 +83,8 @@ class LocalPackage(Package):
         if cache := self._build_cache.get(key):
             return cache
 
-        package = self._builds_repo.build(self.descriptor, self._settings.location, env, self._settings.editable)
+        package = self._builds_repo.build(
+            self.descriptor, self._settings.location, env, self._settings.editable, self._builds_repo)
         self._build_cache[key] = package
         return package
 
@@ -94,8 +95,10 @@ class LocalPackage(Package):
         return self._get_or_create_delegate(env).is_compatible_with(env)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
-        self._get_or_create_delegate(env).install_to(env, user_request, monitor=monitor)
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
+        self._get_or_create_delegate(env).install_to(
+            env, user_request, monitor=monitor,
+            build_packages_repo=build_packages_repo)
 
 
 class LocalPackagesRepositoryBuilder(RepositoryBuilder):

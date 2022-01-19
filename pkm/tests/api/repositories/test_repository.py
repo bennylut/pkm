@@ -72,5 +72,5 @@ class DummyPackage(Package):
         return True
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
         pass

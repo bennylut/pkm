@@ -88,13 +88,13 @@ class AbstractPackage(Package):
         """
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor()):
+                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
         artifact = self._best_artifact_for(env)
         artifact_path = self._retrieve_artifact(artifact, monitor)
         if artifact.is_wheel():
             WheelDistribution(self.descriptor, artifact_path).install_to(env, user_request)
         else:
-            SourceDistribution(self.descriptor, artifact_path).install_to(env, user_request)
+            SourceDistribution(self.descriptor, artifact_path, build_packages_repo).install_to(env, user_request)
 
     def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
         artifact = self._best_artifact_for(environment)

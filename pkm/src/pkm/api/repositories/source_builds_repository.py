@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from textwrap import dedent
-from typing import Set, Dict, List, Literal, Any
+from typing import Set, Dict, List, Literal, Any, Optional
 from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
@@ -41,7 +41,7 @@ class SourceBuildsRepository(Repository):
 
     def _build(self, build_key: _BUILD_KEY_T, package: PackageDescriptor,
                required_artifact: str,  # ['metadata', 'wheel', 'editable']
-               source_tree: Path, target_env: Environment):
+               source_tree: Path, target_env: Environment, build_packages_repo: Optional[Repository]):
 
         print(f"INNER BUILDING {package}...")
         package_dir = self._version_dir(package)
@@ -54,16 +54,17 @@ class SourceBuildsRepository(Repository):
         ongoingbuilds.add(package)
         pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml', package)
         buildsys: BuildSystemConfig = pyproject.build_system
+        build_packages_repo = build_packages_repo or self._build_packages_repo
 
         with TemporaryDirectory() as tdir:
             tdir_path = Path(tdir)
             build_env = LightweightEnvironments.create(tdir_path / 'venv', target_env.interpreter_path)
             if buildsys.requirements:
-                build_env.install(buildsys.requirements, self._build_packages_repo)
+                build_env.install(buildsys.requirements, build_packages_repo)
             if buildsys.backend_path:
                 build_env.install_link('build_backend', [source_tree / pth for pth in buildsys.backend_path])
 
-            # start build cycle:
+            # start build life-cycle:
             wheels_path = (tdir_path / "wheels").absolute()
             wheels_path.mkdir(parents=True, exist_ok=True)
 
@@ -76,8 +77,9 @@ class SourceBuildsRepository(Repository):
             extra_requirements = _exec_build_cycle_script(source_tree, build_env, buildsys, command, [None])
 
             if extra_requirements.status == 'success':
-                build_env.install([Dependency.parse_pep508(d) for d in extra_requirements.result],
-                                  self._build_packages_repo)
+                build_env.install(
+                    [Dependency.parse_pep508(d) for d in extra_requirements.result],
+                    build_packages_repo)
 
             if required_artifact == 'metadata':
                 # 2. try to build metadata only
@@ -111,18 +113,23 @@ class SourceBuildsRepository(Repository):
                 if not metadata_file.exists():
                     metadata.save_to(metadata_file)
 
-    def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool) -> Package:
+    def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool,
+              build_packages_repo: Optional[Repository]) -> Package:
+
         print(f"BUILDING {package}...")
         package_type = 'wheel' if not editable else 'editable'
-        self._build(threading.current_thread().ident, package, package_type, source_tree, target_env)
+        self._build(threading.current_thread().ident, package, package_type, source_tree, target_env,
+                    build_packages_repo)
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
-                              target_env: Environment) -> PackageMetadata:
+                              target_env: Environment, build_packages_repo: Optional[Repository]) -> PackageMetadata:
         print(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
-            self._build(threading.current_thread().ident, package, 'metadata', source_tree, target_env)
+            self._build(
+                threading.current_thread().ident, package, 'metadata', source_tree, target_env,
+                build_packages_repo)
 
         return PackageMetadata.load(metadata_file)
 
