@@ -1,10 +1,7 @@
 ## RUNNING TASKS:
 
 ## DONE IN THIS VERSION
-- site: urls need to be relative to github
-- be able to use project group as a repository
-- project building code were removed from api
-- support building, installing self-contained-application packages
+
 
 ## BACKLOG TASKS:
 - support publishing self-contained-application packages
