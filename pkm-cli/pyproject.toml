@@ -6,13 +6,13 @@ readme = "README.md"
 requires-python = ">=3.8, <4.0"
 authors = [{ name = "bennyl" }]
 license.text = "MIT License"
-dependencies = ["questionary *", "pkm *", "jinja2 *"]
+dependencies = [ "questionary *",  "pkm *",  "jinja2 *",  "xonsh[full] *"]
 
 [project.scripts]
-pkm = "pkm_cli.pkm_cli:main"
+pkm = "pkm_cli.main:main"
 
 [tool.pkm.project]
-application=true
+application = true
 
 [build-system]
 backend-path = "../pkm/src"

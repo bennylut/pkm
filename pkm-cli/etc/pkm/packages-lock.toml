@@ -8,6 +8,10 @@ package = {name = "wcwidth", version = "0.2.5"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "psutil", version = "5.9.0"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "rich", version = "10.16.2"}
 
 [[lock]]
@@ -16,7 +20,15 @@ package = {name = "questionary", version = "1.10.0"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "distro", version = "1.6.0"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "commonmark", version = "0.9.1"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "shellingham", version = "1.4.0"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
@@ -40,4 +52,12 @@ package = {name = "prompt-toolkit", version = "3.0.24"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pyperclip", version = "1.8.2"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "pkm-cli", version = "0.1.0"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "xonsh", version = "0.11.0"}

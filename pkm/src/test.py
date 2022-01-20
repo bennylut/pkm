@@ -19,8 +19,13 @@
 # #
 # # p2 = "/home/bennyl/projects/pkm-new/workspace/projects/p2"
 # # Project.load(Path(p2)).install_dependencies()
+# from pathlib import Path
+#
+# from pkm.api.projects.project import Project
+#
+# Project.load(Path("/home/bennyl/projects/pkm-new/workspace/projects/p1")).install_with_dependencies()
 from pathlib import Path
 
 from pkm.api.projects.project import Project
 
-Project.load(Path("/home/bennyl/projects/pkm-new/workspace/projects/p1")).install_with_dependencies()
+Project.load(Path("/home/bennyl/projects/pkm-new/pkm-cli")).install_with_dependencies()

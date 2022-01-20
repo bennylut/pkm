@@ -57,7 +57,7 @@ class Project(Package):
                    *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
         with TemporaryDirectory() as tdir:
             tdir = Path(tdir)
-            wheel = self.build_wheel(tdir)
+            wheel = self.build_wheel(tdir, editable=True)
             WheelDistribution(self.descriptor, wheel) \
                 .install_to(env, user_request)
 
@@ -79,17 +79,19 @@ class Project(Package):
         """
 
         package_names_set = set(packages)
-        self.default_environment.uninstall(packages)
-
-        # update files
-
-        self.lock.update_lock(self.default_environment)
-        self.lock.save()
-
         self._pyproject.project = replace(
             self._pyproject.project,
             dependencies=[d for d in self._pyproject.project.dependencies if d.package_name not in package_names_set])
         self._pyproject.save()
+
+        # fix installation metadata of the project by reinstalling it (without dependencies)
+        self.default_environment.force_remove(self.name)
+        self.install_to(self.default_environment, self.descriptor.to_dependency())
+
+        self.default_environment.uninstall(packages)
+
+        self.lock.update_lock(self.default_environment)
+        self.lock.save()
 
     def install_with_dependencies(self, new_dependencies: Optional[List[Dependency]] = None, *,
                                   monitor: ProjectPackageUpdateMonitor = no_monitor()):

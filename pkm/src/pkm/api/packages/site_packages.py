@@ -166,7 +166,7 @@ class InstalledPackage(Package):
 
             for path in to_check:
                 if (precompiled := path / "__pycache__").exists():
-                    shutil.rmtree(precompiled)
+                    shutil.rmtree(precompiled, ignore_errors=True)
                 if is_empty_directory(path):
                     path.rmdir()
 

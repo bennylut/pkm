@@ -34,7 +34,8 @@ class SourceDistribution(Distribution):
         builds = pkm.repositories.source_builds
 
         with self._source_tree() as source_tree:
-            return builds.build_or_get_metadata(self.owner_package, source_tree, env)
+            return builds.build_or_get_metadata(self.owner_package, source_tree, env,
+                                                self._build_requirements_repository)
 
     @contextmanager
     def _source_tree(self) -> ContextManager[Path]:

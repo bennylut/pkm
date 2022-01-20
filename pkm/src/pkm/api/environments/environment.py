@@ -5,7 +5,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import List, Set, Dict, Optional, Union, TypeVar
+from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
@@ -126,6 +126,25 @@ class Environment:
         sorted_markers = sorted(self.markers.items(), key=lambda item: item[0])
         marker_str = ';'.join(f"{k}={v}" for k, v in sorted_markers)
         return hashlib.md5(marker_str.encode()).hexdigest()
+
+    def exec_proc(self, cmd: str, args: Optional[List[str]] = None, env: Optional[Dict[str, str]] = None) -> NoReturn:
+        """
+        similar to `run_proc` but does not return, this process will become the new process
+        (on supporting operating systems)
+
+        :param cmd: the command to execute
+        :param args: list of arguments
+        :param env: environment variables
+        """
+
+        new_path = f"{self.paths['scripts']}"
+        if old_path := os.environ.get("PATH"):
+            new_path = f"{new_path}{os.pathsep}{old_path}"
+
+        args = [cmd, *(args or [])]
+        env = env or os.environ
+        new_env = {**env, 'PATH': new_path, 'VIRTUAL_ENV': str(self.path)}
+        os.execvpe(cmd, args, new_env)
 
     def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess:
         """
@@ -300,9 +319,6 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
     toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
 
-    if toinstall and not build_packages_repo:
-        raise ValueError("sync requires installation but no build-packages repository was provided")
-
     promises: List[Promise] = []
     from pkm.api.pkm import pkm
 
@@ -319,6 +335,10 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
+
+            if not build_packages_repo:
+                raise ValueError(
+                    f"sync requires installation of {toinstall} but no build-packages repository was provided")
 
             promises.append(Promise.execute(pkm.threads, uninstall, preinstalled_package))
 
