@@ -1,5 +1,6 @@
 import os
 
-import xonsh
+from pkm_cli.main import main
 
-# os.environ["XONSHRC"] = "/home/bennyl/projects/pkm-new/workspace/tmp/some_rc"
+os.chdir('/home/bennyl/projects/pkm-new/workspace/projects/xxx')
+main(['install'])

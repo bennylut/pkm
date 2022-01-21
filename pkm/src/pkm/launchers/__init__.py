@@ -12,7 +12,7 @@ from pkm.api.environments.environment import Environment
 
 
 def build_windows_script_launcher(
-        env: Environment, entrypoint: EntryPoint, dir: Path,
+        env: Environment, entrypoint: EntryPoint, target_dir: Path,
         script: Optional[str] = None) -> Path:
     """
     creates windows launcher for the given `script` that is suitable to the os of the given environment.
@@ -20,7 +20,7 @@ def build_windows_script_launcher(
 
     :param env: the environment that the created launcher should be suitable for
     :param entrypoint: the entrypoint to create a script for
-    :param dir: the directory where to put the launcher in
+    :param target_dir: the directory where to put the launcher in
     :param script: in case this argument is given it will be used as the script for the entrypoint,
            otherwise the script will be generated from the entrypoint object reference
     :return: path to the created launcher
@@ -34,7 +34,7 @@ def build_windows_script_launcher(
     launcher_data = resources.read_binary('pkm.launchers', launcher_name)
     script_content = script or entrypoint.ref.execution_script_snippet()
 
-    result_file = dir / f"{entrypoint.name}.exe"
+    result_file = target_dir / f"{entrypoint.name}.exe"
     with result_file.open('wb') as result_fd:
         result_fd.write(launcher_data)
         result_fd.write(f"#!{env.interpreter_path.absolute()}\r\n".encode())

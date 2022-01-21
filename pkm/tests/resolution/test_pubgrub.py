@@ -132,8 +132,8 @@ class ExampleProblem(Problem):
 
     def __init__(self, depency_graph: Dict[str, List[str]]):
         def parse_term(term: str):
-            package, constraint = term.split(' ', 2)
-            return Term.create(package, constraint)
+            package_, constraint = term.split(' ', 2)
+            return Term.create(package_, constraint)
 
         parsed_graph: Dict[str, Dict[str, List[Term]]] = defaultdict(lambda: defaultdict(list))
         for package, dependencies in depency_graph.items():

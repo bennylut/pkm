@@ -1,3 +1,8 @@
+from prompt_toolkit.patch_stdout import patch_stdout
+from typing import List, Optional
+
+import sys
+
 import argparse
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -9,6 +14,8 @@ from pkm.api.projects.project import Project
 from pkm.utils.archives import extract_archive
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import temp_dir
+from pkm_cli.monitors.environment_monitors import ConsoleEnvironmentOperationsMonitor
+from pkm_cli.monitors.project_monitors import ConsoleProjectOperationsMonitor
 from pkm_cli.scaffold.engine import ScaffoldingEngine
 
 
@@ -28,14 +35,16 @@ def _current_env(allow_missing: bool = False) -> Environment:
     return Environment(env_path)
 
 
+# noinspection PyUnusedLocal
 def build(args: Namespace):
     _current_project().build()
 
 
+# noinspection PyUnusedLocal
 def shell(args: Namespace):
     env = _current_env()
     print(f"Using environment: {env.path}")
-    env.exec_proc('xonsh')
+    env.exec_proc('xonsh')  # TODO need to validate that it is on path..
 
 
 def install(args: Namespace):
@@ -43,10 +52,10 @@ def install(args: Namespace):
 
     if (project := _current_project(True)).config.exists():
         print(f"Adding dependencies into project: {project.path}")
-        project.install_with_dependencies(dependencies)
+        project.install_with_dependencies(dependencies, monitor=ConsoleProjectOperationsMonitor())
     elif (env := _current_env(True)).path.exists():
         print(f"Adding dependencies into environment: {env.path}")
-        env.install(dependencies, pkm.repositories.pypi)
+        env.install(dependencies, pkm.repositories.pypi, monitor=ConsoleEnvironmentOperationsMonitor())
 
 
 def remove(args: Namespace):
@@ -69,7 +78,9 @@ def new(args: Namespace):
             ScaffoldingEngine().render(tdir, Path.cwd(), args.template_args)
 
 
-def main():
+def main(args: Optional[List[str]] = None):
+    args = args or sys.argv[1:]
+
     pkm_parser = ArgumentParser(description="pkm - python package management for busy developers")
     pkm_subparsers = pkm_parser.add_subparsers()
 
@@ -92,7 +103,8 @@ def main():
     pkm_new_parser.add_argument('template_args', nargs=argparse.REMAINDER)
     pkm_new_parser.set_defaults(func=new)
 
-    (args := pkm_parser.parse_args()).func(args)
+    with patch_stdout():
+        (pargs := pkm_parser.parse_args(args)).func(pargs)
 
 
 if __name__ == "__main__":

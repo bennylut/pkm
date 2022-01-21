@@ -19,6 +19,7 @@ class ScaffoldingEngine:
     def __init__(self):
         self._jinja = SandboxedEnvironment(loader=FileSystemLoader("/"))
 
+    # noinspection PyMethodMayBeStatic
     def render_doc(
             self, template_dir: Union[Path, str],
             template_descriptor: Optional[str] = None,
@@ -64,8 +65,8 @@ class ScaffoldingEngine:
         target_dir.mkdir(exist_ok=True)
 
         ui = _UserInteractor(args, kwargs)
-        module = self._load_proto(template_dir.joinpath("scaffold.py"), ui,
-                                  {**extra_context, "args": args, "kwargs": kwargs})
+        module = _load_proto(template_dir.joinpath("scaffold.py"), ui,
+                             {**extra_context, "args": args, "kwargs": kwargs})
 
         context = {k: v for k, v in vars(module).items() if not k.startswith("_")}
 
@@ -153,21 +154,8 @@ class ScaffoldingEngine:
 
         return result
 
-    def _load_proto(self, proto_file: Path, ui: "_UserInteractor", context: dict):
-        try:
-            spec = importlib.util.spec_from_file_location("__PROTO__", proto_file)
-            module = importlib.util.module_from_spec(spec)
 
-            ui.install(module)
-            for k, v in context.items():
-                setattr(module, k, v)
-
-            spec.loader.exec_module(module)
-            return module
-        except Exception as e:
-            raise RuntimeError(f"Error while evaluating: {proto_file}") from e
-
-
+# noinspection PyUnusedLocal,PyMethodMayBeStatic
 class _UserInteractor:
     def __init__(self, args: List, kwargs: Dict):
         self._args = args or []
@@ -195,8 +183,10 @@ class _UserInteractor:
             positional_arg: int = -1) -> bool:
 
         """
-        ask the user for yes/no confirmation (either retrieving it from the command line or from the user supplied arguments)
-        :param named_arg: the name of the argument that may contain the value for this function to return (supports the values y,yes,n,no)
+        ask the user for yes/no confirmation
+        (either retrieving it from the command line or from the user supplied arguments)
+        :param named_arg: the name of the argument that may contain the value for this function to return
+                          (supports the values y,yes,n,no)
         :param prompt: (optional - defaults to a string generated from named_arg) the prompt to show to the user
         :param default: (optional - defaults to True = 'yes') the default value to suggest the user
         :param positional_arg: (optional - defaults to -1) the index of the positional argument that may contain the
@@ -215,7 +205,8 @@ class _UserInteractor:
     def arg(self, named_arg: str, *, doc: str = "", default: str = "", positional_arg=-1):
         """
         fetch a value from the commandline arguments, without asking the user for it if not provided
-        :param named_arg: the name of the argument that may contain the value for this function to return (supports the values y,yes,n,no)
+        :param named_arg: the name of the argument that may contain the value for this function to return
+                          (supports the values y,yes,n,no)
         :param doc: documentation to show in the commandline (must be a string literal)
         :param default: (optional - defaults to None) the default value to suggest the user
         :param positional_arg:  (optional - defaults to -1) the index of the positional argument that may contain the
@@ -240,6 +231,7 @@ class _UserInteractor:
                                 value for this function to return
         :param multiselect: if true, multiple options can be selected
         :param autocomplete: if true, options are suggested via auto-complete
+        :param path: if true, will require the user to enter a valid path as a result to the prompt
         :param doc: documentation to show in the commandline (must be a string literal)
 
         :return: the requested user input
@@ -253,7 +245,7 @@ class _UserInteractor:
             return pre_answered
 
         if options:
-            options = list(options) # ensure we have a list
+            options = list(options)  # ensure we have a list
             default = default or options[0]
             if multiselect:
                 return q.checkbox(prompt, choices=options, default=default).ask()
@@ -274,3 +266,18 @@ class _UserInteractor:
         module.confirm = self.confirm
         module.say = self.say
         module.arg = self.arg
+
+
+def _load_proto(proto_file: Path, ui: "_UserInteractor", context: dict):
+    try:
+        spec = importlib.util.spec_from_file_location("__PROTO__", proto_file)
+        module = importlib.util.module_from_spec(spec)
+
+        ui.install(module)
+        for k, v in context.items():
+            setattr(module, k, v)
+
+        spec.loader.exec_module(module)
+        return module
+    except Exception as e:
+        raise RuntimeError(f"Error while evaluating: {proto_file}") from e

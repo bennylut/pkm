@@ -6,6 +6,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import StandardPackageArtifact, AbstractPackage
 from pkm.api.repositories.repository import Repository, RepositoryBuilder
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.http.cache_directive import CacheDirective
@@ -27,7 +28,8 @@ class SimpleRepository(Repository):
         self._base_url = Url.parse(url).connection_part()
         self._packages: Dict[str, Dict[str, Package]] = {}  # name -> version -> package
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
         if not (version_to_package := self._packages.get(dependency.package_name)):
             data = self._http_client.fetch_resource(f"{self._url}/{dependency.package_name}").data
             extractor = _HtmlArtifactsExtractor(self._base_url)

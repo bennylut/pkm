@@ -10,16 +10,18 @@ from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
-from pkm.api.environments.environment_monitors import EnvironmentPackageUpdateMonitor, PackageInstallMonitor
+from pkm.api.environments.environment_monitors import EnvironmentOperationsMonitor, \
+    EnvironmentPackageModificationMonitor
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
 from pkm.api.repositories.repository import Repository, DelegatingRepository
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import NamedVersion, StandardVersion, Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
-from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.iterators import find_first
 from pkm.utils.monitors import no_monitor
 from pkm.utils.promises import Promise
@@ -116,7 +118,7 @@ class Environment:
 
     @cached_property
     def site_packages(self) -> SitePackages:
-        return self._introspection.create_site_packages(False)
+        return self._introspection.create_site_packages(self, False)
 
     @cached_property
     def markers_hash(self) -> str:
@@ -196,7 +198,7 @@ class Environment:
         PthLink(pth_file, paths, imports).save()
 
     def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True, *,
-                monitor: EnvironmentPackageUpdateMonitor = no_monitor()):
+                monitor: EnvironmentOperationsMonitor = no_monitor()):
         """
         retrieve the `dependencies` from the `repository` together with all their dependencies and install them inside
         this environment, making sure to not break any pre-installed "user-requested" packages
@@ -209,7 +211,7 @@ class Environment:
         :param monitor: monitor for the installation operation
         """
 
-        with monitor:
+        with monitor.on_install() as package_modification_monitor:
             self.reload()
 
             preinstalled_packages = list(self.site_packages.installed_packages())
@@ -223,7 +225,7 @@ class Environment:
                 installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
                 installation = resolve_dependencies(
                     user_request.to_dependency(), self, installation_repo,
-                    monitor=monitor.on_dependency_resolution(user_request))
+                    monitor=package_modification_monitor)
 
                 installation_names = {i.name for i in installation}
                 for preinstalled in preinstalled_packages:
@@ -236,9 +238,9 @@ class Environment:
                 installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
                 installation = resolve_dependencies(
                     user_request.to_dependency(), self, installation_repo,
-                    monitor=monitor.on_dependency_resolution(user_request))
+                    monitor=package_modification_monitor)
 
-            _sync_package(self, installation, repository, monitor=monitor)
+            _sync_package(self, installation, repository, monitor=package_modification_monitor)
 
             self.reload()
 
@@ -259,7 +261,7 @@ class Environment:
             installed.uninstall()
 
     def uninstall(self, packages: _PACKAGE_NAMES_T,
-                  monitor: EnvironmentPackageUpdateMonitor = no_monitor()) -> Set[str]:
+                  monitor: EnvironmentOperationsMonitor = no_monitor()) -> Set[str]:
         """
         attempt to remove the required packages from this env together will all the dependencies that may become orphan
         as a result of this step.
@@ -273,7 +275,7 @@ class Environment:
         :return the set of package names that were successfully removed from the environment
         """
 
-        with monitor:
+        with monitor.on_uninstall() as package_modification_monitor:
             self.reload()
 
             packages = _coerce_package_names(packages)
@@ -286,7 +288,7 @@ class Environment:
             installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
             installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
-            _sync_package(self, installation, None, monitor=monitor)
+            _sync_package(self, installation, None, monitor=package_modification_monitor)
 
             kept = {p.name for p in installation}
 
@@ -315,7 +317,7 @@ class Environment:
 
 
 def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository],
-                  monitor: EnvironmentPackageUpdateMonitor):
+                  monitor: EnvironmentPackageModificationMonitor):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
     toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
 
@@ -323,13 +325,12 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
     from pkm.api.pkm import pkm
 
     def install(p: Package):
-        m: PackageInstallMonitor
-        with monitor.on_install(p) as m:
-            p.install_to(env, monitor=m.on_package_may_download(), build_packages_repo=build_packages_repo)
+        with monitor.on_access_package(p) as package_monitor:
+            p.install_to(env, monitor=package_monitor, build_packages_repo=build_packages_repo)
 
     def uninstall(p: InstalledPackage):
-        with monitor.on_uninstall(p):
-            p.uninstall()
+        with monitor.on_access_package(p) as package_monitor:
+            p.uninstall(monitor=package_monitor)
 
     for package_to_install in toinstall.values():
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
@@ -360,13 +361,13 @@ class _UserRequestPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         return self._request
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(),
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
                    build_packages_repo: Optional["Repository"] = None): pass
 
     def to_dependency(self) -> Dependency:
@@ -383,7 +384,7 @@ class _RemovalRepository(Repository):
     def accepts(self, dependency: Dependency) -> bool:
         return True
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
@@ -400,14 +401,14 @@ class _InstallationRepository(DelegatingRepository):
         self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
         self._limit_to_installed = limit_to_installed
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
         if self._limit_to_installed and (installed := self._installed_packages.get(dependency.package_name)):
             return [installed]
 
-        return self._repo._do_match(dependency)
+        return self._repo._do_match(dependency, monitor=monitor)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         packages = self._repo._sort_by_priority(dependency, packages)
@@ -445,7 +446,7 @@ class OperatingPlatform:
     python_interpreter_bits: int  # 32 or 64
 
     def has_windows_os(self) -> bool:
-        return os == 'Windows'
+        return self.os == 'Windows'
 
     def has_arm_cpu(self) -> bool:
         return 'armv71' in self.machine or 'aarch64' in self.machine

@@ -6,11 +6,12 @@ from typing import List, Dict, Optional, Any
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.repositories.repository import Repository, RepositoryBuilder
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 from pkm.api.versions.version import Version
 from pkm.utils.files import is_empty_directory
-from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 
 
@@ -54,7 +55,9 @@ class LocalPackagesRepository(Repository):
     def accepts(self, dependency: Dependency) -> bool:
         return dependency.package_name in self._package_settings
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
+
         if cache := self._packages_cache.get(dependency.package_name):
             return [cache]
 
@@ -88,14 +91,15 @@ class LocalPackage(Package):
         self._build_cache[key] = package
         return package
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         return self._get_or_create_delegate(environment)._all_dependencies(environment, monitor)
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._get_or_create_delegate(env).is_compatible_with(env)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
         self._get_or_create_delegate(env).install_to(
             env, user_request, monitor=monitor,
             build_packages_repo=build_packages_repo)

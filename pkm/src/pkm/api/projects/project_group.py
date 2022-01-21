@@ -6,6 +6,7 @@ from pkm.api.packages.package import Package
 
 from pkm.api.projects.project import Project
 from pkm.api.repositories.repository import Repository, RepositoryBuilder
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.project_builders.application_builders import ApplicationInstallerProjectWrapper
 from pkm.utils.commons import NoSuchElementException
@@ -184,7 +185,8 @@ class ProjectGroupRepository(Repository):
             app_name: ApplicationInstallerProjectWrapper(p) for p in self._projects.values()
             if (app_name := p.config.application_installer_project_name)}
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
         if project := (self._projects.get(dependency.package_name) or self._applications.get(dependency.package_name)):
             if dependency.version_spec.allows_version(project.version):
                 return [project]

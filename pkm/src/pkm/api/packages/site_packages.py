@@ -6,9 +6,9 @@ from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.utils.files import is_empty_directory
-from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -18,11 +18,14 @@ if TYPE_CHECKING:
 
 
 class SitePackages:
-    def __init__(self, purelib: Path, platlib: Path, other_sites: Iterable[Path], is_read_only: bool):
+    def __init__(
+            self, env: "Environment", purelib: Path, platlib: Path, other_sites: Iterable[Path], is_read_only: bool):
+
         self._purelib = purelib
         self._platlib = platlib
         self._other_sites = other_sites
         self._is_read_only = is_read_only
+        self.env = env
 
     def all_sites(self) -> Iterator[Path]:
         yield self._purelib
@@ -124,18 +127,19 @@ class InstalledPackage(Package):
         self._user_request = request
         return True
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         return self._meta.dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
         raise NotImplemented()  # maybe re-mark user request?
 
-    def uninstall(self) -> bool:
-        print(f"uninstalling {self._desc}")
+    def uninstall(self, *, monitor: PackageOperationsMonitor = no_monitor()) -> bool:
+        monitor.on_uninstall(self, self.site.env)
         if self.readonly:
             print("could not uninstall, package is readonly")
             return False

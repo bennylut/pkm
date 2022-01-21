@@ -493,23 +493,22 @@ class Solver:
                 term_incompatibilities.append(incompatibility)
 
     def solve(self, monitor: DependencyResolutionMonitor = no_monitor()) -> Dict[str, Version]:
-        with monitor:
-            root_term = self.package_versions(self._root_package)[0].term
-            self._add_incompatability(
-                Incompatibility.create([root_term.negate()], external_cause='Root Project'))
+        root_term = self.package_versions(self._root_package)[0].term
+        self._add_incompatability(
+            Incompatibility.create([root_term.negate()], external_cause='Root Project'))
 
-            self._solution.require([root_term.package])
+        self._solution.require([root_term.package])
 
-            next_package = root_term.package
-            while next_package is not None:
-                self._solution.notify_state(monitor, next_package)
-                # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
-                self._propagate(next_package)
-                next_package = self._make_next_decision()
+        next_package = root_term.package
+        while next_package is not None:
+            self._solution.notify_state(monitor, next_package)
+            # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
+            self._propagate(next_package)
+            next_package = self._make_next_decision()
 
-            # print(f"reached into conclusion: {self._solution.decisions()}")
-            monitor.on_final_decision(self._solution.decisions())
-            return self._solution.decisions()
+        # print(f"reached into conclusion: {self._solution.decisions()}")
+        monitor.on_final_decision(self._solution.decisions())
+        return self._solution.decisions()
 
     def _propagate(self, next_package: str):
 

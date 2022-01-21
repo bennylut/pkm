@@ -1,22 +1,27 @@
+from __future__ import annotations
+
 from pkm.api.packages.package import Package
-from pkm.api.packages.site_packages import InstalledPackage
-from pkm.resolution.resolution_monitor import DependencyResolutionMonitor
-from pkm.utils.http.http_monitors import FetchResourceMonitor
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
+from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
+from pkm.resolution.resolution_monitor import HasDependencyResolutionStepMonitor
 from pkm.utils.monitors import Monitor, no_monitor
 
 
-# noinspection PyMethodMayBeStatic
-class PackageInstallMonitor(Monitor):
-    def on_package_may_download(self) -> FetchResourceMonitor:
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
+class EnvironmentOperationsMonitor(Monitor):
+    def on_install(self) -> EnvironmentPackageModificationMonitor:
+        return no_monitor()
+
+    def on_uninstall(self) -> EnvironmentPackageModificationMonitor:
         return no_monitor()
 
 
-class EnvironmentPackageUpdateMonitor(Monitor):
-    def on_dependency_resolution(self, request: Package) -> DependencyResolutionMonitor:
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
+class EnvironmentPackageModificationMonitor(HasDependencyResolutionStepMonitor):
+
+    def on_access_repository(self, repository: Repository) -> RepositoryOperationsMonitor:
         return no_monitor()
 
-    def on_install(self, package: Package) -> PackageInstallMonitor:
-        return no_monitor()
-
-    def on_uninstall(self, package: InstalledPackage) -> Monitor:
+    def on_access_package(self, package: Package) -> PackageOperationsMonitor:
         return no_monitor()

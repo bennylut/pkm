@@ -143,6 +143,7 @@ class _StyleSheet:
         return vstyle
 
 
+# noinspection PyMethodMayBeStatic
 class _Writer:
     def __init__(self, style: Optional[_StyleSheet] = None):
         self.style = style or _StyleSheet()

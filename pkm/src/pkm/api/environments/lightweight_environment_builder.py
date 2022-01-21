@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union
 
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
@@ -87,7 +87,9 @@ class PyVEnvConfiguration(FileConfiguration):
         return os.linesep.join(f"{k} = {v}" for k, v in self._data.items())
 
     @classmethod
-    def load(cls, path: Path):
+    def load(cls, path: Union[Path, str]):
+        path = Path(path)
+
         if not path.exists():
             return PyVEnvConfiguration(path=path, data={})
 

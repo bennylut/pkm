@@ -8,6 +8,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.api.distributions.source_distribution import SourceDistribution
@@ -17,7 +18,7 @@ from pkm.utils.strings import without_suffix
 from pkm.utils.types import SupportsLessThanEq
 
 
-@dataclass
+@dataclass(frozen=True, eq=True)
 class StandardPackageArtifact:
     file_name: str
     requires_python: Optional[VersionSpecifier] = None
@@ -29,11 +30,11 @@ class StandardPackageArtifact:
 
 class AbstractPackage(Package):
 
-    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact],
-                 build_packages_repo: Optional[Repository] = None):
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact]):
         self._descriptor = descriptor
         self._artifacts = artifacts
-        self._build_packages_repo = build_packages_repo
+        self._dependencies_per_artifact_id: Dict[int, List["Dependency"]] = {}
+        self._path_per_artifact_id: Dict[int, Path] = {}
 
     @property
     def descriptor(self) -> PackageDescriptor:
@@ -88,27 +89,42 @@ class AbstractPackage(Package):
         """
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
+
+        monitor.on_install(self, env)
+
         artifact = self._best_artifact_for(env)
-        artifact_path = self._retrieve_artifact(artifact, monitor)
+        artifact_path = self._get_or_retrieve_artifact_path(artifact, monitor)
+
         if artifact.is_wheel():
             WheelDistribution(self.descriptor, artifact_path).install_to(env, user_request)
         else:
             SourceDistribution(self.descriptor, artifact_path, build_packages_repo).install_to(env, user_request)
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _get_or_retrieve_artifact_path(self, artifact, monitor):
+        if not (artifact_path := self._path_per_artifact_id.get(id(artifact))):
+            with monitor.on_fetch(self.descriptor) as fetch_monitor:
+                artifact_path = self._retrieve_artifact(artifact, monitor=fetch_monitor)
+                self._path_per_artifact_id[id(artifact)] = artifact_path
+        return artifact_path
+
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         artifact = self._best_artifact_for(environment)
         if not artifact:
             raise UnsupportedOperation(
                 "attempting to compute dependencies for environment that is not supported by this package")
 
-        resource = self._retrieve_artifact(artifact, monitor)
+        if deps := self._dependencies_per_artifact_id.get(id(artifact)):
+            return deps
+        resource = self._get_or_retrieve_artifact_path(artifact, monitor)
         filename = artifact.file_name
         if filename.endswith('.whl'):
             info = WheelDistribution(self.descriptor, resource) \
-                .extract_metadata(environment)
+                .extract_metadata(environment, monitor=monitor)
         else:
             info = SourceDistribution(self.descriptor, resource) \
-                .extract_metadata(environment)
+                .extract_metadata(environment, monitor=monitor)
 
+        self._dependencies_per_artifact_id[id(artifact)] = info.dependencies
         return info.dependencies

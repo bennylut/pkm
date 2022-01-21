@@ -15,11 +15,14 @@ from pkm.api.environments.environment import Environment
 from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageOperationsMonitor, HasBuildStepMonitor
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, BuildSystemConfig
 from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.utils.http.http_monitors import FetchResourceMonitor
+from pkm.utils.monitors import no_monitor
 from pkm.utils.sequences import single_or_fail
 
 _BUILD_KEY_T = int
@@ -41,102 +44,107 @@ class SourceBuildsRepository(Repository):
 
     def _build(self, build_key: _BUILD_KEY_T, package: PackageDescriptor,
                required_artifact: str,  # ['metadata', 'wheel', 'editable']
-               source_tree: Path, target_env: Environment, build_packages_repo: Optional[Repository]):
+               source_tree: Path, target_env: Environment, build_packages_repo: Optional[Repository],
+               monitor: HasBuildStepMonitor):
 
-        print(f"INNER BUILDING {package}...")
-        package_dir = self._version_dir(package)
-        artifacts_dir = package_dir / 'artifacts'
-        metadata_file = package_dir / "METADATA"
+        with monitor.on_build(package, required_artifact) as build_monitor:
 
-        if package in (ongoingbuilds := self._ongoing_builds[build_key]):
-            raise BuildError(f"cycle detected involving: {ongoingbuilds}")
+            print(f"INNER BUILDING {package}...")
+            package_dir = self._version_dir(package)
+            artifacts_dir = package_dir / 'artifacts'
+            metadata_file = package_dir / "METADATA"
 
-        ongoingbuilds.add(package)
-        pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml', package)
-        buildsys: BuildSystemConfig = pyproject.build_system
-        build_packages_repo = build_packages_repo or self._build_packages_repo
+            if package in (ongoingbuilds := self._ongoing_builds[build_key]):
+                raise BuildError(f"cycle detected involving: {ongoingbuilds}")
 
-        with TemporaryDirectory() as tdir:
-            tdir_path = Path(tdir)
-            build_env = LightweightEnvironments.create(tdir_path / 'venv', target_env.interpreter_path)
-            if buildsys.requirements:
-                build_env.install(buildsys.requirements, build_packages_repo)
-            if buildsys.backend_path:
-                build_env.install_link('build_backend', [source_tree / pth for pth in buildsys.backend_path])
+            ongoingbuilds.add(package)
+            pyproject = PyProjectConfiguration.load_effective(source_tree / 'pyproject.toml', package)
+            buildsys: BuildSystemConfig = pyproject.build_system
+            build_packages_repo = build_packages_repo or self._build_packages_repo
 
-            # start build life-cycle:
-            wheels_path = (tdir_path / "wheels").absolute()
-            wheels_path.mkdir(parents=True, exist_ok=True)
+            with TemporaryDirectory() as tdir:
+                tdir_path = Path(tdir)
+                build_env = LightweightEnvironments.create(tdir_path / 'venv', target_env.interpreter_path)
+                if buildsys.requirements:
+                    build_env.install(buildsys.requirements, build_packages_repo)
+                if buildsys.backend_path:
+                    build_env.install_link('build_backend', [source_tree / pth for pth in buildsys.backend_path])
 
-            requires_wheel = True
+                # start build life-cycle:
+                wheels_path = (tdir_path / "wheels").absolute()
+                wheels_path.mkdir(parents=True, exist_ok=True)
 
-            # 1. check for wheel extra requirements
-            command = 'get_requires_for_build_editable' \
-                if required_artifact == 'editable' else 'get_requires_for_build_wheel'
+                requires_wheel = True
 
-            extra_requirements = _exec_build_cycle_script(source_tree, build_env, buildsys, command, [None])
+                # 1. check for wheel extra requirements
+                command = 'get_requires_for_build_editable' \
+                    if required_artifact == 'editable' else 'get_requires_for_build_wheel'
 
-            if extra_requirements.status == 'success':
-                build_env.install(
-                    [Dependency.parse_pep508(d) for d in extra_requirements.result],
-                    build_packages_repo)
+                extra_requirements = _exec_build_cycle_script(source_tree, build_env, buildsys, command, [None])
 
-            if required_artifact == 'metadata':
-                # 2. try to build metadata only
-                dist_info_output = _exec_build_cycle_script(
-                    source_tree, build_env, buildsys, 'prepare_metadata_for_build_wheel',
-                    [str(wheels_path), None])
-                if dist_info_output.status == 'success':
-                    wheel_metadata_path = wheels_path / dist_info_output.result / 'METADATA'
-                    if wheel_metadata_path.exists():
-                        requires_wheel = False
-                        metadata_file.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy(wheel_metadata_path, metadata_file)
+                if extra_requirements.status == 'success':
+                    build_env.install(
+                        [Dependency.parse_pep508(d) for d in extra_requirements.result],
+                        build_packages_repo)
 
-            if requires_wheel:
-                # 2. build the wheel
-                command = 'build_editable' if required_artifact == 'editable' else 'build_wheel'
-                wheel_output = _exec_build_cycle_script(
-                    source_tree, build_env, buildsys, command, [str(wheels_path), None, None])
+                if required_artifact == 'metadata':
+                    # 2. try to build metadata only
+                    dist_info_output = _exec_build_cycle_script(
+                        source_tree, build_env, buildsys, 'prepare_metadata_for_build_wheel',
+                        [str(wheels_path), None])
+                    if dist_info_output.status == 'success':
+                        wheel_metadata_path = wheels_path / dist_info_output.result / 'METADATA'
+                        if wheel_metadata_path.exists():
+                            requires_wheel = False
+                            metadata_file.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copy(wheel_metadata_path, metadata_file)
 
-                wheel_path = wheels_path / wheel_output.result
+                if requires_wheel:
+                    # 2. build the wheel
+                    command = 'build_editable' if required_artifact == 'editable' else 'build_wheel'
+                    wheel_output = _exec_build_cycle_script(
+                        source_tree, build_env, buildsys, command, [str(wheels_path), None, None])
 
-                if not wheel_path or not wheel_path.exists():
-                    raise BuildError("build backend did not produced expected wheel")
+                    wheel_path = wheels_path / wheel_output.result
 
-                if not metadata_file.exists():
-                    metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env)
+                    if not wheel_path or not wheel_path.exists():
+                        raise BuildError("build backend did not produced expected wheel")
 
-                # done setting up, storing in package dir
-                artifacts_dir.mkdir(exist_ok=True, parents=True)
-                shutil.copy(wheel_path, artifacts_dir / wheel_path.name)
-                if not metadata_file.exists():
-                    metadata.save_to(metadata_file)
+                    if not metadata_file.exists():
+                        metadata = WheelDistribution(package, wheel_path).extract_metadata(target_env)
+
+                    # done setting up, storing in package dir
+                    artifacts_dir.mkdir(exist_ok=True, parents=True)
+                    shutil.copy(wheel_path, artifacts_dir / wheel_path.name)
+                    if not metadata_file.exists():
+                        metadata.save_to(metadata_file)
 
     def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool,
-              build_packages_repo: Optional[Repository]) -> Package:
+              build_packages_repo: Optional[Repository], *,
+              monitor: HasBuildStepMonitor = no_monitor()) -> Package:
 
-        print(f"BUILDING {package}...")
+        # print(f"BUILDING {package}...")
         package_type = 'wheel' if not editable else 'editable'
         self._build(threading.current_thread().ident, package, package_type, source_tree, target_env,
-                    build_packages_repo)
+                    build_packages_repo, monitor)
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
-                              target_env: Environment, build_packages_repo: Optional[Repository]) -> PackageMetadata:
-        print(f"BUILDING OR GETTING META {package}...")
+                              target_env: Environment, build_packages_repo: Optional[Repository],
+                              monitor: PackageOperationsMonitor) -> PackageMetadata:
+        # print(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
             self._build(
                 threading.current_thread().ident, package, 'metadata', source_tree, target_env,
-                build_packages_repo)
+                build_packages_repo, monitor)
 
         return PackageMetadata.load(metadata_file)
 
     def accepts(self, dependency: Dependency) -> bool:
         return True
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
         if not (versions_dir := self._workspace / dependency.package_name).exists():
             return []
 

@@ -6,9 +6,11 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
 from pkm.api.repositories.repository import Authentication
 from pkm.api.repositories.repository import Repository, RepositoryPublisher
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import NoSuchElementException
@@ -30,7 +32,8 @@ class PyPiRepository(Repository):
     def publisher(self) -> Optional["RepositoryPublisher"]:
         return PyPiPublisher(self._http)
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
         try:
             json: Dict[str, Any] = self._http \
                 .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
@@ -80,7 +83,7 @@ class PypiPackage(AbstractPackage):
 
         return resource.data
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         json: Dict[str, Any] = self._repo._http \
             .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json') \
             .read_data_as_json()
@@ -106,9 +109,13 @@ def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[Stan
 
 # https://warehouse.pypa.io/api-reference/legacy.html
 class PyPiPublisher(RepositoryPublisher):
+
     def __init__(self, http: HttpClient):
         super().__init__('pypi')
         self._http = http
+
+    def register(self, auth: "Authentication", package_meta: PackageMetadata):
+        pass  # TODO
 
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
         data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}

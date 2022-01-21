@@ -1,19 +1,24 @@
 ## RUNNING TASKS:
 
+- cli publish command
+- when publishing - register the project name if needed (ask the user?)
+- environment naming (for project for example..)
+
 ## DONE IN THIS VERSION
-- build pkm cli (initial implementation of..)
-    - the new command: [project, project-group]
-    - the build command
-    - the install command
-    - the uninstall command
-    - the shell command
+- attach monitoring to cli - basic monitoring attached - need to define specific tasks now
+- bug: xonsh is getting built twice
+- installation, use instead `~=installed_version`
 
 ## BACKLOG TASKS:
-- attach monitoring to cli
-- environment naming (for project for example..)
+- optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
+  compression from the webserver and then reopen it locally
+- cmd: pkm remove -o (orphans)
+- cmd: pkm remove -f (force single)
+- shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir
+- new pyproject-group template
+- documentation: templates docs
 - support publishing self-contained-application packages
 - support * in packages but not default (just scan before usage on supported repositories)
-- when publishing - register the project name if needed (ask the user?)
 - pkm install wheel from path
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - check entrypoint creation in windows
@@ -22,7 +27,6 @@
 - consider interactive ui mode
 - toml parser/writer need unit tests
 - when adding dependency to project through pkm (install_dependencies) currently the `*` version is used, after
-  installation, use instead `~=installed_version`
 - toml - lists user style - support column and grid and auto detect it
 - check that when downloading packages for install, the hash is being validated
 - check the "editables" module, decide if you want to support this behavior

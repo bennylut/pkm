@@ -1,6 +1,5 @@
 from dataclasses import dataclass, replace
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import List, Optional, Union, Tuple, Dict, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
@@ -8,13 +7,17 @@ from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageOperationsMonitor, HasBuildStepMonitor
 from pkm.api.pkm import pkm
-from pkm.api.projects.project_monitors import ProjectPackageUpdateMonitor
+from pkm.api.projects.project_monitors import ProjectOperationsMonitor
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
+from pkm.api.versions.version import StandardVersion
+from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
-from pkm.utils.http.http_monitors import FetchResourceMonitor
+from pkm.utils.files import temp_dir
 from pkm.utils.iterators import first_or_none
 from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -47,19 +50,21 @@ class Project(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         return self._pyproject.project.all_dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
-        with TemporaryDirectory() as tdir:
-            tdir = Path(tdir)
-            wheel = self.build_wheel(tdir, editable=True)
-            WheelDistribution(self.descriptor, wheel) \
-                .install_to(env, user_request)
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
+        with monitor.on_install(self, env) as install_monitor:
+            with temp_dir() as tdir:
+                wheel = self.build_wheel(tdir, editable=True)
+                distribution = WheelDistribution(self.descriptor, wheel)
+                install_monitor.on_distribution_chosen(distribution)
+                distribution.install_to(env, user_request)
 
     @cached_property
     def lock(self) -> PackagesLock:
@@ -94,32 +99,53 @@ class Project(Package):
         self.lock.save()
 
     def install_with_dependencies(self, new_dependencies: Optional[List[Dependency]] = None, *,
-                                  monitor: ProjectPackageUpdateMonitor = no_monitor()):
+                                  monitor: ProjectOperationsMonitor = no_monitor()):
         """
         install the dependencies of this project to its assigned environments
-        :param monitor: monitor the progress of the execution of this method
+        :param monitor: monitor the operations made by this method
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
         """
 
-        with monitor:
-            deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
-            new_deps = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
+        deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
+        new_deps = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
+        uninvolved_deps = [d for d in deps.values() if d.package_name not in new_deps]
 
-            self._pyproject.project = replace(
-                self._pyproject.project,
-                dependencies=[d for d in deps.values() if d.package_name not in new_deps] + list(new_deps.values()))
+        self._pyproject.project = replace(
+            self._pyproject.project,
+            dependencies=uninvolved_deps + list(new_deps.values()))
 
+        monitor.on_dependencies_modified(self, deps.values(), new_deps.values())
+
+        with monitor.on_environment_modification(self) as env_ops_monitor:
             repository = _ProjectRepository(self)
             self.default_environment.force_remove(self.name)
             self.default_environment.install(
-                self.descriptor.to_dependency(), repository, monitor=monitor.on_environment_installation())
+                self.descriptor.to_dependency(), repository, monitor=env_ops_monitor)
 
-            monitor.on_update_pyproject()
+            new_deps_with_version = []
+            for dep in new_deps.values():
+                installed = self.default_environment.site_packages.installed_package(dep.package_name).version
+                if isinstance(installed, StandardVersion):
+                    spec = VersionRange(
+                        SpecificVersion(installed),
+                        SpecificVersion(replace(installed, release=(installed.release[0] + 1,))),
+                        True, False)
+                else:
+                    spec = SpecificVersion(installed)
+
+                new_deps_with_version.append(replace(dep, version_spec=spec))
+
+            self._pyproject.project = replace(
+                self._pyproject.project,
+                dependencies=uninvolved_deps + new_deps_with_version
+            )
+
             self._pyproject.save()
+            monitor.on_pyproject_modified()
 
-            monitor.on_update_lock()
             self.lock.update_lock(self.default_environment)
             self.lock.save()
+            monitor.on_lock_modified()
 
     def _reload(self):
         clear_cached_properties(self)
@@ -136,34 +162,40 @@ class Project(Package):
             python_versions[0].install_to(default_env)
         return default_env
 
-    def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
+    def build_application_installer(self, target_dir: Optional[Path] = None, *,
+                                    monitor: ProjectOperationsMonitor = no_monitor()) -> Path:
         """
         builds a package that contains application installer for this project
         note that the installer is itself a project with the same name as this project appended with '-app'
         and therefore on publishing will require different project registration
 
         :param target_dir: the directory to put the installer in
+        :param monitor: monitor the operations made by this method
         :return: the path to the created installer package
         """
         from pkm.project_builders.application_builders import build_app_installer
-        return build_app_installer(self, target_dir)
+        return build_app_installer(self, target_dir, monitor=monitor)
 
-    def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
+    def build_sdist(self, target_dir: Optional[Path] = None, *,
+                    monitor: ProjectOperationsMonitor = no_monitor()) -> Path:
         """
         build a source distribution from this project
         :param target_dir: the directory to put the created archive in
+        :param monitor: monitor the operations made by this method
         :return: the path to the created archive
         """
 
         from pkm.project_builders.standard_builders import build_sdist
-        return build_sdist(self, target_dir)
+        return build_sdist(self, target_dir, monitor=monitor)
 
-    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
+    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False, *,
+                    monitor: HasBuildStepMonitor = no_monitor()) -> Path:
         """
         build a wheel distribution from this project
         :param target_dir: directory to put the resulted wheel in
         :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
         :param editable: if True, a wheel for editable install will be created
+        :param monitor: monitor the operations made by this method
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
 
@@ -171,26 +203,28 @@ class Project(Package):
         from pkm.project_builders.standard_builders import build_wheel
 
         if not only_meta and is_application_installer_project(self):
-            return build_app_installation(self, _ProjectRepository(self), target_dir)
+            return build_app_installation(self, target_dir, monitor=monitor)
 
-        return build_wheel(self, target_dir, only_meta, editable)
+        return build_wheel(self, target_dir, only_meta, editable, monitor=monitor)
 
-    def build(self, target_dir: Optional[Path] = None) -> List[Path]:
+    def build(self, target_dir: Optional[Path] = None, *,
+              monitor: ProjectOperationsMonitor = no_monitor()) -> List[Path]:
         """
         builds the project into all distributions that are required as part of its configuration
         :param target_dir: directory to put the resulted distributions in
+        :param monitor: monitor the operations made by this method
         :return list of paths to all the distributions created
         """
 
-        result: List[Path] = [self.build_sdist(target_dir), self.build_wheel(target_dir)]
+        result: List[Path] = [self.build_sdist(target_dir, monitor=monitor),
+                              self.build_wheel(target_dir, monitor=monitor)]
         if self.config.pkm_project.application:
-            result.append(self.build_application_installer(target_dir))
+            result.append(self.build_application_installer(target_dir, monitor=monitor))
 
         return result
 
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
                 distributions_dir: Optional[Path] = None):
-
         """
         publish this project distributions, as found in the given `distributions_dir` to the given `repository`.
         using `auth` for authentication
@@ -215,7 +249,8 @@ class Project(Package):
                 publisher.publish(auth, metadata, distribution)
 
     @classmethod
-    def load(cls, path: Path) -> "Project":
+    def load(cls, path: Union[Path, str]) -> "Project":
+        path = Path(path)
         pyproject = PyProjectConfiguration.load(path / 'pyproject.toml')
         return Project(pyproject)
 
@@ -257,7 +292,8 @@ class _ProjectRepository(Repository):
     def _repository_for(self, d: Dependency) -> Repository:
         return self.package_to_repo.get(d.package_name, self._default_repo)
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
         if dependency.package_name == self.project.name:
             return [self.project]
 

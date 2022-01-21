@@ -3,10 +3,9 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.utils.http.http_monitors import FetchResourceMonitor
-
 from pkm.utils.monitors import no_monitor
 
 if TYPE_CHECKING:
@@ -86,7 +85,7 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :param monitor: in case where this method requires fetching the package, this will be used as a monitor
@@ -94,8 +93,8 @@ class Package(ABC):
         """
 
     def dependencies(
-            self, environment: "Environment",
-            extras: Optional[List[str]] = None, *, monitor: FetchResourceMonitor = no_monitor()) -> List["Dependency"]:
+            self, environment: "Environment", extras: Optional[List[str]] = None, *,
+            monitor: PackageOperationsMonitor = no_monitor()) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :param extras: the extras to include in the dependencies calculation
@@ -116,7 +115,8 @@ class Package(ABC):
 
     @abstractmethod
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"]= None):
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
         """
         installs this package into the given `env`
         :param env: the environment to install this package into

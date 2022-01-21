@@ -278,6 +278,12 @@ class _GzipResponseWrapper:
         return getattr(self._response, item)
 
 
+def _add_standard_headers(headers: Dict[str, str]):
+    headers['user-agent'] = f'pkm'
+    headers['accept-encoding'] = 'gzip'
+    headers['connection'] = 'keep-alive'
+
+
 class HttpClient:
 
     def __init__(self, resources_dir: Path, max_redirects: int = 3, max_connection_retries: int = 2):
@@ -289,11 +295,6 @@ class HttpClient:
         self._fetch_lock = Lock()
         self._max_redirects = max_redirects
         self._max_connection_retries = max_connection_retries
-
-    def _add_standard_headers(self, headers: Dict[str, str]):
-        headers['user-agent'] = f'pkm'
-        headers['accept-encoding'] = 'gzip'
-        headers['connection'] = 'keep-alive'
 
     def _resource_files_of(self, url: Url) -> FetchedResource:
         url_hash = hashlib.md5(str(url).encode('ascii')).hexdigest()
@@ -358,7 +359,7 @@ class HttpClient:
 
         headers = headers or {}
         url = Url.parse(url)
-        self._add_standard_headers(headers)
+        _add_standard_headers(headers)
 
         with self._request("POST", url, headers, payload, max_redirects=max_redirects) as response:
             yield response
@@ -369,7 +370,7 @@ class HttpClient:
 
         headers = headers or {}
         url = Url.parse(url)
-        self._add_standard_headers(headers)
+        _add_standard_headers(headers)
 
         with self._request("GET", url, headers, max_redirects=max_redirects) as response:
             yield response
@@ -397,7 +398,7 @@ class HttpClient:
                     cache_files = self._resource_files_of(parsed_url)
                     fetch_info = TomlFileConfiguration.load(
                         cache_files.fetch_info)  # TODO: maybe add the response headers
-                    self._add_standard_headers(headers)
+                    _add_standard_headers(headers)
 
                     use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
                     if use_cached_data:

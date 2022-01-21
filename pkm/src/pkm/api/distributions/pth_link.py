@@ -19,7 +19,6 @@ class PthLink:
     Lines starting with import (followed by space or tab) are executed.
     """
 
-
     def __init__(self, path: Path, links: List[Path], imports: Optional[List[str]] = None):
         self.path = path
         self.imports = imports

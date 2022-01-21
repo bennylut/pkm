@@ -8,8 +8,10 @@ from typing import List, Union, Optional, Tuple, Dict, Any
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version_specifiers import AnyVersion
 from pkm.utils.iterators import partition
+from pkm.utils.monitors import no_monitor
 
 
 class Repository(ABC):
@@ -30,31 +32,34 @@ class Repository(ABC):
         return not dependency.is_url_dependency
 
     @abstractmethod
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
         """
         IMPLEMENTATION NOTICE:
             do not try to filter pre-releases,
             it is handled for you in the `match` method that call this one.
 
         :param dependency: the dependency to match
+        :param monitor: monitor for this operation
         :return: list of all the packages in this repository that match the given `dependency`,
         """
 
-    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
+    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True, *,
+              monitor: RepositoryOperationsMonitor = no_monitor()) -> List[Package]:
         """
         :param dependency: the dependency to match (or a pep508 string representing it)
         :param check_prereleases: whether or not to check pre-releases according to pep440 rules.
-              if True, will only output pre-releases if the dependency version specifier is a 
+              if True, will only output pre-releases if the dependency version specifier is a
               pre-release or all the versions matching the dependency are pre-releases.
               Otherwise, will output all pre-releases matching the dependency
-                                     
+        :param monitor: monitor for this operation
+
         :return: list of all the packages in this repository that match the given `dependency`
         """
 
         if isinstance(dependency, str):
             dependency = Dependency.parse_pep508(dependency)
 
-        matched = self._do_match(dependency)
+        matched = self._do_match(dependency, monitor=monitor)
         filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched
         return self._sort_by_priority(dependency, filtered)
 
@@ -101,8 +106,8 @@ class DelegatingRepository(Repository):
     def accepts(self, dependency: Dependency) -> bool:
         return self._repo.accepts(dependency)
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        return self._repo._do_match(dependency)
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        return self._repo._do_match(dependency, monitor=monitor)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         return self._repo._sort_by_priority(dependency, packages)
@@ -124,14 +129,28 @@ class RepositoryPublisher:
         return ['username', 'password']
 
     @abstractmethod
+    def register(self, auth: "Authentication", package_meta: PackageMetadata):
+        """
+        registers the given package into the repository
+         :param auth: authentication object filled with the fields that were
+                     returned by the method `required_authentication_fields`
+        :param package_meta: metadata for the package that we want to register
+        """
+
+    @abstractmethod
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
         """
-        publish a `distribution` belonging to the given `package_meta` into the repository
+        publish a `distribution` belonging to the given `package_meta` into the repository,
+        raise `RegistrationRequiredException` if the package needs to be registered first
         :param auth: authentication object filled with the fields that were
                      returned by the method `required_authentication_fields`
         :param package_meta: metadata for the package that this distribution belongs to
         :param distribution: the distribution archive (e.g., wheel, sdist)
         """
+
+
+class RegistrationRequiredException(Exception):
+    ...
 
 
 @dataclass(frozen=True, eq=True)

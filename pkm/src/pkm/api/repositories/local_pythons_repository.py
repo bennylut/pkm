@@ -9,9 +9,10 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
-from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
@@ -51,7 +52,8 @@ class InstalledPythonsRepository(Repository):
     def accepts(self, dependency: Dependency) -> bool:
         return dependency.package_name == 'python'
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+        monitor.on_dependency_match(dependency)
         extras = set(dependency.extras) if dependency.extras is not None else _DEFAULT_PKG_EXTRAS
 
         return [
@@ -76,7 +78,7 @@ class LocalInterpreterPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._desc
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
         return []
 
     def is_compatible_with(self, env: Environment):
@@ -86,7 +88,8 @@ class LocalInterpreterPackage(Package):
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: FetchResourceMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
+                   *, monitor: PackageOperationsMonitor = no_monitor(),
+                   build_packages_repo: Optional["Repository"] = None):
         LightweightEnvironments.create(env.path, self._interpreter.absolute())
 
 
