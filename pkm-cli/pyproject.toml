@@ -1,12 +1,12 @@
 [project]
 name = "pkm-cli"
-version = "0.1.0"
+version = "0.4.24"
 description = "Command line interface for PKM"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"
 authors = [{ name = "bennyl" }]
 license.text = "MIT License"
-dependencies = [ "questionary *",  "pkm *",  "jinja2 *",  "xonsh[full] *"]
+dependencies = [ "questionary ",  "pkm ",  "jinja2 ",  "xonsh ",  "pygments ",  "prompt-toolkit ",  "setproctitle ;sys_platform != 'win32'"]
 
 [project.scripts]
 pkm = "pkm_cli.main:main"
@@ -15,5 +15,5 @@ pkm = "pkm_cli.main:main"
 application = true
 
 [build-system]
-backend-path = "../pkm/src"
+requires = ['pkm >= 0.4.20']
 build-backend = "pkm.api.buildsys"

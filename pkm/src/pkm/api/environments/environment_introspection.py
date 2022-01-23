@@ -12,6 +12,7 @@ from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable, TYPE_CHE
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.versions.version import StandardVersion
 from pkm.config.configuration import Configuration
+from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
 from pkm.utils.types import SupportsLessThan, SupportsLessThanEq
@@ -70,7 +71,7 @@ result = {
     },
 
     'os': {
-        'conf': {cname: os.confstr(cname) for cname in os.confstr_names},
+        'conf': {cname: os.confstr(cname) for cname in getattr(os,'confstr_names',[])},
         'name': os.name,
         'bits': struct.calcsize('P') * 8 
     },
@@ -376,10 +377,15 @@ class EnvironmentIntrospection(Configuration):
 
     @classmethod
     def compute(cls, interpreter_path: Path) -> "EnvironmentIntrospection":
-        proc_result = subprocess.run([str(interpreter_path.absolute()), '-c', _INTROSPECTION_CODE], capture_output=True)
-        proc_result.check_returncode()
-        output = proc_result.stdout.decode()
-        return cls(data=json.loads(output))
+        with temp_dir() as tdir:
+            intospection_script_path = tdir / 'introspect.py'
+            intospection_script_path.write_text(_INTROSPECTION_CODE)
+
+            proc_result = subprocess.run([str(interpreter_path.absolute()), str(intospection_script_path.absolute())],
+                                         capture_output=True)
+            proc_result.check_returncode()
+            output = proc_result.stdout.decode()
+            return cls(data=json.loads(output))
 
     @classmethod
     def load_or_compute(

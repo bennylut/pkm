@@ -3,6 +3,7 @@ import platform
 import re
 import subprocess
 from pathlib import Path
+from subprocess import CalledProcessError
 from typing import List, Optional, Set
 
 from pkm.api.dependencies.dependency import Dependency
@@ -44,8 +45,8 @@ class InstalledPythonsRepository(Repository):
                     PackageDescriptor("python", Version.parse(cmdout.stdout.decode().strip())),
                     _DEFAULT_PKG_EXTRAS))
 
-            except ChildProcessError:
-                ...  # skip this interpreter
+            except (ChildProcessError, CalledProcessError):
+                pass  # skip this interpreter
 
         return result
 

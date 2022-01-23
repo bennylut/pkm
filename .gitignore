@@ -4,4 +4,5 @@
 
 workspace
 dist
-pkm/test.py
+pkm/src/test_.py
+pkm-cli/src/test_.py

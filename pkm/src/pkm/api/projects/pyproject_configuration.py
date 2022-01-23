@@ -27,7 +27,7 @@ class BuildSystemConfig:
         return remove_none_values({
             'requires': [str(d) for d in self.requirements] if self.requirements else None,
             'build-backend': self.build_backend,
-            'backend-path': self.build_backend
+            'backend-path': self.backend_path
         })
 
     @classmethod

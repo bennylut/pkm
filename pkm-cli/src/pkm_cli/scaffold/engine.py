@@ -9,7 +9,6 @@ from typing import Union, Set, Optional, List, Any, Dict
 
 from jinja2 import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
-from distutils.dir_util import copy_tree
 
 from pkm.utils.commons import unone
 
@@ -129,14 +128,14 @@ class ScaffoldingEngine:
 
             if template_child.is_dir():
                 if (template_child / ".scaffoldpreserve").exists():
-                    copy_tree(str(template_child.absolute()), str(target_child.absolute()))
+                    shutil.copytree(str(template_child.absolute()), str(target_child.absolute()))
                     return
 
                 target_child.mkdir(exist_ok=True)
                 self._render(template_child, target_child, context, ignored_files)
             elif target_child.suffix == ".tmpl":
                 with target_child.with_suffix("").open("w") as f:
-                    jinja.get_template(str(template_child)).stream(context).dump(f)
+                    jinja.from_string(template_child.read_text()).stream(context).dump(f)
             else:
                 shutil.copy(template_child, target_child)
 

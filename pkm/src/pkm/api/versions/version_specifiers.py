@@ -295,7 +295,7 @@ class VersionRange(VersionSpecifier):
     def __str__(self):
 
         if self.is_any():
-            return '*'
+            return ''
         elif self.is_none():
             return '<none>'
 

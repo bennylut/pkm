@@ -12,7 +12,11 @@ package = {name = "psutil", version = "5.9.0"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
-package = {name = "rich", version = "10.16.2"}
+package = {name = "pkm-cli", version = "0.4.22"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "setproctitle", version = "1.2.2"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
@@ -53,10 +57,6 @@ package = {name = "prompt-toolkit", version = "3.0.24"}
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "pyperclip", version = "1.8.2"}
-
-[[lock]]
-env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
-package = {name = "pkm-cli", version = "0.1.0"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"

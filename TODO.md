@@ -1,15 +1,18 @@
 ## RUNNING TASKS:
 
+
 - cli publish command
-- when publishing - register the project name if needed (ask the user?)
 - environment naming (for project for example..)
 
 ## DONE IN THIS VERSION
-- attach monitoring to cli - basic monitoring attached - need to define specific tasks now
-- bug: xonsh is getting built twice
-- installation, use instead `~=installed_version`
+- check entrypoint creation in windows
+- when publishing - register the project name if needed (ask the user?)
+- cli: shell installation on windows fails, use env_markers to request less than full extras
+
 
 ## BACKLOG TASKS:
+- cli: publish keyring
+- cli (and api): operations over project-groups => build, publish, install
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
   compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
@@ -21,7 +24,6 @@
 - support * in packages but not default (just scan before usage on supported repositories)
 - pkm install wheel from path
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
-- check entrypoint creation in windows
 - site: sidebar responsive to phones
 - site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
 - consider interactive ui mode

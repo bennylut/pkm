@@ -34,7 +34,10 @@ class DistInfo:
         return self.path / "METADATA"
 
     def load_record_cfg(self) -> "RecordsFileConfiguration":
-        return RecordsFileConfiguration.load(self.path / "RECORD")
+        return RecordsFileConfiguration.load(self.record_path())
+
+    def record_path(self) -> Path:
+        return self.path / "RECORD"
 
     def license_path(self) -> Path:
         return self.path / "LICENSE"

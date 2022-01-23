@@ -128,29 +128,17 @@ class RepositoryPublisher:
     def required_authentication_fields(self) -> List[str]:
         return ['username', 'password']
 
-    @abstractmethod
-    def register(self, auth: "Authentication", package_meta: PackageMetadata):
-        """
-        registers the given package into the repository
-         :param auth: authentication object filled with the fields that were
-                     returned by the method `required_authentication_fields`
-        :param package_meta: metadata for the package that we want to register
-        """
 
     @abstractmethod
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
         """
-        publish a `distribution` belonging to the given `package_meta` into the repository,
-        raise `RegistrationRequiredException` if the package needs to be registered first
+        publish a `distribution` belonging to the given `package_meta` into the repository (registering it if needed)
         :param auth: authentication object filled with the fields that were
                      returned by the method `required_authentication_fields`
         :param package_meta: metadata for the package that this distribution belongs to
         :param distribution: the distribution archive (e.g., wheel, sdist)
         """
 
-
-class RegistrationRequiredException(Exception):
-    ...
 
 
 @dataclass(frozen=True, eq=True)

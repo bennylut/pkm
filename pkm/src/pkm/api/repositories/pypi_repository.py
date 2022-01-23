@@ -114,10 +114,9 @@ class PyPiPublisher(RepositoryPublisher):
         super().__init__('pypi')
         self._http = http
 
-    def register(self, auth: "Authentication", package_meta: PackageMetadata):
-        pass  # TODO
-
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
+        print(f"uploading distribution: {distribution}")
+
         data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}
         file_type = 'bdist_wheel' if distribution.suffix == '.whl' else 'sdist'
         py_version = distribution.name.split("-")[2] if distribution.suffix == '.whl' else 'source'
@@ -158,6 +157,7 @@ class PyPiPublisher(RepositoryPublisher):
             ])
 
             # for tests we can use: "https://test.pypi.org/legacy/"
+            # with self._http.post("https://test.pypi.org/legacy/", payload, headers=headers,
             with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers,
                                  max_redirects=0) as response:
                 if response.status != 200:

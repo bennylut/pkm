@@ -22,6 +22,8 @@ _MULTI_FIELDS = {
 
 
 class PackageMetadata(FileConfiguration):
+    dependencies: List[Dependency]
+
     """
     implementation of the package metadata 2.1 specification as described in pep 566
     see also: https://packaging.python.org/en/latest/specifications/core-metadata/
@@ -113,7 +115,7 @@ class PackageMetadata(FileConfiguration):
             return PackageMetadata(path=path, data={})
 
         parser = Parser()
-        with path.open('r') as path_fd:
+        with path.open('r', errors="ignore") as path_fd:
             content = parser.parse(path_fd)
 
             data = {}

@@ -1,3 +1,4 @@
+import xonsh.main
 from prompt_toolkit.patch_stdout import patch_stdout
 from typing import List, Optional
 
@@ -44,7 +45,7 @@ def build(args: Namespace):
 def shell(args: Namespace):
     env = _current_env()
     print(f"Using environment: {env.path}")
-    env.exec_proc('xonsh')  # TODO need to validate that it is on path..
+    env.exec_proc('python', ['-c', 'import sys;import xonsh.main;sys.exit(xonsh.main.main())'])
 
 
 def install(args: Namespace):

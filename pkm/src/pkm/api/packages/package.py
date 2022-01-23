@@ -48,6 +48,10 @@ class PackageDescriptor:
         return cls(data['name'], Version.parse(data['version']))
 
     @staticmethod
+    def normalize_source_dir_name(package_name: str) -> str:
+        return PackageDescriptor.normalize_name(package_name).replace('-', '_')
+
+    @staticmethod
     def normalize_name(package_name: str) -> str:
         """
         normalize package names (see: https://packaging.python.org/en/latest/specifications/core-metadata/)

@@ -226,7 +226,7 @@ class Project(Package):
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
                 distributions_dir: Optional[Path] = None):
         """
-        publish this project distributions, as found in the given `distributions_dir` to the given `repository`.
+        publish/register this project distributions, as found in the given `distributions_dir` to the given `repository`.
         using `auth` for authentication
 
         :param repository: the repository to publish to
@@ -247,6 +247,17 @@ class Project(Package):
         for distribution in distributions_dir.iterdir():
             if distribution.is_file():
                 publisher.publish(auth, metadata, distribution)
+
+        print("publishing application project")
+        if self.config.pkm_project.application:
+            from pkm.project_builders.application_builders import application_installer_project_name, \
+                application_installer_dir
+            metadata['Name'] = application_installer_project_name(self)
+            if (app_installer_dist_dir := application_installer_dir(
+                    distributions_dir)).exists() and app_installer_dist_dir.is_dir():
+                for distribution in app_installer_dist_dir.iterdir():
+                    if distribution.is_file():
+                        publisher.publish(auth, metadata, distribution)
 
     @classmethod
     def load(cls, path: Union[Path, str]) -> "Project":

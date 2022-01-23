@@ -24,6 +24,7 @@ from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
 from pkm.utils.iterators import find_first
 from pkm.utils.monitors import no_monitor
+from pkm.utils.processes import execvpe
 from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
@@ -73,7 +74,7 @@ class Environment:
         """
         :return: the version of the environment's python interpreter
         """
-        return StandardVersion(release=tuple(self._introspection.interpreter_version))
+        return StandardVersion(release=tuple(self._introspection.interpreter_version)[:3])
 
     @cached_property
     def interpreter_path(self) -> Path:
@@ -83,7 +84,7 @@ class Environment:
         if self._interpreter_path is None:
             self._interpreter_path = _find_interpreter(self._env_path)
             if not self._interpreter_path:
-                raise ValueError("could not determine the environment interpreter path")
+                raise ValueError(f"could not determine the environment interpreter path for env: {self.path}")
         return self._interpreter_path
 
     @cached_property
@@ -143,10 +144,10 @@ class Environment:
         if old_path := os.environ.get("PATH"):
             new_path = f"{new_path}{os.pathsep}{old_path}"
 
-        args = [cmd, *(args or [])]
+        args = args or []
         env = env or os.environ
         new_env = {**env, 'PATH': new_path, 'VIRTUAL_ENV': str(self.path)}
-        os.execvpe(cmd, args, new_env)
+        execvpe(cmd, args, new_env)
 
     def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess:
         """
@@ -433,7 +434,7 @@ def _coerce_package_names(package_names: _PACKAGE_NAMES_T) -> List[str]:
 
 
 def _find_interpreter(env_root: Path) -> Optional[Path]:
-    return find_first((env_root / "bin/python", env_root / "bin/python.exe"), lambda it: it.exists())
+    return find_first((env_root / "bin/python", env_root / "Scripts/python.exe"), lambda it: it.exists())
 
 
 @dataclass
