@@ -1,17 +1,30 @@
+from abc import abstractmethod
 import os
 
+from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit import HTML, print_formatted_text
 from prompt_toolkit.shortcuts import ProgressBar
 from threading import RLock
-from typing import Optional, Iterable, TypeVar
+from typing import Optional, Iterable, Protocol, TypeVar
 
-from pkm_cli.display.progress import Progress
+from pkm_cli.display.progress import Progress, ProgressProto, DumbProgress
 
 _T = TypeVar("_T")
 
 
-# noinspection PyMethodMayBeStatic
-class _Display:
+class _DisplyProto(Protocol):
+
+    @abstractmethod
+    def print(self, msg: str, *, formatted: bool = True, newline: bool = True):
+        ...
+
+    @abstractmethod
+    def progressbar(
+            self, label: str, total: int = 100) -> ProgressProto:
+        ...
+
+
+class _Display(_DisplyProto):
 
     def __init__(self):
         self._progress: Optional[ProgressBar] = None
@@ -24,8 +37,7 @@ class _Display:
         print_formatted_text(msg, end=end)
 
     def progressbar(
-            self, label: str, iterable: Optional[Iterable[_T]] = None,
-            total: int = 100) -> Progress:
+            self, label: str, total: int = 100) -> ProgressProto:
         with self._lock:
             if self._progress:
                 self._progress_users += 1
@@ -41,7 +53,19 @@ class _Display:
                     self._progress.__exit__()
                     self._progress = None
 
-        return Progress(self._progress(iterable, HTML(label), total=total), close)
+        return Progress(self._progress(None, HTML(label), total=total), close)
 
 
-Display = _Display()
+class _DumbDisplay(_DisplyProto):
+    def print(self, msg: str, *, formatted: bool = True, newline: bool = True):
+        print(msg, end='\n' if newline else '')
+
+    def progressbar(self, label: str, total: int = 100) -> ProgressProto:
+        return DumbProgress(label, total)
+
+
+try:
+    patch_stdout().__enter__() # noqa
+    Display = _Display()
+except: # noqa
+    Display = _DumbDisplay()

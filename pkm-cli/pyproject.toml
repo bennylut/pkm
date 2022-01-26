@@ -1,6 +1,6 @@
 [project]
 name = "pkm-cli"
-version = "0.4.24"
+version = "0.4.25"
 description = "Command line interface for PKM"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"
@@ -15,5 +15,5 @@ pkm = "pkm_cli.main:main"
 application = true
 
 [build-system]
-requires = ['pkm >= 0.4.20']
+requires = ['pkm >= 0.4.21']
 build-backend = "pkm.api.buildsys"

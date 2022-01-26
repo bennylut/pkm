@@ -44,7 +44,7 @@ class AbstractPackage(Package):
 
         env_interpreter = env.interpreter_version
 
-        best_source_dist: Optional[StandardPackageArtifact] = None
+        source_dist: Optional[StandardPackageArtifact] = None
         best_binary_dist: Optional[StandardPackageArtifact] = None
         best_binary_dist_score: Optional[SupportsLessThanEq] = None
 
@@ -72,9 +72,9 @@ class AbstractPackage(Package):
                         best_binary_dist_score = score
 
             else:
-                best_source_dist = best_source_dist or artifact  # TODO: are there any ordering for source dists?
+                source_dist = artifact
 
-        return best_binary_dist or best_source_dist
+        return best_binary_dist or source_dist
 
     def is_compatible_with(self, env: Environment):
         return self._best_artifact_for(env) is not None

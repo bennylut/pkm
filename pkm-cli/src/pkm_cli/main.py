@@ -12,6 +12,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
+from pkm.api.repositories.repository import Authentication
 from pkm.utils.archives import extract_archive
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import temp_dir
@@ -71,6 +72,16 @@ def remove(args: Namespace):
         env.uninstall(package_names)
 
 
+def publish(args: Namespace):
+    if not (uname := args.user):
+        raise ValueError("missing user name")
+
+    if not (password := args.password):
+        raise ValueError("missing password")
+
+    _current_project().publish(pkm.repositories.pypi, Authentication(uname, password))
+
+
 def new(args: Namespace):
     from importlib.resources import path
     with path('pkm_cli.scaffold', f"new_{args.template}.tar.gz") as template_path:
@@ -103,6 +114,11 @@ def main(args: Optional[List[str]] = None):
     pkm_new_parser.add_argument('template')
     pkm_new_parser.add_argument('template_args', nargs=argparse.REMAINDER)
     pkm_new_parser.set_defaults(func=new)
+
+    pkm_publish_parser = pkm_subparsers.add_parser('publish')
+    pkm_publish_parser.add_argument('user')
+    pkm_publish_parser.add_argument('password')
+    pkm_publish_parser.set_defaults(func=publish)
 
     with patch_stdout():
         (pargs := pkm_parser.parse_args(args)).func(pargs)

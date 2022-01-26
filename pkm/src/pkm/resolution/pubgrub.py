@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from itertools import chain
 from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any
 
@@ -376,6 +376,11 @@ class Incompatibility:
         sorted_terms = sorted(normalized_terms, key=lambda x: x.package)
         return cls(tuple(sorted_terms), internal_cause, external_cause)
 
+    def update_inavailability(self, new_constraint: VersionSpecifier):
+        assert len(self.terms) == 1, 'attempting to update terms for non inavailability incompatability'
+        self.terms = (replace(self.terms[0], constraint=new_constraint),)
+        self.external_cause = f'Compatible version for {self.terms[0]} not found'
+
     def update_dependency(self, new_depender: Term):
         assert len(self.terms) == 2, 'attempting to update terms for non dependency incompatability'
 
@@ -475,6 +480,7 @@ class Solver:
         self._problem = problem
         self._solution = PartialSolution(root_package)
         self._package_versions: Dict[str, List[_PackageVersion]] = {}
+        self._package_availability_incompatibilities: Dict[str, Incompatibility] = {}
         self._package_trouble_level: Counter[str] = Counter()
 
         # incompatibilities by package name
@@ -645,11 +651,16 @@ class Solver:
         while True:
             if not versions:
                 acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
-                # print(f"could not find version that match {acc_assignment}")
-                self._add_incompatability(
-                    Incompatibility.create(
+
+                if ic := self._package_availability_incompatibilities.get(package):
+                    ic.update_inavailability(ic.terms[0].constraint.union(acc_assignment))
+                else:
+                    # print(f"could not find version that match {acc_assignment}")
+                    ic = Incompatibility.create(
                         [Term(package, acc_assignment)],
-                        external_cause=f'Compatible version for [{package} {acc_assignment}] not found'))
+                        external_cause=f'Compatible version for [{package} {acc_assignment}] not found')
+                    self._package_availability_incompatibilities[package] = ic
+                    self._add_incompatability(ic)
                 return package
 
             version = versions.pop(0)
@@ -657,6 +668,7 @@ class Solver:
 
             if not version.dependencies:
                 try:
+                    version_dependencies = self._problem.get_dependencies(package, version.version)
                     version_dependencies = self._problem.get_dependencies(package, version.version)
                     version.dependencies = {
                         d.package: PackageDependency(d)

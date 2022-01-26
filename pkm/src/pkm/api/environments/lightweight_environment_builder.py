@@ -31,6 +31,7 @@ class LightweightEnvironments:
         pyvenvcfg = PyVEnvConfiguration.load(env_path / 'pyvenv.cfg')
         pyvenvcfg['home'] = str(interpreter_path.parent)
         pyvenvcfg['version'] = '.'.join(str(it) for it in sys_vinfo[:3])
+        pyvenvcfg['include-system-site-packages'] = 'false'
         pyvenvcfg.save()
 
         # build relevant directories

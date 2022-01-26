@@ -211,7 +211,7 @@ class RecordsFileConfiguration(FileConfiguration):
                     file, hash_sig, length = record
                     if hash_sig:
                         records.append(Record(
-                            file,
+                            str(Path(file)),  # wrapping in path and then str so that os dependent path will be used
                             HashSignature.parse_urlsafe_base64_nopad_encoded(hash_sig),
                             int(length),
                         ))

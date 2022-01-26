@@ -1,16 +1,13 @@
 ## RUNNING TASKS:
 
-
-- cli publish command
-- environment naming (for project for example..)
-
 ## DONE IN THIS VERSION
-- check entrypoint creation in windows
-- when publishing - register the project name if needed (ask the user?)
-- cli: shell installation on windows fails, use env_markers to request less than full extras
-
+- initial testings done on windows 
+- dumb display added 
+- simplifications: in standard package - there cannot be multiple source distributions for a single release
+- cli publish command
 
 ## BACKLOG TASKS:
+- environment naming (for project for example..) 
 - cli: publish keyring
 - cli (and api): operations over project-groups => build, publish, install
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request

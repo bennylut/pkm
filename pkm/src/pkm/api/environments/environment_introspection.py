@@ -165,10 +165,19 @@ class EnvironmentIntrospection(Configuration):
 
     def create_site_packages(self, env: "Environment", readonly: bool) -> SitePackages:
         sysconfig_paths = self._data['sysconfig']['paths']
-        purelib = sysconfig_paths['purelib']
-        platlib = sysconfig_paths['platlib']
 
-        rest_sites = [path for path in self._data['site']['packages'] if path != purelib and path != platlib]
+        if self.is_windows_env:
+            def ucase(path: str) -> str:
+                return path.lower()
+        else:
+            def ucase(path: str) -> str:
+                return path
+
+        purelib = ucase(sysconfig_paths['purelib'])
+        platlib = ucase(sysconfig_paths['platlib'])
+
+        rest_sites = [upath for path in self._data['site']['packages'] if
+                      (upath := ucase(path)) != purelib and path != platlib]
 
         return SitePackages(env, Path(purelib), Path(platlib), [Path(p) for p in rest_sites], readonly)
 
