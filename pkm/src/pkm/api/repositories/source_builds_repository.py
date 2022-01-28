@@ -6,13 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from textwrap import dedent
-from typing import Set, Dict, List, Literal, Any, Optional
+from typing import Set, Dict, List, Literal, Any, Optional, TYPE_CHECKING
 from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
-from pkm.api.environments.environment import Environment
-from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
+
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageOperationsMonitor, HasBuildStepMonitor
@@ -24,6 +23,9 @@ from pkm.api.versions.version import Version
 from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 from pkm.utils.sequences import single_or_fail
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 _BUILD_KEY_T = int
 
@@ -44,9 +46,10 @@ class SourceBuildsRepository(Repository):
 
     def _build(self, build_key: _BUILD_KEY_T, package: PackageDescriptor,
                required_artifact: str,  # ['metadata', 'wheel', 'editable']
-               source_tree: Path, target_env: Environment, build_packages_repo: Optional[Repository],
+               source_tree: Path, target_env: "Environment", build_packages_repo: Optional[Repository],
                monitor: HasBuildStepMonitor):
 
+        from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
         with monitor.on_build(package, required_artifact) as build_monitor:
 
             print(f"INNER BUILDING {package}...")
@@ -119,7 +122,7 @@ class SourceBuildsRepository(Repository):
                     if not metadata_file.exists():
                         metadata.save_to(metadata_file)
 
-    def build(self, package: PackageDescriptor, source_tree: Path, target_env: Environment, editable: bool,
+    def build(self, package: PackageDescriptor, source_tree: Path, target_env: "Environment", editable: bool,
               build_packages_repo: Optional[Repository], *,
               monitor: HasBuildStepMonitor = no_monitor()) -> Package:
 
@@ -130,7 +133,7 @@ class SourceBuildsRepository(Repository):
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
-                              target_env: Environment, build_packages_repo: Optional[Repository],
+                              target_env: "Environment", build_packages_repo: Optional[Repository],
                               monitor: PackageOperationsMonitor) -> PackageMetadata:
         # print(f"BUILDING OR GETTING META {package}...")
         metadata_file = self._version_dir(package) / "METADATA"
@@ -165,24 +168,29 @@ class _BuildCycleResult:
 
 
 def _exec_build_cycle_script(
-        source_tree: Path, env: Environment, buildsys: BuildSystemConfig, hook: str,
+        source_tree: Path, env: "Environment", buildsys: BuildSystemConfig, hook: str,
         arguments: List[Any]) -> _BuildCycleResult:
     with TemporaryDirectory() as tdir:
         tdir_path = Path(tdir)
         build_backend_parts = buildsys.build_backend.split(":")
         build_backend_import = build_backend_parts[0]
         build_backend = 'build_backend' + (f".{build_backend_parts[1]}" if len(build_backend_parts) > 1 else "")
+        output_path = tdir_path / 'output'
+        output_path_str = str(output_path.absolute()).replace('\\', '\\\\')
 
         script = f"""
+            print("inside the process before the imports")
+
             import {build_backend_import} as build_backend
             import json
-            
+
             def ret(status, result):
-                out = open('{str((tdir_path / 'output').absolute())}', 'w+')
+                out = open('{output_path_str}', 'w+')
                 out.write(json.dumps({{'status': status, 'result': result}}))
                 out.close()
                 exit(0)
-            
+
+            print("inside the process")
             if not hasattr({build_backend}, '{hook}'):
                 ret('undefined_hook', None)
             else:
@@ -190,10 +198,15 @@ def _exec_build_cycle_script(
                 ret('success', result)
         """
 
-        print("EXECUTING PROCESS")
-        process_results = env.run_proc([env.interpreter_path, '-c', dedent(script)], cwd=source_tree)
+        print(f"EXECUTING PROCESS - {hook} on {source_tree}")
+        script_path = tdir_path / 'execution.py'
+        script_path.write_text(dedent(script))
+        process_results = env.run_proc([str(env.interpreter_path), str(script_path)], cwd=source_tree)
         print("DONE EXECUTING PROCESS")
-        process_results.check_returncode()
+        if process_results.returncode != 0:
+            raise BuildError(
+                f"PEP517 build cycle execution failed (execution of hook: {hook}, resulted in exit code:"
+                f" {process_results.returncode})")
         return _BuildCycleResult(**json.loads((tdir_path / 'output').read_text()))
 
 

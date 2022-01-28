@@ -4,15 +4,17 @@ https://bitbucket.org/vinay.sajip/simple_launcher
 """
 import importlib.resources as resources
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from zipfile import ZipFile
 
 from pkm.api.distributions.distinfo import EntryPoint
-from pkm.api.environments.environment import Environment
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 def build_windows_script_launcher(
-        env: Environment, entrypoint: EntryPoint, target_dir: Path,
+        env: "Environment", entrypoint: EntryPoint, target_dir: Path,
         script: Optional[str] = None) -> Path:
     """
     creates windows launcher for the given `script` that is suitable to the os of the given environment.

@@ -4,14 +4,18 @@ import sys
 from pathlib import Path
 
 from pkm.api.distributions.distinfo import EntryPoint
-from pkm.api.environments.environment import Environment
+
 from pkm.launchers import build_windows_script_launcher
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 class Executables:
 
     @staticmethod
-    def patch_shabang_for_env(source: Path, target: Path, env: Environment):
+    def patch_shabang_for_env(source: Path, target: Path, env: "Environment"):
         """
         copy the `source` script to the `target` path, patching the shabng line so that it will be executable
         under the given `env`
@@ -34,7 +38,7 @@ class Executables:
         os.chmod(target, st.st_mode | stat.S_IEXEC)
 
     @staticmethod
-    def generate_for_entrypoint(entrypoint: EntryPoint, env: Environment, target_dir: Path) -> Path:
+    def generate_for_entrypoint(entrypoint: EntryPoint, env: "Environment", target_dir: Path) -> Path:
         """
         generates executable for the given entrypoint that is runnable under the given environment
         :param entrypoint: the entrypoint to generate the executable for

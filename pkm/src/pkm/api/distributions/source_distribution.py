@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional, ContextManager
+from typing import Optional, ContextManager, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distribution import Distribution
-from pkm.api.environments.environment import Environment
+
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitor, PackageOperationsMonitor
@@ -13,6 +13,9 @@ from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.utils.archives import extract_archive
 from pkm.utils.monitors import no_monitor
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 class SourceDistribution(Distribution):
@@ -32,7 +35,7 @@ class SourceDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def extract_metadata(self, env: Environment, monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
+    def extract_metadata(self, env: "Environment", monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
         builds = pkm.repositories.source_builds
 
         with self._source_tree() as source_tree:
@@ -60,7 +63,7 @@ class SourceDistribution(Distribution):
 
             yield source_tree
 
-    def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False,
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False,
                    monitor: PackageInstallMonitor = no_monitor()):
 
         from pkm.api.pkm import pkm

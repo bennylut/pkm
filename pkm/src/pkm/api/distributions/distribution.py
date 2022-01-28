@@ -1,12 +1,15 @@
 from abc import abstractmethod
-from typing import Protocol, Optional
+from typing import Protocol, Optional, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment
+
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitor, PackageOperationsMonitor
 from pkm.utils.monitors import no_monitor
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 class Distribution(Protocol):
@@ -19,7 +22,7 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False,
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False,
                    monitor: PackageInstallMonitor = no_monitor()):
         """
         installs this package into the given `env`
@@ -31,7 +34,7 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def extract_metadata(self, env: Environment, monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
+    def extract_metadata(self, env: "Environment", monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
         """
         extracts and returns metadata from this distribution
         :param env: the environment that this metadata should be relevant to

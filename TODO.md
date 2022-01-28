@@ -1,20 +1,22 @@
 ## RUNNING TASKS:
+- documentation site -> update cli, docs
+- cli (and api): operations over project-groups => build, publish, install
+- allennlp test on windows
+- bug: pkm shell needs to create an environment if it does not find one in a project directory
+- resolution improvement: add "minor adjustment" heuristic
 
 ## DONE IN THIS VERSION
-- initial testings done on windows 
-- dumb display added 
-- simplifications: in standard package - there cannot be multiple source distributions for a single release
-- cli publish command
+- bug: pep517 installation failure lead to whole installation failure - need to instead lead to "bad package"
 
 ## BACKLOG TASKS:
 - environment naming (for project for example..) 
 - cli: publish keyring
-- cli (and api): operations over project-groups => build, publish, install
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
   compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
 - cmd: pkm remove -f (force single)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir
+- shell aliases: l, ll
 - new pyproject-group template
 - documentation: templates docs
 - support publishing self-contained-application packages
@@ -25,7 +27,6 @@
 - site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
 - consider interactive ui mode
 - toml parser/writer need unit tests
-- when adding dependency to project through pkm (install_dependencies) currently the `*` version is used, after
 - toml - lists user style - support column and grid and auto detect it
 - check that when downloading packages for install, the hash is being validated
 - check the "editables" module, decide if you want to support this behavior
@@ -84,3 +85,6 @@
 
 - automatic monkey patching of a module by import hooks - this hooks can be defined in the project level = extension
   methods, this can be done with pth files and import hooks!
+- mechanism for lazy importing (like in java) that use the new module level "get attr" or locals:
+  - include('module', 'name1 as x', 'name2', ...), maybe also specify that you want to import the type only
+  - can be also made by a preprocessor (like: '#preprocessor: lazy imports' on the beginning of the file)

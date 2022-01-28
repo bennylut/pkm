@@ -2,11 +2,11 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from io import UnsupportedOperation
 from pathlib import Path
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
-from pkm.api.environments.environment import Environment
+
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.repositories.repository import Repository
@@ -16,6 +16,9 @@ from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.monitors import no_monitor
 from pkm.utils.strings import without_suffix
 from pkm.utils.types import SupportsLessThanEq
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 @dataclass(frozen=True, eq=True)
@@ -40,7 +43,7 @@ class AbstractPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
-    def _best_artifact_for(self, env: Environment) -> Optional[StandardPackageArtifact]:
+    def _best_artifact_for(self, env: "Environment") -> Optional[StandardPackageArtifact]:
 
         env_interpreter = env.interpreter_version
 
@@ -76,7 +79,7 @@ class AbstractPackage(Package):
 
         return best_binary_dist or source_dist
 
-    def is_compatible_with(self, env: Environment):
+    def is_compatible_with(self, env: "Environment"):
         return self._best_artifact_for(env) is not None
 
     @abstractmethod

@@ -1,4 +1,5 @@
 from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
+from pkm.api.repositories.source_builds_repository import BuildError
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
@@ -63,7 +64,7 @@ class _PkmPackageInstallationProblem(Problem):
             for d in dependencies:
                 self._prefetch(d.package_name)
 
-        except (ValueError, IOError) as e:
+        except (ValueError, IOError, BuildError) as e:
             raise MalformedPackageException(str(descriptor)) from e
 
         result: List[Term] = []

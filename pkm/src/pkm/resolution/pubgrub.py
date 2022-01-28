@@ -523,7 +523,6 @@ class Solver:
         changed = {next_package}
 
         while changed:
-            # print(f"enter unit propogation loop with changed = {changed}")
             package = changed.pop()
 
             for incompatibility in reversed(self._incompatibilities[package]):
@@ -686,7 +685,8 @@ class Solver:
         assignments = self._solution.assignments_by_package
         assignments[package].append(assignment)
         # print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")
-        conflict = any(ic.check_satisfaction(self._solution).is_full() for ic in incompatibilities)
+        # noinspection PyUnusedLocal
+        conflict = any((icc := ic.check_satisfaction(self._solution)).is_full() for ic in incompatibilities)
         assignments[package].pop()
 
         if not conflict:
@@ -694,7 +694,7 @@ class Solver:
             self._solution.assign(assignment)
             self._solution.require(version.dependencies.keys())
         else:
-            # print("we cant..")
+            # print(f"we cant.. ({icc})")
             ...
 
         return package

@@ -5,14 +5,13 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Callable, Dict, Set, Optional
+from typing import List, Callable, Dict, Set, Optional, TYPE_CHECKING
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, Record
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.distributions.executables import Executables
-from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitor, PackageOperationsMonitor
@@ -22,6 +21,9 @@ from pkm.utils.iterators import first_or_none
 from pkm.utils.monitors import no_monitor
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 class InstallationException(IOError):
@@ -34,14 +36,14 @@ class _FileMoveCommand:
     target: Path
     is_script: bool
 
-    def run(self, env: Environment):
+    def run(self, env: "Environment"):
         if self.is_script:
             Executables.patch_shabang_for_env(self.source, self.target, env)
         else:
             shutil.move(self.source, self.target)
 
     @staticmethod
-    def run_all(commands: List["_FileMoveCommand"], env: Environment):
+    def run_all(commands: List["_FileMoveCommand"], env: "Environment"):
         directories_to_create: Set[Path] = {c.target.parent for c in commands}
         for d in directories_to_create:
             d.mkdir(parents=True, exist_ok=True)
@@ -70,7 +72,7 @@ class WheelDistribution(Distribution):
         self._wheel = wheel
         self._package = package
 
-    def extract_metadata(self, env: Environment, monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
+    def extract_metadata(self, env: "Environment", monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
         monitor.on_extracting_metadata()
 
         with ZipFile(self._wheel) as zipf:
@@ -85,7 +87,7 @@ class WheelDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def install_to(self, env: Environment, user_request: Optional[Dependency] = None, editable: bool = False,
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False,
                    monitor: PackageInstallMonitor = no_monitor()):
         """
         Implementation of wheel installer based on PEP427

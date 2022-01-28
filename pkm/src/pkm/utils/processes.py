@@ -3,13 +3,26 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
-from typing import List, Dict, NoReturn
+from subprocess import CompletedProcess
+from typing import List, Dict, NoReturn, Optional
+
+from pkm.utils.commons import unone
+
+_IS_WINDOWS = platform.system() == 'Windows'
 
 
 def execvpe(cmd: str, args: List[str], env: Dict[str, str]) -> NoReturn:
-    if platform.system() == 'Windows':
-        cmd_path = Path(cmd)
-        if not cmd_path.exists():
+    if _IS_WINDOWS:
+        sys.exit(run_proc(cmd, args, env=env).returncode)
+
+    os.execvpe(cmd, [cmd, *args], env)
+
+
+def run_proc(cmd: str, args: Optional[List[str]] = None, env: Optional[Dict[str, str]] = None) -> CompletedProcess:
+    args = unone(args, list)
+
+    if _IS_WINDOWS:
+        if not (cmd_path := Path(cmd)).exists():
             for path in env.get('PATH', os.environ['PATH']).split(os.pathsep):
                 if (cmd_path := Path(path) / f"{cmd}.exe").exists:
                     break
@@ -17,6 +30,10 @@ def execvpe(cmd: str, args: List[str], env: Dict[str, str]) -> NoReturn:
             if not cmd_path.exists():
                 raise ValueError(f'could not find {cmd} in PATH')
 
-        sys.exit(subprocess.run([str(cmd_path), *args], env=env, shell=True).returncode)
+        def _w(a: str) -> str:
+            a = a.replace("\"", "\\\"")
+            return f'"{a}"'
 
-    os.execvpe(cmd, [cmd, *args], env)
+        return subprocess.run([str(cmd_path), *map(_w, args)], env=env, shell=True)
+
+    return subprocess.run([cmd, *args], env=env)
