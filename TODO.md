@@ -1,14 +1,20 @@
 ## RUNNING TASKS:
 - documentation site -> update cli, docs
-- cli (and api): operations over project-groups => build, publish, install
-- allennlp test on windows
-- bug: pkm shell needs to create an environment if it does not find one in a project directory
-- resolution improvement: add "minor adjustment" heuristic
+- context directing flags: "-e" "-p" "-ge" "-g" "-ga" "-pg"
+- pkm show [all, requirements, env, context, project, repositories] | pip freeze, poetry show, npm ls
+  - for the report - can we combine both rich and prompt-toolkit?
 
 ## DONE IN THIS VERSION
+- bug: pkm shell needs to create an environment if it does not find one in a project directory
+- cli: pkm project bump (major, minor, patch, alpha, beta, rc)
 - bug: pep517 installation failure lead to whole installation failure - need to instead lead to "bad package"
+- resolution improvement: add "minor adjustment" heuristic
+- benchmark: allennlp test on windows
+- cli: operations over project-groups => build, publish, install
 
 ## BACKLOG TASKS:
+- documentation site: projects and project groups, self-contained applications 
+- light the torch repository
 - environment naming (for project for example..) 
 - cli: publish keyring
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
@@ -28,7 +34,7 @@
 - consider interactive ui mode
 - toml parser/writer need unit tests
 - toml - lists user style - support column and grid and auto detect it
-- check that when downloading packages for install, the hash is being validated
+- check that when downloading packages for install, the hash is being validated correctly
 - check the "editables" module, decide if you want to support this behavior
 - version local label - check if specific version can ask for a local-label
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
@@ -47,9 +53,8 @@
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - tool.pkm.dependency-overwrites: allow forced versions and dependency exclusion
 - hierarchical site packages:
-    - the ability to depend upon other module environment in a hierarchical manner (may pose a problem with dependency
-      resolution?)
-    - project x can be a child of project px and inherit its environment using pth and import hooks
+    - a dependency can be marked as shared and then pkm will install it as a pth to a shared lib installation
+    - will need some sort of reference counting?
 - when installation fails, environment is dirty
     - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
       probably by removing what we have already written)
@@ -72,7 +77,7 @@
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
 - git and url dependencies installation support
-- manage multiple envs per project
+- attach environment zoo to project
 - make-like task system
 - properties and build profiles (note that properties should be resolved before sdist packaging)
 - python installation repository (no sudo! - download for os and install in data files - if possible)

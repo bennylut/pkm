@@ -13,7 +13,7 @@ from pkm.api.projects.project_monitors import ProjectOperationsMonitor
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
-from pkm.api.versions.version import StandardVersion
+from pkm.api.versions.version import StandardVersion, Version
 from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
@@ -76,6 +76,22 @@ class Project(Package):
         :return: common project directories
         """
         return ProjectDirectories.create(self._pyproject)
+
+    def bump_version(self, particle: str) -> Version:
+        """
+        bump up the version of this project
+        :param particle: the particle of the version to bump, can be any of: major, minor, patch, a, b, rc
+        :return: the new version after the bump
+        """
+
+        version: Version = self.config.project.version
+        if not isinstance(version, StandardVersion) or not len(version.release) == 3:
+            raise UnsupportedOperationException("cannot bump version that does not follow the semver semantics")
+
+        new_version = version.bump(particle)
+        self.config.project = replace(self.config.project, version=new_version)
+        self.config.save()
+        return new_version
 
     def remove_dependencies(self, packages: List[str]):
         """
@@ -215,7 +231,6 @@ class Project(Package):
         :param monitor: monitor the operations made by this method
         :return list of paths to all the distributions created
         """
-
         result: List[Path] = [self.build_sdist(target_dir, monitor=monitor),
                               self.build_wheel(target_dir, monitor=monitor)]
         if self.config.pkm_project.application:
@@ -224,7 +239,7 @@ class Project(Package):
         return result
 
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
-                distributions_dir: Optional[Path] = None):
+                distributions_dir: Optional[Path] = None, *, monitor: ProjectOperationsMonitor = no_monitor()):
         """
         publish/register this project distributions, as found in the given `distributions_dir` to the given `repository`.
         using `auth` for authentication
@@ -232,32 +247,34 @@ class Project(Package):
         :param repository: the repository to publish to
         :param auth: authentication for this repository
         :param distributions_dir: directory containing the distributions (archives like wheels and sdists) to publish
+        :param monitor: monitor the operations made by this method
         """
 
-        distributions_dir = distributions_dir or (self.directories.dist / str(self.version))
+        with monitor.on_publish(repository):
+            distributions_dir = distributions_dir or (self.directories.dist / str(self.version))
 
-        if not distributions_dir.exists():
-            raise FileNotFoundError(f"{distributions_dir} does not exists")
+            if not distributions_dir.exists():
+                raise FileNotFoundError(f"{distributions_dir} does not exists")
 
-        publisher = repository if isinstance(repository, RepositoryPublisher) else repository.publisher
-        if not publisher:
-            raise UnsupportedOperationException(f"the given repository ({repository.name}) is not publishable")
+            publisher = repository if isinstance(repository, RepositoryPublisher) else repository.publisher
+            if not publisher:
+                raise UnsupportedOperationException(f"the given repository ({repository.name}) is not publishable")
 
-        metadata = PackageMetadata.from_project_config(self._pyproject.project)
-        for distribution in distributions_dir.iterdir():
-            if distribution.is_file():
-                publisher.publish(auth, metadata, distribution)
+            metadata = PackageMetadata.from_project_config(self._pyproject.project)
+            for distribution in distributions_dir.iterdir():
+                if distribution.is_file():
+                    publisher.publish(auth, metadata, distribution)
 
-        print("publishing application project")
-        if self.config.pkm_project.application:
-            from pkm.project_builders.application_builders import application_installer_project_name, \
-                application_installer_dir
-            metadata['Name'] = application_installer_project_name(self)
-            if (app_installer_dist_dir := application_installer_dir(
-                    distributions_dir)).exists() and app_installer_dist_dir.is_dir():
-                for distribution in app_installer_dist_dir.iterdir():
-                    if distribution.is_file():
-                        publisher.publish(auth, metadata, distribution)
+            print("publishing application project")
+            if self.config.pkm_project.application:
+                from pkm.project_builders.application_builders import application_installer_project_name, \
+                    application_installer_dir
+                metadata['Name'] = application_installer_project_name(self)
+                if (app_installer_dist_dir := application_installer_dir(
+                        distributions_dir)).exists() and app_installer_dist_dir.is_dir():
+                    for distribution in app_installer_dist_dir.iterdir():
+                        if distribution.is_file():
+                            publisher.publish(auth, metadata, distribution)
 
     @classmethod
     def load(cls, path: Union[Path, str]) -> "Project":

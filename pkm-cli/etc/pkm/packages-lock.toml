@@ -1,5 +1,9 @@
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "rich", version = "11.1.0"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "jinja2", version = "3.0.3"}
 
 [[lock]]
@@ -9,10 +13,6 @@ package = {name = "wcwidth", version = "0.2.5"}
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "psutil", version = "5.9.0"}
-
-[[lock]]
-env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
-package = {name = "pkm-cli", version = "0.4.22"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
@@ -37,6 +37,10 @@ package = {name = "shellingham", version = "1.4.0"}
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "pygments", version = "2.11.2"}
+
+[[lock]]
+env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pkm-cli", version = "0.4.26"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"

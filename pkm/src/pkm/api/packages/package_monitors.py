@@ -16,7 +16,7 @@ class PackageBuildMonitor(Monitor):
     ...
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
 class HasBuildStepMonitor(Monitor):
     def on_build(self, package: "PackageDescriptor", artifact: str) -> PackageBuildMonitor:
         """
@@ -27,7 +27,7 @@ class HasBuildStepMonitor(Monitor):
         return no_monitor()
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
 class PackageInstallMonitor(HasBuildStepMonitor, Monitor):
 
     def on_distribution_chosen(self, dist: "Distribution"):
@@ -40,7 +40,7 @@ class PackageInstallMonitor(HasBuildStepMonitor, Monitor):
         ...
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
 class PackageOperationsMonitor(HasBuildStepMonitor, Monitor):
     def on_fetch(self, package: "PackageDescriptor") -> FetchResourceMonitor:
         return no_monitor()

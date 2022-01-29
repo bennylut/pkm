@@ -1,6 +1,26 @@
-import os
+# import os
+#
+# from pkm_cli.main import main
+#
+# os.chdir('/home/bennyl/projects/pkm-new/workspace/projects/xxx')
+# main(['install'])
 
-from pkm_cli.main import main
+def foo(on_x=None, on_y=None, **junk):
+    if on_x:
+        on_x()
 
-os.chdir('/home/bennyl/projects/pkm-new/workspace/projects/xxx')
-main(['install'])
+    if on_y:
+        on_y()
+
+
+def main():
+    def on_x():
+        print("x")
+
+    def on_z():
+        print("z")
+
+    foo(**locals())
+
+
+main()

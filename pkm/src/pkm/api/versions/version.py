@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from typing import Tuple, Optional, Literal
 
+from pkm.utils.commons import UnsupportedOperationException
+
 
 class Version(ABC):
     @abstractmethod
@@ -92,6 +94,53 @@ class StandardVersion(Version):
 
     def is_local(self) -> bool:
         return self.local_label is not None
+
+    def bump(self, particle: str) -> Version:
+        """
+        bump up this version
+        :param particle: the particle of the version to bump, can be any of: major, minor, patch, a, b, rc
+        :return: the new version after the bump
+        """
+
+        version: Version = self
+        if not isinstance(version, StandardVersion) or not len(version.release) == 3:
+            raise UnsupportedOperationException("cannot bump version that does not follow the semver semantics")
+
+        def update_release(v: StandardVersion, new_release: Tuple[int, ...], ) -> Version:
+            return replace(v, release=new_release,
+                           pre_release=None, post_release=None, dev_release=None, local_label=None)
+
+        def bump_release(v: StandardVersion, p: str) -> Optional[Version]:
+            release = v.release
+            if p == 'major':
+                return update_release(v, (release[0] + 1, 0, 0))
+            elif p == 'minor':
+                return update_release(v, (release[0], release[1] + 1, 0))
+            elif p == 'patch':
+                return update_release(v, (release[0], release[1], release[2] + 1))
+            else:
+                return None
+
+        def bump_pre_release(v: StandardVersion, p: str) -> Optional[Version]:
+            pre_release = v.pre_release
+            if pre_release:
+                if pre_release[0] > p:
+                    v = bump_release(v, 'patch')
+                    pre_release = None
+                elif pre_release[0] < p:
+                    pre_release = (p, 0)
+                else:
+                    pre_release = (p, pre_release[1] + 1)
+            else:
+                pre_release = (p, 0)
+
+            return replace(v, pre_release=pre_release)
+
+        new_version = bump_release(version, particle) or bump_pre_release(version, particle)
+        if not new_version:
+            raise ValueError(f"unknown version particle: {particle}")
+
+        return new_version
 
     def __str__(self):
         vstring = ''

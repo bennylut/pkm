@@ -4,7 +4,7 @@ layout: documentation
 
 ## System requirements
 
-`pkm` requires `python 3.8+` (though, it can manage projects on older versions)
+`pkm` requires `python 3.8+` 
 
 ## How to install
 

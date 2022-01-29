@@ -1,12 +1,8 @@
 - [Introduction]({{'/index' | relative_url}})
 - [Installation]({{'/installation' | relative_url}})
 - [Quickstart]({{'/quickstart' | relative_url}})
-- PyProject Reference
-    - [<i>[project]</i>]({{'/pyproject/project' | relative_url}})
-    - [<i>[tool.pkm]</i>]({{'/pyproject/pkm' | relative_url}})
-- Sub-Commands
-    - [`$ pkm new ...`]({{'/commands/new' | relative_url}})
-    - [`$ pkm install ...`]({{'/commands/install' | relative_url}})
-    - [`$ pkm remove ...`]({{'/commands/remove' | relative_url}})
-    - [`$ pkm build ...`]({{'/commands/build' | relative_url}})
-    - [`$ pkm publish ...`]({{'/commands/publish' | relative_url}})
+- Projects
+    - [PyProject Reference]({{'/projects/pyproject-reference' | relative_url}})
+    - [Project Groups]({{'/projects/project-groups' | relative_url}})
+    - [Applications & Libraries]({{'/projects/self-contained-applications' | relative_url}})
+- [Commands]({{'/commands' | relative_url}})

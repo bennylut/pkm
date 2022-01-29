@@ -8,6 +8,8 @@ from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
     AnyVersion
 from pkm.resolution.resolution_monitor import DependencyResolutionMonitor
+from pkm.utils.commons import NoSuchElementException
+from pkm.utils.iterators import find_first
 from pkm.utils.monitors import no_monitor
 from pkm.utils.sequences import argmax
 
@@ -384,18 +386,12 @@ class Incompatibility:
     def update_dependency(self, new_depender: Term):
         assert len(self.terms) == 2, 'attempting to update terms for non dependency incompatability'
 
-        updated_terms = []
-        found = False
-        for i, term in enumerate(self.terms):
-            if term.package == new_depender.package:
-                updated_terms.append(new_depender)
-                found = True
-                self.external_cause = f"{new_depender} depends on {self.terms[(i + 1) % 2].negate()}"
-            else:
-                updated_terms.append(term)
+        if not (old_depender := find_first(self.terms, lambda it: it.package != new_depender.package)):
+            raise NoSuchElementException("attempting to update dependency incompatability with a "
+                                         "term that does not belongs to it")
 
-        assert found, "attempting to update dependency incompatability with a term that does not belongs to it"
-        self.terms = tuple(sorted(updated_terms, key=lambda x: x.package))
+        self.external_cause = f"{new_depender} depends on {old_depender.negate()}"
+        self.terms = tuple(sorted([old_depender, new_depender], key=lambda x: x.package))
 
 
 @dataclass
@@ -625,6 +621,36 @@ class Solver:
 
         return versions
 
+    def _attempt_minor_adjustments(self, package: str, conflicts: List[Incompatibility]) -> bool:
+        # attempt the minor adjustment heuristic: the idea is that if this package cannot be selected
+        # because we previously chose incompatible version of one of its dependencies then we check
+        # what was the actual limitation of this dependency when we chose its version, if the limitation allows
+        # the required version, we backtrack to remove this assignment and instead assign this package version
+        # which will cause the dependency to be adjusted and chosen correctly
+
+        minor_adjustment_dlevel = -1
+        for conflict in conflicts:
+            dependency: Term = find_first(conflict.terms, lambda it: it.package != package)
+            dependency_assignments = self._solution.assignments_by_package[dependency.package]
+            if len(dependency_assignments) > 1 and dependency_assignments[-1].is_decision():
+                actual_limitation = dependency_assignments[-2].accumulated
+                if actual_limitation.allows_any(dependency.constraint):
+                    print(f"{package} is conflicting with {dependency.package}, it requires that "
+                          f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
+                    dlevel = dependency_assignments[-1].decision_level - 1
+                    minor_adjustment_dlevel = dlevel if minor_adjustment_dlevel == -1 \
+                        else min(dlevel, minor_adjustment_dlevel)
+                else:
+                    minor_adjustment_dlevel = -1
+                    break
+
+        if minor_adjustment_dlevel >= 0:
+            print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
+            self._solution.backtrack(minor_adjustment_dlevel)
+            return True
+
+        return False
+
     def _make_next_decision(self) -> Optional[str]:
         # print("#### decision ####")
         undecided_packages = self._solution.undecided_packages()
@@ -668,7 +694,6 @@ class Solver:
             if not version.dependencies:
                 try:
                     version_dependencies = self._problem.get_dependencies(package, version.version)
-                    version_dependencies = self._problem.get_dependencies(package, version.version)
                     version.dependencies = {
                         d.package: PackageDependency(d)
                         for d in version_dependencies}
@@ -685,16 +710,18 @@ class Solver:
         assignments = self._solution.assignments_by_package
         assignments[package].append(assignment)
         # print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")
-        # noinspection PyUnusedLocal
-        conflict = any((icc := ic.check_satisfaction(self._solution)).is_full() for ic in incompatibilities)
+        conflicts = list(filter(lambda it: it.check_satisfaction(self._solution).is_full(), incompatibilities))
         assignments[package].pop()
 
-        if not conflict:
+        if conflicts and self._attempt_minor_adjustments(package, conflicts):
+            conflicts = []
+
+        if not conflicts:
             # print("we can!")
             self._solution.assign(assignment)
             self._solution.require(version.dependencies.keys())
         else:
-            # print(f"we cant.. ({icc})")
+            # print(f"we cant.. ({conflicts})")
             ...
 
         return package
