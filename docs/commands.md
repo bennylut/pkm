@@ -2,11 +2,41 @@
 layout: documentation
 ---
 
-### Available Commands
+### Table Of Content
 {:.no_toc}
 
 * toc 
 {:toc}
+
+## Contextual Commands
+Some of `pkm`'s commands are context dependent, for example, the command:
+```console
+$> pkm install some_package
+```
+will install <i str>"some_package"</i>, if it executes inside a virtual environment directory - pkm will install it on that virtual environment.
+If on the other hand, it executes inside a project directory, pkm will install the dependency inside the virtual environment that belongs to that 
+project and also update the <i> pyproject.toml </i> configuration file. 
+
+### Finding context
+The way `pkm` find the corrent context is very simple, upon execution of context dependent command, pkm looks at the current directory and try to find 
+out if it runs inside a supported context (venv, project, project-group, etc.) if it does - it uses that context, otherwise it goes up a directory and retries.
+If `pkm` reaches the root directory it stops and reports that no context could be found for the given command.
+
+### Controlling Context 
+if you want pkm to use a specific context (instead of searching for one itself) you can do so using the `-c` flag. For example,
+```console
+$> pkm install -c path/to/context some_package
+```
+The above command will use the path <i str>"path/to/context"</i> as its context (failing if no supported context found in this path).
+
+### Global context
+`pkm` considers the environment it was installed in as the global context. 
+ If you installed `pkm` directly on your system installation, the global environment will be that installation.
+you can ask `pkm` to use the global context in your commands by using the flag `-g`, for example:
+```console
+$> pkm install -g some_package
+```
+This command will install the <i str>"some_package"</i> package in the same environment as the one that `pkm` was installed into.
 
 ## Manage Dependencies
 
@@ -71,7 +101,7 @@ layout: documentation
 
 ### `pkm new ...`
 
-> <i>⏳ TLDR</i> creates new stuff <br>
+> <i tag>⏳ TLDR</i> creates new stuff <br>
 > ```console
 > $> pkm new <template-name> <template-args>
 > ``` 

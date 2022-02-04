@@ -1,12 +1,8 @@
-import xonsh.main
-from prompt_toolkit.patch_stdout import patch_stdout
-from typing import List, Optional, Callable
-
-import sys
-
 import argparse
+import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from typing import List, Optional, Callable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -15,48 +11,13 @@ from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
 from pkm.utils.archives import extract_archive
-from pkm.utils.commons import NoSuchElementException, UnsupportedOperationException
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
+from pkm_cli.context import Context
 from pkm_cli.display.display import Display
 from pkm_cli.monitors.environment_monitors import ConsoleEnvironmentOperationsMonitor
 from pkm_cli.monitors.project_monitors import ConsoleProjectOperationsMonitor
 from pkm_cli.scaffold.engine import ScaffoldingEngine
-
-
-def _lookup_project_group() -> ProjectGroup:
-    return ProjectGroup.load(Path.cwd())
-
-
-def _lookup_project() -> Project:
-    return Project.load(Path.cwd())
-
-
-def _lookup_env() -> Environment:
-    env_path = Path.cwd() / '.venv'
-    return Environment(env_path)
-
-
-# noinspection PyUnusedLocal
-def _run_contextual(
-        on_project: Optional[Callable[[Project], None]] = None,
-        on_project_group: Optional[Callable[[ProjectGroup], None]] = None,
-        on_environment: Optional[Callable[[Environment], None]] = None,
-        on_free_context: Optional[Callable[[], None]] = None,
-        on_missing: Optional[Callable[[], None]] = None,
-        **junk
-):
-    if on_project and (project := _lookup_project()).config.exists():
-        on_project(project)
-    elif on_project_group and (project_group := _lookup_project_group()).config.exists():
-        on_project_group(project_group)
-    elif on_environment and (env := _lookup_env()).path.exists():
-        on_environment(env)
-    elif on_free_context:
-        on_free_context()
-    elif on_missing:
-        on_missing()
-    else:
-        raise UnsupportedOperationException("could not execute operation")
 
 
 # noinspection PyUnusedLocal
@@ -71,7 +32,7 @@ def shell(args: Namespace):
     def on_free_context():
         on_environment(Environment.current())
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
 # noinspection PyUnusedLocal
@@ -82,16 +43,16 @@ def build(args: Namespace):
     def on_project_group(project_group: ProjectGroup):
         project_group.build_all()
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
-def project_bump(args: Namespace):
+def vbump(args: Namespace):
     def on_project(project: Project):
         Display.print(f"Using Project: {project}")
         new_version = project.bump_version(args.particle)
         Display.print(f"Version bumped to: {new_version}")
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
 def install(args: Namespace):
@@ -112,7 +73,7 @@ def install(args: Namespace):
         print(f"Adding dependencies into environment: {env.path}")
         env.install(dependencies, pkm.repositories.pypi, monitor=ConsoleEnvironmentOperationsMonitor())
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
 def remove(args: Namespace):
@@ -127,7 +88,7 @@ def remove(args: Namespace):
         print(f"Removing packages from environment: {env.path}")
         env.uninstall(package_names)
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
 def publish(args: Namespace):
@@ -143,7 +104,7 @@ def publish(args: Namespace):
     def on_project_group(project_group: ProjectGroup):
         project_group.publish_all(pkm.repositories.pypi, Authentication(uname, password))
 
-    _run_contextual(**locals())
+    Context.of(args).run(**locals())
 
 
 def new(args: Namespace):
@@ -153,42 +114,71 @@ def new(args: Namespace):
             extract_archive(template_path, tdir)
             ScaffoldingEngine().render(tdir, Path.cwd(), args.template_args)
 
+def test(args: Namespace):
+    def on_project(project: Project):
+        print("project context")
+
+    def on_project_group(project_group: ProjectGroup):
+        print("project group")
+
+    def on_environment(env: Environment):
+        print("environment")
+
+    def on_free_context():
+        print("free context")
+
+    Context.of(args).run(**locals())
 
 def main(args: Optional[List[str]] = None):
     args = args or sys.argv[1:]
 
     pkm_parser = ArgumentParser(description="pkm - python package management for busy developers")
     pkm_subparsers = pkm_parser.add_subparsers()
+    all_subparsers = []
 
-    pkm_build_parser = pkm_subparsers.add_parser('build')
-    pkm_build_parser.set_defaults(func=build)
+    def create_command(name: str, func: Callable[[Namespace], None], **defaults) -> ArgumentParser:
+        result = pkm_subparsers.add_parser(name)
+        result.set_defaults(func=func, **defaults)
+        all_subparsers.append(result)
 
-    pkm_shell_parser = pkm_subparsers.add_parser('shell')
-    pkm_shell_parser.set_defaults(func=shell)
+        return result
 
-    pkm_install_parser = pkm_subparsers.add_parser('install')
+
+    # pkm build
+    create_command('build', build)
+
+    # pkm shell
+    create_command('shell', shell)
+
+    # pkm install
+    pkm_install_parser = create_command('install', install)
     pkm_install_parser.add_argument('dependencies', nargs=argparse.REMAINDER)
-    pkm_install_parser.set_defaults(func=install)
 
-    pkm_remove_parser = pkm_subparsers.add_parser('remove')
+    # pkm remove
+    pkm_remove_parser = create_command('remove', remove)
     pkm_remove_parser.add_argument('package_names', nargs=argparse.REMAINDER)
-    pkm_remove_parser.set_defaults(func=remove)
 
-    pkm_new_parser = pkm_subparsers.add_parser('new')
+    # pkm new
+    pkm_new_parser = create_command('new', new)
     pkm_new_parser.add_argument('template')
     pkm_new_parser.add_argument('template_args', nargs=argparse.REMAINDER)
-    pkm_new_parser.set_defaults(func=new)
 
-    pkm_publish_parser = pkm_subparsers.add_parser('publish')
+    # pkm publish
+    pkm_publish_parser = create_command('publish', publish)
     pkm_publish_parser.add_argument('user')
     pkm_publish_parser.add_argument('password')
-    pkm_publish_parser.set_defaults(func=publish)
 
-    pkm_project_parser = pkm_subparsers.add_parser('project')
-    pkm_project_subparsers = pkm_project_parser.add_subparsers()
-    pkm_project_bump_parser = pkm_project_subparsers.add_parser('bump')
-    pkm_project_bump_parser.add_argument('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?')
-    pkm_project_bump_parser.set_defaults(func=project_bump, particle='patch')
+    # pkm vbump
+    pkm_vbump_parser = create_command('vbump', vbump, particle='patch')
+    pkm_vbump_parser.add_argument('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?')
+
+    # pkm test
+    pkm_vbump_parser = create_command('test', test)
+
+    # context altering flags
+    for subparser in all_subparsers:
+        subparser.add_argument('-c', '--context')
+        subparser.add_argument('-g', '--global-context', action='store_true')
 
     (pargs := pkm_parser.parse_args(args)).func(pargs)
 

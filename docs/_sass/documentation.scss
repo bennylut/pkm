@@ -22,6 +22,25 @@
             border-radius: 2px;
         }
 
+        i[tag] {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            padding: 3px;
+            margin: -3px;
+            color: #7fa0cd;
+            font-weight: bold;
+        }
+
+        i[str] {
+            color: #90a959;
+        }
+
+        i[case] {
+            color: #91bde9;
+            text-decoration: none;
+        }
+
 
         [navigation] {
             padding: 8px 24px 0 0;
@@ -64,24 +83,7 @@
                     margin: 0;
                 }
 
-                i[tag] {
-                    background: rgba(0, 0, 0, 0.9);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 2px;
-                    padding: 3px;
-                    margin: -3px;
-                    color: #7fa0cd;
-                    font-weight: bold;
-                }
 
-                i[str] {
-                    color: #90a959;
-                }
-
-                i[case] {
-                    color: #91bde9;
-                    text-decoration: none;
-                }
             }
 
             [pre-alpha-remark] {
@@ -94,13 +96,20 @@
             }
 
         }
-    }
 
-    #markdown-toc {
+        #markdown-toc {
+            @extend [navigation];
 
-        li::marker {
-          font-size: 1.2em;
-          content: '* '
+            padding-left: 32px;
+            padding-bottom: 12px;
+            margin: 16px 40px 16px 40px;
+
+            li::marker {
+              font-size: 1.2em;
+              content: '* '
+            }
         }
     }
+
+
 }

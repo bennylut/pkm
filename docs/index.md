@@ -18,7 +18,7 @@ layout: documentation
 
 ## why should I use it?
 
-`pkm` is a one-stop-shop for python's package management, it contains a full implementation of package management
+`pkm` is a one-stop-shop for python's package management, it contains a full implementation of all of its package management
 utilities which makes it very fast and give you a cohesive usage experience. It also designed to work on both small and
 large projects which may be composed of multiple subprojects. Finally, it has many unique features that was created to
 make users more productive - take a look at the documentation, you'll understand..

@@ -1,18 +1,14 @@
 ## RUNNING TASKS:
 - documentation site -> update cli, docs
-- context directing flags: "-e" "-p" "-ge" "-g" "-ga" "-pg"
-- pkm show [all, requirements, env, context, project, repositories] | pip freeze, poetry show, npm ls
+- pkm show [all, requirements, env, context, project, repositories, pkm] | pip freeze, poetry show, npm ls
   - for the report - can we combine both rich and prompt-toolkit?
 
 ## DONE IN THIS VERSION
-- bug: pkm shell needs to create an environment if it does not find one in a project directory
-- cli: pkm project bump (major, minor, patch, alpha, beta, rc)
-- bug: pep517 installation failure lead to whole installation failure - need to instead lead to "bad package"
-- resolution improvement: add "minor adjustment" heuristic
-- benchmark: allennlp test on windows
-- cli: operations over project-groups => build, publish, install
+- context altering flags: "-c" "-g" 
+
 
 ## BACKLOG TASKS:
+- support installing applications which were not built as self-contained ones
 - documentation site: projects and project groups, self-contained applications 
 - light the torch repository
 - environment naming (for project for example..) 
@@ -85,6 +81,7 @@
 - common tasks: test, build doc, etc.
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it
+- integration with conda channels (if licence allows - need to check..) https://repo.anaconda.com/pkgs/
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 
