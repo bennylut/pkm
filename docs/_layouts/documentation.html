@@ -32,10 +32,20 @@
 <script lang="javascript">
     let anchors = document.querySelectorAll("[navigation] a");
     let thisPage = window.location.pathname;
+    let currentAnchor = null;
+
     for (let anchor of anchors){
         if (anchor.href.endsWith(thisPage)) {
-            anchor.classList.add("selected")
+            anchor.classList.add("selected");
+            currentAnchor = anchor;
         }
+    }
+
+    // if current anchor found - attach table of content bellow it
+    let toc = document.querySelector("[current-doc] #markdown-toc");
+    if (currentAnchor && toc) {
+        let tocDuplication = toc.cloneNode(true);
+        currentAnchor.insertAdjacentElement('afterend', tocDuplication);
     }
 
 </script>

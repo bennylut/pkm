@@ -1,49 +1,58 @@
-from typing import Callable
+from contextlib import contextmanager
 
-from prompt_toolkit.shortcuts import ProgressBarCounter
+from rich.console import ConsoleRenderable
+from rich.progress import Progress as RichProgress
+from time import time
+from typing import Any, ContextManager, Optional
 
-from pkm.utils.commons import Closeable
-
-
-class ProgressProto(Closeable):
-    completed: int
-    total: int
+from pkm_cli.display.display import InformationUnit, console_lock, Display
 
 
-class Progress(ProgressProto):
+class Progress(InformationUnit):
 
-    def __init__(self, counter: ProgressBarCounter, onclose: Callable):
-        self._counter = counter
-        self._onclose = onclose
+    def __init__(self, description: str, total: int = 100):
+        self._description = description
+        self._total = total
+        self._completed = 0
+        self._rich_progress: Optional[RichProgress] = None
+        self._rich_progress_task: Any = None
 
-    def close(self):
-        self._counter.done = True
-        self._onclose()
+    @contextmanager
+    def dumb(self) -> ContextManager:
+        starttime = time()
+        Display.print(f"[START] {self._description}")
+        yield
+        Display.print(f"[END] {self._description}, took: {time() - starttime} seconds")
 
-    @property
-    def completed(self) -> int:
-        return self._counter.items_completed
+    @contextmanager
+    def rich(self) -> ContextManager[ConsoleRenderable]:
+        starttime = time()
+        self._rich_progress = RichProgress()
+        self._rich_progress_task = self._rich_progress.add_task(
+            self._description, total=self._total, completed=self._completed)
 
-    @completed.setter
-    def completed(self, value: int):
-        self._counter.items_completed = value
+        yield self._rich_progress
+
+        Display.print(f"Done {self._description}, took: {time() - starttime} seconds")
 
     @property
     def total(self) -> int:
-        return self._counter.total
+        return self._total
 
     @total.setter
-    def total(self, value: int):
-        self._counter.total = value
+    def total(self, v: int):
+        self._total = v
+        if self._rich_progress:
+            with console_lock:
+                self._rich_progress.update(self._rich_progress_task, total=v, refresh=False)
 
+    @property
+    def completed(self) -> int:
+        return self._completed
 
-class DumbProgress(ProgressProto):
-    def __init__(self, message: str, total: int = 100) -> None:
-        super().__init__()
-        self.completed = 0
-        self.total = total
-        self._message = message
-        print(f"[START] {message}")
-
-    def close(self):
-        print(f"[END] {self._message}")
+    @completed.setter
+    def completed(self, v: int):
+        self._completed = v
+        if self._rich_progress:
+            with console_lock:
+                self._rich_progress.update(self._rich_progress_task, completed=v, refresh=False)

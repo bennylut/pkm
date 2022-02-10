@@ -1,14 +1,12 @@
 from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
-from pkm.api.repositories.source_builds_repository import BuildError
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.repositories.source_builds_repository import BuildError
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
-from pkm.resolution.resolution_monitor import DependencyResolutionMonitor, HasDependencyResolutionStepMonitor
 from pkm.utils.dicts import get_or_put
-from pkm.utils.monitors import no_monitor
 from pkm.utils.promises import Promise
 
 if TYPE_CHECKING:
@@ -16,32 +14,29 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository import Repository
 
 
-def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository",
-                         monitor: HasDependencyResolutionStepMonitor = no_monitor()) -> List[Package]:
-    with monitor.on_dependency_resolution(root, repo) as dr_monitor:
-        problem = _PkmPackageInstallationProblem(env, repo, root, dr_monitor)
-        solver = Solver(problem, root.package_name)
-        solution: Dict[str, Version] = solver.solve(monitor=dr_monitor)
+def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository") -> List[Package]:
+    problem = _PkmPackageInstallationProblem(env, repo, root)
+    solver = Solver(problem, root.package_name)
+    solution: Dict[str, Version] = solver.solve()
 
-        result: List[Package] = []
+    result: List[Package] = []
 
-        for package_with_extras, version in solution.items():
-            package, extras = _decode_package_and_extras(package_with_extras)
-            if extras:
-                continue
+    for package_with_extras, version in solution.items():
+        package, extras = _decode_package_and_extras(package_with_extras)
+        if extras:
+            continue
 
-            result.append(problem.opened_packages[PackageDescriptor(package, version)])
+        result.append(problem.opened_packages[PackageDescriptor(package, version)])
 
-        return result
+    return result
 
 
 class _PkmPackageInstallationProblem(Problem):
 
-    def __init__(self, env: "Environment", repo: "Repository", root: Dependency, monitor: DependencyResolutionMonitor):
+    def __init__(self, env: "Environment", repo: "Repository", root: Dependency):
         self._env = env
         self._repo = repo
         self._root = root
-        self._monitor = monitor
 
         from pkm.api.pkm import pkm
         self._threads = pkm.threads
@@ -59,7 +54,7 @@ class _PkmPackageInstallationProblem(Problem):
 
         try:
             dependencies = self.opened_packages[descriptor] \
-                .dependencies(self._env, extras, monitor=self._monitor.on_package_examination(package, version))
+                .dependencies(self._env, extras)
 
             for d in dependencies:
                 self._prefetch(d.package_name)

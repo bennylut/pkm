@@ -19,8 +19,8 @@ from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.commons import Closeable, IllegalStateException
 from pkm.utils.dicts import get_or_put
 from pkm.utils.http.cache_directive import TF_HTTP, CacheDirective
-from pkm.utils.http.http_monitors import FetchResourceMonitor
-from pkm.utils.monitors import no_monitor
+from pkm.utils.http.http_monitors import FetchResourceMonitoredOp, FetchResourceCacheHitEvent, \
+    FetchResourceDownloadStartEvent
 from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
@@ -375,10 +375,14 @@ class HttpClient:
         with self._request("GET", url, headers, max_redirects=max_redirects) as response:
             yield response
 
-    def fetch_resource(self, url: str, cache: Optional[CacheDirective] = None,
-                       monitor: FetchResourceMonitor = no_monitor()) -> Optional[FetchedResource]:
+    def fetch_resource(
+            self, url: str, cache: Optional[CacheDirective] = None,
+            resource_name: Optional[str] = None) -> Optional[FetchedResource]:
 
-        with monitor:
+        parsed_url = Url.parse(url)
+        resource_name = resource_name or parsed_url.path.split("/")[-1]
+
+        with FetchResourceMonitoredOp(resource_name, url) as mop:
             if not cache:
                 cache = CacheDirective.allways()
 
@@ -389,12 +393,11 @@ class HttpClient:
                 # we can fix it by adding a ref-counting delete operation for the FetchedResource for example
                 promise = self._fetch_inprogress.get(url)
                 if promise:
-                    monitor.on_cache_hit()
+                    mop.notify(FetchResourceCacheHitEvent())
                     return promise.result()
 
                 def _fetch() -> Optional[FetchedResource]:
                     headers = {}
-                    parsed_url = Url.parse(url)
                     cache_files = self._resource_files_of(parsed_url)
                     fetch_info = TomlFileConfiguration.load(
                         cache_files.fetch_info)  # TODO: maybe add the response headers
@@ -402,7 +405,7 @@ class HttpClient:
 
                     use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
                     if use_cached_data:
-                        monitor.on_cache_hit()
+                        mop.notify(FetchResourceCacheHitEvent())
                     else:
                         # console.log(f"[Start]: GET {url}...")
                         response: Optional[HTTPResponse] = None
@@ -412,7 +415,7 @@ class HttpClient:
                             cache.add_headers(fetch_info, headers)
                             with self._request("GET", parsed_url, headers=headers) as response:
                                 clength = int(response.headers.get('content-length', '-1'))
-                                monitor.on_download_start(clength, cache_files.data)
+                                mop.notify(FetchResourceDownloadStartEvent(clength, cache_files.data))
 
                                 # console.log(f"[MID] GET {url} resulted with status code: {response.status}...")
 

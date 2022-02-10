@@ -5,16 +5,13 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 
 from pkm.api.projects.project import Project
-from pkm.api.projects.project_monitors import ProjectGroupOperationsMonitor
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, Authentication
-from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.project_builders.application_builders import ApplicationInstallerProjectWrapper
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import get_or_raise
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_fail
-from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property
 
 
@@ -106,45 +103,41 @@ class ProjectGroup:
         self._config.children = tuple(p for p in self._config.children if p != project)
         self._config.save()
 
-    def build_all(self, *, monitor: ProjectGroupOperationsMonitor = no_monitor()):
+    def build_all(self):
         """
         recursively run the build operation on all projects and subprojects in this group
-        :param monitor: monitor for the actions performed by this method
         """
-        with monitor.on_build_all(self):
-            for project in self.children:
-                if isinstance(project, Project):
-                    project.build(monitor=monitor.on_access_child_project(self, project))
-                else:
-                    project.build_all(monitor=monitor.on_access_child_group(self, project))
+        # with monitor.on_build_all(self):
+        for project in self.children:
+            if isinstance(project, Project):
+                project.build()
+            else:
+                project.build_all()
 
-    def publish_all(self, repository: Repository, auth: Authentication, *,
-                    monitor: ProjectGroupOperationsMonitor = no_monitor()):
+    def publish_all(self, repository: Repository, auth: Authentication):
         """
         recursively run the publish operation on all projects and subprojects in this group
         :param repository: the repository to publish into
         :param auth: authentication for this repository
-        :param monitor: monitor for the actions performed by this method
         """
 
-        with monitor.on_publish_all(self):
-            for project in self.children:
-                if isinstance(project, Project):
-                    project.publish(repository, auth, monitor=monitor.on_access_child_project(self, project))
-                else:
-                    project.publish_all(repository, auth, monitor=monitor.on_access_child_group(self, project))
+        # with monitor.on_publish_all(self):
+        for project in self.children:
+            if isinstance(project, Project):
+                project.publish(repository, auth)
+            else:
+                project.publish_all(repository, auth)
 
-    def install_all(self, *, monitor: ProjectGroupOperationsMonitor = no_monitor()):
+    def install_all(self):
         """
         recursively run the 'install' (with dependencies) operation on all projects and subprojects in this group
-        :param monitor: monitor for the actions performed by this method
         """
-        with monitor.on_install_all(self):
-            for project in self.children:
-                if isinstance(project, Project):
-                    project.install_with_dependencies(monitor=monitor.on_access_child_project(self, project))
-                else:
-                    project.install_all(monitor=monitor.on_access_child_group(self, project))
+        # with monitor.on_install_all(self):
+        for project in self.children:
+            if isinstance(project, Project):
+                project.install_with_dependencies()
+            else:
+                project.install_all()
 
     @classmethod
     def _find_parent(cls, path: Path) -> Optional["ProjectGroup"]:
@@ -231,8 +224,8 @@ class ProjectGroupRepository(Repository):
             app_name: ApplicationInstallerProjectWrapper(p) for p in self._projects.values()
             if (app_name := p.config.application_installer_project_name)}
 
-    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
-        monitor.on_dependency_match(dependency)
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        # monitor.on_dependency_match(dependency)
         if project := (self._projects.get(dependency.package_name) or self._applications.get(dependency.package_name)):
             if dependency.version_spec.allows_version(project.version):
                 return [project]

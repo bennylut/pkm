@@ -56,6 +56,7 @@ class Context:
         self._lookup = lookup
         self._use_global = use_global
 
+    # noinspection PyUnusedLocal
     def run(self,
             on_project: Optional[Callable[[Project], None]] = None,
             on_project_group: Optional[Callable[[ProjectGroup], None]] = None,

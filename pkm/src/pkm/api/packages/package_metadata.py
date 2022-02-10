@@ -1,7 +1,7 @@
 from email.message import EmailMessage
 from email.parser import Parser
 from pathlib import Path
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Optional
 
 from pkm.api.dependencies.dependency import Dependency
 
@@ -36,6 +36,14 @@ class PackageMetadata(FileConfiguration):
     @property
     def package_name(self) -> str:
         return self['Name']
+
+    @property
+    def summary(self) -> Optional[str]:
+        return self['Summary']
+
+    @property
+    def description(self) -> Optional[str]:
+        return self['Description']
 
     @computed_based_on("Version")
     def package_version(self) -> Version:

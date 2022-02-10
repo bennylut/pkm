@@ -1,71 +1,71 @@
-from abc import abstractmethod
 import os
-
-from prompt_toolkit.patch_stdout import patch_stdout
-from prompt_toolkit import HTML, print_formatted_text
-from prompt_toolkit.shortcuts import ProgressBar
+from abc import abstractmethod
+from contextlib import contextmanager
+from rich.console import ConsoleRenderable, Console, ConsoleOptions, RenderResult
+from rich.live import Live
 from threading import RLock
-from typing import Optional, Iterable, Protocol, TypeVar
-
-from pkm_cli.display.progress import Progress, ProgressProto, DumbProgress
-
-_T = TypeVar("_T")
+from typing import Optional, Protocol, TypeVar, ContextManager, List
 
 
-class _DisplyProto(Protocol):
-
+class InformationUnit(Protocol):
     @abstractmethod
-    def print(self, msg: str, *, formatted: bool = True, newline: bool = True):
+    def dumb(self) -> ContextManager:
         ...
 
     @abstractmethod
-    def progressbar(
-            self, label: str, total: int = 100) -> ProgressProto:
+    def rich(self) -> ContextManager[ConsoleRenderable]:
         ...
 
 
-class _Display(_DisplyProto):
+_T = TypeVar("_T", bound=InformationUnit)
 
-    def __init__(self):
-        self._progress: Optional[ProgressBar] = None
-        self._progress_users = 0
-        self._lock = RLock()
-
-    def print(self, msg: str, *, formatted: bool = True, newline: bool = True):
-        msg = HTML(msg) if formatted else msg
-        end = os.linesep if newline else ''
-        print_formatted_text(msg, end=end)
-
-    def progressbar(
-            self, label: str, total: int = 100) -> ProgressProto:
-        with self._lock:
-            if self._progress:
-                self._progress_users += 1
-            else:
-                self._progress = ProgressBar()
-                self._progress.__enter__()
-                self._progress_users = 1
-
-        def close():
-            with self._lock:
-                self._progress_users -= 1
-                if self._progress_users == 0:
-                    self._progress.__exit__()
-                    self._progress = None
-
-        return Progress(self._progress(None, HTML(label), total=total), close)
+console_lock = RLock()
 
 
-class _DumbDisplay(_DisplyProto):
-    def print(self, msg: str, *, formatted: bool = True, newline: bool = True):
-        print(msg, end='\n' if newline else '')
+class _LiveOutput(ConsoleRenderable):
+    def __init__(self, console: Console):
+        self._live_renderer: Optional[Live] = Live(self, console=console)
+        self._live_components: List[ConsoleRenderable] = []
+        self._live_renderer.__enter__()
 
-    def progressbar(self, label: str, total: int = 100) -> ProgressProto:
-        return DumbProgress(label, total)
+    def __rich_console__(self, console: "Console", options: "ConsoleOptions") -> "RenderResult":
+        return self._live_components
+
+    @contextmanager
+    def show(self, iu: InformationUnit):
+        with iu.rich() as renderable:
+            with console_lock:
+                self._live_components = [*self._live_components, renderable]
+
+            try:
+                yield
+            finally:
+                with console_lock:
+                    self._live_components = [c for c in self._live_components if c is not renderable]
 
 
-try:
-    patch_stdout().__enter__() # noqa
-    Display = _Display()
-except: # noqa
-    Display = _DumbDisplay()
+class _Display:
+
+    def __init__(self, dumb: Optional[bool] = None):
+        self._console = Console()
+        self._dumb = self._console.is_dumb_terminal if dumb is None else dumb
+        self._live_output = None if self._dumb else _LiveOutput(self._console)
+
+    def print(self, msg: str, *, newline: bool = True, use_markup: bool = True):
+        with console_lock:
+            self._console.print(msg, end=os.linesep if newline else '', markup=use_markup)
+
+    @contextmanager
+    def show(self, iu: _T) -> _T:
+        if self._dumb:
+            with iu.dumb():
+                yield iu
+        else:
+            with self._live_output.show(iu):
+                yield iu
+
+    def is_dumb(self) -> bool:
+        return self._dumb
+
+
+Display = _Display()

@@ -4,11 +4,8 @@ from unittest import TestCase
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.repositories.repository import Repository
-from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
-from pkm.utils.monitors import no_monitor
 
 
 class TestRepository(TestCase):
@@ -41,8 +38,8 @@ def assert_match(packages: List[Package], *expected_versions: str):
 
 class DummyRepository(Repository):
 
-    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
-        monitor.on_dependency_match(dependency)
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        # monitor.on_dependency_match(dependency)
         packages: List[Package] = self._packages[dependency.package_name] or []
         return [p for p in packages if dependency.version_spec.allows_version(p.version)]
 
@@ -59,7 +56,7 @@ class DummyRepository(Repository):
 
 class DummyPackage(Package):
 
-    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         return []
 
     def __init__(self, name: str, version: str):
@@ -74,5 +71,5 @@ class DummyPackage(Package):
 
     def install_to(
             self, env: "Environment", user_request: Optional["Dependency"] = None,
-            *, monitor: PackageOperationsMonitor = no_monitor(), build_packages_repo: Optional["Repository"] = None):
+            *, build_packages_repo: Optional["Repository"] = None):
         pass

@@ -38,7 +38,7 @@ $> pkm install -g some_package
 ```
 This command will install the <i str>"some_package"</i> package in the same environment as the one that `pkm` was installed into.
 
-## Manage Dependencies
+## Manage Packages
 
 ### `pkm install ...`
 
@@ -85,7 +85,7 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > ```
 > will change the version <i str>"1.2.3"</i> into <i str>"1.3.0"</i>
 
-## Manage Virtual Environments
+## Manage Virtual Envs
 
 ### `pkm shell ...`
 
@@ -97,7 +97,7 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > <i case>* in venv context *</i> starts the shell for that venv. <br>
 > <i case>* otherwise *</i> starts the shell on the system venv.
 
-## Creating stuff - new projects, environments, etc.
+## Creating stuff
 
 ### `pkm new ...`
 
@@ -109,3 +109,14 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > to create new project group named <i str>"prg"</i>: `pkm new project-group prg` <br>
 > to create new virtual environment named <i str>"my-env"</i>: `pkm new venv my-env` <br>
 
+## Reports & Info
+
+
+### `pkm show ...` 
+> <i tag>⏳ TLDR</i> displays requested information  <br>
+> ```console
+> $> pkm show # displays report about the current context
+> $> pkm show package package_name # displays report about the package "package_name"
+> $> pkm show -h # will show you all other supported reports 
+> ``` 
+ 

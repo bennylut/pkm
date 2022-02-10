@@ -13,10 +13,12 @@ from pkm.api.repositories.repository import Authentication
 from pkm.utils.archives import extract_archive
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
+from pkm_cli import cli_monitors
 from pkm_cli.context import Context
 from pkm_cli.display.display import Display
-from pkm_cli.monitors.environment_monitors import ConsoleEnvironmentOperationsMonitor
-from pkm_cli.monitors.project_monitors import ConsoleProjectOperationsMonitor
+from pkm_cli.reports.environment_report import EnvironmentReport
+from pkm_cli.reports.package_report import PackageReport
+from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
 
 
@@ -59,19 +61,19 @@ def install(args: Namespace):
     dependencies = [Dependency.parse_pep508(it) for it in args.dependencies]
 
     def on_project(project: Project):
-        print(f"Adding dependencies into project: {project.path}")
-        project.install_with_dependencies(dependencies, monitor=ConsoleProjectOperationsMonitor())
+        Display.print(f"Adding dependencies into project: {project.path}")
+        project.install_with_dependencies(dependencies)
 
     def on_project_group(project_group: ProjectGroup):
         if dependencies:
             raise UnsupportedOperationException("could not install dependencies in project group")
 
-        print(f"Installing all projects in group")
+        Display.print(f"Installing all projects in group")
         project_group.install_all()
 
     def on_environment(env: Environment):
-        print(f"Adding dependencies into environment: {env.path}")
-        env.install(dependencies, pkm.repositories.pypi, monitor=ConsoleEnvironmentOperationsMonitor())
+        Display.print(f"Adding dependencies into environment: {env.path}")
+        env.install(dependencies, pkm.repositories.pypi)
 
     Context.of(args).run(**locals())
 
@@ -81,11 +83,11 @@ def remove(args: Namespace):
         raise ValueError("no package names are provided to be removed")
 
     def on_project(project: Project):
-        print(f"Removing packages from project: {project.path}")
+        Display.print(f"Removing packages from project: {project.path}")
         project.remove_dependencies(package_names)
 
     def on_environment(env: Environment):
-        print(f"Removing packages from environment: {env.path}")
+        Display.print(f"Removing packages from environment: {env.path}")
         env.uninstall(package_names)
 
     Context.of(args).run(**locals())
@@ -114,20 +116,26 @@ def new(args: Namespace):
             extract_archive(template_path, tdir)
             ScaffoldingEngine().render(tdir, Path.cwd(), args.template_args)
 
-def test(args: Namespace):
-    def on_project(project: Project):
-        print("project context")
 
-    def on_project_group(project_group: ProjectGroup):
-        print("project group")
+def show(args: Namespace):
+    def on_project(project: Project):
+        ProjectReport(project).display()
 
     def on_environment(env: Environment):
-        print("environment")
-
-    def on_free_context():
-        print("free context")
+        EnvironmentReport(env).display()
 
     Context.of(args).run(**locals())
+
+
+def show_package(args: Namespace):
+    def on_project(project: Project):
+        PackageReport(project, args.dependency).display()
+
+    def on_environment(env: Environment):
+        PackageReport(env, args.dependency).display()
+
+    Context.of(args).run(**locals())
+
 
 def main(args: Optional[List[str]] = None):
     args = args or sys.argv[1:]
@@ -136,13 +144,14 @@ def main(args: Optional[List[str]] = None):
     pkm_subparsers = pkm_parser.add_subparsers()
     all_subparsers = []
 
-    def create_command(name: str, func: Callable[[Namespace], None], **defaults) -> ArgumentParser:
-        result = pkm_subparsers.add_parser(name)
+    def create_command(name: str, func: Callable[[Namespace], None],
+                       subparsers=pkm_subparsers,
+                       **defaults) -> ArgumentParser:
+        result = subparsers.add_parser(name)
         result.set_defaults(func=func, **defaults)
         all_subparsers.append(result)
 
         return result
-
 
     # pkm build
     create_command('build', build)
@@ -173,7 +182,10 @@ def main(args: Optional[List[str]] = None):
     pkm_vbump_parser.add_argument('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?')
 
     # pkm test
-    pkm_vbump_parser = create_command('test', test)
+    pkm_show_parser = create_command('show', show)
+    pkm_show_subparsers = pkm_show_parser.add_subparsers()
+    pkm_show_package_parser = create_command('package', show_package, pkm_show_subparsers)
+    pkm_show_package_parser.add_argument('dependency')
 
     # context altering flags
     for subparser in all_subparsers:
@@ -184,4 +196,5 @@ def main(args: Optional[List[str]] = None):
 
 
 if __name__ == "__main__":
+    cli_monitors.listen()
     main()

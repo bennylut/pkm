@@ -1,16 +1,24 @@
 ## RUNNING TASKS:
 - documentation site -> update cli, docs
-- pkm show [all, requirements, env, context, project, repositories, pkm] | pip freeze, poetry show, npm ls
-  - for the report - can we combine both rich and prompt-toolkit?
+- monitoring: print installation progress
 
 ## DONE IN THIS VERSION
-- context altering flags: "-c" "-g" 
-
+- rich display - detect non console
+- moved to rich display
+- upgrade monitors into monitor-event-bus
+- pkm show, integrate rich
+- monitoring: print download information
 
 ## BACKLOG TASKS:
-- support installing applications which were not built as self-contained ones
+- cmd: pkm cache clear
+- cmd: pkm remove - display the packages being removed 
+- cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
+- documentation - describe the lock, explain why this type of lock is better for multi user projects
+- pkm: update package installation
+- pkm: support installing applications which were not built as self-contained ones
 - documentation site: projects and project groups, self-contained applications 
-- light the torch repository
+- repositories: light the torch repository
+- repositories: conda
 - environment naming (for project for example..) 
 - cli: publish keyring
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
@@ -68,7 +76,6 @@
 - support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
-- commandline: pkm install -g, -ga, -ge env
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug

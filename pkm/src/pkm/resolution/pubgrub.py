@@ -7,10 +7,10 @@ from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Uni
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
     AnyVersion
-from pkm.resolution.resolution_monitor import DependencyResolutionMonitor
+from pkm.resolution.resolution_monitor import DependencyResolutionIterationEvent, \
+    DependencyResolutionConclusionEvent, DependencyResolutionMonitoredOp
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.iterators import find_first
-from pkm.utils.monitors import no_monitor
 from pkm.utils.sequences import argmax
 
 
@@ -97,9 +97,10 @@ class PartialSolution:
         self._required_packages: Dict[str, int] = {}
         self._decisions: Dict[str, Assignment] = {}
 
-    def notify_state(self, monitor: DependencyResolutionMonitor, current_package: str):
+    def notify_state(self, current_package: str, monitor: DependencyResolutionMonitoredOp):
         # noinspection PyTypeChecker
-        monitor.on_resolution_iteration(self._decisions.keys(), self._required_packages.keys(), current_package)
+        DependencyResolutionIterationEvent(self._decisions.keys(), self._required_packages.keys(), current_package)\
+            .notify(monitor)
 
     def undecided_packages(self) -> List[str]:
         return [req for req in self._required_packages if req not in self._decisions]
@@ -494,23 +495,25 @@ class Solver:
             if incompatibility not in term_incompatibilities:
                 term_incompatibilities.append(incompatibility)
 
-    def solve(self, monitor: DependencyResolutionMonitor = no_monitor()) -> Dict[str, Version]:
-        root_term = self.package_versions(self._root_package)[0].term
-        self._add_incompatability(
-            Incompatibility.create([root_term.negate()], external_cause='Root Project'))
+    def solve(self) -> Dict[str, Version]:
+        with DependencyResolutionMonitoredOp() as mop:
 
-        self._solution.require([root_term.package])
+            root_term = self.package_versions(self._root_package)[0].term
+            self._add_incompatability(
+                Incompatibility.create([root_term.negate()], external_cause='Root Project'))
 
-        next_package = root_term.package
-        while next_package is not None:
-            self._solution.notify_state(monitor, next_package)
-            # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
-            self._propagate(next_package)
-            next_package = self._make_next_decision()
+            self._solution.require([root_term.package])
 
-        # print(f"reached into conclusion: {self._solution.decisions()}")
-        monitor.on_final_decision(self._solution.decisions())
-        return self._solution.decisions()
+            next_package = root_term.package
+            while next_package is not None:
+                self._solution.notify_state(next_package, mop)
+                # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
+                self._propagate(next_package)
+                next_package = self._make_next_decision()
+
+            # print(f"reached into conclusion: {self._solution.decisions()}")
+            DependencyResolutionConclusionEvent(self._solution.decisions()).notify(mop)
+            return self._solution.decisions()
 
     def _propagate(self, next_package: str):
 

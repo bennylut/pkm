@@ -3,15 +3,14 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
-from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.utils.monitors import no_monitor
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
     from pkm.api.repositories.repository import Repository
+    from pkm.api.packages.package_metadata import PackageMetadata
 
 
 @dataclass(frozen=True)
@@ -78,7 +77,19 @@ class Package(ABC):
     @property
     @abstractmethod
     def descriptor(self) -> PackageDescriptor:
-        ...
+        """
+        descriptor, describing this package
+        :return:
+        """
+
+    @property
+    def published_metadata(self) -> Optional["PackageMetadata"]:
+        """
+        :return: the package provided metadata,
+                 note that this is not the "computed" metadata but instead only the information available to the
+                 providing repository about this package
+        """
+        return None
 
     @property
     def name(self) -> str:
@@ -89,26 +100,23 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
-        :param monitor: in case where this method requires fetching the package, this will be used as a monitor
         :return: a list of all the package dependencies (for any environment and extras)
         """
 
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None, *,
-            monitor: PackageOperationsMonitor = no_monitor()) -> List["Dependency"]:
+            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
         :param environment: the environment that the dependencies should be calculated against
         :param extras: the extras to include in the dependencies calculation
-        :param monitor: in case where this method requires fetching the package, this will be used as a monitor
         :return: the list of dependencies this package has in order to be installed into the given
         [environment] with the given [extras]
         """
 
-        return [d for d in self._all_dependencies(environment, monitor=monitor) if
-                d.is_applicable_for(environment, extras)]
+        return [d for d in self._all_dependencies(environment)
+                if d.is_applicable_for(environment, extras)]
 
     @abstractmethod
     def is_compatible_with(self, env: "Environment") -> bool:
@@ -119,14 +127,12 @@ class Package(ABC):
 
     @abstractmethod
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: PackageOperationsMonitor = no_monitor(),
-                   build_packages_repo: Optional["Repository"] = None):
+                   *, build_packages_repo: Optional["Repository"] = None):
         """
         installs this package into the given `env`
         :param env: the environment to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param monitor: in case where installing the package requires fetching it, this will be used as a monitor
         :param build_packages_repo: if provided, the repository that will be used for build packages dependencies
         """
 

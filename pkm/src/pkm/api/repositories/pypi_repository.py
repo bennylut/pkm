@@ -6,17 +6,14 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
 from pkm.api.repositories.repository import Authentication
 from pkm.api.repositories.repository import Repository, RepositoryPublisher
-from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException
-from pkm.utils.http.http_monitors import FetchResourceMonitor
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
 from pkm.utils.io_streams import chunks
 from pkm.utils.properties import cached_property
@@ -32,18 +29,20 @@ class PyPiRepository(Repository):
     def publisher(self) -> Optional["RepositoryPublisher"]:
         return PyPiPublisher(self._http)
 
-    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
-        monitor.on_dependency_match(dependency)
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        # monitor.on_dependency_match(dependency)
         try:
             json: Dict[str, Any] = self._http \
                 .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
-                                cache=CacheDirective.ask_for_update()) \
+                                cache=CacheDirective.ask_for_update(),
+                                resource_name=f"matching packages for {dependency}") \
                 .read_data_as_json()
         except HttpException:
             raise NoSuchElementException(
                 f"package: '{dependency.package_name}' does not exists in repository: '{self.name}'")
 
-        # package_info: Dict[str, Any] = json['info']
+        package_info: Dict[str, Any] = {k.replace('_', '-').title(): v for k, v in json['info'].items()}
+
         packages: List[PypiPackage] = []
         releases: Dict[str, Any] = json['releases']
         for version_str, release in releases.items():
@@ -59,7 +58,7 @@ class PyPiRepository(Repository):
                 if dependency.version_spec.allows_version(version):
                     packages.append(PypiPackage(
                         PackageDescriptor(dependency.package_name, version),
-                        relevant_artifacts, self
+                        relevant_artifacts, self, PackageMetadata(path=None, data=package_info)
                     ))
 
         return packages
@@ -68,29 +67,32 @@ class PyPiRepository(Repository):
 # noinspection PyProtectedMember
 class PypiPackage(AbstractPackage):
 
-    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact], repo: PyPiRepository):
-        super().__init__(descriptor, artifacts)
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact], repo: PyPiRepository,
+                 metadata: PackageMetadata):
+
+        super().__init__(descriptor, artifacts, metadata)
         self._repo = repo
 
-    def _retrieve_artifact(self, artifact: StandardPackageArtifact, monitor: FetchResourceMonitor) -> Path:
+    def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
         url = artifact.other_info.get('url')
         if not url:
             raise KeyError(f'could not find url in given artifact info: {artifact}')
 
-        resource = self._repo._http.fetch_resource(url, monitor=monitor)
+        resource = self._repo._http.fetch_resource(url, resource_name=f"{self.name} {self.version}")
         if not resource:
             raise FileNotFoundError(f'cannot find requested artifact: {artifact.file_name}')
 
         return resource.data
 
-    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         json: Dict[str, Any] = self._repo._http \
-            .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json') \
+            .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json',
+                            resource_name=f"metadata for {self.name} {self.version}") \
             .read_data_as_json()
 
         requires_dist = json['info'].get('requires_dist')
         if requires_dist is None:
-            return super(PypiPackage, self)._all_dependencies(environment, monitor=monitor)
+            return super(PypiPackage, self)._all_dependencies(environment)
 
         return [Dependency.parse_pep508(dstr) for dstr in requires_dist]
 

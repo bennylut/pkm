@@ -6,10 +6,8 @@ from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageOperationsMonitor
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.utils.files import is_empty_directory
-from pkm.utils.monitors import no_monitor
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -109,6 +107,11 @@ class InstalledPackage(Package):
 
     @property
     def user_request(self) -> Optional[Dependency]:
+        """
+        :return: the dependency that was requested by the user
+                 if this package was directly requested by the user or its project
+                 otherwise None
+        """
         return self._user_request
 
     def unmark_user_requested(self) -> bool:
@@ -127,19 +130,18 @@ class InstalledPackage(Package):
         self._user_request = request
         return True
 
-    def _all_dependencies(self, environment: "Environment", monitor: PackageOperationsMonitor) -> List["Dependency"]:
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         return self._meta.dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, monitor: PackageOperationsMonitor = no_monitor(),
-                   build_packages_repo: Optional["Repository"] = None):
+                   *, build_packages_repo: Optional["Repository"] = None):
         raise NotImplemented()  # maybe re-mark user request?
 
-    def uninstall(self, *, monitor: PackageOperationsMonitor = no_monitor()) -> bool:
-        monitor.on_uninstall(self, self.site.env)
+    def uninstall(self) -> bool:
+        # monitor.on_uninstall(self, self.site.env)
         if self.readonly:
             print("could not uninstall, package is readonly")
             return False

@@ -41,7 +41,6 @@
             text-decoration: none;
         }
 
-
         [navigation] {
             padding: 8px 24px 0 0;
             background: #303030;
@@ -82,8 +81,6 @@
                 p {
                     margin: 0;
                 }
-
-
             }
 
             [pre-alpha-remark] {
@@ -95,21 +92,18 @@
                 font-size: 17px;
             }
 
-        }
+            #markdown-toc {
+                @extend [navigation];
 
-        #markdown-toc {
-            @extend [navigation];
+                padding-left: 32px;
+                padding-bottom: 12px;
+                margin: 16px 40px 16px 40px;
 
-            padding-left: 32px;
-            padding-bottom: 12px;
-            margin: 16px 40px 16px 40px;
-
-            li::marker {
-              font-size: 1.2em;
-              content: '* '
+                li::marker {
+                  font-size: 1.2em;
+                  content: '* '
+                }
             }
         }
     }
-
-
 }

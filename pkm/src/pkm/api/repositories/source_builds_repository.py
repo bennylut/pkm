@@ -11,17 +11,13 @@ from urllib.parse import unquote_plus, quote_plus
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
-
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageOperationsMonitor, HasBuildStepMonitor
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, BuildSystemConfig
+from pkm.api.repositories.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.api.repositories.repository import Repository
-from pkm.api.repositories.repository_monitors import RepositoryOperationsMonitor
 from pkm.api.versions.version import Version
-from pkm.utils.http.http_monitors import FetchResourceMonitor
-from pkm.utils.monitors import no_monitor
 from pkm.utils.sequences import single_or_fail
 
 if TYPE_CHECKING:
@@ -46,13 +42,12 @@ class SourceBuildsRepository(Repository):
 
     def _build(self, build_key: _BUILD_KEY_T, package: PackageDescriptor,
                required_artifact: str,  # ['metadata', 'wheel', 'editable']
-               source_tree: Path, target_env: "Environment", build_packages_repo: Optional[Repository],
-               monitor: HasBuildStepMonitor):
+               source_tree: Path, target_env: "Environment", build_packages_repo: Optional[Repository]):
 
         from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
-        with monitor.on_build(package, required_artifact) as build_monitor:
+        # with monitor.on_build(package, required_artifact) as build_monitor:
 
-            print(f"INNER BUILDING {package}...")
+        with BuildPackageMonitoredOp(package) as mop:
             package_dir = self._version_dir(package)
             artifacts_dir = package_dir / 'artifacts'
             metadata_file = package_dir / "METADATA"
@@ -82,6 +77,7 @@ class SourceBuildsRepository(Repository):
                 # 1. check for wheel extra requirements
                 command = 'get_requires_for_build_editable' \
                     if required_artifact == 'editable' else 'get_requires_for_build_wheel'
+                mop.notify(BuildPackageHookExecutionEvent(package, command))
 
                 extra_requirements = _exec_build_cycle_script(source_tree, build_env, buildsys, command, [None])
 
@@ -92,8 +88,10 @@ class SourceBuildsRepository(Repository):
 
                 if required_artifact == 'metadata':
                     # 2. try to build metadata only
+                    command = 'prepare_metadata_for_build_wheel'
+                    mop.notify(BuildPackageHookExecutionEvent(package, command))
                     dist_info_output = _exec_build_cycle_script(
-                        source_tree, build_env, buildsys, 'prepare_metadata_for_build_wheel',
+                        source_tree, build_env, buildsys, command,
                         [str(wheels_path), None])
                     if dist_info_output.status == 'success':
                         wheel_metadata_path = wheels_path / dist_info_output.result / 'METADATA'
@@ -105,6 +103,7 @@ class SourceBuildsRepository(Repository):
                 if requires_wheel:
                     # 2. build the wheel
                     command = 'build_editable' if required_artifact == 'editable' else 'build_wheel'
+                    mop.notify(BuildPackageHookExecutionEvent(package, command))
                     wheel_output = _exec_build_cycle_script(
                         source_tree, build_env, buildsys, command, [str(wheels_path), None, None])
 
@@ -123,31 +122,27 @@ class SourceBuildsRepository(Repository):
                         metadata.save_to(metadata_file)
 
     def build(self, package: PackageDescriptor, source_tree: Path, target_env: "Environment", editable: bool,
-              build_packages_repo: Optional[Repository], *,
-              monitor: HasBuildStepMonitor = no_monitor()) -> Package:
+              build_packages_repo: Optional[Repository]) -> Package:
 
-        # print(f"BUILDING {package}...")
         package_type = 'wheel' if not editable else 'editable'
         self._build(threading.current_thread().ident, package, package_type, source_tree, target_env,
-                    build_packages_repo, monitor)
+                    build_packages_repo)
         return single_or_fail(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
-                              target_env: "Environment", build_packages_repo: Optional[Repository],
-                              monitor: PackageOperationsMonitor) -> PackageMetadata:
-        # print(f"BUILDING OR GETTING META {package}...")
+                              target_env: "Environment", build_packages_repo: Optional[Repository]) -> PackageMetadata:
         metadata_file = self._version_dir(package) / "METADATA"
         if not metadata_file.exists():
             self._build(
                 threading.current_thread().ident, package, 'metadata', source_tree, target_env,
-                build_packages_repo, monitor)
+                build_packages_repo)
 
         return PackageMetadata.load(metadata_file)
 
     def accepts(self, dependency: Dependency) -> bool:
         return True
 
-    def _do_match(self, dependency: Dependency, *, monitor: RepositoryOperationsMonitor) -> List[Package]:
+    def _do_match(self, dependency: Dependency) -> List[Package]:
         if not (versions_dir := self._workspace / dependency.package_name).exists():
             return []
 
@@ -179,8 +174,6 @@ def _exec_build_cycle_script(
         output_path_str = str(output_path.absolute()).replace('\\', '\\\\')
 
         script = f"""
-            print("inside the process before the imports")
-
             import {build_backend_import} as build_backend
             import json
 
@@ -190,7 +183,6 @@ def _exec_build_cycle_script(
                 out.close()
                 exit(0)
 
-            print("inside the process")
             if not hasattr({build_backend}, '{hook}'):
                 ret('undefined_hook', None)
             else:
@@ -198,11 +190,9 @@ def _exec_build_cycle_script(
                 ret('success', result)
         """
 
-        print(f"EXECUTING PROCESS - {hook} on {source_tree}")
         script_path = tdir_path / 'execution.py'
         script_path.write_text(dedent(script))
         process_results = env.run_proc([str(env.interpreter_path), str(script_path)], cwd=source_tree)
-        print("DONE EXECUTING PROCESS")
         if process_results.returncode != 0:
             raise BuildError(
                 f"PEP517 build cycle execution failed (execution of hook: {hook}, resulted in exit code:"
@@ -222,13 +212,13 @@ class _PrebuiltPackage(AbstractPackage):
         super().__init__(
             PackageDescriptor(name, version),
             artifacts,
+            published_metadata=PackageMetadata.load(path / "METADATA")
         )
 
         self._path = path
-        self._metadata = PackageMetadata.load(path / "METADATA")
 
-    def _retrieve_artifact(self, artifact: StandardPackageArtifact, monitor: FetchResourceMonitor) -> Path:
+    def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
         return self._path / 'artifacts' / artifact.file_name
 
-    def _all_dependencies(self, environment: "Environment", monitor: FetchResourceMonitor) -> List["Dependency"]:
-        return self._metadata.dependencies
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+        return self.published_metadata.dependencies

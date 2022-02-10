@@ -14,11 +14,9 @@ from pkm.api.distributions.distribution import Distribution
 from pkm.api.distributions.executables import Executables
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageInstallMonitor, PackageOperationsMonitor
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
-from pkm.utils.monitors import no_monitor
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
@@ -72,8 +70,8 @@ class WheelDistribution(Distribution):
         self._wheel = wheel
         self._package = package
 
-    def extract_metadata(self, env: "Environment", monitor: PackageOperationsMonitor = no_monitor()) -> PackageMetadata:
-        monitor.on_extracting_metadata()
+    def extract_metadata(self, env: "Environment") -> PackageMetadata:
+        # monitor.on_extracting_metadata()
 
         with ZipFile(self._wheel) as zipf:
             for name in zipf.namelist():
@@ -87,8 +85,7 @@ class WheelDistribution(Distribution):
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False,
-                   monitor: PackageInstallMonitor = no_monitor()):
+    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
         """
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/

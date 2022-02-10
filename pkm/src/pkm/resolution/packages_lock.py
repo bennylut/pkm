@@ -26,12 +26,27 @@ class _LockedVersion:
 
 
 class PackagesLock:
+    """
+    represent a multi-environment packages lock
+    this lock type can handle projects that are being worked on by different users, each using different environment
+    (e.g., different os, interpreter version, etc.) for the development process without them breaking eachother lock
+    repeatedly
+    """
 
     def __init__(self, locked_packages: Optional[List[_LockedVersion]] = None, lock_file: Optional[Path] = None):
         locked_packages = unone(locked_packages, list)
         self._locked_packages: Dict[str, List[_LockedVersion]] = \
             groupby(locked_packages, lambda it: it.package.name)
         self._lock_file = lock_file
+
+    def env_specific_locks(self, env: Environment):
+        """
+        :param env: the environment to extract lock information to
+        :return: list of all locked packages that are specific to the given environment
+        """
+        env_markers_hash = env.markers_hash
+        return [lp.package for lst in self._locked_packages.values() for lp in lst if
+                lp.env_markers_hash == env_markers_hash]
 
     def locked_versions(self, env: Environment, package: str) -> List[PackageDescriptor]:
         """
@@ -41,12 +56,17 @@ class PackagesLock:
                  (try the first one first)
         """
 
-        relevant_locks = [lp for lp in (self._locked_packages.get(package) or ())]
+        relevant_locks = [lp for lst in self._locked_packages.values() for lp in lst] if not package else \
+            [lp for lp in (self._locked_packages.get(package) or ())]
+
         if not relevant_locks:
             return []
 
         env_markers_hash = env.markers_hash
 
+        # the following lines may look wrong but what we are actually trying to achieve here is
+        # to try and install the env-specific locked package first if such exists otherwise we would like to
+        # try and install non-env specific packages
         result = [lock.package for lock in relevant_locks if lock.env_markers_hash != env_markers_hash]
         if len(result) != len(relevant_locks):
             result.insert(0, next(lock.package for lock in relevant_locks if lock.env_markers_hash == env_markers_hash))
