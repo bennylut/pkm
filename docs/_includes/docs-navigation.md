@@ -1,8 +1,5 @@
 - [Introduction]({{'/index' | relative_url}})
 - [Installation]({{'/installation' | relative_url}})
 - [Quickstart]({{'/quickstart' | relative_url}})
-- Projects
-    - [PyProject Reference]({{'/projects/pyproject-reference' | relative_url}})
-    - [Project Groups]({{'/projects/project-groups' | relative_url}})
-    - [Applications & Libraries]({{'/projects/self-contained-applications' | relative_url}})
+- [Projects]({{'/projects' | relative_url}})
 - [Commands]({{'/commands' | relative_url}})

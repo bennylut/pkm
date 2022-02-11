@@ -1,10 +1,17 @@
+$header-height: 33px;
+
 [documentation] {
-    min-height: 100%;
+
+    height: 100%;
     display: flex;
     flex-direction: column;
 
+    [header] {
+        height: $header-height;
+    }
+
     [main] {
-        min-height: 100%;
+        height: calc(100% - #{$header-height});
         display: flex;
         flex-direction: row;
         flex-grow: 1;
@@ -32,8 +39,23 @@
             font-weight: bold;
         }
 
+        i[eg1] {
+            @extend i, [tag];
+            color: #e16ab6;
+        }
+
+        i[eg2] {
+            @extend i,[tag];
+            color: #3c7dcf;
+        }
+
         i[str] {
             color: #90a959;
+        }
+
+        i[emp] {
+            color: #edb32d;
+            font-weight: 700;
         }
 
         i[case] {
@@ -41,10 +63,24 @@
             text-decoration: none;
         }
 
+        .language-toml.highlighter-rouge {
+            .highlight .err {
+                background: inherit;
+                color: inherit;
+            }
+        }
+
         [navigation] {
             padding: 8px 24px 0 0;
             background: #303030;
             white-space: nowrap;
+            font-size: smaller;
+
+            li::marker {
+              font-size: 1.0em;
+              content: '> ';
+              color: #a7e853;
+            }
 
             a {
                 text-decoration: none;
@@ -71,7 +107,8 @@
 
         [current-doc] {
             flex-grow: 1;
-            padding: 24px 0 0 24px;
+            padding: 24px;
+            overflow-y: auto;
 
             blockquote {
                 background: #303030;
@@ -97,12 +134,19 @@
 
                 padding-left: 32px;
                 padding-bottom: 12px;
-                margin: 16px 40px 16px 40px;
+                font-size: medium;
 
                 li::marker {
                   font-size: 1.2em;
                   content: '* '
                 }
+            }
+
+            hr {
+                height: 0;
+                border: 0;
+                border-bottom: 2px dashed #767676;
+                color: #767676;
             }
         }
     }

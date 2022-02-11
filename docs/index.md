@@ -1,7 +1,3 @@
----
-layout: documentation
----
-
 ## about `pkm`
 
 `pkm` is a new package management software for python. It provides holistic, fast and modern solution.

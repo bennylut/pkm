@@ -22,7 +22,7 @@ class Progress(InformationUnit):
         starttime = time()
         Display.print(f"[START] {self._description}")
         yield
-        Display.print(f"[END] {self._description}, took: {time() - starttime} seconds")
+        Display.print(f"[END] {self._description}, took: {time() - starttime:.2f} seconds")
 
     @contextmanager
     def rich(self) -> ContextManager[ConsoleRenderable]:
@@ -33,7 +33,7 @@ class Progress(InformationUnit):
 
         yield self._rich_progress
 
-        Display.print(f"Done {self._description}, took: {time() - starttime} seconds")
+        Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")
 
     @property
     def total(self) -> int:

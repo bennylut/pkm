@@ -1,5 +1,10 @@
+from threading import RLock
+
+from typing import Optional
+
 from time import sleep
 
+from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
 from pkm.resolution.resolution_monitor import DependencyResolutionMonitoredOp, DependencyResolutionIterationEvent, \
     DependencyResolutionConclusionEvent
@@ -11,6 +16,40 @@ from pkm.utils.strings import startswith_any
 from pkm_cli.display.display import Display
 from pkm_cli.display.progress import Progress
 from pkm_cli.display.spinner import Spinner
+
+_packages_being_installed = []
+_packages_being_installed_spinner = Spinner("")
+_packages_being_installed_spinner_context = None
+_packages_being_installed_spinner_lock = RLock()
+
+
+def with_package_install(e: PackageInstallMonitoredOp):
+
+    global _packages_being_installed_spinner_context
+
+    def update_description():
+        description = f"Installing Packages: {','.join(f'{p.name} {p.version}' for p in _packages_being_installed[:3])}"
+        if (l := len(_packages_being_installed)) > 3:
+            description += f" and {l - 3} more..."
+        _packages_being_installed_spinner.description = description
+
+    with _packages_being_installed_spinner_lock:
+        if not _packages_being_installed:
+            _packages_being_installed_spinner_context = Display.show(_packages_being_installed_spinner)
+            _packages_being_installed_spinner_context.__enter__()
+        _packages_being_installed.append(e.package)
+
+        update_description()
+
+    yield
+
+    with _packages_being_installed_spinner_lock:
+        _packages_being_installed.remove(e.package)
+
+        if not _packages_being_installed:
+            _packages_being_installed_spinner_context.__exit__(None, None, None)
+        else:
+            update_description()
 
 
 def with_external_proc_execution(e: ProcessExecutionMonitoredOp):

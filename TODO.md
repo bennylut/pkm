@@ -1,16 +1,17 @@
 ## RUNNING TASKS:
-- documentation site -> update cli, docs
-- monitoring: print installation progress
+- documentation site -> describe repositories
+- cmd: pkm cache clear
+- git and url dependencies installation support
+ 
 
 ## DONE IN THIS VERSION
-- rich display - detect non console
-- moved to rich display
-- upgrade monitors into monitor-event-bus
-- pkm show, integrate rich
-- monitoring: print download information
+- monitoring: print installation progress
+- bug: on fetch for install progressbars are not clearing
+- bug: live display refresh thread is not daemon
+- documentation site -> describe project and lock
 
 ## BACKLOG TASKS:
-- cmd: pkm cache clear
+
 - cmd: pkm remove - display the packages being removed 
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - documentation - describe the lock, explain why this type of lock is better for multi user projects
@@ -79,7 +80,6 @@
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - prepare an installation test from export that uses many known python packages and several python versions
 - create problem exporter for debug
-- git and url dependencies installation support
 - attach environment zoo to project
 - make-like task system
 - properties and build profiles (note that properties should be resolved before sdist packaging)

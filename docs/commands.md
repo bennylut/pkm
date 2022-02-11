@@ -1,13 +1,10 @@
----
-layout: documentation
----
-
 ### Table Of Content
 {:.no_toc}
 
 * toc 
 {:toc}
 
+---
 ## Contextual Commands
 Some of `pkm`'s commands are context dependent, for example, the command:
 ```console
@@ -38,6 +35,7 @@ $> pkm install -g some_package
 ```
 This command will install the <i str>"some_package"</i> package in the same environment as the one that `pkm` was installed into.
 
+---
 ## Manage Packages
 
 ### `pkm install ...`
@@ -60,6 +58,7 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > <i case>* in venv context *</i> remove from that venv. <br>
 > <i case>* otherwise *</i> remove from system env.
 
+---
 ## Manage Projects
 
 ### `pkm build ...`
@@ -85,6 +84,7 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > ```
 > will change the version <i str>"1.2.3"</i> into <i str>"1.3.0"</i>
 
+---
 ## Manage Virtual Envs
 
 ### `pkm shell ...`
@@ -97,7 +97,8 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > <i case>* in venv context *</i> starts the shell for that venv. <br>
 > <i case>* otherwise *</i> starts the shell on the system venv.
 
-## Creating stuff
+---
+## General
 
 ### `pkm new ...`
 
@@ -108,8 +109,6 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > to create new project named <i str>"prj"</i>:  `pkm new project prj` <br>
 > to create new project group named <i str>"prg"</i>: `pkm new project-group prg` <br>
 > to create new virtual environment named <i str>"my-env"</i>: `pkm new venv my-env` <br>
-
-## Reports & Info
 
 
 ### `pkm show ...` 

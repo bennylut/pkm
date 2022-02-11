@@ -1,39 +1,54 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: "en-US" }}">
-  <head>
+<html lang="{{ site.lang | default: " en-US" }}">
+<head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     {% include head-custom.html %}
+    {% seo %}
+</head>
 
-{% seo %}
-  </head>
-
-  <body>
-
-    <header>
-      <div class="container">
-        <a id="a-title" href="{{ '/' | relative_url }}">
-          <h1>{{ site.title | default: site.github.repository_name }}</h1>
-        </a>
-        <h2>{{ site.description | default: site.github.project_tagline }}</h2>
-
-        <section id="downloads">
-          {% if site.show_downloads %}
-            <a href="{{ site.github.zip_url }}" class="btn">Download as .zip</a>
-            <a href="{{ site.github.tar_url }}" class="btn">Download as .tar.gz</a>
-          {% endif %}
-          <a href="{{ site.github.repository_url }}" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
-
-    <div >
-      <section id="main_content">
-        {{ content }}
-      </section>
-    
+<body>
+<div documentation>
+    <div header>
+        <b>PKM</b> [Python pacKage Management software]
     </div>
-  </body>
+
+    <div main>
+        <div navigation>
+            {% capture navigation %} {% include docs-navigation.md %} {% endcapture %}
+            {{ navigation | markdownify }}
+        </div>
+        <div current-doc>
+            <div pre-alpha-remark>
+                🚧 🚧 🚧 pkm is not released yet and still under development, the information in this site may be inaccurate 🚧 🚧 🚧
+            </div>
+            {{ content }}
+        </div>
+    </div>
+</div>
+
+<script lang="javascript">
+    let anchors = document.querySelectorAll("[navigation] a");
+    let thisPage = window.location.pathname;
+    let currentAnchor = null;
+
+    for (let anchor of anchors){
+        if (anchor.href.endsWith(thisPage)) {
+            anchor.classList.add("selected");
+            currentAnchor = anchor;
+        }
+    }
+
+    // if current anchor found - attach table of content bellow it
+    let toc = document.querySelector("[current-doc] #markdown-toc");
+    if (currentAnchor && toc) {
+        let tocDuplication = toc.cloneNode(true);
+        currentAnchor.insertAdjacentElement('afterend', tocDuplication);
+    }
+
+</script>
+
+</body>
 </html>

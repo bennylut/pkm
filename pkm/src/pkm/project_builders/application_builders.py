@@ -11,6 +11,7 @@ from pkm.api.distributions.distinfo import ObjectReference, DistInfo
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.projects.project import Project
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
 from pkm.api.repositories.repository import Repository
@@ -155,7 +156,7 @@ def build_app_installation(installer_project: Project, output_dir: Path) -> Path
                 nex_package_deps = nex_dist.load_metadata_cfg().dependencies
                 open_list.extend([PackageDescriptor.normalize_source_dir_name(r.package_name)
                                   for r in nex_package_deps])
-            except: # noqa
+            except:  # noqa
                 print(f"could not parse metadata:\n{nex_dist.metadata_path().read_text()}")
                 raise
 
@@ -215,7 +216,7 @@ class ApplicationInstallerProjectWrapper(Package):
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, *,
                    build_packages_repo: Optional["Repository"] = None):
-        with temp_dir() as tdir:
+        with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             installer = self._project.build_application_installer(tdir)
             distribution = SourceDistribution(self.descriptor, installer, build_packages_repo)
             distribution.install_to(env, user_request)

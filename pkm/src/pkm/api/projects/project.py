@@ -7,6 +7,7 @@ from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmRepositoryInstanceConfig
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
@@ -58,11 +59,9 @@ class Project(Package):
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
                    *, build_packages_repo: Optional["Repository"] = None):
-        # with monitor.on_install(self, env) as install_monitor:
-        with temp_dir() as tdir:
+        with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             wheel = self.build_wheel(tdir, editable=True)
             distribution = WheelDistribution(self.descriptor, wheel)
-            # install_monitor.on_distribution_chosen(distribution)
             distribution.install_to(env, user_request)
 
     @cached_property

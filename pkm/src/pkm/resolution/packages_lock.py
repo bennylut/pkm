@@ -123,17 +123,3 @@ class PackagesLock:
         configuration = TomlFileConfiguration.load(lock_file)
         locked_packages = [_LockedVersion.read(lp) for lp in (configuration['lock'] or [])]
         return PackagesLock(locked_packages, lock_file)
-
-#
-# class LockPrioritizingRepository(DelegatingRepository):
-#
-#     def __init__(self, repo: Repository, lock: PackagesLock, env: Environment):
-#         super().__init__(repo)
-#         self._lock = lock
-#         self._env = env
-#
-#     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-#         packages = self._repo._sort_by_priority(dependency, packages)
-#         locked_versions = {l.version for l in self._lock.locked_versions(self._env, dependency.package_name)}
-#         packages.sort(key=lambda it: 0 if it.version in locked_versions else 1)
-#         return packages

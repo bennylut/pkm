@@ -138,6 +138,7 @@ def show_package(args: Namespace):
 
 
 def main(args: Optional[List[str]] = None):
+    cli_monitors.listen()
     args = args or sys.argv[1:]
 
     pkm_parser = ArgumentParser(description="pkm - python package management for busy developers")
@@ -196,5 +197,4 @@ def main(args: Optional[List[str]] = None):
 
 
 if __name__ == "__main__":
-    cli_monitors.listen()
     main()

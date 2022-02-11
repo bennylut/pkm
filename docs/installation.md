@@ -1,7 +1,3 @@
----
-layout: documentation
----
-
 ## System requirements
 
 `pkm` requires `python 3.8+` 

@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from rich.console import ConsoleRenderable
 from rich.spinner import Spinner as RichSpinner
-from typing import ContextManager
+from typing import ContextManager, Optional
 
 from pkm_cli.display.display import InformationUnit, Display
 
@@ -13,6 +13,17 @@ class Spinner(InformationUnit):
 
     def __init__(self, description: str):
         self._description = description
+        self._rich_spinner: Optional[RichSpinner] = None
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @description.setter
+    def description(self, value: str):
+        self._description = value
+        if r := self._rich_spinner:
+            r.update(text=value)
 
     @contextmanager
     def dumb(self) -> ContextManager:
@@ -25,6 +36,7 @@ class Spinner(InformationUnit):
     def rich(self) -> ContextManager[ConsoleRenderable]:
         starttime = time()
 
-        yield RichSpinner("dots", self._description)
+        self._rich_spinner = RichSpinner("dots", self._description, style="progress.spinner")
+        yield self._rich_spinner
 
-        Display.print(f"Done {self._description}, took: {time() - starttime} seconds")
+        Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")
