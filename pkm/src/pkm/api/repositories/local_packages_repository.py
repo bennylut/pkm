@@ -37,7 +37,7 @@ class LocalPackageSettings:
 
 class LocalPackagesRepository(Repository):
 
-    def __init__(self, name: str, workspace: Path, build_packages_repo: Repository,
+    def __init__(self, name: str, workspace: Path,
                  package_settings: Dict[str, LocalPackageSettings]):
         super().__init__(name)
         self._package_settings = package_settings
@@ -47,7 +47,7 @@ class LocalPackagesRepository(Repository):
         if not is_empty_directory(workspace):
             raise ValueError("received workspace must be an empty directory")
 
-        self._build_repo = SourceBuildsRepository(workspace, build_packages_repo)
+        self._build_repo = SourceBuildsRepository(workspace)
 
     def accepts(self, dependency: Dependency) -> bool:
         return dependency.package_name in self._package_settings
@@ -84,7 +84,7 @@ class LocalPackage(Package):
             return cache
 
         package = self._builds_repo.build(
-            self.descriptor, self._settings.location, env, self._settings.editable, self._builds_repo)
+            self.descriptor, self._settings.location, env, self._settings.editable)
         self._build_cache[key] = package
         return package
 
@@ -102,9 +102,8 @@ class LocalPackage(Package):
 
 class LocalPackagesRepositoryBuilder(RepositoryBuilder):
 
-    def __init__(self, build_packages_repo: Repository):
+    def __init__(self):
         super().__init__('local')
-        self._build_packages_repo = build_packages_repo
 
     def build(self, name: Optional[str], package_settings: Dict[str, Any], **kwargs: Any) -> Repository:
         parsed_settings = {
@@ -113,5 +112,4 @@ class LocalPackagesRepositoryBuilder(RepositoryBuilder):
         }
 
         return LocalPackagesRepository(
-            name or 'local-packages', Path(TemporaryDirectory().name),
-            self._build_packages_repo, parsed_settings)
+            name or 'local-packages', Path(TemporaryDirectory().name), parsed_settings)

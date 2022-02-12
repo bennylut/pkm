@@ -10,9 +10,8 @@ from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
-from pkm.utils.archives import extract_archive
 from pkm.utils.commons import UnsupportedOperationException
-from pkm.utils.files import temp_dir
+from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
 from pkm_cli.context import Context
 from pkm_cli.display.display import Display
@@ -24,12 +23,16 @@ from pkm_cli.scaffold.engine import ScaffoldingEngine
 
 # noinspection PyUnusedLocal
 def shell(args: Namespace):
+    import xonsh.main
+
     def on_environment(env: Environment):
         Display.print(f"Using environment: {env.path}")
-        env.exec_proc('python', ['-c', 'import sys;import xonsh.main;sys.exit(xonsh.main.main())'])
+        with env.activate():
+            sys.argv = ['xonsh']
+            sys.exit(xonsh.main.main())
 
     def on_project(project: Project):
-        on_environment(project.default_environment)
+        on_environment(project.attached_environment)
 
     def on_free_context():
         on_environment(Environment.current())
@@ -50,7 +53,6 @@ def build(args: Namespace):
 
 def vbump(args: Namespace):
     def on_project(project: Project):
-        Display.print(f"Using Project: {project}")
         new_version = project.bump_version(args.particle)
         Display.print(f"Version bumped to: {new_version}")
 
@@ -72,7 +74,6 @@ def install(args: Namespace):
         project_group.install_all()
 
     def on_environment(env: Environment):
-        Display.print(f"Adding dependencies into environment: {env.path}")
         env.install(dependencies, pkm.repositories.pypi)
 
     Context.of(args).run(**locals())
@@ -87,7 +88,6 @@ def remove(args: Namespace):
         project.remove_dependencies(package_names)
 
     def on_environment(env: Environment):
-        Display.print(f"Removing packages from environment: {env.path}")
         env.uninstall(package_names)
 
     Context.of(args).run(**locals())
@@ -110,11 +110,8 @@ def publish(args: Namespace):
 
 
 def new(args: Namespace):
-    from importlib.resources import path
-    with path('pkm_cli.scaffold', f"new_{args.template}.tar.gz") as template_path:
-        with temp_dir() as tdir:
-            extract_archive(template_path, tdir)
-            ScaffoldingEngine().render(tdir, Path.cwd(), args.template_args)
+    ScaffoldingEngine().render(
+        ResourcePath('pkm_cli.scaffold', Path(f"new_{args.template}.tar.gz")), Path.cwd(), args.template_args)
 
 
 def show(args: Namespace):
@@ -138,7 +135,6 @@ def show_package(args: Namespace):
 
 
 def main(args: Optional[List[str]] = None):
-    cli_monitors.listen()
     args = args or sys.argv[1:]
 
     pkm_parser = ArgumentParser(description="pkm - python package management for busy developers")
@@ -190,10 +186,16 @@ def main(args: Optional[List[str]] = None):
 
     # context altering flags
     for subparser in all_subparsers:
+        subparser.add_argument('-v', '--verbose', action='store_true')
         subparser.add_argument('-c', '--context')
         subparser.add_argument('-g', '--global-context', action='store_true')
 
-    (pargs := pkm_parser.parse_args(args)).func(pargs)
+    pargs = pkm_parser.parse_args(args)
+    cli_monitors.listen('verbose' in pargs and pargs.verbose)
+    if 'func' in pargs:
+        pargs.func(pargs)
+    else:
+        pkm_parser.print_help()
 
 
 if __name__ == "__main__":

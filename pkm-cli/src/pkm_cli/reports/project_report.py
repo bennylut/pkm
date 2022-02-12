@@ -9,7 +9,7 @@ class ProjectReport(Report):
         self._project = project
 
     def display(self, dumb: bool = Display.is_dumb()):
-        env = self._project.default_environment
+        env = self._project.attached_environment
 
         line = "-" * 80
         Display.print(line)

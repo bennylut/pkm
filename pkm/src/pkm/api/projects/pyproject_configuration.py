@@ -299,7 +299,7 @@ class ProjectConfig:
         if entry_points_tables := project.get('entry-points'):
             entry_points.update({
                 group: _entrypoints_from_config(group, entries)
-                for group, entries in entry_points_tables
+                for group, entries in entry_points_tables.items()
             })
 
         dependencies = None
@@ -411,7 +411,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
             pyproject['project'] = {
                 **_LEGACY_PROJECT,
                 'name': (package or source_tree).name,
-                'version': str(package.version) if package else '1.0.0'}
+                'version': str(package.version) if package else 'unknown_version'}
 
         pyproject['project.name'] = PackageDescriptor.normalize_name(pyproject['project.name'])
         return pyproject

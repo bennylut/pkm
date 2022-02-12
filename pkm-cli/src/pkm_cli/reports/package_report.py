@@ -22,7 +22,7 @@ class PackageReport(Report):
         repository: Repository = pkm.repositories.pypi
 
         if isinstance(self._context, Project):
-            repository = self._context.default_repository
+            repository = self._context.attached_repository
 
         match = repository.match(self._dependency)
 
@@ -48,7 +48,7 @@ class PackageReport(Report):
                 else:
                     Display.print(f"Dependency In Current Project: None")
 
-                context_env = self._context.default_environment
+                context_env = self._context.attached_environment
 
             if context_env or (isinstance(self._context, Environment) and (context_env := self._context)):
                 installed = context_env.site_packages.installed_package(self._dependency.package_name)

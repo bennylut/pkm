@@ -1,17 +1,31 @@
 ## RUNNING TASKS:
-- documentation site -> describe repositories
-- cmd: pkm cache clear
-- git and url dependencies installation support
- 
+- documentation: describe repositories
+- documentation: describe verbose option
+- pkm: pkm level configuration for repositories
+- pkm: git and url dependencies installation support
+- repositories: conda
+- pkm: create and integrate the repositories loader
 
 ## DONE IN THIS VERSION
-- monitoring: print installation progress
-- bug: on fetch for install progressbars are not clearing
-- bug: live display refresh thread is not daemon
-- documentation site -> describe project and lock
+- bug: new project package name is not normalized
+- cli: add verbose option 
+- bug: fix pkm self-build (backend path = "src" instead of ".") 
+- bug: pkm shell did not run in pkm global env
+- bug: pkm new - output is not terminal on project creation
+- refactor: project's default repository and default environment became attached*
+- pkm: allow the project class to handle generic python projects not only pkm ones
+- pkm build: can now build non pkm projects 
 
 ## BACKLOG TASKS:
-
+- pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
+- pkm: support * in packages but not default (just scan before usage on supported repositories)
+- misc: build readme, set github's site
+- pkm show: add repositories information
+- cmd: pkm install - support installation of wheel and sdist from path
+- enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
+- cmd: pkm cache clear
+- bug: pkm new - cannot cancel creation - it just continues to the next question
+- documentation: explain about PKM_HOME, maybe show its value in one of the reports
 - cmd: pkm remove - display the packages being removed 
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - documentation - describe the lock, explain why this type of lock is better for multi user projects
@@ -19,7 +33,6 @@
 - pkm: support installing applications which were not built as self-contained ones
 - documentation site: projects and project groups, self-contained applications 
 - repositories: light the torch repository
-- repositories: conda
 - environment naming (for project for example..) 
 - cli: publish keyring
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
@@ -31,8 +44,6 @@
 - new pyproject-group template
 - documentation: templates docs
 - support publishing self-contained-application packages
-- support * in packages but not default (just scan before usage on supported repositories)
-- pkm install wheel from path
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - site: sidebar responsive to phones
 - site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
@@ -48,7 +59,6 @@
 - handle project install with extras, usecase: test dependencies
 - multi venv in project - usecase and flow (maybe explicitly create an environment zoo)
 - bug: cached_property: mutation lock should be instance dependent and not global
-- check, are cycles detected correctly in sdist builds? (especially under parallelization conditions)
 - content information (author and maintainer) name and email should be validated,
     - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
     - email should be a valid email address
@@ -88,7 +98,6 @@
 - common tasks: test, build doc, etc.
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it
-- integration with conda channels (if licence allows - need to check..) https://repo.anaconda.com/pkgs/
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

@@ -4,14 +4,14 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from subprocess import CompletedProcess
-from typing import List, Dict, NoReturn
+from typing import List, NoReturn, Mapping
 
 from pkm.utils.monitors import MonitoredOperation, MonitoredEvent
 
 _IS_WINDOWS = platform.system() == 'Windows'
 
 
-def execvpe(cmd: str, args: List[str], env: Dict[str, str]) -> NoReturn:
+def execvpe(cmd: str, args: List[str], env: Mapping[str, str]) -> NoReturn:
     if _IS_WINDOWS:
         sys.exit(subprocess.run([cmd, *args], env=env).returncode)
 

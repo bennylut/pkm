@@ -1,10 +1,11 @@
 import hashlib
 import os
 import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn
+from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
@@ -124,6 +125,31 @@ class Environment:
         marker_str = ';'.join(f"{k}={v}" for k, v in sorted_markers)
         return hashlib.md5(marker_str.encode()).hexdigest()
 
+    @contextmanager
+    def activate(self, env: MutableMapping[str, str] = os.environ):
+        new_path = f"{self.paths['scripts']}"
+        if old_path := env.get("PATH"):
+            new_path = f"{new_path}{os.pathsep}{old_path}"
+
+        old_venv = env.get('VIRTUAL_ENV')
+        new_venv = str(self.path)
+
+        env["PATH"] = new_path
+        env["VIRTUAL_ENV"] = new_venv
+
+        try:
+            yield
+        finally:
+            if old_path is not None:
+                env["PATH"] = old_path
+            else:
+                del env["PATH"]
+
+            if old_venv is not None:
+                env["VIRTUAL_ENV"] = old_venv
+            else:
+                del env["VIRTUAL_ENV"]
+
     def exec_proc(self, cmd: str, args: Optional[List[str]] = None, env: Optional[Dict[str, str]] = None) -> NoReturn:
         """
         similar to `run_proc` but does not return, this process will become the new process
@@ -134,14 +160,8 @@ class Environment:
         :param env: environment variables
         """
 
-        new_path = f"{self.paths['scripts']}"
-        if old_path := os.environ.get("PATH"):
-            new_path = f"{new_path}{os.pathsep}{old_path}"
-
-        args = args or []
-        env = env or os.environ
-        new_env = {**env, 'PATH': new_path, 'VIRTUAL_ENV': str(self.path)}
-        execvpe(cmd, args, new_env)
+        with self.activate(env):
+            execvpe(cmd, args, env)
 
     def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess:
         """
@@ -158,16 +178,9 @@ class Environment:
         else:
             env.update(os.environ)
 
-        bin_name = 'Scripts' if self._introspection.is_windows_env() else 'bin'
-        path_addition = str(self._env_path / bin_name)
-
-        if 'PATH' not in env:
-            env['PATH'] = path_addition
-        else:
-            env['PATH'] = f"{path_addition}{os.pathsep}{env['PATH']}"
-
         subprocess_run_kwargs['env'] = env
-        return monitored_run(args[0], args, **subprocess_run_kwargs)
+        with self.activate(env):
+            return monitored_run(args[0], args, **subprocess_run_kwargs)
 
     def reload(self):
         """

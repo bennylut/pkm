@@ -10,6 +10,7 @@ from zipfile import ZipFile
 
 from pkm.api.distributions.distinfo import WheelFileConfiguration, DistInfo
 from pkm.api.distributions.pth_link import PthLink
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.projects.project import ProjectDirectories, Project
 from pkm.api.projects.pyproject_configuration import ProjectConfig, PyProjectConfiguration
@@ -63,8 +64,6 @@ def build_wheel(project: Project, target_dir: Optional[Path] = None, only_meta: 
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
 
-    # requested_artifact = 'metadata' if only_meta else 'editable' if editable else 'wheel'
-    # with monitor.on_build(project.descriptor, requested_artifact) as build_monitor:
     target_dir = target_dir or (project.directories.dist / str(project.version))
 
     with _build_context(project) as bc:
@@ -110,8 +109,10 @@ class _BuildContext:
 
     def wheel_file_name(self) -> str:
         project_cfg = self.pyproject.project
-        min_interpreter: StandardVersion = project_cfg.requires_python.min.version \
-            if project_cfg.requires_python else StandardVersion((3,))
+        req = project_cfg.requires_python
+
+        min_interpreter: StandardVersion = req.min.version \
+            if req and not req.is_any() else StandardVersion((Environment.current().interpreter_version.release[0],))
 
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
         return f"{self._project_and_version_file_prefix()}-{req_interpreter}-none-any.whl"

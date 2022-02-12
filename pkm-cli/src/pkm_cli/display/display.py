@@ -1,12 +1,12 @@
-from time import sleep
-
 import os
 from abc import abstractmethod
 from contextlib import contextmanager
+from threading import RLock, Thread, Condition
+from typing import Optional, Protocol, TypeVar, ContextManager, List
+
 from rich.console import ConsoleRenderable, Console, ConsoleOptions, RenderResult
 from rich.live import Live
-from threading import RLock, Thread
-from typing import Optional, Protocol, TypeVar, ContextManager, List
+from time import sleep
 
 
 class InformationUnit(Protocol):
@@ -26,16 +26,29 @@ console_lock = RLock()
 
 class _LiveOutput(ConsoleRenderable):
     def __init__(self, console: Console):
-        self._live_renderer: Optional[Live] = Live(self, console=console, auto_refresh=False)
+        self._live_renderer: Optional[Live] = Live(
+            self, console=console, auto_refresh=False, redirect_stdout=False,
+            redirect_stderr=False)
         self._live_components: List[ConsoleRenderable] = []
         self._live_renderer.__enter__()
+        self._requires_render = Condition()
 
         Thread(name="live output refresher", target=self._refresh_loop, daemon=True).start()
 
     def _refresh_loop(self):
+        empty_rendered = False
         while True:
-            self._live_renderer.refresh()
-            sleep(0.2)
+            if self._live_components or not empty_rendered:
+
+                with console_lock:
+                    self._live_renderer.refresh()
+
+                empty_rendered = not self._live_components
+                sleep(0.2)
+            else:
+                with self._requires_render:
+                    if not self._live_components:
+                        self._requires_render.wait()
 
     def __rich_console__(self, console: "Console", options: "ConsoleOptions") -> "RenderResult":
         return self._live_components
@@ -43,14 +56,15 @@ class _LiveOutput(ConsoleRenderable):
     @contextmanager
     def show(self, iu: InformationUnit):
         with iu.rich() as renderable:
-            with console_lock:
+            with self._requires_render:
                 self._live_components = [renderable, *self._live_components]
+                if len(self._live_components) == 1:
+                    self._requires_render.notify_all()
 
             try:
                 yield
             finally:
-                with console_lock:
-                    self._live_components = [c for c in self._live_components if c is not renderable]
+                self._live_components = [c for c in self._live_components if c is not renderable]
 
 
 class _Display:
@@ -79,5 +93,21 @@ class _Display:
     def is_dumb(self) -> bool:
         return self._dumb
 
+
+# "hack" prompt toolkit to work together with rich
+# import prompt_toolkit.output.defaults as pt_defaults
+#
+# _original_stdout = sys.stdout
+# _original_pt_create_output = pt_defaults.create_output
+#
+#
+# def _pt_create_defaults(stdout: Optional[TextIO] = None, always_prefer_tty: bool = True):
+#     if stdout is None:
+#         stdout = _original_stdout
+#     return _original_pt_create_output(stdout, always_prefer_tty)
+#
+#
+# pt_defaults.create_output = _pt_create_defaults
+# --------------------------------------------------
 
 Display = _Display()

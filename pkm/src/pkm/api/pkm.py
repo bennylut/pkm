@@ -44,7 +44,7 @@ class _Pkm:
         return {
             b.name: b for b in (
                 SimpleRepositoryBuilder(self.httpclient),
-                LocalPackagesRepositoryBuilder(self.repositories.pypi),
+                LocalPackagesRepositoryBuilder(),
                 ProjectGroupRepositoryBuilder()
             )
         }
@@ -59,7 +59,7 @@ class _Pkm:
         pypi = PyPiRepository(self.httpclient)
 
         return _PkmRepositories(
-            SourceBuildsRepository(self.workspace / 'source-builds', pypi),
+            SourceBuildsRepository(self.workspace / 'source-builds'),
             pypi,
             SimpleRepository('pypi_simple', self.httpclient, 'https://pypi.org/simple'),
             InstalledPythonsRepository()

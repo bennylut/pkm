@@ -1,0 +1,18 @@
+[project]
+name = "pkm-conda-repository"
+version = "0.1.0"
+description = "pkm support for conda repositories"
+readme = "README.md"
+requires-python= ">=3.8, <4.0"
+authors = [{name="bennyl"}]
+dependencies = [ "pkm >=0.4.22, <1",  "conda >=4.3.16, <5"]
+
+[project.entry-points.pkm-repositories]
+conda= "pkm_conda_repository:conda_repository"
+
+[tool.pkm.project]
+application = true
+
+[build-system]
+requires=["pkm"]
+build-backend = "pkm.api.buildsys"

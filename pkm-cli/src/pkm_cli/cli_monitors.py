@@ -1,21 +1,22 @@
 from threading import RLock
 
-from typing import Optional
-
 from time import sleep
 
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
+from pkm.api.repositories.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.resolution.resolution_monitor import DependencyResolutionMonitoredOp, DependencyResolutionIterationEvent, \
     DependencyResolutionConclusionEvent
 from pkm.utils.http.http_monitors import FetchResourceMonitoredOp, FetchResourceCacheHitEvent, \
     FetchResourceDownloadStartEvent
 from pkm.utils.monitors import Monitor
-from pkm.utils.processes import ProcessExecutionMonitoredOp, ProcessExecutionExitEvent
+from pkm.utils.processes import ProcessExecutionMonitoredOp, ProcessExecutionExitEvent, ProcessExecutionOutputLineEvent
 from pkm.utils.strings import startswith_any
 from pkm_cli.display.display import Display
 from pkm_cli.display.progress import Progress
 from pkm_cli.display.spinner import Spinner
+
+_verbose = False
 
 _packages_being_installed = []
 _packages_being_installed_spinner = Spinner("")
@@ -24,7 +25,6 @@ _packages_being_installed_spinner_lock = RLock()
 
 
 def with_package_install(e: PackageInstallMonitoredOp):
-
     global _packages_being_installed_spinner_context
 
     def update_description():
@@ -53,11 +53,12 @@ def with_package_install(e: PackageInstallMonitoredOp):
 
 
 def with_external_proc_execution(e: ProcessExecutionMonitoredOp):
-    # def on_output(oe: ProcessExecutionOutputLineEvent):
-    #     Display.print(f"[{e.id}]: {oe.line}", use_markup=False)
+    if _verbose:
+        def on_output(oe: ProcessExecutionOutputLineEvent):
+            Display.print(f"[{e.execution_name}]: {oe.line}", use_markup=False)
 
-    def on_exit(ee: ProcessExecutionExitEvent):
-        Display.print(f"[{e.execution_name}]: Ended with exit code: {ee.exit_code}", use_markup=False)
+        def on_exit(ee: ProcessExecutionExitEvent):
+            Display.print(f"[{e.execution_name}]: Ended with exit code: {ee.exit_code}", use_markup=False)
 
     with e.listen(**locals()), Display.show(Spinner(f"Executing process {e.execution_name}: '{' '.join(e.cmd)}'")):
         yield
@@ -106,12 +107,18 @@ def with_dependency_resolution(e: DependencyResolutionMonitoredOp):
         yield
 
 
-# def with_package_build(e: BuildPackageMonitoredOp):
-# we need component stack..
+def with_package_build(e: BuildPackageMonitoredOp):
+    def on_build_step(bse: BuildPackageHookExecutionEvent):
+        Display.print(f"executing PEP517 build hook: {bse.hook}")
+
+    with e.listen(**locals()), Display.show(Spinner(f"building package: {e.package.name} {e.package.version}")):
+        yield
 
 
 _listeners = locals()
 
 
-def listen():
+def listen(verbose: bool):
+    global _verbose
+    _verbose = verbose
     Monitor.add_listeners(**_listeners)

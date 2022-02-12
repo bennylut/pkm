@@ -10,7 +10,10 @@ from typing import Union, Set, Optional, List, Any, Dict
 from jinja2 import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 
+from pkm.utils.archives import extract_archive
 from pkm.utils.commons import unone
+from pkm.utils.files import temp_dir
+from pkm.utils.resources import ResourcePath
 
 
 class ScaffoldingEngine:
@@ -35,7 +38,7 @@ class ScaffoldingEngine:
         import pkm_cli.scaffold.doc_generator as dg
         return dg.generate(Path(template_dir), template_descriptor, command_prefix)
 
-    def render(self, template_dir: Union[Path, str], target_dir: Union[Path, str],
+    def render(self, template_path: Union[Path, str, ResourcePath], target_dir: Union[Path, str],
                args: Optional[List[str]] = None, kwargs: Optional[Dict[str, str]] = None,
                extra_context: Optional[Dict[str, Any]] = None, *,
                excluded_files: Optional[List[Path]] = None, allow_overwrite: bool = False):
@@ -43,7 +46,7 @@ class ScaffoldingEngine:
         """
         renders the given template into the target directory
 
-        :param template_dir: the directory holding the template
+        :param template_path: the directory/resource holding the template
         :param target_dir: the directory to output the generated content into
         :param args: positional arguments for the template
         :param kwargs: named arguments for the template
@@ -53,29 +56,36 @@ class ScaffoldingEngine:
         :param allow_overwrite: if True, files that are already exists will be overridden by the template
         """
 
+        if isinstance(template_path, ResourcePath):
+            with template_path.use() as path, temp_dir() as tdir:
+                extract_archive(path, tdir)
+                return self.render(
+                    tdir, target_dir, args, kwargs, extra_context, excluded_files=excluded_files,
+                    allow_overwrite=allow_overwrite)
+
         args = unone(args, list)
         kwargs = unone(kwargs, dict)
         extra_context = unone(extra_context, dict)
 
-        template_dir = (template_dir if isinstance(template_dir, Path) else Path(template_dir)).absolute()
+        template_path = (template_path if isinstance(template_path, Path) else Path(template_path)).absolute()
         target_dir = (target_dir if isinstance(target_dir, Path) else Path(target_dir)).absolute()
-        excluded_files = [*(excluded_files or []), template_dir / "scaffold.py", template_dir / "__pycache__"]
+        excluded_files = [*(excluded_files or []), template_path / "scaffold.py", template_path / "__pycache__"]
 
         target_dir.mkdir(exist_ok=True)
 
         ui = _UserInteractor(args, kwargs)
-        module = _load_proto(template_dir.joinpath("scaffold.py"), ui,
+        module = _load_proto(template_path.joinpath("scaffold.py"), ui,
                              {**extra_context, "args": args, "kwargs": kwargs})
 
         context = {k: v for k, v in vars(module).items() if not k.startswith("_")}
 
-        ignored_files = set(self._load_ignored_files_list(template_dir))
+        ignored_files = set(self._load_ignored_files_list(template_path))
         ignored_files.update(p.absolute() for p in excluded_files)
 
         if not allow_overwrite:
-            self._check_override(template_dir, target_dir, context, ignored_files)
+            self._check_override(template_path, target_dir, context, ignored_files)
 
-        self._render(template_dir, target_dir, context, ignored_files)
+        self._render(template_path, target_dir, context, ignored_files)
 
         if hasattr(module, "post_generation") and callable(module.post_generation):
             module.post_generation()

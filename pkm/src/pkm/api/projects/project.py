@@ -105,12 +105,12 @@ class Project(Package):
         self._pyproject.save()
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
-        self.default_environment.force_remove(self.name)
-        self.install_to(self.default_environment, self.descriptor.to_dependency())
+        self.attached_environment.force_remove(self.name)
+        self.install_to(self.attached_environment, self.descriptor.to_dependency())
 
-        self.default_environment.uninstall(packages)
+        self.attached_environment.uninstall(packages)
 
-        self.lock.update_lock(self.default_environment)
+        self.lock.update_lock(self.attached_environment)
         self.lock.save()
 
     def install_with_dependencies(self, new_dependencies: Optional[List[Dependency]] = None):
@@ -130,14 +130,14 @@ class Project(Package):
         # monitor.on_dependencies_modified(self, deps.values(), new_deps.values())
 
         # with monitor.on_environment_modification(self) as env_ops_monitor:
-        repository = self.default_repository
-        self.default_environment.force_remove(self.name)
-        self.default_environment.install(
+        repository = self.attached_repository
+        self.attached_environment.force_remove(self.name)
+        self.attached_environment.install(
             self.descriptor.to_dependency(), repository)
 
         new_deps_with_version = []
         for dep in new_deps.values():
-            installed = self.default_environment.site_packages.installed_package(dep.package_name).version
+            installed = self.attached_environment.site_packages.installed_package(dep.package_name).version
             if isinstance(installed, StandardVersion):
                 spec = VersionRange(
                     SpecificVersion(installed),
@@ -156,7 +156,7 @@ class Project(Package):
         self._pyproject.save()
         # monitor.on_pyproject_modified()
 
-        self.lock.update_lock(self.default_environment)
+        self.lock.update_lock(self.attached_environment)
         self.lock.save()
         # monitor.on_lock_modified()
 
@@ -164,7 +164,7 @@ class Project(Package):
         clear_cached_properties(self)
 
     @cached_property
-    def default_environment(self) -> Environment:
+    def attached_environment(self) -> Environment:
         default_env = Environment(self._path / '.venv')
         if not default_env.path.exists():
             requirement = self._pyproject.project.requires_python
@@ -176,7 +176,7 @@ class Project(Package):
         return default_env
 
     @cached_property
-    def default_repository(self) -> "ProjectRepository":
+    def attached_repository(self) -> "ProjectRepository":
         return ProjectRepository(self)
 
     def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
@@ -198,8 +198,12 @@ class Project(Package):
         :return: the path to the created archive
         """
 
-        from pkm.project_builders.standard_builders import build_sdist
-        return build_sdist(self, target_dir)
+        if self.is_pkm_project():
+            from pkm.project_builders.pkm_builders import build_sdist
+            return build_sdist(self, target_dir)
+        else:
+            from pkm.project_builders.external_builders import build_sdist
+            return build_sdist(self, target_dir)
 
     def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
         """
@@ -209,14 +213,18 @@ class Project(Package):
         :param editable: if True, a wheel for editable install will be created
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
+        if self.is_pkm_project():
+            from pkm.project_builders.application_builders import is_application_installer_project, \
+                build_app_installation
+            from pkm.project_builders.pkm_builders import build_wheel
 
-        from pkm.project_builders.application_builders import is_application_installer_project, build_app_installation
-        from pkm.project_builders.standard_builders import build_wheel
+            if not only_meta and is_application_installer_project(self):
+                return build_app_installation(self, target_dir)
 
-        if not only_meta and is_application_installer_project(self):
-            return build_app_installation(self, target_dir)
-
-        return build_wheel(self, target_dir, only_meta, editable)
+            return build_wheel(self, target_dir, only_meta, editable)
+        else:
+            from pkm.project_builders.external_builders import build_wheel
+            return build_wheel(self, target_dir, only_meta, editable)
 
     def build(self, target_dir: Optional[Path] = None) -> List[Path]:
         """
@@ -230,6 +238,12 @@ class Project(Package):
             result.append(self.build_application_installer(target_dir))
 
         return result
+
+    def is_pkm_project(self) -> bool:
+        """
+        :return: True if this project is a pkm project, False otherwise
+        """
+        return self.config.build_system.build_backend == 'pkm.api.buildsys'
 
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
                 distributions_dir: Optional[Path] = None):
@@ -271,7 +285,7 @@ class Project(Package):
     @classmethod
     def load(cls, path: Union[Path, str]) -> "Project":
         path = Path(path)
-        pyproject = PyProjectConfiguration.load(path / 'pyproject.toml')
+        pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml')
         return Project(pyproject)
 
 
@@ -280,7 +294,7 @@ class ProjectRepository(Repository):
     def __init__(self, project: Project, env: Optional[Environment] = None):
         super().__init__(f"{project.name}'s repository")
         self.project = project
-        self._env = env or project.default_environment
+        self._env = env or project.attached_environment
 
         group_settings = {
             p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
@@ -342,8 +356,9 @@ class ProjectDirectories:
             packages = [project_path / p for p in packages_relative]
         else:
             if not (src_dir := project_path / 'src').exists():
-                raise FileNotFoundError("source directory is not found and "
-                                        "`tool.pkm.project.packages` is not declared in pyproject.toml")
+                src_dir = project_path
+                # raise FileNotFoundError("source directory is not found and "
+                #                         "`tool.pkm.project.packages` is not declared in pyproject.toml")
             packages = [p for p in src_dir.iterdir() if p.is_dir()]
 
         etc_pkm = project_path / 'etc' / 'pkm'

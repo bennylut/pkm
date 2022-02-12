@@ -4,9 +4,10 @@ from pkm.api.packages.package import PackageDescriptor
 from pkm.utils.monitors import MonitoredOperation, MonitoredEvent
 
 
+@dataclass
 class BuildPackageMonitoredOp(MonitoredOperation):
-    def __init__(self, package: PackageDescriptor):
-        self.package = package
+    package: PackageDescriptor
+    distribution: str  # can be: wheel, metadata, editable_wheel, sdist
 
 
 @dataclass

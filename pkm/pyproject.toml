@@ -9,4 +9,4 @@ requires-python = ">=3.8, <4.0"
 
 [build-system]
 build-backend = "pkm.api.buildsys"
-backend-path = ["."]
+backend-path = ["src"]

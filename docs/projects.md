@@ -19,17 +19,13 @@ and [518](https://www.python.org/dev/peps/pep-0518). It reads the project config
 <i str>"pyproject.toml"</i> file. `toml` is a fairly human-readable format, you can learn more about
 it [here](https://toml.io/en/).
 
-There are two main tables which contains the configuration relevant to pkm:
-
-- The <i tag>[project]</i> table, holds the standard project's metadata
-- The <i tag>[tool.pkm]</i> table, holds pkm-specific features configuration
 
 ### The <i tag>[project]</i> table
 
 > ☝️️ The following documentation is based mainly on [PEP 621](https://www.python.org/dev/peps/pep-0621/), you may want to refer to it for further details.
 
 <br>
-The <i tag>[project]</i> section is the main section to configure your project metadata, since most of the values in
+The <i tag>[project]</i> table is the main section to configure your project metadata, since most of the values in
 this section are self-explanatory, we will begin with an example ([source](https://www.python.org/dev/peps/pep-0621/)):
 
 ```toml
@@ -85,7 +81,7 @@ tomatoes = "spam:main_tomatoes"
 
 <br>
 <br>
-Following, is a table containing a short explanation for the supported fields of this section:
+Following, is a table containing a short explanation for the supported fields in this table:
 
 <table>
     <tr>
@@ -201,8 +197,8 @@ Following, is a table containing a short explanation for the supported fields of
 
 ### Package locking
 
-Package locking is a mechanism that attempt to reduce package versioning dissimilarities on multi-user projects. It actually
-sounds more complex than it is, Lets first try to understand the problem that it tries to solve using an example.
+Package locking is a mechanism that attempts to reduce package versioning dissimilarities on multi-user projects. It actually
+sounds more complex than it is, lets first try to understand the problem that it tries to solve using an example.
 <br> <br>
 Say that there are two developers working on your project - <i eg1>Alice</i> and <i eg2>Bob</i>. 
 
