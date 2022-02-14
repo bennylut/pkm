@@ -12,6 +12,7 @@ from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
+from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
 from pkm.api.repositories.repository import Repository
@@ -214,9 +215,7 @@ class ApplicationInstallerProjectWrapper(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._project.is_compatible_with(env)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, *,
-                   build_packages_repo: Optional["Repository"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             installer = self._project.build_application_installer(tdir)
-            distribution = SourceDistribution(self.descriptor, installer, build_packages_repo)
-            distribution.install_to(env, user_request)
+            Project.load(installer).install_to(env, user_request)

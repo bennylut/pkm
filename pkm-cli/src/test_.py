@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pkm.utils.resources import ResourcePath
-from pkm_cli.scaffold.engine import ScaffoldingEngine
+from pkm.api.projects.project import Project
+from pkm_cli import cli_monitors
 
-ScaffoldingEngine().render(
-    ResourcePath('pkm_cli.scaffold', Path(f"new_project.tar.gz")), Path.cwd())
+cli_monitors.listen(True)
+Project.load(Path("/home/bennyl/projects/pkm-new/workspace/projects/p1")).install_with_dependencies()

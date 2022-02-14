@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
 from base64 import b64encode
 from dataclasses import dataclass
-from io import UnsupportedOperation
 from pathlib import Path
 from typing import List, Union, Optional, Tuple, Dict, Any
 
@@ -20,14 +19,6 @@ class Repository(ABC):
     @property
     def name(self) -> str:
         return self._name
-
-    def accepts(self, dependency: Dependency) -> bool:
-        """
-        :param dependency: the dependency to check 
-        :return: true if this repository knows how to handle the given `dependency`.
-                 e.g., pypi does not know how to handle local file dependency
-        """
-        return not dependency.is_url_dependency
 
     @abstractmethod
     def _do_match(self, dependency: Dependency) -> List[Package]:
@@ -80,9 +71,7 @@ class Repository(ABC):
         :return: list of all the packages that match the given `package_name`
         """
         dependency = Dependency(package_name, AnyVersion)
-        if self.accepts(dependency):
-            return self.match(dependency)
-        raise UnsupportedOperation(f"Repository ({self.name}) does not support listing")
+        return self.match(dependency)
 
     @property
     def publisher(self) -> Optional["RepositoryPublisher"]:
@@ -97,9 +86,6 @@ class DelegatingRepository(Repository):
     def __init__(self, repo: Repository):
         super().__init__(repo.name)
         self._repo = repo
-
-    def accepts(self, dependency: Dependency) -> bool:
-        return self._repo.accepts(dependency)
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         return self._repo._do_match(dependency)

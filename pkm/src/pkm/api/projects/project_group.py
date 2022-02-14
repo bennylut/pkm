@@ -11,7 +11,7 @@ from pkm.project_builders.application_builders import ApplicationInstallerProjec
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import get_or_raise
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
-from pkm.utils.iterators import single_or_fail
+from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
 
 
@@ -96,7 +96,7 @@ class ProjectGroup:
         :param project: the project name or path to remove
         """
         if isinstance(project, str):
-            project = single_or_fail(p for p in self.children if p.name == project).path
+            project = single_or_raise(p for p in self.children if p.name == project).path
 
         project = project.resolve()
 
@@ -166,6 +166,14 @@ class ProjectGroup:
         :return: the loaded project group
         """
         return ProjectGroup(PyProjectGroupConfiguration.load(path / 'pyproject-group.toml'))
+
+    @staticmethod
+    def is_group_dir(path: Path) -> bool:
+        """
+        :param path: the path to check
+        :return: True if the path contain project group, False otherwise
+        """
+        return (path / 'pyproject-group.toml').exists()
 
 
 class PyProjectGroupConfiguration(TomlFileConfiguration):

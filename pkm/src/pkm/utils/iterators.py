@@ -52,7 +52,7 @@ def partition(seq: Iterable[_T], match: Callable[[_T], bool]) -> Tuple[List[_T],
     return t, f
 
 
-def single_or_fail(seq: Iterable[_T]) -> _T:
+def single_or_raise(seq: Iterable[_T]) -> _T:
     """
     :param seq: the iterable to access
     :return: the first element of this iterable if the number of elements in it is 1 otherwise raise `ValueError`

@@ -1,10 +1,9 @@
-from time import time
-
 from contextlib import contextmanager
+from typing import ContextManager, Optional
 
 from rich.console import ConsoleRenderable
 from rich.spinner import Spinner as RichSpinner
-from typing import ContextManager, Optional
+from time import time
 
 from pkm_cli.display.display import InformationUnit, Display
 

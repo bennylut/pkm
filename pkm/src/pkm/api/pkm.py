@@ -1,34 +1,34 @@
+import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-
-import sys
-import os
-
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
-    from pkm.api.repositories.repository import RepositoryBuilder
     from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
-    from pkm.api.repositories.pypi_repository import PyPiRepository
     from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
-    from pkm.api.repositories.simple_repository import SimpleRepository, SimpleRepositoryBuilder
+    from pkm.api.repositories.repository import Repository
+    from pkm.api.repositories.repository_loader import RepositoryLoader, RepositoriesConfiguration
 
 ENV_PKM_HOME = "PKM_HOME"
+REPOSITORIES_CONFIG_RPATH = "etc/repositories.toml"
 
 
 @dataclass
 class _PkmRepositories:
+    pypi: "Repository"
     source_builds: "SourceBuildsRepository"
-    pypi: "PyPiRepository"
-    pypi_simple: "SimpleRepository"
+    main: "Repository"
     installed_pythons: "InstalledPythonsRepository"
 
 
 class _Pkm:
+    repositories: _PkmRepositories
+
     def __init__(self):
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
@@ -36,33 +36,21 @@ class _Pkm:
         self.threads = ThreadPoolExecutor()
 
     @cached_property
-    def repository_builders(self) -> Dict[str, "RepositoryBuilder"]:
-        from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
-        from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
-        from pkm.api.projects.project_group import ProjectGroupRepositoryBuilder
-
-        return {
-            b.name: b for b in (
-                SimpleRepositoryBuilder(self.httpclient),
-                LocalPackagesRepositoryBuilder(),
-                ProjectGroupRepositoryBuilder()
-            )
-        }
+    def repository_loader(self) -> "RepositoryLoader":
+        from pkm.api.repositories.repository_loader import RepositoryLoader, RepositoriesConfiguration
+        config = RepositoriesConfiguration.load(self.workspace / REPOSITORIES_CONFIG_RPATH)
+        return RepositoryLoader(config, self.httpclient, self.workspace / 'repos')
 
     @cached_property
     def repositories(self) -> _PkmRepositories:
-        from pkm.api.repositories.simple_repository import SimpleRepository
         from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
-        from pkm.api.repositories.pypi_repository import PyPiRepository
         from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 
-        pypi = PyPiRepository(self.httpclient)
-
         return _PkmRepositories(
+            self.repository_loader.pypi,
             SourceBuildsRepository(self.workspace / 'source-builds'),
-            pypi,
-            SimpleRepository('pypi_simple', self.httpclient, 'https://pypi.org/simple'),
-            InstalledPythonsRepository()
+            self.repository_loader.main,
+            InstalledPythonsRepository(),
         )
 
 

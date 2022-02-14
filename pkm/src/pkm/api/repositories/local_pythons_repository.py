@@ -47,9 +47,6 @@ class InstalledPythonsRepository(Repository):
 
         return result
 
-    def accepts(self, dependency: Dependency) -> bool:
-        return dependency.package_name == 'python'
-
     def _do_match(self, dependency: Dependency) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         extras = set(dependency.extras) if dependency.extras is not None else _DEFAULT_PKG_EXTRAS
@@ -85,8 +82,7 @@ class LocalInterpreterPackage(Package):
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, *,
-                   build_packages_repo: Optional["Repository"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         LightweightEnvironments.create(env.path, self._interpreter.absolute())
 
 

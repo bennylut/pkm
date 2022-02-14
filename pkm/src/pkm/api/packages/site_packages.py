@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import SpecificVersion
@@ -101,6 +102,13 @@ class InstalledPackage(Package):
         self.site = site
         self.readonly = readonly
 
+    @cached_property
+    def dist_info(self) -> DistInfo:
+        """
+        :return: the installed package dist-info
+        """
+        return DistInfo.load(self._dist_info)
+
     @property
     def descriptor(self) -> PackageDescriptor:
         return self._desc
@@ -115,6 +123,11 @@ class InstalledPackage(Package):
         return self._user_request
 
     def unmark_user_requested(self) -> bool:
+        """
+        remove the "user request" mark from a package
+        :return: True if the mark removed, False if the package is readonly
+        """
+
         if self.readonly:
             return False
 
@@ -136,8 +149,7 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._meta.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, build_packages_repo: Optional["Repository"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         raise NotImplemented()  # maybe re-mark user request?
 
     def uninstall(self) -> bool:

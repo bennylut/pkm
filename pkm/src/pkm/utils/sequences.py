@@ -54,7 +54,7 @@ def index_of_or_none(seq: Sequence[_T], value: Any) -> Optional[int]:
         return None
 
 
-def single_or_fail(seq: Sequence[_T]) -> _T:
+def single_or_raise(seq: Sequence[_T]) -> _T:
     """
     :param seq: the seq to access
     :return: the first element of this sequence if `len(seq) == 1`  otherwise raise `ValueError`

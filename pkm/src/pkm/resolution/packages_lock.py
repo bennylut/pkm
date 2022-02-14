@@ -29,7 +29,7 @@ class PackagesLock:
     """
     represent a multi-environment packages lock
     this lock type can handle projects that are being worked on by different users, each using different environment
-    (e.g., different os, interpreter version, etc.) for the development process without them breaking eachother lock
+    (e.g., different os, interpreter version, etc.) for the development process without them breaking each other lock
     repeatedly
     """
 
@@ -66,7 +66,7 @@ class PackagesLock:
 
         # the following lines may look wrong but what we are actually trying to achieve here is
         # to try and install the env-specific locked package first if such exists otherwise we would like to
-        # try and install non-env specific packages
+        # try and install non-env specific pre-locked packages
         result = [lock.package for lock in relevant_locks if lock.env_markers_hash != env_markers_hash]
         if len(result) != len(relevant_locks):
             result.insert(0, next(lock.package for lock in relevant_locks if lock.env_markers_hash == env_markers_hash))

@@ -3,15 +3,16 @@ from pathlib import Path
 from typing import List, Optional, Union, Tuple, Dict, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
-from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
-from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmRepositoryInstanceConfig
+from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
-from pkm.api.versions.version import StandardVersion, Version
+from pkm.api.repositories.repository_loader import RepositoryInstanceConfig
+from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
@@ -20,7 +21,8 @@ from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
-    from pkm.api.projects.project_group import ProjectGroup
+    from pkm.api.projects.project_group import ProjectGroup, ProjectGroupRepository
+    from pkm.api.environments.environment import Environment
 
 
 class Project(Package):
@@ -47,20 +49,31 @@ class Project(Package):
     def published_metadata(self) -> Optional[PackageMetadata]:
         return PackageMetadata.from_project_config(self.config.project)
 
+    @cached_property
+    def computed_metadata(self) -> PackageMetadata:
+        if self.config.project.dynamic:
+            dist_info = DistInfo.load(self.build_wheel(only_meta=True))
+            return dist_info.load_metadata_cfg()
+        return self.published_metadata
+
     @property
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
     def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+        prj = self.config.project
+
+        if prj.is_dynamic('dependencies') or prj.is_dynamic('optional-dependencies'):
+            return self.computed_metadata.dependencies
+
         return self._pyproject.project.all_dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, build_packages_repo: Optional["Repository"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, editable: bool = True):
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
-            wheel = self.build_wheel(tdir, editable=True)
+            wheel = self.build_wheel(tdir, editable=editable)
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(env, user_request)
 
@@ -75,20 +88,30 @@ class Project(Package):
         """
         return ProjectDirectories.create(self._pyproject)
 
-    def bump_version(self, particle: str) -> Version:
+    def bump_version(self, particle: str, new_name: Optional[str] = None, save: bool = True) -> Version:
         """
         bump up the version of this project
-        :param particle: the particle of the version to bump, can be any of: major, minor, patch, a, b, rc
+        :param particle: the particle of the version to bump, can be any of: major, minor, patch, a, b, rc, name
+        :param new_name: if `particle` equals to 'name' than the new name is taken from this argument
+        :param save: if true then the new configuration is saved into pyproject.toml
         :return: the new version after the bump
         """
 
-        version: Version = self.config.project.version
-        if not isinstance(version, StandardVersion) or not len(version.release) == 3:
-            raise UnsupportedOperationException("cannot bump version that does not follow the semver semantics")
+        if particle == 'name':
+            if not new_name:
+                raise UnsupportedOperationException("particle was 'name' but no name was provided")
 
-        new_version = version.bump(particle)
+            new_version = NamedVersion(new_name)
+        else:
+            version: Version = self.config.project.version
+            if not isinstance(version, StandardVersion) or not len(version.release) == 3:
+                raise UnsupportedOperationException("cannot bump version that does not follow the semver semantics")
+
+            new_version = version.bump(particle)
+
         self.config.project = replace(self.config.project, version=new_version)
-        self.config.save()
+        if save:
+            self.config.save()
         return new_version
 
     def remove_dependencies(self, packages: List[str]):
@@ -164,7 +187,8 @@ class Project(Package):
         clear_cached_properties(self)
 
     @cached_property
-    def attached_environment(self) -> Environment:
+    def attached_environment(self) -> "Environment":
+        from pkm.api.environments.environment import Environment
         default_env = Environment(self._path / '.venv')
         if not default_env.path.exists():
             requirement = self._pyproject.project.requires_python
@@ -283,34 +307,35 @@ class Project(Package):
                         publisher.publish(auth, metadata, distribution)
 
     @classmethod
-    def load(cls, path: Union[Path, str]) -> "Project":
+    def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None) -> "Project":
         path = Path(path)
-        pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml')
+        pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml', package)
         return Project(pyproject)
 
 
 class ProjectRepository(Repository):
 
-    def __init__(self, project: Project, env: Optional[Environment] = None):
+    def __init__(self, project: Project, env: Optional["Environment"] = None):
         super().__init__(f"{project.name}'s repository")
         self.project = project
         self._env = env or project.attached_environment
 
-        group_settings = {
+        project_group_packages = {
             p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
             for p in (project.group.project_children_recursive if project.group else [])
         }
-        group_settings[project.name] = {'path': str(project.path.absolute()), 'name': project.name,
-                                        'version': str(project.version)}
-        self._group_repo = pkm.repository_builders['local'].build('project-group', group_settings)
+        project_group_packages[project.name] = {
+            'path': str(project.path.absolute()), 'name': project.name,
+            'version': str(project.version)}
 
-        built_repositories: List[Tuple[PkmRepositoryInstanceConfig, Repository]] = []
+        self._group_repo: ProjectGroupRepository = pkm.repository_loader.load(
+            RepositoryInstanceConfig('local', project_group_packages, 'project-group', {}))
+
+        built_repositories: List[Tuple[RepositoryInstanceConfig, Repository]] = []
         for rcfg in project.config.pkm_repositories:
-            if not (builder := pkm.repository_builders.get(rcfg.type)):
-                raise KeyError(f"unknown repository type: {rcfg.type}")
-            built_repositories.append((rcfg, builder.build(rcfg.name, rcfg.packages, **rcfg.args)))
+            built_repositories.append((rcfg, pkm.repository_loader.load(rcfg)))
 
-        self._default_repo = pkm.repositories.pypi
+        self._default_repo = pkm.repositories.main
         if default_repo := first_or_none(
                 repository for repository_config, repository in built_repositories
                 if '*' in repository_config.packages):
@@ -330,16 +355,13 @@ class ProjectRepository(Repository):
         if dependency.package_name == self.project.name:
             return [self.project]
 
-        if (gr := self._group_repo) and gr.accepts(dependency) and (gpacs := gr.match(dependency, False)):
+        if (gr := self._group_repo) and (gpacs := gr.match(dependency, False)):
             return gpacs
 
         return self._repository_for(dependency).match(dependency, False)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         return self.project.lock.sort_packages_by_lock_preference(self._env, packages)
-
-    def accepts(self, dependency: Dependency) -> bool:
-        return self._repository_for(dependency).accepts(dependency)
 
 
 @dataclass()
@@ -357,8 +379,6 @@ class ProjectDirectories:
         else:
             if not (src_dir := project_path / 'src').exists():
                 src_dir = project_path
-                # raise FileNotFoundError("source directory is not found and "
-                #                         "`tool.pkm.project.packages` is not declared in pyproject.toml")
             packages = [p for p in src_dir.iterdir() if p.is_dir()]
 
         etc_pkm = project_path / 'etc' / 'pkm'

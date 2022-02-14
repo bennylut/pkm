@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
-from typing import Tuple, Optional, Literal
+from typing import Tuple, Optional, Literal, TYPE_CHECKING
 
 from pkm.utils.commons import UnsupportedOperationException
 
+if TYPE_CHECKING:
+    from pkm.api.versions.version_specifiers import VersionUrl
 
 class Version(ABC):
     @abstractmethod
@@ -17,6 +19,9 @@ class Version(ABC):
     @abstractmethod
     def is_local(self) -> bool:
         ...
+
+    def as_url(self) -> Optional["VersionUrl"]:
+        return None
 
     def without_patch(self):
         return self
@@ -50,6 +55,12 @@ class NamedVersion(Version):
 
     def is_local(self) -> bool:
         return False
+
+    def as_url(self) -> Optional["VersionUrl"]:
+        if "://" in self.name:
+            from pkm.api.versions.version_specifiers import VersionUrl
+            return VersionUrl.parse(self.name)
+        return None
 
     def __lt__(self, other: "Version") -> bool:
         if isinstance(other, NamedVersion):
@@ -244,3 +255,4 @@ class StandardVersion(Version):
     def parse(cls, txt: str) -> "StandardVersion":
         from pkm.api.versions.version_parser import VersionParser
         return VersionParser(txt.lower()).read_version()
+

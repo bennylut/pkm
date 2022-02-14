@@ -50,9 +50,6 @@ class DummyRepository(Repository):
             for package_name, versions in packages.items()
         }
 
-    def accepts(self, dependency: Dependency) -> bool:
-        return True
-
 
 class DummyPackage(Package):
 
@@ -70,6 +67,5 @@ class DummyPackage(Package):
         return True
 
     def install_to(
-            self, env: "Environment", user_request: Optional["Dependency"] = None,
-            *, build_packages_repo: Optional["Repository"] = None):
+            self, env: "Environment", user_request: Optional["Dependency"] = None):
         pass

@@ -1,4 +1,7 @@
-from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+from typing import List, Dict, Optional, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
@@ -8,6 +11,7 @@ from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
 from pkm.utils.promises import Promise
+from pkm.utils.sequences import single_or_raise
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -16,17 +20,16 @@ if TYPE_CHECKING:
 
 def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository") -> List[Package]:
     problem = _PkmPackageInstallationProblem(env, repo, root)
-    solver = Solver(problem, root.package_name)
-    solution: Dict[str, Version] = solver.solve()
+    solver = Solver(problem, _Pkg.of(root))
+    solution: Dict[_Pkg, Version] = solver.solve()
 
     result: List[Package] = []
 
-    for package_with_extras, version in solution.items():
-        package, extras = _decode_package_and_extras(package_with_extras)
-        if extras:
+    for pkg, version in solution.items():
+        if pkg.extras:
             continue
 
-        result.append(problem.opened_packages[PackageDescriptor(package, version)])
+        result.append(problem.opened_packages[PackageDescriptor(pkg.name, version)])
 
     return result
 
@@ -42,64 +45,65 @@ class _PkmPackageInstallationProblem(Problem):
         self._threads = pkm.threads
 
         self.opened_packages: Dict[PackageDescriptor, Package] = {}
-        self._prefetched_packages: Dict[str, Promise[List[Package]]] = {}
+        self._prefetched_packages: Dict[_Pkg, Promise[List[Package]]] = {}
 
-    def _prefetch(self, package_name: str) -> Promise[List[Package]]:
-        return get_or_put(self._prefetched_packages, package_name,
-                          lambda: Promise.execute(self._threads, self._repo.list, package_name))
+    def _prefetch(self, package: _Pkg) -> Promise[List[Package]]:
+        return get_or_put(self._prefetched_packages, package,
+                          lambda: Promise.execute(self._threads, self._repo.list, package.name))
 
-    def get_dependencies(self, package: str, version: Version) -> List[Term]:
-        package_name, extras = _decode_package_and_extras(package)
-        descriptor = PackageDescriptor(package_name, version)
+    def get_dependencies(self, package: _Pkg, version: Version) -> List[Term]:
+        descriptor = PackageDescriptor(package.name, version)
 
         try:
+            if (url := version.as_url()) and descriptor not in self.opened_packages:
+                self.opened_packages[descriptor] = single_or_raise(self._repo.match(f"{package} @ {url}"))
+
             dependencies = self.opened_packages[descriptor] \
-                .dependencies(self._env, extras)
+                .dependencies(self._env, package.extras)
 
             for d in dependencies:
-                self._prefetch(d.package_name)
+                if not d.is_url_dependency:
+                    self._prefetch(_Pkg.of(d))
 
         except (ValueError, IOError, BuildError) as e:
             raise MalformedPackageException(str(descriptor)) from e
 
         result: List[Term] = []
-        if extras:
-            result.append(Term(package_name, SpecificVersion(version)))
+
+        if package.extras:  # add the package itself together with its extras
+            result.append(Term(replace(package, extras=None), SpecificVersion(version)))
 
         for d in dependencies:
-            if d.is_applicable_for(self._env, extras):
-                term_package = _encode_package_and_extras(d.package_name, d.extras)
-                term_spec = d.version_spec
-
-                result.append(Term(term_package, term_spec))
+            if d.is_applicable_for(self._env, package.extras):
+                result.append(Term(_Pkg.of(d), d.version_spec))
 
         return result
 
-    def get_versions(self, package: str) -> List[Version]:
+    def get_versions(self, package: _Pkg) -> List[Version]:
 
-        package_name, extras = _decode_package_and_extras(package)
+        all_packages = self._prefetch(package).result()
+        packages = [p for p in all_packages if p.is_compatible_with(self._env)]
 
-        all_packages = self._prefetch(package_name).result()
-        pacakges = [p for p in all_packages if p.is_compatible_with(self._env)]
-
-        for package in pacakges:
+        for package in packages:
             self.opened_packages[package.descriptor] = package
 
-        return [p.version for p in pacakges]
+        return [p.version for p in packages]
 
 
-def _decode_package_and_extras(package: str) -> Tuple[str, Optional[List[str]]]:
-    if '[' not in package:
-        return package, None
+@dataclass(frozen=True, eq=True)
+class _Pkg:
+    name: str
+    extras: Optional[List[str]]
 
-    package_name, extras = package.split('[')
-    extras = extras[:-1].split(',')
+    def __str__(self):
+        result = self.name
+        if self.extras:
+            result += "[" + ', '.join(self.extras) + "]"
+        return result
 
-    return package_name, extras
+    def __repr__(self):
+        return self.__str__()
 
-
-def _encode_package_and_extras(package_name: str, extras: Optional[List[str]]) -> str:
-    if not extras:
-        return package_name
-
-    return f"{package_name}[{','.join(extras)}]"
+    @classmethod
+    def of(cls, d: Dependency) -> _Pkg:
+        return _Pkg(d.package_name, d.extras)

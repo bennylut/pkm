@@ -1,22 +1,25 @@
 ## RUNNING TASKS:
+- documentation: document VersionSpecifier
 - documentation: describe repositories
 - documentation: describe verbose option
-- pkm: pkm level configuration for repositories
+- documentation: describe build overwrites
 - pkm: git and url dependencies installation support
 - repositories: conda
-- pkm: create and integrate the repositories loader
+- build-overwrites support 
 
 ## DONE IN THIS VERSION
-- bug: new project package name is not normalized
-- cli: add verbose option 
-- bug: fix pkm self-build (backend path = "src" instead of ".") 
-- bug: pkm shell did not run in pkm global env
-- bug: pkm new - output is not terminal on project creation
-- refactor: project's default repository and default environment became attached*
-- pkm: allow the project class to handle generic python projects not only pkm ones
-- pkm build: can now build non pkm projects 
+- pkm: url dependencies are now better detected
+- refactoring: remove repository.accepts
+- pkm: create and integrate the repositories loader
+- pkm: pkm level configuration for repositories
+- term - package support any key like option (so it able to store extras inside it)
+- pubgrub: support url versions
+- refactoring: sdist does not support extracted archives anymore, regular projects can load those instead
 
 ## BACKLOG TASKS:
+- util: create a @delegate decorator for _GitPackageWrapper and many more
+- cli: if building packages during dependency resolution, output is very convoluted 
+- pkm: generalize repository publisher: accept the project and distribution types
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - pkm: support * in packages but not default (just scan before usage on supported repositories)
 - misc: build readme, set github's site
@@ -43,11 +46,8 @@
 - shell aliases: l, ll
 - new pyproject-group template
 - documentation: templates docs
-- support publishing self-contained-application packages
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - site: sidebar responsive to phones
-- site: add page transition: https://codepen.io/johnheiner/pen/JdRybK
-- consider interactive ui mode
 - toml parser/writer need unit tests
 - toml - lists user style - support column and grid and auto detect it
 - check that when downloading packages for install, the hash is being validated correctly
@@ -94,7 +94,6 @@
 - make-like task system
 - properties and build profiles (note that properties should be resolved before sdist packaging)
 - python installation repository (no sudo! - download for os and install in data files - if possible)
-- try and treat python dependency like any other dependency (and suggest installing it if we must)
 - common tasks: test, build doc, etc.
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it

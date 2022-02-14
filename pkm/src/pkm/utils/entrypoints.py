@@ -1,7 +1,11 @@
-# noinspection RegExpRedundantEscape
-from dataclasses import dataclass
-from typing import ClassVar, Optional, List
+from __future__ import annotations
+
 import re
+from dataclasses import dataclass
+from functools import reduce
+from importlib import import_module
+from types import ModuleType
+from typing import ClassVar, Optional, List, Any
 
 from pkm.utils.commons import UnsupportedOperationException
 
@@ -12,6 +16,13 @@ _EXT_DELIM_RX = re.compile("\\s*,\\s*")
 
 @dataclass(frozen=True)
 class ObjectReference:
+    """
+    The object reference points to a Python object. It is either in the form importable.module,
+    or importable.module:object.attr.
+    Each of the parts delimited by dots and the colon is a valid Python identifier.
+
+    read more about it here: https://packaging.python.org/en/latest/specifications/entry-points/
+    """
     module_path: str
     object_path: Optional[str] = None
     extras: Optional[List[str]] = None
@@ -20,6 +31,13 @@ class ObjectReference:
         obj_str = f":{self.object_path}" if self.object_path else ""
         ext_str = f" [{', '.join(self.extras)}]" if self.extras else ""
         return f"{self.module_path}{obj_str}{ext_str}"
+
+    def import_module(self) -> ModuleType:
+        return import_module(self.module_path)
+
+    def import_object(self) -> Any:
+        module = self.import_module()
+        return reduce(getattr, self.object_path.split("."), module)
 
     def execution_script_snippet(self) -> str:
         if not self.object_path:
@@ -43,6 +61,12 @@ class ObjectReference:
 
 @dataclass
 class EntryPoint:
+    """
+    Entry points are a mechanism for an installed distribution to advertise components it provides to be discovered and
+    used by other code.
+    read more about it here: https://packaging.python.org/en/latest/specifications/entry-points/
+    """
+
     group: str
     name: str
     ref: "ObjectReference"

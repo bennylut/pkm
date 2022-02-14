@@ -49,9 +49,6 @@ class LocalPackagesRepository(Repository):
 
         self._build_repo = SourceBuildsRepository(workspace)
 
-    def accepts(self, dependency: Dependency) -> bool:
-        return dependency.package_name in self._package_settings
-
     def _do_match(self, dependency: Dependency) -> List[Package]:
         # monitor.on_dependency_match(dependency)
 
@@ -59,7 +56,7 @@ class LocalPackagesRepository(Repository):
             return [cache]
 
         if not (settings := self._package_settings.get(dependency.package_name)):
-            raise KeyError(f"no settings are provided to find local package {dependency.package_name}")
+            return []
 
         package = LocalPackage(settings, self._build_repo)
         self._packages_cache[dependency.package_name] = package
@@ -94,10 +91,8 @@ class LocalPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._get_or_create_delegate(env).is_compatible_with(env)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, *,
-                   build_packages_repo: Optional["Repository"] = None):
-        self._get_or_create_delegate(env).install_to(
-            env, user_request, build_packages_repo=build_packages_repo)
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
+        self._get_or_create_delegate(env).install_to(env, user_request)
 
 
 class LocalPackagesRepositoryBuilder(RepositoryBuilder):

@@ -24,11 +24,18 @@ def monitored_run(execution_name: str, cmd: List[str], **subprocess_run_kwargs) 
         subprocess_run_kwargs['stderr'] = subprocess.STDOUT
         proc = subprocess.Popen(cmd, **subprocess_run_kwargs)
         stdout = proc.stdout
-        while (line := stdout.readline()) or (rcode := proc.poll()) is None:
-            if hasattr(line, 'decode'):
-                line = line.decode()
 
-            ProcessExecutionOutputLineEvent(line.strip()).notify(mpo)
+        def decode(line):  # noqa
+            nonlocal decode
+            if hasattr(line, 'decode'):
+                decode = lambda line: line.decode()  # noqa
+            else:
+                decode = lambda line: line  # noqa
+
+            return decode(line)
+
+        while (line := stdout.readline()) or (rcode := proc.poll()) is None:
+            ProcessExecutionOutputLineEvent(decode(line).strip()).notify(mpo)
 
         ProcessExecutionExitEvent(rcode).notify(mpo)
         return CompletedProcess(cmd, rcode)

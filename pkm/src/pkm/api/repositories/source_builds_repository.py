@@ -18,11 +18,10 @@ from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
 from pkm.project_builders.external_builders import BuildError
 from pkm.utils.files import temp_dir
-from pkm.utils.sequences import single_or_fail
+from pkm.utils.sequences import single_or_raise
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
-
 
 
 class SourceBuildsRepository(Repository):
@@ -42,6 +41,7 @@ class SourceBuildsRepository(Repository):
         metadata = required_artifact == 'metadata'
 
         package_dir = self._version_dir(package)
+        package_dir.mkdir(parents=True, exist_ok=True)
 
         project = Project.load(source_tree)
 
@@ -56,29 +56,29 @@ class SourceBuildsRepository(Repository):
                 else:
                     raise
 
-        metadata_file = package_dir / "METADATA"
-        artifacts_dir = package_dir / 'artifacts'
+            metadata_file = package_dir / "METADATA"
+            artifacts_dir = package_dir / 'artifacts'
 
-        if output.is_dir():  # metadata
-            wheel_metadata_path = output / 'METADATA'
-            if not wheel_metadata_path.exists():
-                raise BuildError("build backend did not create a wheel METADATA file")
+            if output.is_dir():  # metadata
+                wheel_metadata_path = output / 'METADATA'
+                if not wheel_metadata_path.exists():
+                    raise BuildError("build backend did not create a wheel METADATA file")
 
-            shutil.copy(wheel_metadata_path, metadata_file)
-        else:
-            if not metadata_file.exists():
-                metadata = WheelDistribution(package, output).extract_metadata(target_env)
-                metadata.save_to(metadata_file)
+                shutil.copy(wheel_metadata_path, metadata_file)
+            else:
+                if not metadata_file.exists():
+                    metadata = WheelDistribution(package, output).extract_metadata(target_env)
+                    metadata.save_to(metadata_file)
 
-            artifacts_dir.mkdir(exist_ok=True, parents=True)
-            shutil.move(output, artifacts_dir / output.name)
+                artifacts_dir.mkdir(exist_ok=True, parents=True)
+                shutil.move(output, artifacts_dir / output.name)
 
     def build(self, package: PackageDescriptor, source_tree: Path, target_env: "Environment",
               editable: bool) -> Package:
 
         package_type = 'wheel' if not editable else 'editable'
         self._build(package, package_type, source_tree, target_env)
-        return single_or_fail(self.match(package.to_dependency()))
+        return single_or_raise(self.match(package.to_dependency()))
 
     def build_or_get_metadata(self, package: PackageDescriptor, source_tree: Path,
                               target_env: "Environment") -> PackageMetadata:
@@ -87,9 +87,6 @@ class SourceBuildsRepository(Repository):
             self._build(package, 'metadata', source_tree, target_env)
 
         return PackageMetadata.load(metadata_file)
-
-    def accepts(self, dependency: Dependency) -> bool:
-        return True
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         if not (versions_dir := self._workspace / dependency.package_name).exists():

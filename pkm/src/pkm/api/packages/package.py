@@ -126,14 +126,12 @@ class Package(ABC):
         """
 
     @abstractmethod
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, build_packages_repo: Optional["Repository"] = None):
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         """
         installs this package into the given `env`
         :param env: the environment to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param build_packages_repo: if provided, the repository that will be used for build packages dependencies
         """
 
     def __str__(self):

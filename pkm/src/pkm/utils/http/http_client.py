@@ -29,12 +29,12 @@ HTTPConnection.debuglevel = 0
 
 # Sad Hacks:
 # ------------
-# this sad hack is made because http timestamp parsing requires en_us locale, can probably write my own parser/writer
+# this sad hack is made because http timestamp parsing requires en_us locale, I can probably write my own parser/writer
 # to remove this hack
 locale.setlocale(locale.LC_ALL, 'en_US.utf8')
 
 # this sad hack is made because for some reason,
-# many services still has problem with ipv6 (like cloudfront occasionally)
+# many services still has problem with ipv6 (like cloudfront occasionally have)
 # and some are just slower to accept connections (like pypi)
 original_getaddrinfo = socket.getaddrinfo
 

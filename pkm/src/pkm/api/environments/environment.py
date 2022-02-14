@@ -1,6 +1,7 @@
 import hashlib
 import os
 import sys
+from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,7 @@ from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
+from pkm.utils.entrypoints import EntryPoint
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
 from pkm.utils.promises import Promise
@@ -301,6 +303,20 @@ class Environment:
         self.reload()
         return {p for p in packages if p not in kept}
 
+    @cached_property
+    def entrypoints(self) -> Dict[str, List[EntryPoint]]:
+        """
+        :return: all entrypoints in this environment grouped by their defined group
+        """
+
+        groups: Dict[str, List[EntryPoint]] = defaultdict(list)
+
+        for package in self.site_packages.installed_packages():
+            for ep in package.dist_info.load_entrypoints_cfg().entrypoints:
+                groups[ep.group].append(ep)
+
+        return groups
+
     @staticmethod
     def is_valid(path: Path) -> bool:
         """
@@ -327,7 +343,7 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
 
     def install(p: Package):
         # with monitor.on_access_package(p) as package_monitor:
-        p.install_to(env, build_packages_repo=build_packages_repo)
+        p.install_to(env)
 
     def uninstall(p: InstalledPackage):
         # with monitor.on_access_package(p) as package_monitor:
@@ -371,8 +387,7 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None,
-                   *, build_packages_repo: Optional["Repository"] = None): pass
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None): pass
 
     def to_dependency(self) -> Dependency:
         return Dependency(self.name, SpecificVersion(self.version))
@@ -384,9 +399,6 @@ class _RemovalRepository(Repository):
         super().__init__('removal repository')
         self._preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in preinstalled}
         self._user_request = user_request
-
-    def accepts(self, dependency: Dependency) -> bool:
-        return True
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         if dependency.package_name == self._user_request.name:

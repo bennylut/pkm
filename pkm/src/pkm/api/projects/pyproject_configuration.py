@@ -1,13 +1,13 @@
-from copy import copy
+import re
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Mapping, Any, Iterator
-import re
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.repositories.repository_loader import RepositoryInstanceConfig
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
@@ -84,43 +84,6 @@ class PkmProjectConfig:
 
 
 @dataclass(frozen=True, eq=True)
-class PkmRepositoryInstanceConfig:
-    type: str
-    packages: Dict[str, Any]
-    name: Optional[str]
-    args: Dict[str, Any]
-
-    def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            **self.args,
-            'type': self.type,
-            'packages': self.packages,
-            'name': self.name
-        })
-
-    @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> "PkmRepositoryInstanceConfig":
-        config = copy(config)
-        type_ = config.pop('type')
-        name = config.pop('name', None)
-        packages: List[Union[str, Dict]] = config.pop('packages')
-
-        packages_dict = {}
-
-        if packages == "*":
-            packages_dict['*'] = {}
-        else:
-            for package in packages:
-                if isinstance(package, str):
-                    packages_dict[package] = {}
-                else:
-                    packages_dict[package['name']] = package
-
-        args = config
-        return PkmRepositoryInstanceConfig(type_, packages_dict, name, args)
-
-
-@dataclass(frozen=True, eq=True)
 class ProjectConfig:
     """
     the project config as described in
@@ -160,6 +123,13 @@ class ProjectConfig:
     dynamic: Optional[List[str]]
 
     all_fields: Dict[str, Any]
+
+    def is_dynamic(self, field: str) -> bool:
+        """
+        :param field: the field name (as in the configuration, e.g., optional-dependencies and not optional_dependencies)
+        :return: True if the field is marked as dynamic, False otherwise
+        """
+        return self.all_fields.get(field) is None and bool(d := self.dynamic) and field in d # noqa
 
     @cached_property
     def all_dependencies(self) -> List[Dependency]:
@@ -336,7 +306,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
     # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
     project: ProjectConfig
     pkm_project: PkmProjectConfig
-    pkm_repositories: List[PkmRepositoryInstanceConfig]
+    pkm_repositories: List[RepositoryInstanceConfig]
     build_system: BuildSystemConfig
 
     @computed_based_on("tool.pkm.project")
@@ -344,8 +314,8 @@ class PyProjectConfiguration(TomlFileConfiguration):
         return PkmProjectConfig.from_config(self['tool.pkm.project'])
 
     @computed_based_on("tool.pkm.repositories")
-    def pkm_repositories(self) -> List[PkmRepositoryInstanceConfig]:
-        return [PkmRepositoryInstanceConfig.from_config(it) for it in (self["tool.pkm.repositories"] or [])]
+    def pkm_repositories(self) -> List[RepositoryInstanceConfig]:
+        return [RepositoryInstanceConfig.from_config(it) for it in (self["tool.pkm.repositories"] or [])]
 
     @computed_based_on("project")
     def project(self) -> Optional[ProjectConfig]:

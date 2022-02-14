@@ -87,7 +87,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
             project.path, build_env, buildsys, command, [str(target_dir), None])
 
         if sdist_output.status == 'success':
-            return Path(sdist_output.result)
+            return target_dir / sdist_output.result
         raise BuildError("build backend did not produced expected sdist")
 
 
@@ -142,7 +142,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
                 project.path, build_env, buildsys, command,
                 [str(target_dir), None])
             if dist_info_output.status == 'success':
-                return Path(dist_info_output.result)
+                return target_dir / dist_info_output.result
             raise BuildError("build backend did not produced wheel metadata")
 
         # 3. build the wheel
@@ -152,7 +152,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
             project.path, build_env, buildsys, command, [str(target_dir), None, None])
 
         if wheel_output.status == 'success':
-            return Path(wheel_output.result)
+            return target_dir / wheel_output.result
         raise BuildError("build backend did not produced expected wheel")
 
 

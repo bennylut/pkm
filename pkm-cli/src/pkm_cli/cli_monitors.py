@@ -99,8 +99,7 @@ def with_dependency_resolution(e: DependencyResolutionMonitoredOp):
         progress.total = len(ie.packages_requested)
 
     def on_conclusion(ce: DependencyResolutionConclusionEvent):
-        d = {**ce.decisions}
-        del d['installation-request']
+        d = {k: v for k, v in ce.decisions.items() if str(k) != 'installation-request'}
         Display.print(f"Reached decision: {d}")
 
     with e.listen(**locals()), Display.show(progress):

@@ -1,10 +1,12 @@
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, replace
 from typing import List, Optional
 
-from pkm.api.versions.version import Version, StandardVersion
+from pkm.api.versions.version import Version, StandardVersion, NamedVersion
 from pkm.utils.iterators import distinct
 from pkm.utils.sequences import subiter
+import re
 
 
 class VersionSpecifier(ABC):
@@ -181,6 +183,8 @@ class SpecificVersion(VersionSpecifier):
     def __str__(self):
         if isinstance(self.version, StandardVersion):
             return f'=={self.version}'
+        if isinstance(self.version, NamedVersion) and '://' in self.version.name:
+            return f"@{self.version}"
         return f"==={self.version}"
 
     def __repr__(self):
@@ -366,3 +370,25 @@ class VersionUnion(VersionSpecifier):
 
 NoVersion = VersionRange(includes_min=False, includes_max=False)
 AnyVersion = VersionRange(includes_min=True, includes_max=True)
+
+
+_VERSION_URL_RX = re.compile(r"((?P<repo>\w+)\+)?(?P<url>.*)")
+
+
+@dataclass(eq=True, frozen=True)
+class VersionUrl:
+    repository_protocol: Optional[str]
+    url: str
+
+    def __str__(self):
+        if self.repository_protocol:
+            return f"{self.repository_protocol}+{self.url}"
+        return self.url
+
+    def to_version_spec(self) -> SpecificVersion:
+        return SpecificVersion(NamedVersion(str(self)))
+
+    @classmethod
+    def parse(cls, vurl_str: str) -> VersionUrl:
+        match = _VERSION_URL_RX.match(vurl_str)
+        return VersionUrl(match.group('repo'), match.group('url'))
