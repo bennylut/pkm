@@ -7,7 +7,7 @@ from textwrap import dedent
 from typing import List, Literal, Any, TYPE_CHECKING
 from urllib.parse import unquote_plus, quote_plus
 
-import pkm.project_builders.external_builders as ext_build
+import pkm.pep517_builders.external_builders as ext_build
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor, Package
@@ -16,7 +16,7 @@ from pkm.api.packages.standard_package import AbstractPackage, StandardPackageAr
 from pkm.api.projects.pyproject_configuration import BuildSystemConfig
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import Version
-from pkm.project_builders.external_builders import BuildError
+from pkm.pep517_builders.external_builders import BuildError
 from pkm.utils.files import temp_dir
 from pkm.utils.sequences import single_or_raise
 
@@ -49,12 +49,11 @@ class SourceBuildsRepository(Repository):
             try:
                 output = ext_build.build_wheel(
                     project, tdir, only_meta=metadata, editable=editable, target_env=target_env)
-            except BuildError:
-                if metadata:
-                    output = ext_build.build_wheel(
-                        project, tdir, only_meta=False, editable=editable, target_env=target_env)
-                else:
+            except BuildError as e:
+                if not metadata or not e.missing_hook:
                     raise
+                output = ext_build.build_wheel(
+                    project, tdir, only_meta=False, editable=editable, target_env=target_env)
 
             metadata_file = package_dir / "METADATA"
             artifacts_dir = package_dir / 'artifacts'

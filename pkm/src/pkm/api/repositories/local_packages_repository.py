@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Any
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.projects.project import Project
 from pkm.api.repositories.repository import Repository, RepositoryBuilder
 from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 from pkm.api.versions.version import Version
@@ -28,8 +29,11 @@ class LocalPackageSettings:
             raise ValueError(f"illegal setting for local package repository in package: {package_name}")
 
         try:
+            path = Path(settings['path'])
+            version = Version.parse(settings['version']) if 'version' in settings else Project.load(path).version
+
             return LocalPackageSettings(
-                package_name, Path(settings['path']), Version.parse(settings['version']),
+                package_name, path, version,
                 settings.get('editable', True) is True)
         except Exception as e:
             raise ValueError(f"illegal setting for local package repository in package: {package_name}") from e

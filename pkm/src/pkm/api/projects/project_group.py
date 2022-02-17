@@ -7,7 +7,7 @@ from pkm.api.packages.package import Package
 from pkm.api.projects.project import Project
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, Authentication
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
-from pkm.project_builders.application_builders import ApplicationInstallerProjectWrapper
+from pkm.applications.application_builders import ApplicationInstallerProjectWrapper
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import get_or_raise
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
@@ -66,7 +66,7 @@ class ProjectGroup:
         return result
 
     @cached_property
-    def project_children_recursive(self) -> Iterable[Project]:
+    def project_children_recursive(self) -> List[Project]:
         """
         :return: the child projects defined in this group and
         recursively the child projects of the project groups defined in this group

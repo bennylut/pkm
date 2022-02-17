@@ -1,3 +1,5 @@
-import conda.cli.python_api as cnd
+# import conda.cli.python_api as cnd
+#
+# cnd.run_command('search', 'pip')
 
-cnd.run_command('search', 'pip')
+

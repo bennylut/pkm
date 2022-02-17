@@ -8,7 +8,6 @@ from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Repository
 from pkm.utils.archives import extract_archive
 
 if TYPE_CHECKING:
@@ -17,9 +16,7 @@ if TYPE_CHECKING:
 
 class SourceDistribution(Distribution):
 
-    def __init__(self, package: PackageDescriptor, archive: Path,
-                 build_requirements_repository: Optional[Repository] = None):
-        self._build_requirements_repository = build_requirements_repository
+    def __init__(self, package: PackageDescriptor, archive: Path):
         self._package = package
         self._archive_path = archive
 
@@ -60,5 +57,5 @@ class SourceDistribution(Distribution):
 
         with self._source_tree() as source_tree:
             builds \
-                .build(self.owner_package, source_tree, env, editable, self._build_requirements_repository) \
+                .build(self.owner_package, source_tree, env, editable) \
                 .install_to(env, user_request)

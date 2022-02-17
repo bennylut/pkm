@@ -9,7 +9,6 @@ from pkm.api.versions.version_specifiers import SpecificVersion
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
-    from pkm.api.repositories.repository import Repository
     from pkm.api.packages.package_metadata import PackageMetadata
 
 

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pkm.config.etc_chain import EtcChain
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
@@ -12,10 +13,9 @@ if TYPE_CHECKING:
     from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
     from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
     from pkm.api.repositories.repository import Repository
-    from pkm.api.repositories.repository_loader import RepositoryLoader, RepositoriesConfiguration
+    from pkm.api.repositories.repository_loader import RepositoryLoader
 
 ENV_PKM_HOME = "PKM_HOME"
-REPOSITORIES_CONFIG_RPATH = "etc/repositories.toml"
 
 
 @dataclass
@@ -32,14 +32,14 @@ class _Pkm:
     def __init__(self):
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
+        self.etc_chain = EtcChain(workspace/'etc', 'pkm')
         self.httpclient = HttpClient(workspace / 'resources/http')
         self.threads = ThreadPoolExecutor()
 
     @cached_property
     def repository_loader(self) -> "RepositoryLoader":
-        from pkm.api.repositories.repository_loader import RepositoryLoader, RepositoriesConfiguration
-        config = RepositoriesConfiguration.load(self.workspace / REPOSITORIES_CONFIG_RPATH)
-        return RepositoryLoader(config, self.httpclient, self.workspace / 'repos')
+        from pkm.api.repositories.repository_loader import RepositoryLoader
+        return RepositoryLoader(self.etc_chain, self.httpclient, self.workspace / 'repos')
 
     @cached_property
     def repositories(self) -> _PkmRepositories:

@@ -2,8 +2,11 @@ from typing import List
 
 from dataclasses import replace
 from pkm.utils.parsers import SimpleParser
-from pkm.api.versions.version import Version, NamedVersion, StandardVersion
+from pkm.api.versions.version import Version, NamedVersion, StandardVersion, UrlVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion
+import re
+
+_VERSION_URL_RX = re.compile(r"((?P<repo>\w+)\+)?(?P<url>.*)")
 
 
 def parse_version(version_str: str) -> Version:
@@ -90,6 +93,12 @@ class VersionParser(SimpleParser):
         if self.match('*'):
             return AnyVersion
 
+        if self.match('@'):
+            self.match_ws()
+            url = self.until(lambda i, s: s[i].isspace())
+            match = _VERSION_URL_RX.match(url)
+            return SpecificVersion(UrlVersion(match.group('repo'), match.group('url')))
+
         if self.match('==='):
             self.match_ws()
             version_str = self.until(lambda i, t: t[i].isspace() or t[i] == ',')
@@ -101,10 +110,9 @@ class VersionParser(SimpleParser):
             version = self.read_version()
             if self.match('.*'):
                 result = VersionRange(
-                    min=SpecificVersion(version), includes_min=True,
-                    max=SpecificVersion(
-                        replace(version, release=version.release[:-1] + (version.release[-1] + 1,),
-                                pre_release=None, post_release=None, dev_release=None, local_label=None)),
+                    min=version, includes_min=True,
+                    max=replace(version, release=version.release[:-1] + (version.release[-1] + 1,),
+                                pre_release=None, post_release=None, dev_release=None, local_label=None),
                     includes_max=False)
             else:
                 result = SpecificVersion(version)
@@ -121,16 +129,15 @@ class VersionParser(SimpleParser):
                 raise ValueError(f"Illegal version specifier, ~= {version}")
 
             return VersionRange(
-                min=SpecificVersion(version), includes_min=True,
-                max=SpecificVersion(
-                    replace(version, release=version.release[:-2] + (version.release[-2] + 1, 0),
-                            pre_release=None, post_release=None, dev_release=None, local_label=None)),
+                min=version, includes_min=True,
+                max=replace(version, release=version.release[:-2] + (version.release[-2] + 1, 0),
+                            pre_release=None, post_release=None, dev_release=None, local_label=None),
                 includes_max=False)
 
         comparison = self.match_any('>=', '>', '<=', '<')
         if comparison:
             self.match_ws()
-            version = SpecificVersion(self.read_version())
+            version = self.read_version()
             min, max, imin, imax = None, None, False, False
 
             if comparison[0] == '>':

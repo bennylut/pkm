@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
-from typing import Tuple, Optional, Literal, TYPE_CHECKING
+from typing import Tuple, Optional, Literal
 
 from pkm.utils.commons import UnsupportedOperationException
 
-if TYPE_CHECKING:
-    from pkm.api.versions.version_specifiers import VersionUrl
 
 class Version(ABC):
     @abstractmethod
@@ -20,18 +18,14 @@ class Version(ABC):
     def is_local(self) -> bool:
         ...
 
-    def as_url(self) -> Optional["VersionUrl"]:
-        return None
-
     def without_patch(self):
         return self
 
     def without_local(self) -> "Version":
         return self
 
-    @abstractmethod
     def __lt__(self, other: "Version") -> bool:
-        ...
+        return _less(self, other)
 
     @abstractmethod
     def __eq__(self, other) -> bool:
@@ -41,6 +35,32 @@ class Version(ABC):
     def parse(cls, txt: str) -> "Version":
         from pkm.api.versions.version_parser import parse_version
         return parse_version(txt)
+
+
+@dataclass(frozen=True)
+class UrlVersion(Version):
+    protocol: str
+    url: str
+
+    def is_pre_or_dev_release(self) -> bool:
+        return False
+
+    def is_post_release(self) -> bool:
+        return False
+
+    def is_local(self) -> bool:
+        return False
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, UrlVersion) and self.protocol == other.protocol and self.url == other.url
+
+    def __str__(self):
+        if self.protocol:
+            return self.protocol + "+" + self.url
+        return self.url
+
+    def __repr__(self):
+        return str(self)
 
 
 @dataclass(frozen=True)
@@ -55,18 +75,6 @@ class NamedVersion(Version):
 
     def is_local(self) -> bool:
         return False
-
-    def as_url(self) -> Optional["VersionUrl"]:
-        if "://" in self.name:
-            from pkm.api.versions.version_specifiers import VersionUrl
-            return VersionUrl.parse(self.name)
-        return None
-
-    def __lt__(self, other: "Version") -> bool:
-        if isinstance(other, NamedVersion):
-            return self.name < other.name
-
-        return other > self
 
     def __eq__(self, other) -> bool:
         return isinstance(other, NamedVersion) and self.name == other.name
@@ -172,59 +180,8 @@ class StandardVersion(Version):
     def __repr__(self):
         return str(self)
 
-    def __lt__(self, other: "Version"):
-
-        if not isinstance(other, StandardVersion):
-            return False
-
-        if (self.epoch or 0) != (other.epoch or 0):
-            return (self.epoch or 0) < (other.epoch or 0)
-
-        v1, v2 = StandardVersion.normalized(self, other)
-        for s, o in zip(v1.release, v2.release):
-            if s == o:
-                continue
-            return s < o
-
-        if self.dev_release != other.dev_release:
-            if (self.dev_release is None) ^ (other.dev_release is None):
-                return other.dev_release is None
-
-            if self.dev_release != other.dev_release:
-                return self.dev_release < other.dev_release
-
-        if self.pre_release != other.pre_release:
-            if (self.pre_release is None) ^ (other.pre_release is None):
-                return other.pre_release is None
-
-            for s, o in zip(self.pre_release, other.pre_release):
-                if s == o: continue  # noqa
-                return s < o
-
-        if self.post_release != other.post_release:
-            if (self.post_release is None) ^ (other.post_release is None):
-                return self.post_release is None
-
-            s, o = self.post_release, other.post_release
-            if s != o:
-                return s < o
-
-        my_local_segments = (self.local_label or "").split('.')
-        other_local_segments = (other.local_label or "").split('.')
-
-        for m, o in zip(my_local_segments, other_local_segments):
-            if m == o:
-                continue
-
-            m_num, o_num = m.isnumeric(), o.isnumeric()
-            if m_num and o_num:
-                return int(m_num) < int(o_num)
-            if m_num or o_num:
-                return o_num
-
-            return m < o
-
-        return len(my_local_segments) < len(other_local_segments)
+    def __le__(self, other):
+        return other == self or self < other
 
     def __eq__(self, other):
         if not isinstance(other, StandardVersion):
@@ -256,3 +213,77 @@ class StandardVersion(Version):
         from pkm.api.versions.version_parser import VersionParser
         return VersionParser(txt.lower()).read_version()
 
+
+def _less(v1: Version, v2: Version) -> bool:
+    swap = False
+
+    # order: [urls] [named-versions] [standard-versions]
+
+    if isinstance(v1, UrlVersion) or (swap := isinstance(v2, UrlVersion)):
+        if swap: return not _less(v2, v1)  # noqa
+
+        if isinstance(v2, UrlVersion):
+            return str(v1) < str(v2)
+
+        return True
+
+    if isinstance(v1, NamedVersion) or (swap := isinstance(v2, NamedVersion)):
+        if swap: return not _less(v2, v1)  # noqa
+
+        if isinstance(v2, NamedVersion):
+            return v1.name < v2.name
+
+        return True
+
+    # must be standard version
+    v1: StandardVersion
+    v2: StandardVersion
+
+    if (v1.epoch or 0) != (v2.epoch or 0):
+        return (v1.epoch or 0) < (v2.epoch or 0)
+
+    v1, v2 = StandardVersion.normalized(v1, v2)
+    for s, o in zip(v1.release, v2.release):
+        if s == o:
+            continue
+        return s < o
+
+    if v1.dev_release != v2.dev_release:
+        if (v1.dev_release is None) ^ (v2.dev_release is None):
+            return v2.dev_release is None
+
+        if v1.dev_release != v2.dev_release:
+            return v1.dev_release < v2.dev_release
+
+    if v1.pre_release != v2.pre_release:
+        if (v1.pre_release is None) ^ (v2.pre_release is None):
+            return v2.pre_release is None
+
+        for s, o in zip(v1.pre_release, v2.pre_release):
+            if s == o: continue  # noqa
+            return s < o
+
+    if v1.post_release != v2.post_release:
+        if (v1.post_release is None) ^ (v2.post_release is None):
+            return v1.post_release is None
+
+        s, o = v1.post_release, v2.post_release
+        if s != o:
+            return s < o
+
+    my_local_segments = (v1.local_label or "").split('.')
+    other_local_segments = (v2.local_label or "").split('.')
+
+    for m, o in zip(my_local_segments, other_local_segments):
+        if m == o:
+            continue
+
+        m_num, o_num = m.isnumeric(), o.isnumeric()
+        if m_num and o_num:
+            return int(m_num) < int(o_num)
+        if m_num or o_num:
+            return o_num
+
+        return m < o
+
+    return len(my_local_segments) < len(other_local_segments)

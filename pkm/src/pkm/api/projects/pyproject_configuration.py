@@ -7,7 +7,6 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
-from pkm.api.repositories.repository_loader import RepositoryInstanceConfig
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
@@ -63,9 +62,35 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
 
 
 @dataclass(frozen=True, eq=True)
+class PkmApplicationConfig:
+    installer_package: Optional[str] = None
+    forced_versions: Optional[Dict[str, Version]] = None
+
+    def to_config(self) -> Dict[str, Any]:
+        return remove_none_values({
+            'installer-package': self.installer_package,
+            'forced-versions': {
+                package: str(version)
+                for package, version in self.forced_versions.items()
+            } if self.forced_versions else None
+        })
+
+    @classmethod
+    def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional["PkmApplicationConfig"]:
+        if not config:
+            return PkmApplicationConfig()
+
+        forced_versions = None
+        if unparsed_forced_versions := config.get('forced-versions'):
+            forced_versions = {package: Version.parse(version) for package, version in unparsed_forced_versions.items()}
+
+        return PkmApplicationConfig(config.get('installer-package'), forced_versions)
+
+
+@dataclass(frozen=True, eq=True)
 class PkmProjectConfig:
     packages: Optional[List[str]] = None
-    group: Optional[str] = None
+    group: Optional[str] = None  # TODO: remove group and use conventions only?
     application: bool = False
 
     def to_config(self) -> Dict[str, Any]:
@@ -124,12 +149,19 @@ class ProjectConfig:
 
     all_fields: Dict[str, Any]
 
+    def all_entrypoints(self) -> List[EntryPoint]:
+        if not self.entry_points:
+            return []
+
+        return [e for points in self.entry_points.values() for e in points]
+
     def is_dynamic(self, field: str) -> bool:
         """
-        :param field: the field name (as in the configuration, e.g., optional-dependencies and not optional_dependencies)
+        :param field: the field name (as in the configuration, e.g.,
+                      optional-dependencies and not optional_dependencies)
         :return: True if the field is marked as dynamic, False otherwise
         """
-        return self.all_fields.get(field) is None and bool(d := self.dynamic) and field in d # noqa
+        return self.all_fields.get(field) is None and bool(d := self.dynamic) and field in d  # noqa
 
     @cached_property
     def all_dependencies(self) -> List[Dependency]:
@@ -306,16 +338,16 @@ class PyProjectConfiguration(TomlFileConfiguration):
     # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
     project: ProjectConfig
     pkm_project: PkmProjectConfig
-    pkm_repositories: List[RepositoryInstanceConfig]
     build_system: BuildSystemConfig
+    pkm_application: PkmApplicationConfig
 
     @computed_based_on("tool.pkm.project")
     def pkm_project(self) -> PkmProjectConfig:
         return PkmProjectConfig.from_config(self['tool.pkm.project'])
 
-    @computed_based_on("tool.pkm.repositories")
-    def pkm_repositories(self) -> List[RepositoryInstanceConfig]:
-        return [RepositoryInstanceConfig.from_config(it) for it in (self["tool.pkm.repositories"] or [])]
+    @computed_based_on("tool.pkm.application")
+    def pkm_application(self) -> PkmApplicationConfig:
+        return PkmApplicationConfig.from_config(self['tool.pkm.application'])
 
     @computed_based_on("project")
     def project(self) -> Optional[ProjectConfig]:
@@ -364,7 +396,8 @@ class PyProjectConfiguration(TomlFileConfiguration):
         # ensure build-system:
         if pyproject['build-system'] is None:
             if not (source_tree / 'setup.py').exists():
-                raise MalformedPackageException(f"cannot infer build system for project: {pyproject_file.parent}")
+                package_info = str(pyproject_file.parent) if not package else f"{package.name} {package.version}"
+                raise MalformedPackageException(f"cannot infer build system for package: {package_info}")
 
             pyproject['build-system'] = _LEGACY_BUILDSYS
 

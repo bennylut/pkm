@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, TYPE_CHECKING
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.source_builds_repository import BuildError
-from pkm.api.versions.version import Version
+from pkm.api.versions.version import Version, UrlVersion
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
@@ -48,21 +48,23 @@ class _PkmPackageInstallationProblem(Problem):
         self._prefetched_packages: Dict[_Pkg, Promise[List[Package]]] = {}
 
     def _prefetch(self, package: _Pkg) -> Promise[List[Package]]:
+        print(f"prefetching {package}")
         return get_or_put(self._prefetched_packages, package,
                           lambda: Promise.execute(self._threads, self._repo.list, package.name))
 
     def get_dependencies(self, package: _Pkg, version: Version) -> List[Term]:
+        print(f"get dependencies for {package}")
         descriptor = PackageDescriptor(package.name, version)
 
         try:
-            if (url := version.as_url()) and descriptor not in self.opened_packages:
-                self.opened_packages[descriptor] = single_or_raise(self._repo.match(f"{package} @ {url}"))
+            if isinstance(version, UrlVersion) and descriptor not in self.opened_packages:
+                self.opened_packages[descriptor] = single_or_raise(self._repo.match(f"{package} @ {version}"))
 
             dependencies = self.opened_packages[descriptor] \
                 .dependencies(self._env, package.extras)
 
             for d in dependencies:
-                if not d.is_url_dependency:
+                if not d.version_spec.specific_url():
                     self._prefetch(_Pkg.of(d))
 
         except (ValueError, IOError, BuildError) as e:
@@ -80,13 +82,14 @@ class _PkmPackageInstallationProblem(Problem):
         return result
 
     def get_versions(self, package: _Pkg) -> List[Version]:
-
+        print(f"get versions for {package}")
         all_packages = self._prefetch(package).result()
         packages = [p for p in all_packages if p.is_compatible_with(self._env)]
 
         for package in packages:
             self.opened_packages[package.descriptor] = package
 
+        print(f"done get versions for {package}")
         return [p.version for p in packages]
 
 

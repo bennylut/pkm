@@ -111,7 +111,7 @@ class _BuildContext:
         project_cfg = self.pyproject.project
         req = project_cfg.requires_python
 
-        min_interpreter: StandardVersion = req.min.version \
+        min_interpreter: StandardVersion = req.min \
             if req and not req.is_any() else StandardVersion((Environment.current().interpreter_version.release[0],))
 
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])

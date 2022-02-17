@@ -61,7 +61,8 @@ def assert_dependency(d: Dependency, **kwargs):
         if key == 'env_marker':
             assert str(d.env_marker) == value, f"expecting env-marker to be {value} but it was {d.env_marker}"
         elif key == 'url':
-            assert d.is_url_dependency, f"expecting url dependency but got non-url one"
-            assert d.url == value, f"expecting url dependency to have the url: {value} but it was {d.url}"
+            assert (url := d.version_spec.specific_url()), f"expecting url dependency but got non-url one"
+            assert url == value, f"expecting url dependency to have the url: " \
+                                 f"{value} but it was {url}"
         else:
             assert getattr(d, key) == value, f"expecting {key} to be {value} but it was {getattr(d, key)}"

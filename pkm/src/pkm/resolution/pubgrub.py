@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 from itertools import chain
 from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any, TypeVar, Protocol, Generic
 
-from pkm.api.versions.version import Version
+from pkm.api.versions.version import Version, UrlVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
     AnyVersion
 from pkm.resolution.resolution_monitor import DependencyResolutionIterationEvent, \
@@ -123,6 +123,14 @@ class PartialSolution:
     def undecided_packages(self) -> List[PKG]:
         return [req for req in self._required_packages if req not in self._decisions]
 
+    def requirement_decision_level(self, package: PKG) -> int:
+        """
+        returns the decision level in which the given `package` was required
+        :param package: the package to check
+        :return: the decision level if the package is required, otherwise -1
+        """
+        return self._required_packages.get(package) or -1
+
     @property
     def _decision_level(self) -> int:
         return max(0, len(self._decisions) - 1)
@@ -133,6 +141,7 @@ class PartialSolution:
                     if acc.decision_level == decision_level)
 
     def backtrack(self, decision_level: int):
+
         print(f"backtrack to decision_level: {decision_level}")
 
         def filtered(lst: List[Assignment]) -> Iterable[Assignment]:
@@ -242,6 +251,7 @@ class Incompatibility:
         for term in self.terms:
             satisfier: Optional[Assignment] = None
             package_assignments = assignments[term.package]
+
             if package_assignments:
                 acc = package_assignments[-1].accumulated
                 if acc.is_none() and not term.optional:
@@ -560,6 +570,10 @@ class Solver(Generic[PKG_T]):
                 elif satisfaction.is_almost_full():
                     term = satisfaction.undecided_term
                     print(f"incompatibility {incompatibility} is almost full, undecided_term is {term}")
+                    if term.constraint == AnyVersion:
+                        print("HERE")
+                        incompatibility.check_satisfaction(self._solution)
+
                     self._solution.assign(term.negate(), incompatibility)
                     changed.add(term.package)
 
@@ -631,12 +645,12 @@ class Solver(Generic[PKG_T]):
             elif sorted_versions:
                 for i in range(1, len(versions) - 1):
                     sorted_versions[i].generalized_constraint = VersionRange(
-                        min=SpecificVersion(sorted_versions[i - 1].version),
-                        max=SpecificVersion(sorted_versions[i + 1].version))
+                        min=sorted_versions[i - 1].version,
+                        max=sorted_versions[i + 1].version)
                 sorted_versions[0].generalized_constraint = VersionRange(
-                    max=SpecificVersion(sorted_versions[1].version))
+                    max=sorted_versions[1].version)
                 sorted_versions[-1].generalized_constraint = VersionRange(
-                    min=SpecificVersion(sorted_versions[-1].version),
+                    min=sorted_versions[-1].version,
                     includes_min=True)
 
         return versions
@@ -664,7 +678,8 @@ class Solver(Generic[PKG_T]):
                     minor_adjustment_dlevel = -1
                     break
 
-        if minor_adjustment_dlevel >= 0:
+        if minor_adjustment_dlevel >= 0 \
+                and self._solution.requirement_decision_level(package) <= minor_adjustment_dlevel:
             print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
             self._solution.backtrack(minor_adjustment_dlevel)
             return True
@@ -683,7 +698,7 @@ class Solver(Generic[PKG_T]):
         for package in undecided_packages:
             acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
 
-            if isinstance(acc_assignment, SpecificVersion) and acc_assignment.version.as_url():
+            if isinstance(acc_assignment, SpecificVersion) and isinstance(acc_assignment.version, UrlVersion):
                 vspec = SpecificVersion(acc_assignment.version)
                 package_matching_versions[package] = [
                     _PackageVersion(Term(package, vspec), vspec)]

@@ -13,7 +13,6 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
-    from pkm.api.repositories.repository import Repository
 
 
 class SitePackages:

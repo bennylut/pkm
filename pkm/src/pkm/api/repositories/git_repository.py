@@ -1,7 +1,6 @@
 import shutil
-from dataclasses import replace
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import List, Optional, cast, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -14,6 +13,9 @@ from pkm.utils.http.http_client import Url
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.processes import monitored_run
 from pkm.utils.properties import cached_property
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 # noinspection PyMethodMayBeStatic
@@ -68,10 +70,11 @@ class GitRepository(Repository):
         return _Git()
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        if not (url := dependency.url) or url.repository_protocol not in ('git', None):
+
+        if not (version := dependency.version_spec.specific_url()) or version.protocol != 'git':
             return []
 
-        parts = url.url.split("@")
+        parts = version.url.split("@")
         url = Url.parse(parts[0])
         if (sz := len(parts)) == 1:
             branch = None
@@ -89,7 +92,7 @@ class GitRepository(Repository):
         else:
             self._git_client.clone(dependency.package_name, str(url), branch, target_dir)
 
-        desc = PackageDescriptor(dependency.package_name, dependency.url.to_version_spec().version)
+        desc = PackageDescriptor(dependency.package_name, version)
 
         if ProjectGroup.is_group_dir(target_dir):
             project = single_or_raise(p for p in ProjectGroup.load(target_dir).project_children_recursive

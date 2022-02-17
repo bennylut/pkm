@@ -222,6 +222,7 @@ class Environment:
         # with monitor.on_install() as package_modification_monitor:
         self.reload()
 
+        print(f"enter dependency resolution for: {dependencies}")
         preinstalled_packages = list(self.site_packages.installed_packages())
         pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
         new_deps = {d.package_name: d for d in _coerce_dependencies(dependencies)}
@@ -246,6 +247,7 @@ class Environment:
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo)
 
+        print("leave dependency resolution, syncing packages")
         _sync_package(self, installation, repository)
 
         self.reload()

@@ -1,24 +1,33 @@
 ## RUNNING TASKS:
 - documentation: document VersionSpecifier
+- documentation: document the application classes and usage
 - documentation: describe repositories
 - documentation: describe verbose option
-- documentation: describe build overwrites
 - pkm: git and url dependencies installation support
 - repositories: conda
-- build-overwrites support 
+- enhance tool.pkm.application:
+  - installer-package = 'name'
+  - forced-dependencies { package: version }
+  - expose non script entrypoint using the new application loader 
+  - expose script entrypoint using the old application loader 
+  - applications can also provide repositories configuration, those should be specified in its table
+- bug: when running in "build-sys" mode should not "implicitly install" cache files
+  - also when running in this mode some basic monitoring should be made
+- bug: different build sdists (coming from different urls) are cached as the same one: SourceDistribution
+  - package should use its artifact as a key to the cache, some repositories may even add information to invalidate the cache
+    - we may also want to un-repositorize the cache - change it to something like "build-cache" to be able to expose more functionality without breaking the api
 
 ## DONE IN THIS VERSION
-- pkm: url dependencies are now better detected
-- refactoring: remove repository.accepts
-- pkm: create and integrate the repositories loader
-- pkm: pkm level configuration for repositories
-- term - package support any key like option (so it able to store extras inside it)
-- pubgrub: support url versions
-- refactoring: sdist does not support extracted archives anymore, regular projects can load those instead
+- etc chain: now configuration in etc can be context dependent
+- utils: bug in http client (deadlock) was fixed 
+- add specific-url version specifier and url-version
+- reduce indirection for some version fields 
+- bug: minor adjustment heuristic could have backtrack to a stage before the adjusted package is required 
+- introduce url version and url version specifier
 
 ## BACKLOG TASKS:
-- util: create a @delegate decorator for _GitPackageWrapper and many more
 - cli: if building packages during dependency resolution, output is very convoluted 
+- util: create a @delegate decorator for _GitPackageWrapper and many more
 - pkm: generalize repository publisher: accept the project and distribution types
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - pkm: support * in packages but not default (just scan before usage on supported repositories)
@@ -66,7 +75,6 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
-- tool.pkm.dependency-overwrites: allow forced versions and dependency exclusion
 - hierarchical site packages:
     - a dependency can be marked as shared and then pkm will install it as a pth to a shared lib installation
     - will need some sort of reference counting?

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import List, Optional, Union, Tuple, Dict, TYPE_CHECKING
+from typing import List, Optional, Union, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
@@ -11,17 +11,15 @@ from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
-from pkm.api.repositories.repository_loader import RepositoryInstanceConfig
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
 from pkm.utils.files import temp_dir
-from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
-    from pkm.api.projects.project_group import ProjectGroup, ProjectGroupRepository
+    from pkm.api.projects.project_group import ProjectGroup
     from pkm.api.environments.environment import Environment
 
 
@@ -150,9 +148,6 @@ class Project(Package):
             self._pyproject.project,
             dependencies=uninvolved_deps + list(new_deps.values()))
 
-        # monitor.on_dependencies_modified(self, deps.values(), new_deps.values())
-
-        # with monitor.on_environment_modification(self) as env_ops_monitor:
         repository = self.attached_repository
         self.attached_environment.force_remove(self.name)
         self.attached_environment.install(
@@ -163,8 +158,8 @@ class Project(Package):
             installed = self.attached_environment.site_packages.installed_package(dep.package_name).version
             if isinstance(installed, StandardVersion):
                 spec = VersionRange(
-                    SpecificVersion(installed),
-                    SpecificVersion(replace(installed, release=(installed.release[0] + 1,))),
+                    installed,
+                    replace(installed, release=(installed.release[0] + 1,)),
                     True, False)
             else:
                 spec = SpecificVersion(installed)
@@ -177,11 +172,9 @@ class Project(Package):
         )
 
         self._pyproject.save()
-        # monitor.on_pyproject_modified()
 
         self.lock.update_lock(self.attached_environment)
         self.lock.save()
-        # monitor.on_lock_modified()
 
     def _reload(self):
         clear_cached_properties(self)
@@ -200,8 +193,8 @@ class Project(Package):
         return default_env
 
     @cached_property
-    def attached_repository(self) -> "ProjectRepository":
-        return ProjectRepository(self)
+    def attached_repository(self) -> "Repository":
+        return pkm.repository_loader.load(f"{self.name}'s repository", self.path, self)
 
     def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
         """
@@ -212,7 +205,7 @@ class Project(Package):
         :param target_dir: the directory to put the installer in
         :return: the path to the created installer package
         """
-        from pkm.project_builders.application_builders import build_app_installer
+        from pkm.applications.application_builders import build_app_installer
         return build_app_installer(self, target_dir)
 
     def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
@@ -223,10 +216,10 @@ class Project(Package):
         """
 
         if self.is_pkm_project():
-            from pkm.project_builders.pkm_builders import build_sdist
+            from pkm.pep517_builders.pkm_builders import build_sdist
             return build_sdist(self, target_dir)
         else:
-            from pkm.project_builders.external_builders import build_sdist
+            from pkm.pep517_builders.external_builders import build_sdist
             return build_sdist(self, target_dir)
 
     def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
@@ -238,16 +231,17 @@ class Project(Package):
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
         if self.is_pkm_project():
-            from pkm.project_builders.application_builders import is_application_installer_project, \
-                build_app_installation
-            from pkm.project_builders.pkm_builders import build_wheel
+            # from pkm.applications.application_builders import is_application_installer_project, \
+            #     build_app_installation
+            from pkm.applications.application import Application
+            from pkm.pep517_builders.pkm_builders import build_wheel
 
-            if not only_meta and is_application_installer_project(self):
-                return build_app_installation(self, target_dir)
+            if not only_meta and Application.is_application_installer(self):
+                return Application(self).build_installation_package(target_dir, self.attached_repository)
 
             return build_wheel(self, target_dir, only_meta, editable)
         else:
-            from pkm.project_builders.external_builders import build_wheel
+            from pkm.pep517_builders.external_builders import build_wheel
             return build_wheel(self, target_dir, only_meta, editable)
 
     def build(self, target_dir: Optional[Path] = None) -> List[Path]:
@@ -280,7 +274,6 @@ class Project(Package):
         :param distributions_dir: directory containing the distributions (archives like wheels and sdists) to publish
         """
 
-        # with monitor.on_publish(repository):
         distributions_dir = distributions_dir or (self.directories.dist / str(self.version))
 
         if not distributions_dir.exists():
@@ -297,7 +290,7 @@ class Project(Package):
 
         print("publishing application project")
         if self.config.pkm_project.application:
-            from pkm.project_builders.application_builders import application_installer_project_name, \
+            from pkm.applications.application_builders import application_installer_project_name, \
                 application_installer_dir
             metadata['Name'] = application_installer_project_name(self)
             if (app_installer_dist_dir := application_installer_dir(
@@ -311,57 +304,6 @@ class Project(Package):
         path = Path(path)
         pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml', package)
         return Project(pyproject)
-
-
-class ProjectRepository(Repository):
-
-    def __init__(self, project: Project, env: Optional["Environment"] = None):
-        super().__init__(f"{project.name}'s repository")
-        self.project = project
-        self._env = env or project.attached_environment
-
-        project_group_packages = {
-            p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
-            for p in (project.group.project_children_recursive if project.group else [])
-        }
-        project_group_packages[project.name] = {
-            'path': str(project.path.absolute()), 'name': project.name,
-            'version': str(project.version)}
-
-        self._group_repo: ProjectGroupRepository = pkm.repository_loader.load(
-            RepositoryInstanceConfig('local', project_group_packages, 'project-group', {}))
-
-        built_repositories: List[Tuple[RepositoryInstanceConfig, Repository]] = []
-        for rcfg in project.config.pkm_repositories:
-            built_repositories.append((rcfg, pkm.repository_loader.load(rcfg)))
-
-        self._default_repo = pkm.repositories.main
-        if default_repo := first_or_none(
-                repository for repository_config, repository in built_repositories
-                if '*' in repository_config.packages):
-            self._default_repo = default_repo
-
-        self.package_to_repo: Dict[str, Repository] = {
-            package_name: repository
-            for repository_config, repository in built_repositories
-            for package_name in repository_config.packages.keys()
-        }
-
-    def _repository_for(self, d: Dependency) -> Repository:
-        return self.package_to_repo.get(d.package_name, self._default_repo)
-
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        # monitor.on_dependency_match(dependency)
-        if dependency.package_name == self.project.name:
-            return [self.project]
-
-        if (gr := self._group_repo) and (gpacs := gr.match(dependency, False)):
-            return gpacs
-
-        return self._repository_for(dependency).match(dependency, False)
-
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return self.project.lock.sort_packages_by_lock_preference(self._env, packages)
 
 
 @dataclass()

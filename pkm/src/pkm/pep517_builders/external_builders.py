@@ -20,7 +20,10 @@ if TYPE_CHECKING:
 
 
 class BuildError(IOError):
-    ...
+
+    def __init__(self, msg: str, missing_hook: bool = False) -> None:
+        super().__init__(msg)
+        self.missing_hook = missing_hook
 
 
 _ongoing_builds: Dict[int, Set[PackageDescriptor]] = defaultdict(set)
@@ -55,6 +58,8 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
     target_dir = target_dir or (project.directories.dist / str(project.version))
     target_env = target_env or project.attached_environment
 
+    target_dir.mkdir(exist_ok=True, parents=True)
+
     dist = 'sdist'
     with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir, _cycle_detection(project):
 
@@ -74,7 +79,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
         command = 'get_requires_for_build_sdist'
         mop.notify(BuildPackageHookExecutionEvent(project.descriptor, command))
 
-        extra_requirements = _exec_build_cycle_script(project.path, build_env, buildsys, command, [None])
+        extra_requirements = _exec_build_cycle_script(project, build_env, buildsys, command, [None])
 
         if extra_requirements.status == 'success':
             if requirements := [Dependency.parse_pep508(d) for d in extra_requirements.result]:
@@ -84,11 +89,11 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
         command = 'build_sdist'
         mop.notify(BuildPackageHookExecutionEvent(project.descriptor, command))
         sdist_output = _exec_build_cycle_script(
-            project.path, build_env, buildsys, command, [str(target_dir), None])
+            project, build_env, buildsys, command, [str(target_dir), None])
 
         if sdist_output.status == 'success':
             return target_dir / sdist_output.result
-        raise BuildError("build backend did not produced expected sdist")
+        raise BuildError("build backend did not produced expected sdist", True)
 
 
 def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta: bool = False,
@@ -106,6 +111,8 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
     from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
     target_dir = target_dir or (project.directories.dist / str(project.version))
     target_env = target_env or project.attached_environment
+
+    target_dir.mkdir(exist_ok=True, parents=True)
 
     dist = 'editable_wheel' if editable else 'metadata' if only_meta else 'wheel'
     with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir, _cycle_detection(project):
@@ -127,7 +134,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
             if editable else 'get_requires_for_build_wheel'
         mop.notify(BuildPackageHookExecutionEvent(project.descriptor, command))
 
-        extra_requirements = _exec_build_cycle_script(project.path, build_env, buildsys, command, [None])
+        extra_requirements = _exec_build_cycle_script(project, build_env, buildsys, command, [None])
 
         if extra_requirements.status == 'success':
             build_env.install(
@@ -139,17 +146,17 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
             command = 'prepare_metadata_for_build_wheel'
             mop.notify(BuildPackageHookExecutionEvent(project.descriptor, command))
             dist_info_output = _exec_build_cycle_script(
-                project.path, build_env, buildsys, command,
+                project, build_env, buildsys, command,
                 [str(target_dir), None])
             if dist_info_output.status == 'success':
                 return target_dir / dist_info_output.result
-            raise BuildError("build backend did not produced wheel metadata")
+            raise BuildError("build backend did not produced wheel metadata", True)
 
         # 3. build the wheel
         command = 'build_editable' if editable else 'build_wheel'
         mop.notify(BuildPackageHookExecutionEvent(project.descriptor, command))
         wheel_output = _exec_build_cycle_script(
-            project.path, build_env, buildsys, command, [str(target_dir), None, None])
+            project, build_env, buildsys, command, [str(target_dir), None, None])
 
         if wheel_output.status == 'success':
             return target_dir / wheel_output.result
@@ -163,7 +170,7 @@ class _BuildCycleResult:
 
 
 def _exec_build_cycle_script(
-        source_tree: Path, env: "Environment", buildsys: BuildSystemConfig, hook: str,
+        project: "Project", env: "Environment", buildsys: BuildSystemConfig, hook: str,
         arguments: List[Any]) -> _BuildCycleResult:
     with temp_dir() as tdir_path:
         build_backend_parts = buildsys.build_backend.split(":")
@@ -185,15 +192,31 @@ def _exec_build_cycle_script(
             if not hasattr({build_backend}, '{hook}'):
                 ret('undefined_hook', None)
             else:
-                result = {build_backend}.{hook}({', '.join(repr(arg) for arg in arguments)})
-                ret('success', result)
+                try:
+                    result = {build_backend}.{hook}({', '.join(repr(arg) for arg in arguments)})
+                    ret('success', result)
+                except Exception:
+                    import traceback
+                    ret('fail', traceback.format_exc())
         """
 
         script_path = tdir_path / 'execution.py'
         script_path.write_text(dedent(script))
-        process_results = env.run_proc([str(env.interpreter_path), str(script_path)], cwd=source_tree)
+        process_results = env.run_proc([str(env.interpreter_path), str(script_path)], cwd=project.path)
         if process_results.returncode != 0:
             raise BuildError(
-                f"PEP517 build cycle execution failed (execution of hook: {hook}, resulted in exit code:"
-                f" {process_results.returncode})")
-        return _BuildCycleResult(**json.loads((tdir_path / 'output').read_text()))
+                f"PEP517 build cycle execution failed.\n"
+                f"Project: {project.name} {project.version}\n"
+                f"Build backend: {build_backend}\n"
+                f"Hook: {hook}"
+                f"Resulted in exit code: {process_results.returncode})", False)
+
+        result = _BuildCycleResult(**json.loads((tdir_path / 'output').read_text()))
+        if result.status == 'fail':
+            raise BuildError(
+                f"PEP517 build cycle execution failed.\n"
+                f"Project: {project.name} {project.version}\n"
+                f"Build backend: {build_backend}\n"
+                f"Hook: {hook}\n"
+                f"Resulted in exception:\n{result.result})", False)
+        return result

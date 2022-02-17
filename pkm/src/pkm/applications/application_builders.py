@@ -8,14 +8,11 @@ from typing import Optional, List, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import ObjectReference, DistInfo
-from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
-from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
-from pkm.api.repositories.repository import Repository
 from pkm.utils.dicts import put_if_absent
 from pkm.utils.files import temp_dir, resolve_relativity
 from pkm.utils.properties import cached_property

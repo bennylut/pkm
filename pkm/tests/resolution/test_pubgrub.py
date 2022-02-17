@@ -38,6 +38,26 @@ class TestSolver(TestCase):
         solution = Solver(problem).solve()
         assert_solution({'root': '1.0.0', 'foo': '1.0.0'}, solution)
 
+    def test_url_versions(self):
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo @http://foo', 'bar *'],
+            'foo @http://foo': ['bar ==1.0.1'],
+            'bar 1.0.1': ['foo ==1.0.0'],
+        })
+
+        # should fail because foo cannot be both url and standard version
+        assert_failure(lambda: Solver(problem).solve())
+
+        problem = ExampleProblem({
+            'root 1.0.0': ['foo @http://foo', 'bar *'],
+            'foo @http://foo': ['bar ==1.0.1'],
+            'bar 1.0.1': [],
+        })
+
+        assert_solution({'root': "1.0.0", 'foo': "http://foo", 'bar': "1.0.1"}, Solver(problem).solve())
+
+
+
     def test_star_version(self):
         problem = ExampleProblem({
             'root 1.0.0': ['foo *'],

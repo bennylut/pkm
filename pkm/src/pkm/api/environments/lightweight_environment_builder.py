@@ -7,6 +7,7 @@ from typing import Dict, Union
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.config.configuration import FileConfiguration
+import sys
 
 _INTERPRETER_INTROSPECTIONS: Dict[str, EnvironmentIntrospection] = {}
 _PYVENV_SEP_RX = re.compile("\\s*=\\s*")
@@ -14,7 +15,7 @@ _PYVENV_SEP_RX = re.compile("\\s*=\\s*")
 
 class LightweightEnvironments:
     @staticmethod
-    def create(env_path: Path, interpreter_path: Path) -> Environment:
+    def create(env_path: Path, interpreter_path: Path = Path(sys.executable)) -> Environment:
         interpreter_path = interpreter_path.absolute()
 
         if env_path.exists():

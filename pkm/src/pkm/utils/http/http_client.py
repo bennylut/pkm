@@ -3,6 +3,7 @@ import json
 import locale
 import shutil
 import socket
+import threading
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
@@ -326,7 +327,7 @@ class HttpClient:
         while num_connection_retries < self._max_connection_retries and num_redirects_performed <= max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
-                    # print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
+                    print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
                     conn.request(mtd, url.resource_part(), headers=headers, body=payload)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):
@@ -386,58 +387,66 @@ class HttpClient:
             if not cache:
                 cache = CacheDirective.allways()
 
+            cached = True
             with self._fetch_lock:
 
                 # If I am already requesting this url - no need to actually do it twice, note that
                 # this may pose a problem if one of the recipients will delete the files, if it revealed to be a problem
                 # we can fix it by adding a ref-counting delete operation for the FetchedResource for example
                 promise = self._fetch_inprogress.get(url)
-                if promise:
-                    mop.notify(FetchResourceCacheHitEvent())
-                    return promise.result()
 
-                def _fetch() -> Optional[FetchedResource]:
-                    headers = {}
-                    cache_files = self._resource_files_of(parsed_url)
-                    fetch_info = TomlFileConfiguration.load(
-                        cache_files.fetch_info)  # TODO: maybe add the response headers
-                    _add_standard_headers(headers)
+                if not promise:
+                    cached = False
 
-                    use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
-                    if use_cached_data:
-                        mop.notify(FetchResourceCacheHitEvent())
-                    else:
-                        # console.log(f"[Start]: GET {url}...")
-                        response: Optional[HTTPResponse] = None
+                    def _fetch() -> Optional[FetchedResource]:
+                        headers = {}
+                        cache_files = self._resource_files_of(parsed_url)
+                        fetch_info = TomlFileConfiguration.load(
+                            cache_files.fetch_info)  # TODO: maybe add the response headers
+                        _add_standard_headers(headers)
 
-                        # noinspection PyShadowingNames
-                        try:
-                            cache.add_headers(fetch_info, headers)
-                            with self._request("GET", parsed_url, headers=headers) as response:
-                                clength = int(response.headers.get('content-length', '-1'))
-                                mop.notify(FetchResourceDownloadStartEvent(clength, cache_files.data))
+                        use_cached_data = cache_files.exists() and cache.is_cache_valid(fetch_info)
+                        if use_cached_data:
+                            mop.notify(FetchResourceCacheHitEvent())
+                        else:
+                            # console.log(f"[Start]: GET {url}...")
+                            response: Optional[HTTPResponse] = None
 
-                                # console.log(f"[MID] GET {url} resulted with status code: {response.status}...")
+                            # noinspection PyShadowingNames
+                            try:
+                                cache.add_headers(fetch_info, headers)
+                                with self._request("GET", parsed_url, headers=headers) as response:
+                                    clength = int(response.headers.get('content-length', '-1'))
+                                    mop.notify(FetchResourceDownloadStartEvent(clength, cache_files.data))
 
-                                if response.status == 200:
-                                    cache_files.save(response)
-                                elif response.status != 304:
-                                    raise HttpException(
-                                        f"request to {url} ended with unexpected status code:"
-                                        f" {response.status} ({response.msg})", response)
-                        except Exception as e:
-                            if isinstance(e, HttpException):
-                                raise
-                            else:
-                                raise HttpException(str(e), response) from e
-                        finally:
-                            with self._fetch_lock:
-                                del self._fetch_inprogress[url]
+                                    print(f"[MID] GET {url} resulted with status code: {response.status}...")
 
-                    return cache_files
+                                    if response.status == 200:
+                                        cache_files.save(response)
+                                    elif response.status != 304:
+                                        raise HttpException(
+                                            f"request to {url} ended with unexpected status code:"
+                                            f" {response.status} ({response.msg})", response)
+                            except Exception as e:
+                                if isinstance(e, HttpException):
+                                    raise
+                                else:
+                                    raise HttpException(str(e), response) from e
+                            finally:
+                                print(f"thread: {threading.current_thread().ident} attempting to release task")
+                                with self._fetch_lock:
+                                    del self._fetch_inprogress[url]
+                                print(f"thread: {threading.current_thread().ident} succss to release task")
 
-                deffered: Deferred[Optional[FetchedResource]] = Deferred()
-                promise = self._fetch_inprogress[url] = deffered.promise()
+                        print(f"[END] GET {url} resulted with cache files: {cache_files}")
+                        return cache_files
+
+                    deffered: Deferred[Optional[FetchedResource]] = Deferred()
+                    promise = self._fetch_inprogress[url] = deffered.promise()
+
+            if cached:
+                mop.notify(FetchResourceCacheHitEvent())
+                return promise.result()
 
             try:
                 deffered.complete(_fetch())
