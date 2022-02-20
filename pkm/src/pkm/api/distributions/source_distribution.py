@@ -1,14 +1,12 @@
-from contextlib import contextmanager
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Optional, ContextManager, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distribution import Distribution
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
-from pkm.utils.archives import extract_archive
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -18,44 +16,15 @@ class SourceDistribution(Distribution):
 
     def __init__(self, package: PackageDescriptor, archive: Path):
         self._package = package
-        self._archive_path = archive
+        self.archive = archive
 
     @property
     def owner_package(self) -> PackageDescriptor:
         return self._package
 
     def extract_metadata(self, env: "Environment") -> PackageMetadata:
-        builds = pkm.repositories.source_builds
-
-        with self._source_tree() as source_tree:
-            return builds.build_or_get_metadata(self.owner_package, source_tree, env)
-
-    @contextmanager
-    def _source_tree(self) -> ContextManager[Path]:
-        with TemporaryDirectory() as source_tree:
-            source_tree = Path(source_tree)
-            extract_archive(self._archive_path, source_tree)
-
-            # attempt to resolve nested source trees
-            while True:
-                itd = source_tree.iterdir()
-                maybe_source_tree = next(itd, None)
-                if maybe_source_tree and maybe_source_tree.is_dir() and next(itd, None) is None:
-                    source_tree = maybe_source_tree
-                else:
-                    break
-
-            yield source_tree
+        return pkm.source_build_cache.get_or_build_meta(env, self)
 
     def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
-
-        from pkm.api.pkm import pkm
-        builds = pkm.repositories.source_builds
-        prebuilt = builds.match(self.owner_package.to_dependency())
-        if prebuilt and prebuilt[0].is_compatible_with(env):
-            return prebuilt[0].install_to(env, user_request)
-
-        with self._source_tree() as source_tree:
-            builds \
-                .build(self.owner_package, source_tree, env, editable) \
-                .install_to(env, user_request)
+        WheelDistribution(self.owner_package, pkm.source_build_cache.get_or_build_wheel(env, self)) \
+            .install_to(env, user_request)

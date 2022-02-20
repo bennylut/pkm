@@ -16,7 +16,6 @@ class TestVersionSpecifiers(TestCase):
         # url specifier should not allow 'regular versions' even in a negative way
         assert vurl.intersect(other).is_none()
 
-
     def test_locals(self):
         local_version = parse("==1.0.0+local")
         version = parse("==1.0.0")

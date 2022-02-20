@@ -4,7 +4,7 @@ from unittest import TestCase
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import Version
 
 
@@ -36,7 +36,7 @@ def assert_match(packages: List[Package], *expected_versions: str):
         assert package.version in parsed_expected_versions, f'unexpected version: {package.version}'
 
 
-class DummyRepository(Repository):
+class DummyRepository(AbstractRepository):
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         # monitor.on_dependency_match(dependency)

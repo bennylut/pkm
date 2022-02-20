@@ -11,7 +11,7 @@ from pkm.api.dependencies.dependency import Dependency
 
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.projects.pyproject_configuration import BuildSystemConfig
-from pkm.api.repositories.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
+from pkm.api.distributions.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.utils.files import temp_dir
 
 if TYPE_CHECKING:

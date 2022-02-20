@@ -25,6 +25,7 @@ class EtcChain:
 
     def config_chain(
             self, context_path: Path, etc_subpath: Union[str, Path] = "", include_main: bool = True) -> List[Path]:
+        # TODO: document order: context to root
         result = []
 
         search_list = [context_path, *context_path.parents]

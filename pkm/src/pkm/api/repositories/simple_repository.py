@@ -5,7 +5,7 @@ from typing import List, Union, Tuple, Dict, Optional, Callable, Any
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import StandardPackageArtifact, AbstractPackage
-from pkm.api.repositories.repository import Repository, RepositoryBuilder
+from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.http.cache_directive import CacheDirective
@@ -14,7 +14,7 @@ from pkm.utils.iterators import groupby
 from pkm.utils.strings import endswith_any, without_suffix
 
 
-class SimpleRepository(Repository):
+class SimpleRepository(AbstractRepository):
     """
     implementation of pep503 simple repository
     """
@@ -114,7 +114,7 @@ class SimpleRepositoryBuilder(RepositoryBuilder):
         super().__init__("simple")
         self._http_client = http_client
 
-    def build(self, name: Optional[str], package_settings: Dict[str, Any], **kwargs: Any) -> Repository:
+    def build(self, name: Optional[str], packages: Optional[List[str]], **kwargs: Any) -> Repository:
         if not (url := kwargs.get('url')):
             raise KeyError("url field is required to build 'simple' repository")
         return SimpleRepository(name or url, self._http_client, str(url).rstrip('/'))

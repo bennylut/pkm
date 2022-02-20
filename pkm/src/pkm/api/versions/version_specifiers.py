@@ -5,7 +5,6 @@ from dataclasses import dataclass, replace
 from typing import List, Optional
 
 from pkm.api.versions.version import Version, StandardVersion, UrlVersion
-from pkm.utils.commons import IllegalStateException
 from pkm.utils.iterators import distinct
 from pkm.utils.sequences import subiter
 
@@ -182,7 +181,6 @@ class VersionRange(VersionSpecifier):
 
     def __post_init__(self):
         assert self.min is None or self.max is None or self.min <= self.max, f'min > max :: {self.min} > {self.max}'
-        # assert (self.min is None or isinstance(self.min, Version)) and (self.max is None or isinstance(self.max, Version))
 
         self.includes_max = self.includes_max if self.includes_max is not None else self.max is None
         self.includes_min = self.includes_min if self.includes_min is not None else self.min is None
@@ -316,7 +314,7 @@ def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
 
     last: VersionSpecifier = segments[0]
     for segment in subiter(segments, 1):
-        joined = last._try_merge(segment)
+        joined = last._try_merge(segment) # noqa
         if joined:
             last = joined
         else:

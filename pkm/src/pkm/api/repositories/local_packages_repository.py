@@ -1,102 +1,25 @@
-from dataclasses import dataclass
+from collections import defaultdict
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import List, Dict, Optional, Any
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.environment import Environment
-from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.distributions.distribution import Distribution
+from pkm.api.packages.package import Package
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, RepositoryBuilder
-from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
-from pkm.api.versions.version import Version
-from pkm.utils.files import is_empty_directory
+from pkm.api.projects.project_group import ProjectGroup
+from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
+from pkm.utils.strings import endswith_any
 
 
-@dataclass
-class LocalPackageSettings:
-    name: str
-    location: Path
-    version: Version
-    editable: bool
+class PackagesDictRepository(AbstractRepository):
 
-    def to_package_descriptor(self):
-        return PackageDescriptor(self.name, self.version)
-
-    @classmethod
-    def from_config(cls, package_name: str, settings: Any):
-        if not isinstance(settings, Dict):
-            raise ValueError(f"illegal setting for local package repository in package: {package_name}")
-
-        try:
-            path = Path(settings['path'])
-            version = Version.parse(settings['version']) if 'version' in settings else Project.load(path).version
-
-            return LocalPackageSettings(
-                package_name, path, version,
-                settings.get('editable', True) is True)
-        except Exception as e:
-            raise ValueError(f"illegal setting for local package repository in package: {package_name}") from e
-
-
-class LocalPackagesRepository(Repository):
-
-    def __init__(self, name: str, workspace: Path,
-                 package_settings: Dict[str, LocalPackageSettings]):
+    def __init__(self, name: str, packages: Dict[str, List[Package]]):
         super().__init__(name)
-        self._package_settings = package_settings
-        self._packages_cache: Dict[str, Package] = {}
-
-        workspace.mkdir(parents=True, exist_ok=True)
-        if not is_empty_directory(workspace):
-            raise ValueError("received workspace must be an empty directory")
-
-        self._build_repo = SourceBuildsRepository(workspace)
+        self._packages = packages
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        # monitor.on_dependency_match(dependency)
-
-        if cache := self._packages_cache.get(dependency.package_name):
-            return [cache]
-
-        if not (settings := self._package_settings.get(dependency.package_name)):
-            return []
-
-        package = LocalPackage(settings, self._build_repo)
-        self._packages_cache[dependency.package_name] = package
-        return [package]
-
-
-class LocalPackage(Package):
-
-    def __init__(self, settings: LocalPackageSettings, builds_repo: SourceBuildsRepository):
-        self._desc = settings.to_package_descriptor()
-        self._settings = settings
-        self._builds_repo = builds_repo
-        self._build_cache: Dict[str, Package] = {}
-
-    @property
-    def descriptor(self) -> PackageDescriptor:
-        return self._desc
-
-    def _get_or_create_delegate(self, env: Environment) -> Package:
-        key = str(env.interpreter_path.resolve())
-        if cache := self._build_cache.get(key):
-            return cache
-
-        package = self._builds_repo.build(
-            self.descriptor, self._settings.location, env, self._settings.editable)
-        self._build_cache[key] = package
-        return package
-
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self._get_or_create_delegate(environment)._all_dependencies(environment)
-
-    def is_compatible_with(self, env: "Environment") -> bool:
-        return self._get_or_create_delegate(env).is_compatible_with(env)
-
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        self._get_or_create_delegate(env).install_to(env, user_request)
+        all_packages = self._packages.get(dependency.package_name) or []
+        return [p for p in all_packages if dependency.version_spec.allows_version(p.version)]
 
 
 class LocalPackagesRepositoryBuilder(RepositoryBuilder):
@@ -104,11 +27,33 @@ class LocalPackagesRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__('local')
 
-    def build(self, name: Optional[str], package_settings: Dict[str, Any], **kwargs: Any) -> Repository:
-        parsed_settings = {
-            package: LocalPackageSettings.from_config(package, settings)
-            for package, settings in package_settings.items()
-        }
+    def build(self, name: Optional[str], packages: Optional[List[str]], **kwargs: Any) -> Repository:
+        projects: List[str] = kwargs.get('projects', [])
+        distributions: List[str] = kwargs.get('distributions', [])
 
-        return LocalPackagesRepository(
-            name or 'local-packages', Path(TemporaryDirectory().name), parsed_settings)
+        packages: Dict[str, List[Package]] = defaultdict(list)
+
+        # load projects
+        for project_path_str in projects:
+            project_path = Path(project_path_str)
+            if (project_path / 'pyproject-group.toml').exists():
+                project_group = ProjectGroup.load(project_path)
+                for project in project_group.project_children_recursive:
+                    packages[project.name].append(project)
+            else:
+                project = Project.load(project_path)
+                packages[project.name].append(project)
+
+        # load distributions
+        for distribution_path_str in distributions:
+            distribution_path = Path(distribution_path_str)
+            if distribution_path.is_dir():
+                for dist in distribution_path.iterdir():
+                    if endswith_any(dist.name, ('.tar.gz', '.whl')):
+                        package = Distribution.package_from(dist)
+                        packages[package.name].append(package)
+            else:
+                package = Distribution.package_from(distribution_path)
+                packages[package.name].append(package)
+
+        return PackagesDictRepository(name, packages)

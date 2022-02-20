@@ -142,7 +142,7 @@ class PartialSolution:
 
     def backtrack(self, decision_level: int):
 
-        print(f"backtrack to decision_level: {decision_level}")
+        # print(f"backtrack to decision_level: {decision_level}")
 
         def filtered(lst: List[Assignment]) -> Iterable[Assignment]:
             return (ass for ass in lst if ass.decision_level <= decision_level)
@@ -198,12 +198,12 @@ class PartialSolution:
         self._assignments_by_order.append(assignment)
 
         if assignment.is_decision():
-            print(f"decided: {assignment}")
+            # print(f"decided: {assignment}")
             self._decisions[assignment.term.package] = assignment
-            print(f'entering decision level: {self._decision_level}')
+            # print(f'entering decision level: {self._decision_level}')
         else:
             ...
-            print(f"derrived: {assignment}")
+            # print(f"derrived: {assignment}")
 
     def __repr__(self):
         return f"PartialSolution({self._assignments_by_order})"
@@ -516,7 +516,7 @@ class Solver(Generic[PKG_T]):
             return
         incompatibility.added = True
 
-        print(f'adding incompatibility: {incompatibility}')
+        # print(f'adding incompatibility: {incompatibility}')
 
         for term in incompatibility.terms:
             term_incompatibilities = self._incompatibilities[term.package]
@@ -534,17 +534,17 @@ class Solver(Generic[PKG_T]):
             next_package = root_term.package
             while next_package is not None:
                 self._solution.notify_state(next_package, mop)
-                print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
+                # print(f"trying to solve for {next_package}, already decided on: {self._solution.decisions()}")
                 self._propagate(next_package)
                 next_package = self._make_next_decision()
 
-            print(f"reached into conclusion: {self._solution.decisions()}")
+            # print(f"reached into conclusion: {self._solution.decisions()}")
             DependencyResolutionConclusionEvent(self._solution.decisions()).notify(mop)
             return self._solution.decisions()
 
     def _propagate(self, next_package: PKG):
 
-        print("#### unit propagation ####")
+        # print("#### unit propagation ####")
 
         changed = {next_package}
 
@@ -555,9 +555,9 @@ class Solver(Generic[PKG_T]):
                 satisfaction: IncompatibilitySatisfaction = incompatibility.check_satisfaction(self._solution)
                 if satisfaction.is_full():
 
-                    print(f"incompatibility: {incompatibility} satisfied, entering conflict resolution")
+                    # print(f"incompatibility: {incompatibility} satisfied, entering conflict resolution")
                     new_incompatibility = self._resolve_conflict(incompatibility, satisfaction)
-                    print(f"conflict resolution resulted with incompatibility {new_incompatibility}")
+                    # print(f"conflict resolution resulted with incompatibility {new_incompatibility}")
                     satisfaction = new_incompatibility.check_satisfaction(self._solution)
 
                     assert satisfaction.is_almost_full(), \
@@ -569,10 +569,7 @@ class Solver(Generic[PKG_T]):
                     changed.add(term.package)
                 elif satisfaction.is_almost_full():
                     term = satisfaction.undecided_term
-                    print(f"incompatibility {incompatibility} is almost full, undecided_term is {term}")
-                    if term.constraint == AnyVersion:
-                        print("HERE")
-                        incompatibility.check_satisfaction(self._solution)
+                    # print(f"incompatibility {incompatibility} is almost full, undecided_term is {term}")
 
                     self._solution.assign(term.negate(), incompatibility)
                     changed.add(term.package)
@@ -584,11 +581,11 @@ class Solver(Generic[PKG_T]):
     def _resolve_conflict(
             self, incompatibility: Incompatibility, satisfaction: IncompatibilitySatisfaction) -> Incompatibility:
 
-        print("#### conflict resolution ####")
+        # print("#### conflict resolution ####")
 
         original_incompatibility = incompatibility
         while True:
-            print(f"enter conflict resolution loop with {incompatibility}")
+            # print(f"enter conflict resolution loop with {incompatibility}")
             for term in incompatibility.terms:
                 self._package_trouble_level[term.package] += 1
 
@@ -601,7 +598,7 @@ class Solver(Generic[PKG_T]):
             prev_satisfier = satisfaction.prev_satisfier
             prev_satisfier_level = prev_satisfier.decision_level if prev_satisfier else 0
 
-            print(f"satisfier: {satisfier}, prev_satisfier: {prev_satisfier}")
+            # print(f"satisfier: {satisfier}, prev_satisfier: {prev_satisfier}")
 
             if satisfier.is_decision() or prev_satisfier_level < satisfier.decision_level:
                 self._solution.backtrack(prev_satisfier_level)
@@ -623,7 +620,7 @@ class Solver(Generic[PKG_T]):
             incompatibility = Incompatibility.create(
                 prior_cause_terms, internal_cause=(satisfier.cause, incompatibility))
 
-            print(f"root cause: {incompatibility}")
+            # print(f"root cause: {incompatibility}")
 
             if not self._is_tautology(incompatibility):
                 satisfaction = incompatibility.check_satisfaction(self._solution)
@@ -669,8 +666,8 @@ class Solver(Generic[PKG_T]):
             if len(dependency_assignments) > 1 and dependency_assignments[-1].is_decision():
                 actual_limitation = dependency_assignments[-2].accumulated
                 if actual_limitation.allows_any(dependency.constraint):
-                    print(f"{package} is conflicting with {dependency.package}, it requires that "
-                          f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
+                    # print(f"{package} is conflicting with {dependency.package}, it requires that "
+                    #      f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
                     dlevel = dependency_assignments[-1].decision_level - 1
                     minor_adjustment_dlevel = dlevel if minor_adjustment_dlevel == -1 \
                         else min(dlevel, minor_adjustment_dlevel)
@@ -680,19 +677,19 @@ class Solver(Generic[PKG_T]):
 
         if minor_adjustment_dlevel >= 0 \
                 and self._solution.requirement_decision_level(package) <= minor_adjustment_dlevel:
-            print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
+            # print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
             self._solution.backtrack(minor_adjustment_dlevel)
             return True
 
         return False
 
     def _make_next_decision(self) -> Optional[PKG]:
-        print("#### decision ####")
+        # print("#### decision ####")
         undecided_packages = self._solution.undecided_packages()
         if not undecided_packages:
             return None
 
-        print(f"undecided packages: {undecided_packages}")
+        # print(f"undecided packages: {undecided_packages}")
 
         package_matching_versions: Dict[PKG, List[_PackageVersion]] = {}
         for package in undecided_packages:
@@ -710,8 +707,8 @@ class Solver(Generic[PKG_T]):
         package = min(undecided_packages,
                       key=lambda pack: (-self._package_trouble_level[pack], len(package_matching_versions[pack])))
 
-        print(f"choosing to try and assign {package} with constraint: "
-              f"{self._solution.assignments_by_package[package][-1].accumulated}")
+        # print(f"choosing to try and assign {package} with constraint: "
+        #      f"{self._solution.assignments_by_package[package][-1].accumulated}")
         versions = list(package_matching_versions[package])  # defensive copy because we might change it
 
         while True:
@@ -721,7 +718,7 @@ class Solver(Generic[PKG_T]):
                 if ic := self._package_availability_incompatibilities.get(package):
                     ic.update_inavailability(ic.terms[0].constraint.union(acc_assignment))
                 else:
-                    print(f"could not find version that match {acc_assignment}")
+                    # print(f"could not find version that match {acc_assignment}")
                     ic = Incompatibility.create(
                         [Term(package, acc_assignment)],
                         external_cause=f'Compatible version for [{package} {acc_assignment}] not found')
@@ -730,7 +727,7 @@ class Solver(Generic[PKG_T]):
                 return package
 
             version = versions.pop(0)
-            print(f"version: {version} match our term")
+            # print(f"version: {version} match our term")
 
             if not version.dependencies:
                 try:
@@ -741,7 +738,7 @@ class Solver(Generic[PKG_T]):
                 except MalformedPackageException:
                     import traceback
                     traceback.print_exc()
-                    print(f"version: {version} discovered to be malformed")
+                    # print(f"version: {version} discovered to be malformed")
                     continue  # retry with another version
             break
 
@@ -750,7 +747,7 @@ class Solver(Generic[PKG_T]):
         assignment: Assignment = self._solution.make_assignment(Term(package, SpecificVersion(version.version)), None)
         assignments = self._solution.assignments_by_package
         assignments[package].append(assignment)
-        print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")
+        # print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")
         conflicts = list(filter(lambda it: it.check_satisfaction(self._solution).is_full(), incompatibilities))
         assignments[package].pop()
 
@@ -758,11 +755,11 @@ class Solver(Generic[PKG_T]):
             conflicts = []
 
         if not conflicts:
-            print("we can!")
+            # print("we can!")
             self._solution.assign(assignment)
             self._solution.require(version.dependencies.keys())
         else:
-            print(f"we cant.. ({conflicts})")
+            # print(f"we cant.. ({conflicts})")
             ...
 
         return package

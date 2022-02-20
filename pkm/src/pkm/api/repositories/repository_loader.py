@@ -3,18 +3,18 @@ from __future__ import annotations
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Optional, Any, Union, Tuple, Iterable
+from typing import List, Dict, Optional, Any, Union, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
-from pkm.api.repositories.repository import Repository, RepositoryBuilder
+from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.config.etc_chain import EtcChain
+from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import remove_none_values, put_if_absent
 from pkm.utils.http.http_client import HttpClient
-from pkm.utils.iterators import partition
 
 REPOSITORIES_ENTRYPOINT_GROUP = "pkm.repositories"
 REPOSITORIES_CFG = "repositories.toml"
@@ -24,25 +24,29 @@ class RepositoryLoader:
     def __init__(self, etc: EtcChain, http: HttpClient, workspace: Path):
 
         from pkm.api.projects.project_group import ProjectGroupRepositoryBuilder
-        from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
+
         from pkm.api.environments.environment import Environment
         from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
         from pkm.api.repositories.git_repository import GitRepository
         from pkm.api.repositories.pypi_repository import PyPiRepository
+        from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
 
         # base repositories
         self.pypi = PyPiRepository(http)
+        self._cached_instances: Dict[RepositoryInstanceConfig, Repository] = {}
 
-        url_repos = [
-            GitRepository(workspace / 'git')
-        ]
+        self._url_repos = {
+            r.name: r for r in (
+                GitRepository(workspace / 'git'),
+            )
+        }
 
         # common builders
         self._builders = {
             b.name: b for b in (
                 SimpleRepositoryBuilder(http),
                 LocalPackagesRepositoryBuilder(),
-                ProjectGroupRepositoryBuilder()
+                ProjectGroupRepositoryBuilder(),
             )
         }
 
@@ -58,19 +62,42 @@ class RepositoryLoader:
                 traceback.print_exc()
 
         self._etc_chain = etc
-        self._main = _MainRepository(
-            self, url_repos, RepositoriesConfiguration.load(etc.main_config(REPOSITORIES_CFG)).repositories)
+        self._main = self.load_for_context('main', None, None)
 
     @property
     def main(self) -> Repository:
         return self._main
 
-    def load(self, name: str, context_path: Path, context: Union[Project, ProjectGroup, None]) -> Repository:
-        config_files = self._etc_chain.config_chain(context_path, REPOSITORIES_CFG, include_main=False)
-        instances: Dict[str, RepositoryInstanceConfig] = {}
-        for file in config_files:
-            for instance in RepositoriesConfiguration.load(file).repositories:
-                put_if_absent(instances, instance.name, instance)
+    def _load_configuration_chain(self, context_path: Optional[Path]) -> Tuple[List[Repository], Dict[str, Repository]]:
+        package_search_list = [self.pypi]
+        package_associated_repo = {}
+        opened_repository_names = set()
+
+        etc_chain = self._etc_chain.config_chain(context_path, REPOSITORIES_CFG) \
+            if context_path else [self._etc_chain.main_config(REPOSITORIES_CFG)]
+
+        for link in etc_chain:
+            config = RepositoriesConfiguration.load(link)
+            for definition in config.repositories:
+                if definition.name in opened_repository_names:
+                    continue
+                opened_repository_names.add(definition.name)
+                instance = self.build(definition)
+
+                if definition.type == 'pypi' and package_search_list[0].name == 'pypi':
+                    package_search_list.pop(0)
+
+                if definition.packages:
+                    for package in definition.packages:
+                        put_if_absent(package_associated_repo, package, instance)
+                else:
+                    package_search_list.append(instance)
+
+        return package_search_list, package_associated_repo
+
+    def load_for_context(self, name: str, context_path: Optional[Path],
+                         context: Union[Project, ProjectGroup, None]) -> Repository:
+        package_search_list, package_associated_repo = self._load_configuration_chain(context_path)
 
         projects_in_path = []
         if isinstance(context, Project):
@@ -78,26 +105,21 @@ class RepositoryLoader:
         elif isinstance(context, ProjectGroup):
             projects_in_path = context.project_children_recursive
 
-        return _ContextualRepository(name, projects_in_path, self._main, self, instances.values(), context)
+        if projects_in_path:
+            repo = _ProjectsInContextRepository("projects under context", projects_in_path)
+            for project in projects_in_path:
+                package_associated_repo[project.name] = repo
+
+        return _ContextualRepository(name, self._url_repos, package_search_list, package_associated_repo, context)
 
     def build(self, config: RepositoryInstanceConfig) -> Repository:
-        if not (builder := self._builders.get(config.type)):
-            raise KeyError(f"unknown repository type: {config.type}")
-        return builder.build(config.name, config.packages, **config.args)
+        if not (cached := self._cached_instances.get(config)):
+            if not (builder := self._builders.get(config.type)):
+                raise KeyError(f"unknown repository type: {config.type}")
+            cached = builder.build(config.name, config.packages, **config.args)
+            self._cached_instances[config] = cached
 
-
-def _build_instances(
-        loader: RepositoryLoader, default: Repository, instances: Iterable[RepositoryInstanceConfig]
-) -> Tuple[Repository, List[Tuple[RepositoryInstanceConfig, Repository]]]:
-    non_default: List[Tuple[RepositoryInstanceConfig, Repository]] = []
-    for i in instances:
-        non_default.append((i, loader.build(i)))
-
-    defaultabls, non_default = partition(non_default, lambda x: '*' in x[0].packages)
-    if defaultabls:
-        default = defaultabls[-1]
-
-    return default, non_default
+        return cached
 
 
 class RepositoriesConfiguration(TomlFileConfiguration):
@@ -111,7 +133,7 @@ class RepositoriesConfiguration(TomlFileConfiguration):
 @dataclass(frozen=True, eq=True)
 class RepositoryInstanceConfig:
     type: str
-    packages: Dict[str, Any]
+    packages: Optional[List[str]]
     name: Optional[str]
     args: Dict[str, Any]
 
@@ -126,88 +148,55 @@ class RepositoryInstanceConfig:
     def from_config(cls, name: str, config: Dict[str, Any]) -> "RepositoryInstanceConfig":
         config = copy(config)
         type_ = config.pop('type')
-        packages: List[Union[str, Dict]] = config.pop('packages')
-
-        packages_dict = {}
-
-        if packages == "*":
-            packages_dict['*'] = {}
-        else:
-            for package in packages:
-                if isinstance(package, str):
-                    packages_dict[package] = {}
-                else:
-                    packages_dict[package['name']] = package
-
+        packages: Optional[List[str]] = config.pop('packages', None)
         args = config
-        return RepositoryInstanceConfig(type_, packages_dict, name, args)
+        return RepositoryInstanceConfig(type_, packages, name, args)
 
 
-class _MainRepository(Repository):
-    def __init__(self, loader: RepositoryLoader, url_repos: List[Repository],
-                 defined_instances: List[RepositoryInstanceConfig]):
-
-        super().__init__("main")
-
-        default, non_default = _build_instances(loader, loader.pypi, defined_instances)
-
-        self._default_repo = default
-        self._url_repos = {r.name: r for r in url_repos}
-        self.package_to_repo: Dict[str, Repository] = {
-            package_name: repository
-            for repository_config, repository in non_default
-            for package_name in repository_config.packages.keys()
-        }
-
-    def _repository_for(self, d: Dependency) -> Repository:
-        if url := d.version_spec.specific_url():
-            if url.protocol and (repo := self._url_repos.get(url.protocol)):
-                return repo
-            return self._url_repos['url']
-
-        return self.package_to_repo.get(d.package_name, self._default_repo)
-
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        return self._repository_for(dependency).match(dependency, False)
-
-
-class _ContextualRepository(Repository):
-
-    def __init__(self, name: str, projects_in_path: List[Project], main: _MainRepository,
-                 loader: RepositoryLoader, defined_instances: Iterable[RepositoryInstanceConfig], ctx: Any):
-
+class _ContextualRepository(AbstractRepository):
+    def __init__(
+            self, name: str, url_handlers: Dict[str, Repository], package_search_list: List[Repository],
+            package_associated_repos: Dict[str, Repository], context: Optional[Any]):
         super().__init__(name)
 
-        projects_in_path_packages = {
-            p.name: {'path': str(p.path.absolute()), 'name': p.name, 'version': str(p.version)}
-            for p in projects_in_path
-        }
-
-        self._path_repo: Repository = loader.build(
-            RepositoryInstanceConfig('local', projects_in_path_packages, 'project-group', {}))
-
-        default, non_default = _build_instances(loader, main, defined_instances)
-        self._default_repo = default
-        self.package_to_repo: Dict[str, Repository] = {
-            package_name: repository
-            for repository_config, repository in non_default
-            for package_name in repository_config.packages.keys()
-        }
-        self._context = ctx
-
-    def _repository_for(self, d: Dependency) -> Repository:
-        return self.package_to_repo.get(d.package_name, self._default_repo)
+        self._url_handlers = url_handlers
+        self._package_search_list = package_search_list
+        self._package_associated_repos = package_associated_repos
+        self._context = context
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        if dependency.version_spec.specific_url():
-            return self._default_repo.match(dependency, False)
+        if url := dependency.version_spec.specific_url():
 
-        if (gr := self._path_repo) and (gpacs := gr.match(dependency, False)):
-            return gpacs
+            if protocol := url.protocol:
+                if repo := self._url_handlers.get(url.protocol):
+                    return repo.match(dependency, False)
+                raise NoSuchElementException(f"could not find repository to handle url with protocol: {protocol}")
+            return self._url_handlers['url'].match(dependency, False)
 
-        return self._repository_for(dependency).match(dependency, False)
+        if repo := self._package_associated_repos.get(dependency.package_name):
+            return repo.match(dependency, False)
+
+        for repo in self._package_search_list:
+            if result := repo.match(dependency, False):
+                return result
+
+        return []
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         if isinstance(self._context, Project):
             return self._context.lock.sort_packages_by_lock_preference(self._context.attached_environment, packages)
         return super()._sort_by_priority(dependency, packages)
+
+
+class _ProjectsInContextRepository(AbstractRepository):
+    def __init__(self, name: str, projects: List[Project]):
+        super().__init__(name)
+        self._packages = {
+            p.name: p for p in projects
+        }
+
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        if (project := self._packages.get(dependency.package_name)) and \
+                dependency.version_spec.allows_version(project.version):
+            return [project]
+        return []

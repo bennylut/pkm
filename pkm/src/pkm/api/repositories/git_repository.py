@@ -6,7 +6,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import NamedVersion
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.http.http_client import Url
@@ -59,7 +59,7 @@ class _Git:
             raise
 
 
-class GitRepository(Repository):
+class GitRepository(AbstractRepository):
 
     def __init__(self, workspace: Path):
         super().__init__("git")

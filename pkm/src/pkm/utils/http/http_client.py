@@ -327,7 +327,7 @@ class HttpClient:
         while num_connection_retries < self._max_connection_retries and num_redirects_performed <= max_redirects:
             with self._pool.connection_for(url) as conn:
                 try:
-                    print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
+                    # print(f"[CONN] using connection {conn.number} to connect to {str(url)}")  # noqa
                     conn.request(mtd, url.resource_part(), headers=headers, body=payload)
                     with conn.getresponse() as response:
                         if response.status in (301, 302, 303, 307, 308):
@@ -419,7 +419,7 @@ class HttpClient:
                                     clength = int(response.headers.get('content-length', '-1'))
                                     mop.notify(FetchResourceDownloadStartEvent(clength, cache_files.data))
 
-                                    print(f"[MID] GET {url} resulted with status code: {response.status}...")
+                                    # print(f"[MID] GET {url} resulted with status code: {response.status}...")
 
                                     if response.status == 200:
                                         cache_files.save(response)
@@ -433,12 +433,12 @@ class HttpClient:
                                 else:
                                     raise HttpException(str(e), response) from e
                             finally:
-                                print(f"thread: {threading.current_thread().ident} attempting to release task")
+                                # print(f"thread: {threading.current_thread().ident} attempting to release task")
                                 with self._fetch_lock:
                                     del self._fetch_inprogress[url]
-                                print(f"thread: {threading.current_thread().ident} succss to release task")
+                                # print(f"thread: {threading.current_thread().ident} succss to release task")
 
-                        print(f"[END] GET {url} resulted with cache files: {cache_files}")
+                        # print(f"[END] GET {url} resulted with cache files: {cache_files}")
                         return cache_files
 
                     deffered: Deferred[Optional[FetchedResource]] = Deferred()

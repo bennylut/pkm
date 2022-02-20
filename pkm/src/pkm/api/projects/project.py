@@ -194,7 +194,7 @@ class Project(Package):
 
     @cached_property
     def attached_repository(self) -> "Repository":
-        return pkm.repository_loader.load(f"{self.name}'s repository", self.path, self)
+        return pkm.repository_loader.load_for_context(f"{self.name}'s repository", self.path, self)
 
     def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
         """

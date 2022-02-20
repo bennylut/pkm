@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from base64 import b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Dict, Any
+from typing import List, Union, Optional, Tuple, Dict, Any, Protocol
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
@@ -11,26 +11,14 @@ from pkm.api.versions.version_specifiers import AnyVersion
 from pkm.utils.iterators import partition
 
 
-class Repository(ABC):
-
-    def __init__(self, name: str):
-        self._name = name
+class Repository(Protocol):
 
     @property
+    @abstractmethod
     def name(self) -> str:
-        return self._name
+        ...
 
     @abstractmethod
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        """
-        IMPLEMENTATION NOTICE:
-            do not try to filter pre-releases,
-            it is handled for you in the `match` method that call this one.
-
-        :param dependency: the dependency to match
-        :return: list of all the packages in this repository that match the given `dependency`,
-        """
-
     def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
         """
         :param dependency: the dependency to match (or a pep508 string representing it)
@@ -42,12 +30,46 @@ class Repository(ABC):
         :return: list of all the packages in this repository that match the given `dependency`
         """
 
+    @abstractmethod
+    def list(self, package_name: str) -> List[Package]:
+        """
+        :param package_name: the package to match 
+        :return: list of all the packages that match the given `package_name`
+        """
+
+    @property
+    @abstractmethod
+    def publisher(self) -> Optional["RepositoryPublisher"]:
+        """
+        :return: if this repository is 'publishable' returns its publisher
+        """
+
+
+# noinspection PyMethodMayBeStatic
+class AbstractRepository(Repository, ABC):
+
+    def __init__(self, name: str):
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
         if isinstance(dependency, str):
             dependency = Dependency.parse_pep508(dependency)
 
         matched = self._do_match(dependency)
         filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched
         return self._sort_by_priority(dependency, filtered)
+
+    def list(self, package_name: str) -> List[Package]:
+        dependency = Dependency(package_name, AnyVersion)
+        return self.match(dependency)
+
+    @property
+    def publisher(self) -> Optional["RepositoryPublisher"]:
+        return None
 
     def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
         if dependency.version_spec.allows_pre_or_dev_releases():
@@ -65,40 +87,16 @@ class Repository(ABC):
         packages.sort(key=lambda it: it.version, reverse=True)
         return packages
 
-    def list(self, package_name: str) -> List[Package]:
-        """
-        :param package_name: the package to match 
-        :return: list of all the packages that match the given `package_name`
-        """
-        dependency = Dependency(package_name, AnyVersion)
-        return self.match(dependency)
-
-    @property
-    def publisher(self) -> Optional["RepositoryPublisher"]:
-        """
-        :return: if this repository is 'publishable' returns its publisher
-        """
-        return None
-
-
-class DelegatingRepository(Repository):
-
-    def __init__(self, repo: Repository):
-        super().__init__(repo.name)
-        self._repo = repo
-
+    @abstractmethod
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        return self._repo._do_match(dependency)
+        """
+        IMPLEMENTATION NOTICE:
+            do not try to filter pre-releases,
+            it is handled for you in the `match` method that call this one.
 
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return self._repo._sort_by_priority(dependency, packages)
-
-    def _filter_prereleases(self, packages: List[Package], dependency: Dependency) -> List[Package]:
-        return self._repo._filter_prereleases(packages, dependency)
-
-    @property
-    def publisher(self) -> Optional["RepositoryPublisher"]:
-        return self._repo.publisher
+        :param dependency: the dependency to match
+        :return: list of all the packages in this repository that match the given `dependency`,
+        """
 
 
 class RepositoryPublisher:
@@ -135,12 +133,12 @@ class RepositoryBuilder(ABC):
         self.name = name
 
     @abstractmethod
-    def build(self, name: Optional[str], package_settings: Dict[str, Any],
+    def build(self, name: Optional[str], packages: Optional[List[str]],
               **kwargs: Any) -> Repository:
         """
         build a new repository instance using the given `kwargs`
         :param name: name for the created repository
-        :param package_settings: for each required package, its settings object as provided by the user
+        :param packages: list of packages the user ask the repository to be limited to (or None if no such request was made)
         :param kwargs: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """

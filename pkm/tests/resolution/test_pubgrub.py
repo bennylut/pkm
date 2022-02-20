@@ -56,8 +56,6 @@ class TestSolver(TestCase):
 
         assert_solution({'root': "1.0.0", 'foo': "http://foo", 'bar': "1.0.1"}, Solver(problem).solve())
 
-
-
     def test_star_version(self):
         problem = ExampleProblem({
             'root 1.0.0': ['foo *'],

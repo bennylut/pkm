@@ -7,8 +7,8 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
-from pkm.api.repositories.repository import Authentication
-from pkm.api.repositories.repository import Repository, RepositoryPublisher
+from pkm.api.repositories.repository import Authentication, AbstractRepository
+from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import NoSuchElementException
@@ -19,7 +19,7 @@ from pkm.utils.io_streams import chunks
 from pkm.utils.properties import cached_property
 
 
-class PyPiRepository(Repository):
+class PyPiRepository(AbstractRepository):
 
     def __init__(self, http: HttpClient):
         super().__init__('pypi')

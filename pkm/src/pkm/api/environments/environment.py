@@ -1,6 +1,7 @@
 import hashlib
 import os
 import sys
+from abc import ABC
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -13,12 +14,13 @@ from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
-from pkm.api.repositories.repository import Repository, DelegatingRepository
+from pkm.api.repositories.repository import Repository, AbstractRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion, Version
-from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.api.versions.version_specifiers import SpecificVersion, AnyVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
+from pkm.utils.delegations import delegate
 from pkm.utils.entrypoints import EntryPoint
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
@@ -395,7 +397,7 @@ class _UserRequestPackage(Package):
         return Dependency(self.name, SpecificVersion(self.version))
 
 
-class _RemovalRepository(Repository):
+class _RemovalRepository(AbstractRepository):
 
     def __init__(self, preinstalled: List[InstalledPackage], user_request: Package):
         super().__init__('removal repository')
@@ -409,28 +411,30 @@ class _RemovalRepository(Repository):
         return [self._preinstalled[dependency.package_name]]
 
 
-class _InstallationRepository(DelegatingRepository):
+@delegate(Repository, '_repo')
+class _InstallationRepository(Repository, ABC):
     def __init__(
             self, repo: Repository, installed_packages: List[InstalledPackage], user_request: Package,
             limit_to_installed: bool):
 
-        super().__init__(repo)
         self._user_request = user_request
         self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
         self._limit_to_installed = limit_to_installed
+        self._repo = repo
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def list(self, package_name: str) -> List[Package]:
+        return self.match(Dependency(package_name, AnyVersion))
+
+    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
-        if self._limit_to_installed and (installed := self._installed_packages.get(dependency.package_name)):
+        installed = self._installed_packages.get(dependency.package_name)
+        if self._limit_to_installed and installed:
             return [installed]
 
-        return self._repo._do_match(dependency)
-
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        packages = self._repo._sort_by_priority(dependency, packages)
-        if installed := self._installed_packages.get(dependency.package_name):
+        packages = self._repo.match(dependency, check_prereleases)
+        if installed:
             packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
 
         return packages

@@ -5,7 +5,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, RepositoryBuilder, Authentication
+from pkm.api.repositories.repository import Repository, RepositoryBuilder, Authentication, AbstractRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.applications.application_builders import ApplicationInstallerProjectWrapper
 from pkm.utils.commons import NoSuchElementException
@@ -224,7 +224,7 @@ class PyProjectGroupConfiguration(TomlFileConfiguration):
         return None
 
 
-class ProjectGroupRepository(Repository):
+class ProjectGroupRepository(AbstractRepository):
     def __init__(self, group: ProjectGroup, name: Optional[str] = None):
         super().__init__(name or group.path.name)
         self._projects: Dict[str, Project] = {p.name: p for p in group.project_children_recursive}

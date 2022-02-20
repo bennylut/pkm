@@ -1,3 +1,4 @@
+from __future__ import  annotations
 import re
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
@@ -69,6 +70,18 @@ class PackageDescriptor:
         if not (result := re.sub("[^A-Z0-9]+", '-', package_name, flags=re.IGNORECASE).strip('-').lower()):
             raise ValueError(f"empty name after normalization (un-normalized name: '{package_name}')")
         return result
+
+    @classmethod
+    def from_dist_name(cls, name: str) -> PackageDescriptor:
+        """
+        create package descriptor from a distribution file name, assuming standard distribution file name conventions
+        :param name: the file name
+        :return: the resulted package descriptor
+        """
+        parts = name.split("-")
+        version = Version.parse(parts[1])
+        return PackageDescriptor(parts[0], version)
+
 
 
 class Package(ABC):

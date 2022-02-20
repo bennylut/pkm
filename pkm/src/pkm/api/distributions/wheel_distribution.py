@@ -11,12 +11,13 @@ from zipfile import ZipFile
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, Record
 from pkm.api.distributions.distribution import Distribution
-from pkm.api.distributions.executables import Executables
+from pkm.distributions.executables import Executables
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
+from pkm.utils.strings import without_suffix
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
@@ -84,6 +85,22 @@ class WheelDistribution(Distribution):
     @property
     def owner_package(self) -> PackageDescriptor:
         return self._package
+
+    def compute_compatibility_tags(self) -> str:
+        """
+        return the string that represents the compatibility tags in this wheel file name
+        :return: the compatibility tag
+        """
+        return WheelDistribution.compute_compatibility_tags_of(self._wheel)
+
+    @staticmethod
+    def compute_compatibility_tags_of(wheel: Path) -> str:
+        """
+        return the string that represents the compatibility tags in the wheel file name
+        :param wheel: the wheel file name
+        :return: the compatibility tag
+        """
+        return '-'.join(wheel.stem.split('-')[-3:])
 
     def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
         """

@@ -57,11 +57,25 @@ def single_or_raise(seq: Iterable[_T]) -> _T:
     :param seq: the iterable to access
     :return: the first element of this iterable if the number of elements in it is 1 otherwise raise `ValueError`
     """
+
+    result = single_or(seq, _SENTINAL)
+    if result is _SENTINAL:
+        raise ValueError(f"expecting single element but found 0 or more than 1")
+
+    return result
+
+
+def single_or(seq: Iterable[_T], default_value: Optional[_T] = None) -> Optional[_T]:
+    """
+    :param seq: the iterable to access
+    :param default_value: the value to return in case where iterable does not contain a single element
+    :return: the first element of this iterable if the number of elements in it is 1 otherwise `default_value`
+    """
     i = iter(seq)
     if (single := next(i, _SENTINAL)) is _SENTINAL:
-        raise ValueError(f"expecting single element, found 0")
+        return default_value
     if next(i, _SENTINAL) is not _SENTINAL:
-        raise ValueError(f"expecting single element, found multiple")
+        return default_value
 
     return single
 

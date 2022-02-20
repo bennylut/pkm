@@ -1,8 +1,11 @@
 from abc import abstractmethod
-from typing import Protocol, Optional, TYPE_CHECKING
+from pathlib import Path
+from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages.package import PackageDescriptor
+from pkm.api.distributions.source_distribution import SourceDistribution
+from pkm.api.distributions.wheel_distribution import WheelDistribution
+from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
 
 if TYPE_CHECKING:
@@ -35,3 +38,47 @@ class Distribution(Protocol):
         :param env: the environment that this metadata should be relevant to
         :return: the extracted metadata
         """
+
+    @classmethod
+    def package_from(cls, distribution: Path) -> Package:
+        """
+        creates a package from the given distribution, assumes proper naming conventions for distribution file name
+        :param distribution: the path to the distribution
+        :return: package that upon install will install the given distribution
+        """
+
+        desc = PackageDescriptor.from_dist_name(distribution.name)
+
+        if distribution.name.endswith(".whl"):
+            return _DistributionPackage(WheelDistribution(desc, distribution))
+
+        return _DistributionPackage(SourceDistribution(desc, distribution))
+
+
+class _DistributionPackage(Package):
+
+    def __init__(self, dist: Distribution):
+        self._dist = dist
+        self._env_hash_to_metadata: Dict[str, PackageMetadata] = {}
+
+    @property
+    def descriptor(self) -> PackageDescriptor:
+        return self._dist.owner_package
+
+    def _metadata(self, env: "Environment"):
+        env_hash = env.markers_hash
+        if not (meta := self._env_hash_to_metadata.get(env_hash)):
+            meta = self._dist.extract_metadata(env)
+            self._env_hash_to_metadata[env_hash] = meta
+        return meta
+
+    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+        return self._metadata(environment).dependencies
+
+    def is_compatible_with(self, env: "Environment") -> bool:
+        if isinstance(self._dist, WheelDistribution):
+            return env.compatibility_tag_score(self._dist.compute_compatibility_tags()) is not None
+        return True
+
+    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
+        self._dist.install_to(env, user_request)

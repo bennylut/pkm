@@ -76,7 +76,7 @@ class AbstractPackage(Package):
                     continue
 
             if is_binary:
-                ctag = '-'.join(without_suffix(file_name, '.whl').split('-')[-3:])
+                ctag = WheelDistribution.compute_compatibility_tags_of(Path(file_name))
                 if (score := env.compatibility_tag_score(ctag)) is not None:
                     if best_binary_dist_score is None or best_binary_dist_score < score:
                         best_binary_dist = artifact

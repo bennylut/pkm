@@ -11,9 +11,9 @@ from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
     from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
-    from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
     from pkm.api.repositories.repository import Repository
     from pkm.api.repositories.repository_loader import RepositoryLoader
+    from pkm.distributions.source_build_cache import SourceBuildCache
 
 ENV_PKM_HOME = "PKM_HOME"
 
@@ -21,7 +21,6 @@ ENV_PKM_HOME = "PKM_HOME"
 @dataclass
 class _PkmRepositories:
     pypi: "Repository"
-    source_builds: "SourceBuildsRepository"
     main: "Repository"
     installed_pythons: "InstalledPythonsRepository"
 
@@ -32,9 +31,14 @@ class _Pkm:
     def __init__(self):
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
-        self.etc_chain = EtcChain(workspace/'etc', 'pkm')
+        self.etc_chain = EtcChain(workspace / 'etc', 'pkm')
         self.httpclient = HttpClient(workspace / 'resources/http')
         self.threads = ThreadPoolExecutor()
+
+    @cached_property
+    def source_build_cache(self) -> "SourceBuildCache":
+        from pkm.distributions.source_build_cache import SourceBuildCache
+        return SourceBuildCache(self.workspace / 'build-cache')
 
     @cached_property
     def repository_loader(self) -> "RepositoryLoader":
@@ -44,11 +48,9 @@ class _Pkm:
     @cached_property
     def repositories(self) -> _PkmRepositories:
         from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
-        from pkm.api.repositories.source_builds_repository import SourceBuildsRepository
 
         return _PkmRepositories(
             self.repository_loader.pypi,
-            SourceBuildsRepository(self.workspace / 'source-builds'),
             self.repository_loader.main,
             InstalledPythonsRepository(),
         )

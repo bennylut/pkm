@@ -10,7 +10,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
@@ -18,7 +18,7 @@ from pkm.utils.systems import is_executable
 _DEFAULT_PKG_EXTRAS = {'pip', 'wheel', 'setuptools'}
 
 
-class InstalledPythonsRepository(Repository):
+class InstalledPythonsRepository(AbstractRepository):
 
     def __init__(self):
         super().__init__('local-pythons')
