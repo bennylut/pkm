@@ -94,7 +94,7 @@ class PypiPackage(AbstractPackage):
         if requires_dist is None:
             return super(PypiPackage, self)._all_dependencies(environment)
 
-        return [Dependency.parse_pep508(dstr) for dstr in requires_dist]
+        return [Dependency.parse(dstr) for dstr in requires_dist]
 
 
 def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[StandardPackageArtifact]:

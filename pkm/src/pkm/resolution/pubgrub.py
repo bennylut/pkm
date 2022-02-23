@@ -24,6 +24,9 @@ class PKG(Protocol):
     def __str__(self):
         ...
 
+    def __lt__(self, other):
+        ...
+
 
 PKG_T = TypeVar('PKG_T', bound=PKG)
 

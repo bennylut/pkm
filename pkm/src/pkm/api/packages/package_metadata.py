@@ -52,7 +52,7 @@ class PackageMetadata(FileConfiguration):
     @computed_based_on("Requires-Dist")
     def dependencies(self) -> List[Dependency]:
         requires_dist = self["Requires-Dist"] or []
-        return [Dependency.parse_pep508(d) for d in requires_dist]
+        return [Dependency.parse(d) for d in requires_dist]
 
     @computed_based_on("Requires-Python")
     def required_python_spec(self) -> VersionSpecifier:

@@ -80,7 +80,7 @@ def _read_user_request(dist_info: Path, metadata: PackageMetadata) -> Optional[D
     requested_data = requested_file.read_text().strip()
     try:
         if requested_data:
-            return Dependency.parse_pep508(requested_data)
+            return Dependency.parse(requested_data)
     except ValueError:
         pass
 
@@ -130,7 +130,7 @@ class InstalledPackage(Package):
         if self.readonly:
             return False
 
-        (self._dist_info / "REQUESTED").unlink()
+        (self._dist_info / "REQUESTED").unlink(missing_ok=True)
         self._user_request = None
         return True
 

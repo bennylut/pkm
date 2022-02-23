@@ -8,11 +8,9 @@ from typing import ContextManager
 @dataclass
 class ResourcePath:
     base_module: str
-    path: Path
+    file_name: str
 
     @contextmanager
     def use(self) -> ContextManager[Path]:
-        with path(self.base_module, self.path) as use_path:
+        with path(self.base_module, Path(self.file_name)) as use_path:
             yield use_path
-
-

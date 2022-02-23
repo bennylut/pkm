@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distribution import Distribution
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata

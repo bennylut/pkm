@@ -57,7 +57,7 @@ class AbstractRepository(Repository, ABC):
 
     def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
         if isinstance(dependency, str):
-            dependency = Dependency.parse_pep508(dependency)
+            dependency = Dependency.parse(dependency)
 
         matched = self._do_match(dependency)
         filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched

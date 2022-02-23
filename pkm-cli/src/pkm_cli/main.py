@@ -60,7 +60,7 @@ def vbump(args: Namespace):
 
 
 def install(args: Namespace):
-    dependencies = [Dependency.parse_pep508(it) for it in args.dependencies]
+    dependencies = [Dependency.parse(it) for it in args.dependencies]
 
     def on_project(project: Project):
         Display.print(f"Adding dependencies into project: {project.path}")
@@ -111,7 +111,7 @@ def publish(args: Namespace):
 
 def new(args: Namespace):
     ScaffoldingEngine().render(
-        ResourcePath('pkm_cli.scaffold', Path(f"new_{args.template}.tar.gz")), Path.cwd(), args.template_args)
+        ResourcePath('pkm_cli.scaffold', f"new_{args.template}.tar.gz"), Path.cwd(), args.template_args)
 
 
 def show(args: Namespace):

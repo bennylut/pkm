@@ -31,7 +31,7 @@ class BuildSystemConfig:
 
     @classmethod
     def from_config(cls, cfg: Dict[str, Any]) -> "BuildSystemConfig":
-        requirements = [Dependency.parse_pep508(dep) for dep in (cfg.get('requires') or [])]
+        requirements = [Dependency.parse(dep) for dep in (cfg.get('requires') or [])]
         build_backend = cfg.get('build-backend')
         backend_path = cfg.get('backend-path')
 
@@ -64,15 +64,15 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
 @dataclass(frozen=True, eq=True)
 class PkmApplicationConfig:
     installer_package: Optional[str] = None
-    forced_versions: Optional[Dict[str, Version]] = None
+    dependency_overrides: Optional[Dict[str, Dependency]] = None
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({
             'installer-package': self.installer_package,
-            'forced-versions': {
-                package: str(version)
-                for package, version in self.forced_versions.items()
-            } if self.forced_versions else None
+            'dependency-overrides': {
+                package: str(dependency)
+                for package, dependency in self.dependency_overrides.items()
+            } if self.dependency_overrides else None
         })
 
     @classmethod
@@ -80,11 +80,14 @@ class PkmApplicationConfig:
         if not config:
             return PkmApplicationConfig()
 
-        forced_versions = None
-        if unparsed_forced_versions := config.get('forced-versions'):
-            forced_versions = {package: Version.parse(version) for package, version in unparsed_forced_versions.items()}
+        dependency_overrides = None
+        if unparsed_forced_versions := config.get('dependency-overrides'):
+            dependency_overrides = {
+                override['from']: Dependency.parse(override['to'])
+                for override in unparsed_forced_versions
+            }
 
-        return PkmApplicationConfig(config.get('installer-package'), forced_versions)
+        return PkmApplicationConfig(config.get('installer-package'), dependency_overrides)
 
 
 @dataclass(frozen=True, eq=True)
@@ -306,12 +309,12 @@ class ProjectConfig:
 
         dependencies = None
         if dependencies_array := project.get('dependencies'):
-            dependencies = [Dependency.parse_pep508(it) for it in dependencies_array]
+            dependencies = [Dependency.parse(it) for it in dependencies_array]
 
         optional_dependencies = None
         if optional_dependencies_table := project.get('optional-dependencies'):
             optional_dependencies = {
-                extra: [Dependency.parse_pep508(it) for it in deps]
+                extra: [Dependency.parse(it) for it in deps]
                 for extra, deps in optional_dependencies_table.items()
             }
 
@@ -324,7 +327,7 @@ class ProjectConfig:
 
 
 _LEGACY_BUILDSYS = {
-    'requires': ['setuptools', 'wheel', 'pip'],
+    'requires': ['setuptools', 'wheel', 'pip', 'cython'],
     'build-backend': 'setuptools.build_meta:__legacy__'
 }
 
@@ -371,13 +374,6 @@ class PyProjectConfiguration(TomlFileConfiguration):
     @build_system.modifier
     def set_build_system(self, bs: BuildSystemConfig):
         self['build-system'] = bs.to_config()
-
-    @property
-    def application_installer_project_name(self) -> Optional[str]:
-        if self.pkm_project.application:
-            return self.project.name + "-app"
-
-        return None
 
     @classmethod
     def load_effective(cls, pyproject_file: Path,

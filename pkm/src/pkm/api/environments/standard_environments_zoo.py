@@ -33,7 +33,7 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
                 (self._path / "envs").mkdir()
 
     def create_environment(self, name: str, python: Union[Dependency, str]) -> "ManagedEnvironment":
-        python = Dependency.parse_pep508(python) if isinstance(python, str) else python
+        python = Dependency.parse(python) if isinstance(python, str) else python
 
         path = (self._path / "envs" / name) if self._with_applications else (self._path / name)
         if path.exists():
@@ -58,14 +58,14 @@ class StandardEnvironmentsZoo(EnvironmentsZoo):
         if not self._with_applications:
             raise UnsupportedOperationException("this environment zoo does not support applications")
 
-        application = Dependency.parse_pep508(application) if isinstance(application, str) else application
+        application = Dependency.parse(application) if isinstance(application, str) else application
         name = unone(name, lambda: application.package_name)
         path = self._path / "apps" / name
         if path.exists():
             raise FileExistsError(f"application environment named {name} already exists")
 
         python = unone(python, lambda: 'python *')
-        python = Dependency.parse_pep508(python) if isinstance(python, str) else python
+        python = Dependency.parse(python) if isinstance(python, str) else python
 
         interpreters = sorted(pkm.repositories.installed_pythons.match(python), key=lambda it: it.version, reverse=True)
 

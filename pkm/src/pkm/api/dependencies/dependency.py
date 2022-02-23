@@ -36,7 +36,7 @@ class Dependency:
         return f"Dependency({self})"
 
     @classmethod
-    def parse_pep508(cls, text: str) -> "Dependency":
+    def parse(cls, text: str) -> "Dependency":
         return PEP508DependencyParser(text).read_dependency()
 
 

@@ -1,0 +1,15 @@
+[project]
+name = "pkm-torch-repository"
+version = "0.1.0"
+description = "light-the-torch based repository for pkm"
+readme = "README.md"
+requires-python= ">=3.8, <4.0"
+authors = [{name="bennyl"}]
+dependencies = [ "pkm >=0.4.22, <1"]
+
+[project.entry-points.pkm-repositories]
+torch="pkm_torch_repository.entrypoint:builder"
+
+[build-system]
+requires=["pkm"]
+build-backend = "pkm.api.buildsys"

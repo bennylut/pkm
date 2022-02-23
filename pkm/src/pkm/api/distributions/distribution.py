@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.source_distribution import SourceDistribution
-from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.packages.package_metadata import PackageMetadata
 
@@ -47,6 +45,9 @@ class Distribution(Protocol):
         :return: package that upon install will install the given distribution
         """
 
+        from pkm.api.distributions.source_distribution import SourceDistribution
+        from pkm.api.distributions.wheel_distribution import WheelDistribution
+
         desc = PackageDescriptor.from_dist_name(distribution.name)
 
         if distribution.name.endswith(".whl"):
@@ -76,6 +77,8 @@ class _DistributionPackage(Package):
         return self._metadata(environment).dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
+        from pkm.api.distributions.wheel_distribution import WheelDistribution
+
         if isinstance(self._dist, WheelDistribution):
             return env.compatibility_tag_score(self._dist.compute_compatibility_tags()) is not None
         return True

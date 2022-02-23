@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import warnings
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Optional, Any, Union, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages.package import Package
+from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
@@ -16,7 +17,7 @@ from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import remove_none_values, put_if_absent
 from pkm.utils.http.http_client import HttpClient
 
-REPOSITORIES_ENTRYPOINT_GROUP = "pkm.repositories"
+REPOSITORIES_ENTRYPOINT_GROUP = "pkm-repositories"
 REPOSITORIES_CFG = "repositories.toml"
 
 
@@ -30,6 +31,7 @@ class RepositoryLoader:
         from pkm.api.repositories.git_repository import GitRepository
         from pkm.api.repositories.pypi_repository import PyPiRepository
         from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
+        from pkm.api.repositories.url_repository import UrlRepository
 
         # base repositories
         self.pypi = PyPiRepository(http)
@@ -38,6 +40,7 @@ class RepositoryLoader:
         self._url_repos = {
             r.name: r for r in (
                 GitRepository(workspace / 'git'),
+                UrlRepository(),
             )
         }
 
@@ -58,7 +61,7 @@ class RepositoryLoader:
                     raise ValueError("repositories entrypoint did not point to a repository builder class")
             except Exception:  # noqa
                 import traceback
-                print(f"malformed repository entrypoint: {epoint}")
+                warnings.warn(f"malformed repository entrypoint: {epoint}")
                 traceback.print_exc()
 
         self._etc_chain = etc
@@ -106,7 +109,10 @@ class RepositoryLoader:
             projects_in_path = context.project_children_recursive
 
         if projects_in_path:
-            repo = _ProjectsInContextRepository("projects under context", projects_in_path)
+            repo = _ProjectsInContextRepository(
+                "projects under context",
+                {p.name: (p.descriptor, p.path) for p in projects_in_path})
+
             for project in projects_in_path:
                 package_associated_repo[project.name] = repo
 
@@ -185,18 +191,16 @@ class _ContextualRepository(AbstractRepository):
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         if isinstance(self._context, Project):
             return self._context.lock.sort_packages_by_lock_preference(self._context.attached_environment, packages)
-        return super()._sort_by_priority(dependency, packages)
+        return packages
 
 
 class _ProjectsInContextRepository(AbstractRepository):
-    def __init__(self, name: str, projects: List[Project]):
+    def __init__(self, name: str, projects: Dict[str, Tuple[PackageDescriptor, Path]]):
         super().__init__(name)
-        self._packages = {
-            p.name: p for p in projects
-        }
+        self._packages = projects
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
-        if (project := self._packages.get(dependency.package_name)) and \
-                dependency.version_spec.allows_version(project.version):
-            return [project]
+        if (package_and_path := self._packages.get(dependency.package_name)) and \
+                dependency.version_spec.allows_version(package_and_path[0].version):
+            return [Project.load(package_and_path[1])]
         return []

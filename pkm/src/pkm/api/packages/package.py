@@ -1,4 +1,4 @@
-from __future__ import  annotations
+from __future__ import annotations
 import re
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
@@ -48,7 +48,7 @@ class PackageDescriptor:
 
     @staticmethod
     def normalize_source_dir_name(package_name: str) -> str:
-        return PackageDescriptor.normalize_name(package_name).replace('-', '_')
+        return PackageDescriptor.normalize_name(package_name).translate({ord('-'): '_', ord('.'): '_'})
 
     @staticmethod
     def normalize_name(package_name: str) -> str:
@@ -67,7 +67,7 @@ class PackageDescriptor:
         :param package_name: the package name to normalize
         :return: the normalized name
         """
-        if not (result := re.sub("[^A-Z0-9]+", '-', package_name, flags=re.IGNORECASE).strip('-').lower()):
+        if not (result := re.sub("[^A-Z0-9._]+", '-', package_name, flags=re.IGNORECASE).strip('-').lower()):
             raise ValueError(f"empty name after normalization (un-normalized name: '{package_name}')")
         return result
 
@@ -81,7 +81,6 @@ class PackageDescriptor:
         parts = name.split("-")
         version = Version.parse(parts[1])
         return PackageDescriptor(parts[0], version)
-
 
 
 class Package(ABC):

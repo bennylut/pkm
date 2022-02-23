@@ -209,7 +209,9 @@ class Environment:
 
         PthLink(pth_file, paths, imports).save()
 
-    def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True):
+    def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True,
+                dependencies_override: Optional[Dict[str, List[Dependency]]] = None
+                ):
         """
         retrieve the `dependencies` from the `repository` together with all their dependencies and install them inside
         this environment, making sure to not break any pre-installed "user-requested" packages
@@ -219,12 +221,14 @@ class Environment:
         :param repository: the repository to fetch this dependency from
         :param user_requested: indicator that the user requested this dependency themselves
             (this will be marked on the installation as per pep376)
+        :param dependencies_override: mapping from package name into dependency that should be "forcefully"
+            used for this package
         """
 
         # with monitor.on_install() as package_modification_monitor:
+        print(f"attempting to install dependencies: {dependencies}")
         self.reload()
 
-        print(f"enter dependency resolution for: {dependencies}")
         preinstalled_packages = list(self.site_packages.installed_packages())
         pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
         new_deps = {d.package_name: d for d in _coerce_dependencies(dependencies)}
@@ -235,7 +239,7 @@ class Environment:
             user_request = _UserRequestPackage(list(new_deps.values()))
             installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
             installation = resolve_dependencies(
-                user_request.to_dependency(), self, installation_repo)
+                user_request.to_dependency(), self, installation_repo, dependencies_override)
 
             installation_names = {i.name for i in installation}
             for preinstalled in preinstalled_packages:
@@ -249,7 +253,6 @@ class Environment:
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo)
 
-        print("leave dependency resolution, syncing packages")
         _sync_package(self, installation, repository)
 
         self.reload()
@@ -426,6 +429,9 @@ class _InstallationRepository(Repository, ABC):
         return self.match(Dependency(package_name, AnyVersion))
 
     def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
+        if isinstance(dependency, str):
+            dependency = Dependency.parse(dependency)
+
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
@@ -442,7 +448,7 @@ class _InstallationRepository(Repository, ABC):
 
 def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:
     if isinstance(dependencies, str):
-        return [Dependency.parse_pep508(dependencies)]
+        return [Dependency.parse(dependencies)]
     if isinstance(dependencies, Dependency):
         return [dependencies]
     return [cd for dep in dependencies for cd in _coerce_dependencies(dep)]

@@ -145,6 +145,8 @@ class VersionParser(SimpleParser):
             else:
                 max, imax = version, len(comparison) > 1
 
+            self.match(".*")  # version spec can end (un-needed-ly for comparison operators other than ==/!=) with .*
+
             return VersionRange(min=min, max=max, includes_min=imin, includes_max=imax)
 
         self.raise_err('unknown operator')

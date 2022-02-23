@@ -18,8 +18,21 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository import Repository
 
 
-def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository") -> List[Package]:
-    problem = _PkmPackageInstallationProblem(env, repo, root)
+def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository",
+                         dependency_overrides: Optional[Dict[str, Dependency]] = None) -> List[Package]:
+    """
+    transform the give input into pubgrub's dependency resolution problem, use pubgrub to
+     solve the transformed problem and transform its output to list of packages
+    :param root: the root package to resolve dependencies for
+    :param env: the environment that all dependencies should be compatible with
+    :param repo: repository to locate dependencies
+    :param dependency_overrides: package to dependency mapping that is used to override some of the dependencies
+           e.g., when a dependency: x==v found (anywhere in the resolution graph) and `dependency_overrides` contains
+           {'x':'>=u'} then the original dependency will be replaced with the new one.
+    :return: the list of packages that are required to be installed so that the `root` dependency works correctly
+    """
+
+    problem = _PkmPackageInstallationProblem(env, repo, root, dependency_overrides)
     solver = Solver(problem, _Pkg.of(root))
     solution: Dict[_Pkg, Version] = solver.solve()
 
@@ -36,10 +49,12 @@ def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository
 
 class _PkmPackageInstallationProblem(Problem):
 
-    def __init__(self, env: "Environment", repo: "Repository", root: Dependency):
+    def __init__(self, env: "Environment", repo: "Repository", root: Dependency,
+                 dependency_overrides: Optional[Dict[str, Dependency]] = None):
         self._env = env
         self._repo = repo
         self._root = root
+        self._dependency_overrides = dependency_overrides or {}
 
         from pkm.api.pkm import pkm
         self._threads = pkm.threads
@@ -75,7 +90,10 @@ class _PkmPackageInstallationProblem(Problem):
 
         for d in dependencies:
             if d.is_applicable_for(self._env, package.extras):
-                result.append(Term(_Pkg.of(d), d.version_spec))
+                if o := self._dependency_overrides.get(d.package_name):
+                    result.append(Term(_Pkg.of(o), o.version_spec))
+                else:
+                    result.append(Term(_Pkg.of(d), d.version_spec))
 
         return result
 
@@ -102,6 +120,9 @@ class _Pkg:
 
     def __repr__(self):
         return self.__str__()
+
+    def __lt__(self, other):
+        return str(self) < str(other)
 
     @classmethod
     def of(cls, d: Dependency) -> _Pkg:

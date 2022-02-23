@@ -7,8 +7,8 @@ from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 class TestDependency(TestCase):
 
     def test_parsing(self):
-        assert_parsed("A", package_name="A")
-        assert_parsed("A.B-C_D", package_name="A.B-C_D")
+        assert_parsed("A", package_name="a")
+        assert_parsed("A.B-C_D", package_name="a.b-c_d")
         assert_parsed("aa", package_name="aa")
         assert_parsed("name", package_name="name")
         assert_parsed("name<=1", package_name="name", version_spec=VersionSpecifier.parse("<=1"))
@@ -45,15 +45,17 @@ class TestDependency(TestCase):
                       env_marker="(os_name=='a' or os_name=='b') and os_name=='c'")
 
         assert_parsed('pyOpenSSL>=0.14; python_version<="2.7" and extra == \'secure\'',
-                      package_name="pyOpenSSL", version_spec=VersionSpecifier.parse(">=0.14"),
+                      package_name="pyopenssl", version_spec=VersionSpecifier.parse(">=0.14"),
                       env_marker="python_version<=\"2.7\" and extra == \'secure\'")
 
         assert_parsed('botocore (<2.0a.0,>=1.12.36)', package_name='botocore',
                       version_spec=VersionSpecifier.parse("<2.0a.0,>=1.12.36"))
 
+        assert_parsed('pip (<20.3.*,>=20.1.*)', package_name='pip', version_spec=VersionSpecifier.parse('<20.3,>=20.1'))
+
 
 def assert_parsed(text: str, **kwargs):
-    assert_dependency(Dependency.parse_pep508(text), **kwargs)
+    assert_dependency(Dependency.parse(text), **kwargs)
 
 
 def assert_dependency(d: Dependency, **kwargs):
@@ -62,7 +64,7 @@ def assert_dependency(d: Dependency, **kwargs):
             assert str(d.env_marker) == value, f"expecting env-marker to be {value} but it was {d.env_marker}"
         elif key == 'url':
             assert (url := d.version_spec.specific_url()), f"expecting url dependency but got non-url one"
-            assert url == value, f"expecting url dependency to have the url: " \
-                                 f"{value} but it was {url}"
+            assert str(url) == value, f"expecting url dependency to have the url: " \
+                                      f"{value} but it was {url}"
         else:
             assert getattr(d, key) == value, f"expecting {key} to be {value} but it was {getattr(d, key)}"

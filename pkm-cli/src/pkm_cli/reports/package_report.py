@@ -13,7 +13,7 @@ from rich.markdown import Markdown
 class PackageReport(Report):
     def __init__(self, context: Optional[Any], dependency: str):
         self._context = context
-        self._dependency = Dependency.parse_pep508(dependency)
+        self._dependency = Dependency.parse(dependency)
 
     def display(self, dumb: bool = Display.is_dumb()):
         line = "-" * 80

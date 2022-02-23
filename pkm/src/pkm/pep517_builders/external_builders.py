@@ -82,7 +82,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
         extra_requirements = _exec_build_cycle_script(project, build_env, buildsys, command, [None])
 
         if extra_requirements.status == 'success':
-            if requirements := [Dependency.parse_pep508(d) for d in extra_requirements.result]:
+            if requirements := [Dependency.parse(d) for d in extra_requirements.result]:
                 build_env.install(requirements, build_packages_repo)
 
         # 2. build the sdist
@@ -138,7 +138,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
 
         if extra_requirements.status == 'success':
             build_env.install(
-                [Dependency.parse_pep508(d) for d in extra_requirements.result],
+                [Dependency.parse(d) for d in extra_requirements.result],
                 build_packages_repo)
 
         if only_meta:
@@ -180,7 +180,6 @@ def _exec_build_cycle_script(
         output_path_str = str(output_path.absolute()).replace('\\', '\\\\')
 
         script = f"""
-            import {build_backend_import} as build_backend
             import json
 
             def ret(status, result):
@@ -189,15 +188,17 @@ def _exec_build_cycle_script(
                 out.close()
                 exit(0)
 
-            if not hasattr({build_backend}, '{hook}'):
-                ret('undefined_hook', None)
-            else:
-                try:
+            try:
+                import {build_backend_import} as build_backend
+                if not hasattr({build_backend}, '{hook}'):
+                    ret('undefined_hook', None)
+                else:
                     result = {build_backend}.{hook}({', '.join(repr(arg) for arg in arguments)})
                     ret('success', result)
-                except Exception:
-                    import traceback
-                    ret('fail', traceback.format_exc())
+            except Exception:
+                import traceback
+                traceback.print_exc()
+                ret('fail', traceback.format_exc())
         """
 
         script_path = tdir_path / 'execution.py'
@@ -208,8 +209,8 @@ def _exec_build_cycle_script(
                 f"PEP517 build cycle execution failed.\n"
                 f"Project: {project.name} {project.version}\n"
                 f"Build backend: {build_backend}\n"
-                f"Hook: {hook}"
-                f"Resulted in exit code: {process_results.returncode})", False)
+                f"Hook: {hook}\n"
+                f"Resulted in exit code: {process_results.returncode}", False)
 
         result = _BuildCycleResult(**json.loads((tdir_path / 'output').read_text()))
         if result.status == 'fail':
@@ -218,5 +219,5 @@ def _exec_build_cycle_script(
                 f"Project: {project.name} {project.version}\n"
                 f"Build backend: {build_backend}\n"
                 f"Hook: {hook}\n"
-                f"Resulted in exception:\n{result.result})", False)
+                f"Resulted in exception:\n{result.result}", False)
         return result

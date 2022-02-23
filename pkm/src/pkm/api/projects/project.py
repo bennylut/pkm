@@ -1,6 +1,6 @@
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import List, Optional, Union, TYPE_CHECKING, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
@@ -141,37 +141,44 @@ class Project(Package):
         """
 
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
-        new_deps = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
+        new_deps: Dict[str, Dependency] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
         uninvolved_deps = [d for d in deps.values() if d.package_name not in new_deps]
+        dependency_overrides = self.config.pkm_application.dependency_overrides or {}
 
         self._pyproject.project = replace(
             self._pyproject.project,
             dependencies=uninvolved_deps + list(new_deps.values()))
+        self.config.save()
+
+        print(f"dependencies after update: {self.config.project.dependencies}")
 
         repository = self.attached_repository
         self.attached_environment.force_remove(self.name)
         self.attached_environment.install(
-            self.descriptor.to_dependency(), repository)
+            self.descriptor.to_dependency(), repository, dependencies_override=dependency_overrides)
 
         new_deps_with_version = []
         for dep in new_deps.values():
-            installed = self.attached_environment.site_packages.installed_package(dep.package_name).version
-            if isinstance(installed, StandardVersion):
-                spec = VersionRange(
-                    installed,
-                    replace(installed, release=(installed.release[0] + 1,)),
-                    True, False)
+
+            if not dep.version_spec.is_any():
+                spec = dep.version_spec
             else:
-                spec = SpecificVersion(installed)
+                installed = self.attached_environment.site_packages.installed_package(dep.package_name).version
+                if isinstance(installed, StandardVersion):
+                    spec = VersionRange(
+                        installed,
+                        replace(installed, release=(installed.release[0] + 1,)),
+                        True, False)
+                else:
+                    spec = SpecificVersion(installed)
 
             new_deps_with_version.append(replace(dep, version_spec=spec))
 
-        self._pyproject.project = replace(
+        self.config.project = replace(
             self._pyproject.project,
             dependencies=uninvolved_deps + new_deps_with_version
         )
-
-        self._pyproject.save()
+        self.config.save()
 
         self.lock.update_lock(self.attached_environment)
         self.lock.save()

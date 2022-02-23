@@ -3,30 +3,35 @@
 - documentation: document the application classes and usage
 - documentation: describe repositories
 - documentation: describe verbose option
-- pkm: git and url dependencies installation support
-- repositories: conda
+- documentation: extensions + torch repository
+
+## DONE IN THIS VERSION
+- bug: remove dependency cannot find the "REQUESTED" file
+- pkm: non-git url dependencies installation support
+- pkm: git dependencies installation support
+- bug: ltt require pkm with upperbound which we are not getting (nor does it found in dist-info)
+- bug: complex dependency is not written correctly to pyproject when using `pkm install`
 - enhance tool.pkm.application:
   - installer-package = 'name'
   - forced-dependencies { package: version }
-  - expose non script entrypoint using the new application loader 
-  - expose script entrypoint using the old application loader 
-  - applications can also provide repositories configuration, those should be specified in its table
-- bug: when running in "build-sys" mode should not "implicitly install" cache files
-  - also when running in this mode some basic monitoring should be made
-
-## DONE IN THIS VERSION
-- bug: different build sdists (coming from different urls) are cached as the same one: SourceDistribution
-- util: create a @delegate decorator for _GitPackageWrapper and many more
-- pkm: support * in packages but not default (just scan before usage on supported repositories)
-- documentation - describe the lock, explain why this type of lock is better for multi user projects
-- pkm.repository_builders are now pluggable
-- new - extended local repository:
-  - support path to project, project-group, distribution, flat directory of distributions
-
+  - expose non script entrypoint using the new application loader
+- repositories: torch repository
 
 ## BACKLOG TASKS:
+- refactoring: repositories should by itself be a project group
+- support application-only packages (the package itself is the installer)
+- environment zoo
+  - shared packages
+  - contextualized configuration
+  - application export (zoo should have a bin directory)
+- `pkm shell -e` : like `npm run` and `poetry run` 
+- repositories: conda
+- repositories: pyvenv
+- consider exposing application script entrypoint using the old application loader
+- applications can also provide repositories configuration, those should be specified in its table
+- bug: when running in "build-sys" mode should not "implicitly install" cache files
+  - also when running in this mode some basic monitoring should be made
 - cli: if building packages during dependency resolution, output is very convoluted
-- pkm: generalize repository publisher: accept the project and distribution types
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - misc: build readme, set github's site
 - pkm show: add repositories information
@@ -40,7 +45,7 @@
 - pkm: update package installation
 - pkm: support installing applications which were not built as self-contained ones
 - documentation site: projects and project groups, self-contained applications 
-- repositories: light the torch repository
+
 - environment naming (for project for example..) 
 - cli: publish keyring
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to request
@@ -69,6 +74,7 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
+- shared environments?
 - hierarchical site packages:
     - a dependency can be marked as shared and then pkm will install it as a pth to a shared lib installation
     - will need some sort of reference counting?
@@ -77,7 +83,6 @@
       probably by removing what we have already written)
     - dont forget to handle overwriten files
 - `pkm shell` support custom environment variables loading like in pipenv
-- lightweight environment support `pkm shell, pkm shell -c, pkm shell -e executeable -c, ...` use cases
 - improve api documentation
 - test pkm on windows, think how to test it on osx
 - support the `pkm build [installer] --fat` usecase (creates a standalone .py installer with embedded data), without
@@ -98,6 +103,7 @@
 - common tasks: test, build doc, etc.
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it
+- shell venv - alias to print environment and project in context
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

@@ -1,0 +1,154 @@
+[[version-spec]]
+cuda-version = "7.0"
+linux-spec = ">=346.46"
+windows-spec = ">=347.62"
+
+[[version-spec]]
+cuda-version = "7.5"
+linux-spec = ">=352.31"
+windows-spec = ">=353.66"
+
+[[version-spec]]
+cuda-version = "8.0"
+linux-spec = ">=367.48"
+windows-spec = ">=369.30"
+
+[[version-spec]]
+cuda-version = "8.0"
+linux-spec = ">=375.26"
+windows-spec = ">=376.51"
+
+[[version-spec]]
+cuda-version = "9.0"
+linux-spec = ">=384.81"
+windows-spec = ">=385.54"
+
+[[version-spec]]
+cuda-version = "9.1"
+linux-spec = ">=390.46"
+windows-spec = ">=391.29"
+
+[[version-spec]]
+cuda-version = "9.2"
+linux-spec = ">=396.26"
+windows-spec = ">=397.44"
+
+[[version-spec]]
+cuda-version = "9.2"
+linux-spec = ">=396.37"
+windows-spec = ">=398.26"
+
+[[version-spec]]
+cuda-version = "10.0.130"
+linux-spec = ">=410.48"
+windows-spec = ">=411.31"
+
+[[version-spec]]
+cuda-version = "10.1"
+linux-spec = ">=418.39"
+windows-spec = ">=418.96"
+
+[[version-spec]]
+cuda-version = "10.2.89"
+linux-spec = ">=440.33"
+windows-spec = ">=441.22"
+
+[[version-spec]]
+cuda-version = "11.0.1"
+linux-spec = ">=450.36.6"
+windows-spec = ">=451.22"
+
+[[version-spec]]
+cuda-version = "11.0.2"
+linux-spec = ">=450.51.5"
+windows-spec = ">=451.48"
+
+[[version-spec]]
+cuda-version = "11.0.3"
+linux-spec = ">=450.51.6"
+windows-spec = ">=451.82"
+
+[[version-spec]]
+cuda-version = "11.1"
+linux-spec = ">=455.23"
+windows-spec = ">=456.38"
+
+[[version-spec]]
+cuda-version = "11.1.1"
+linux-spec = ">=455.32"
+windows-spec = ">=456.81"
+
+[[version-spec]]
+cuda-version = "11.2.0"
+linux-spec = ">=460.27.3"
+windows-spec = ">=460.82"
+
+[[version-spec]]
+cuda-version = "11.2.1"
+linux-spec = ">=460.32.3"
+windows-spec = ">=461.9"
+
+[[version-spec]]
+cuda-version = "11.2.2"
+linux-spec = ">=460.32.3"
+windows-spec = ">=461.33"
+
+[[version-spec]]
+cuda-version = "11.3.0"
+linux-spec = ">=465.19.1"
+windows-spec = ">=465.89"
+
+[[version-spec]]
+cuda-version = "11.3.1"
+linux-spec = ">=465.19.1"
+windows-spec = ">=465.89"
+
+[[version-spec]]
+cuda-version = "11.4.0"
+linux-spec = ">=470.42.1"
+windows-spec = ">=471.11"
+
+[[version-spec]]
+cuda-version = "11.4"
+linux-spec = ">=470.57.2"
+windows-spec = ">=471.41"
+
+[[version-spec]]
+cuda-version = "11.4"
+linux-spec = ">=470.57.2"
+windows-spec = ">=471.41"
+
+[[version-spec]]
+cuda-version = "11.4"
+linux-spec = ">=470.82.1"
+windows-spec = ">=472.50"
+
+[[version-spec]]
+cuda-version = "11.4"
+linux-spec = ">=470.82.1"
+windows-spec = ">=472.50"
+
+[[version-spec]]
+cuda-version = "11.5"
+linux-spec = ">=495.29.5"
+windows-spec = ">=496.4"
+
+[[version-spec]]
+cuda-version = "11.5"
+linux-spec = ">=495.29.5"
+windows-spec = ">=496.13"
+
+[[version-spec]]
+cuda-version = "11.5"
+linux-spec = ">=495.29.5"
+windows-spec = ">=496.13"
+
+[[version-spec]]
+cuda-version = "11.6"
+linux-spec = ">=510.39.1"
+windows-spec = ">=511.23"
+
+[[version-spec]]
+cuda-version = "11.6"
+linux-spec = ">=510.47.3"
+windows-spec = ">=511.65"

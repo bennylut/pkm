@@ -49,7 +49,7 @@ class Application:
             if not (app_dep := self._project.config['tool.pkm.application-installer.app']):
                 raise ValueError("malformed installer package")
 
-            app_dep = Dependency.parse_pep508(app_dep)
+            app_dep = Dependency.parse(app_dep)
             package_name = PackageDescriptor.normalize_source_dir_name(app_dep.package_name)
             installation_src = tdir / 'src' / package_name
             shutil.copytree(self._project.path / 'src' / package_name, installation_src)
