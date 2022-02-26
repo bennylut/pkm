@@ -8,7 +8,7 @@ from typing import List, Optional, Set
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
+from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import Version
@@ -83,7 +83,7 @@ class LocalInterpreterPackage(Package):
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        LightweightEnvironments.create(env.path, self._interpreter.absolute())
+        EnvironmentBuilder.create(env.path, self._interpreter.absolute())
 
 
 _OS = platform.system()

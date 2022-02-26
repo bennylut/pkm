@@ -15,6 +15,13 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, eq=True)
 class Dependency:
+    """
+    represents a package dependency (`package a` depends on `package b`)
+    where the fields: `package_name` refer to the dependant package, `version_spec` refer to the version requirement,
+    `extras` refers to the required package extras and finally, env marker is a constraint for the environments that
+    this dependency is applicable for
+    """
+
     package_name: str
     version_spec: VersionSpecifier = AnyVersion
     extras: Optional[List[str]] = None

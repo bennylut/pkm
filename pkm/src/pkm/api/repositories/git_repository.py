@@ -94,7 +94,7 @@ class GitRepository(AbstractRepository):
 
         desc = PackageDescriptor(dependency.package_name, version)
 
-        if ProjectGroup.is_group_dir(target_dir):
+        if ProjectGroup.is_valid(target_dir):
             project = single_or_raise(p for p in ProjectGroup.load(target_dir).project_children_recursive
                                       if p.name == dependency.package_name)
             project.bump_version('name', cast(NamedVersion, desc.version).name, save=False)

@@ -7,16 +7,17 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping
+from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import SitePackages, InstalledPackage
+from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository, AbstractRepository
 from pkm.api.versions.version import NamedVersion, StandardVersion, Version
-from pkm.api.versions.version_specifiers import SpecificVersion, AnyVersion
+from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import unone
@@ -28,6 +29,9 @@ from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
 
+if TYPE_CHECKING:
+    from pkm.api.environments.zoo.environments_zoo import EnvironmentsZoo
+
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
 _T = TypeVar("_T")
@@ -35,10 +39,14 @@ _T = TypeVar("_T")
 
 class Environment:
 
-    def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, readonly: bool = False):
+    def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, readonly: bool = False,
+                 zoo: Optional["EnvironmentsZoo"] = None):
         self._env_path = env_path
         self._interpreter_path = interpreter_path
         self._readonly = readonly
+
+        if zoo:
+            self.zoo = zoo  # noqa
 
     @property
     def path(self) -> Path:
@@ -46,6 +54,17 @@ class Environment:
         :return: the path for this environment root directory
         """
         return self._env_path
+
+    @cached_property
+    def zoo(self) -> Optional["EnvironmentsZoo"]:
+        from pkm.api.environments.zoo.environments_zoo import EnvironmentsZoo
+        if EnvironmentsZoo.is_valid(zoo_path := self.path.parent):
+            return EnvironmentsZoo.load(zoo_path)
+        return None
+
+    @cached_property
+    def attached_repository(self) -> Repository:
+        return pkm.repository_loader.load_for_env(self)
 
     @cached_property
     def _introspection(self) -> EnvironmentIntrospection:
@@ -209,7 +228,8 @@ class Environment:
 
         PthLink(pth_file, paths, imports).save()
 
-    def install(self, dependencies: _DEPENDENCIES_T, repository: Repository, user_requested: bool = True,
+    def install(self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None,
+                user_requested: bool = True,
                 dependencies_override: Optional[Dict[str, List[Dependency]]] = None
                 ):
         """
@@ -218,15 +238,15 @@ class Environment:
         (but may upgrade their dependencies if it needs to)
 
         :param dependencies: the dependency to install
-        :param repository: the repository to fetch this dependency from
+        :param repository: the repository to fetch this dependency from, if not given will use the attached repository
         :param user_requested: indicator that the user requested this dependency themselves
             (this will be marked on the installation as per pep376)
         :param dependencies_override: mapping from package name into dependency that should be "forcefully"
             used for this package
         """
 
-        # with monitor.on_install() as package_modification_monitor:
-        print(f"attempting to install dependencies: {dependencies}")
+        repository = repository or self.attached_repository
+
         self.reload()
 
         preinstalled_packages = list(self.site_packages.installed_packages())
@@ -253,7 +273,7 @@ class Environment:
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo)
 
-        _sync_package(self, installation, repository)
+        _sync_package(self, installation)
 
         self.reload()
 
@@ -299,7 +319,7 @@ class Environment:
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
         installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
-        _sync_package(self, installation, None)
+        _sync_package(self, installation)
 
         kept = {p.name for p in installation}
 
@@ -341,7 +361,7 @@ class Environment:
             return Environment(Path("/"), interpreter, readonly=True)
 
 
-def _sync_package(env: Environment, packages: List[Package], build_packages_repo: Optional[Repository]):
+def _sync_package(env: Environment, packages: List[Package]):
     preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
     toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
 
@@ -364,10 +384,6 @@ def _sync_package(env: Environment, packages: List[Package], build_packages_repo
         if preinstalled_package := preinstalled.pop(package_to_install.name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
-
-            if not build_packages_repo:
-                raise ValueError(
-                    f"sync requires installation of {toinstall} but no build-packages repository was provided")
 
             promises.append(Promise.execute(pkm.threads, upgrade, preinstalled_package, package_to_install))
         else:
@@ -424,9 +440,6 @@ class _InstallationRepository(Repository, ABC):
         self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
         self._limit_to_installed = limit_to_installed
         self._repo = repo
-
-    def list(self, package_name: str) -> List[Package]:
-        return self.match(Dependency(package_name, AnyVersion))
 
     def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
         if isinstance(dependency, str):

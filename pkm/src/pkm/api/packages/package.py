@@ -27,10 +27,10 @@ class PackageDescriptor:
 
         :return: the expected name of the source package that is stored in this package,
         """
-        return self.name.replace('-', '_')
+        return PackageDescriptor.normalize_source_dir_name(self.name)
 
     def __post_init__(self):
-        super().__setattr__('name', PackageDescriptor.normalize_name(self.name))
+        super().__setattr__('name', PackageDescriptor.normalize_name(self.name).replace('_', '-'))
 
     def to_dependency(self) -> "Dependency":
         from pkm.api.dependencies.dependency import Dependency

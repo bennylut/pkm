@@ -24,13 +24,15 @@
 # # # SourceDistribution(PackageDescriptor("pkm-conda-repository-app", Version.parse("0.1.0")), ip).install_to(env)
 from pathlib import Path
 
-from pkm.api.dependencies.dependency import Dependency
+from pkm.api.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.api.projects.project import Project
 from pkm_cli.cli_monitors import listen
 
 listen(True)
-p = Path("/home/bennyl/projects/pkm-new/repositories/pkm-ltt-repository")
-Project.load(p).install_with_dependencies([Dependency.parse("pkm")])
-# from pkm.api.dependencies.dependency import Dependency
-#
-# print(Dependency.parse("pip (<20.3.*,>=20.1.*)"))
+p = Path("/home/bennyl/projects/pkm-new/workspace/projects/p1")
+w = Path("/home/bennyl/projects/pkm-new/workspace/shared")
+p1 = Project.load(p)
+repo = SharedPackagesRepository(w, p1.attached_repository)
+
+env = p1.attached_environment
+env.install(["torch", "setuptools", "numpy"], repo)

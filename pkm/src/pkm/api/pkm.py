@@ -42,8 +42,11 @@ class _Pkm:
 
     @cached_property
     def repository_loader(self) -> "RepositoryLoader":
-        from pkm.api.repositories.repository_loader import RepositoryLoader
-        return RepositoryLoader(self.etc_chain, self.httpclient, self.workspace / 'repos')
+        from pkm.api.repositories.repository_loader import RepositoryLoader, REPOSITORIES_CONFIGURATION_PATH
+        return RepositoryLoader(
+            self.workspace / REPOSITORIES_CONFIGURATION_PATH,
+            self.httpclient,
+            self.workspace / 'repos')
 
     @cached_property
     def repositories(self) -> _PkmRepositories:

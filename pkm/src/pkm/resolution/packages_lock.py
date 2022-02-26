@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.repositories.repository import AbstractRepository, Repository
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.commons import unone
 from pkm.utils.iterators import groupby
@@ -123,3 +127,17 @@ class PackagesLock:
         configuration = TomlFileConfiguration.load(lock_file)
         locked_packages = [_LockedVersion.read(lp) for lp in (configuration['lock'] or [])]
         return PackagesLock(locked_packages, lock_file)
+
+
+class LockPrioritizingRepository(AbstractRepository):
+    def __init__(self, name: str, base_repo: Repository, lock: PackagesLock, env: Environment):
+        super().__init__(name)
+        self._base_repo = base_repo
+        self._lock = lock
+        self._env = env
+
+    def _do_match(self, dependency: Dependency) -> List[Package]:
+        return self._base_repo.match(dependency, False)
+
+    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+        return self._lock.sort_packages_by_lock_preference(self._env, packages)

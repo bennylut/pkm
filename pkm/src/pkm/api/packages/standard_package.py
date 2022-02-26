@@ -11,7 +11,6 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from pkm.utils.strings import without_suffix
 from pkm.utils.types import SupportsLessThanEq
 
 if TYPE_CHECKING:

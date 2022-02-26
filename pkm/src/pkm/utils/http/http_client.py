@@ -3,7 +3,6 @@ import json
 import locale
 import shutil
 import socket
-import threading
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, replace

@@ -1,15 +1,13 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Iterable, Union, Optional, Tuple, Dict, List, Any
+from typing import Iterable, Union, Optional, Tuple, List
 
-from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages.package import Package
-
+from pkm.api.pkm import pkm
+from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, RepositoryBuilder, Authentication, AbstractRepository
+from pkm.api.repositories.repository import Repository, Authentication
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
-from pkm.applications.application_builders import ApplicationInstallerProjectWrapper
-from pkm.utils.commons import NoSuchElementException
-from pkm.utils.dicts import get_or_raise
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
@@ -24,13 +22,23 @@ class ProjectGroup:
     the project group is configured by the pyproject-group.toml configuration file
     """
 
-    def __init__(self, config: "PyProjectGroupConfiguration"):
+    def __init__(self, config: "PyProjectGroupConfiguration", parent: Optional[ProjectGroup] = None):
         self._config = config
         self.path = self._config.path.parent
+        if parent:
+            self.parent = parent  # noqa
 
     @property
     def config(self) -> "PyProjectGroupConfiguration":
         return self._config
+
+    @cached_property
+    def attached_repository(self) -> Repository:
+        return pkm.repository_loader.load_for_project_group(self)
+
+    @cached_property
+    def environments_config(self) -> EnvironmentsConfiguration:
+        return EnvironmentsConfiguration.load(self.path / ENVIRONMENT_CONFIGURATION_PATH)
 
     @cached_property
     def parent(self) -> Optional["ProjectGroup"]:
@@ -59,9 +67,10 @@ class ProjectGroup:
         result = []
         for child in self._config.children:
             if (child / 'pyproject.toml').exists():
-                result.append(Project.load(child))
+                result.append(Project.load(child, group=self))
             elif (child / 'pyproject-group.toml').exists:
-                result.append(ProjectGroup(PyProjectGroupConfiguration.load(child / 'pyproject-group.toml')))
+                result.append(
+                    ProjectGroup(PyProjectGroupConfiguration.load(child / 'pyproject-group.toml'), parent=self))
 
         return result
 
@@ -168,7 +177,7 @@ class ProjectGroup:
         return ProjectGroup(PyProjectGroupConfiguration.load(path / 'pyproject-group.toml'))
 
     @staticmethod
-    def is_group_dir(path: Path) -> bool:
+    def is_valid(path: Path) -> bool:
         """
         :param path: the path to check
         :return: True if the path contain project group, False otherwise
@@ -208,9 +217,9 @@ class PyProjectGroupConfiguration(TomlFileConfiguration):
         result = []
         for path in new:
             if path.is_absolute():
-                result.append(path_to(root, path))
+                result.append(str(path_to(root, path)))
             else:
-                result.append(path)
+                result.append(str(path))
 
         self["project-group.children"] = result
 
@@ -222,34 +231,3 @@ class PyProjectGroupConfiguration(TomlFileConfiguration):
                 return path.resolve()
             return (self.path.parent / path).resolve()
         return None
-
-
-class ProjectGroupRepository(AbstractRepository):
-    def __init__(self, group: ProjectGroup, name: Optional[str] = None):
-        super().__init__(name or group.path.name)
-        self._projects: Dict[str, Project] = {p.name: p for p in group.project_children_recursive}
-        self._applications: Dict[str, Package] = {
-            app_name: ApplicationInstallerProjectWrapper(p) for p in self._projects.values()
-            if (app_name := p.config.application_installer_project_name)}
-
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        # monitor.on_dependency_match(dependency)
-        if project := (self._projects.get(dependency.package_name) or self._applications.get(dependency.package_name)):
-            if dependency.version_spec.allows_version(project.version):
-                return [project]
-
-        return []
-
-
-class ProjectGroupRepositoryBuilder(RepositoryBuilder):
-
-    def __init__(self):
-        super().__init__("project-group")
-
-    def build(self, name: Optional[str], package_settings: Dict[str, Any], **kwargs: Any) -> Repository:
-        group_path: str = get_or_raise(
-            kwargs, 'path',
-            lambda: NoSuchElementException("missing path for project group repository"))
-
-        group = ProjectGroup.load(Path(group_path))
-        return ProjectGroupRepository(group, name)

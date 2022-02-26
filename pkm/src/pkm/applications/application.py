@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
+from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
@@ -55,7 +55,7 @@ class Application:
             shutil.copytree(self._project.path / 'src' / package_name, installation_src)
 
             print("downloading dependencies")
-            env = LightweightEnvironments.create(tdir / 'env')
+            env = EnvironmentBuilder.create(tdir / 'env')
             env.install(app_dep, repository)
 
             print("moving dependencies from temporary env into package layer")

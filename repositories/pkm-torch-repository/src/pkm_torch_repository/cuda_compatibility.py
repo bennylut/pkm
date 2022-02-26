@@ -32,7 +32,7 @@ class _CudaVersionSpec:
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> _CudaVersionSpec:
         return _CudaVersionSpec(
-            Version.parse(config['cuda-version']),
+            StandardVersion.parse(config['cuda-version']),
             VersionSpecifier.parse(config['linux-spec']),
             VersionSpecifier.parse(config['windows-spec']),
         )

@@ -20,6 +20,12 @@ class PthLink:
     """
 
     def __init__(self, path: Path, links: List[Path], imports: Optional[List[str]] = None):
+        """
+        :param path: the path to the link itself
+        :param links: collection of paths that this link should be responsible for appending to the `sys.path`
+        :param imports: collection of imports that this link should be responsible for
+                        loading when python sites is resolved
+        """
         self.path = path
         self.imports = imports
         self.links = links

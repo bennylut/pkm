@@ -66,7 +66,7 @@ class SitePackages:
         return self._name_to_packages.values()
 
     def installed_package(self, package_name: str) -> Optional["InstalledPackage"]:
-        return self._name_to_packages.get(package_name)
+        return self._name_to_packages.get(PackageDescriptor.normalize_source_dir_name(package_name))
 
     def reload(self):
         clear_cached_properties(self)
@@ -100,6 +100,10 @@ class InstalledPackage(Package):
         self._user_request = user_request
         self.site = site
         self.readonly = readonly
+
+    @property
+    def published_metadata(self) -> Optional["PackageMetadata"]:
+        return self._meta
 
     @cached_property
     def dist_info(self) -> DistInfo:
@@ -150,6 +154,13 @@ class InstalledPackage(Package):
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         raise NotImplemented()  # maybe re-mark user request?
+
+    def is_in_purelib(self) -> bool:
+        """
+        :return: True if this package is installed to purelib, False if it is installed into platlib
+        """
+
+        return self.dist_info.path.is_relative_to(self.site.purelib_path)
 
     def uninstall(self) -> bool:
         # monitor.on_uninstall(self, self.site.env)

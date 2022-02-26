@@ -12,7 +12,7 @@ from jinja2.sandbox import SandboxedEnvironment
 
 from pkm.utils.archives import extract_archive
 from pkm.utils.commons import unone
-from pkm.utils.files import temp_dir
+from pkm.utils.files import temp_dir, name_without_ext
 from pkm.utils.resources import ResourcePath
 
 
@@ -59,6 +59,11 @@ class ScaffoldingEngine:
         if isinstance(template_path, ResourcePath):
             with template_path.use() as path, temp_dir() as tdir:
                 extract_archive(path, tdir)
+
+                if (not (tdir / 'scaffold.py').exists()) and \
+                        (scaffold_path := tdir / name_without_ext(path) / 'scaffold.py').exists():
+                    tdir = scaffold_path.parent
+
                 return self.render(
                     tdir, target_dir, args, kwargs, extra_context, excluded_files=excluded_files,
                     allow_overwrite=allow_overwrite)

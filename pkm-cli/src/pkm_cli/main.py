@@ -74,7 +74,7 @@ def install(args: Namespace):
         project_group.install_all()
 
     def on_environment(env: Environment):
-        env.install(dependencies, pkm.repositories.main)
+        env.install(dependencies)
 
     Context.of(args).run(**locals())
 

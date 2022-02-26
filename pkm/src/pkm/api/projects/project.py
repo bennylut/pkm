@@ -5,16 +5,19 @@ from typing import List, Optional, Union, TYPE_CHECKING, Dict
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
+from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
+from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
+    AttachedEnvironmentConfig
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
 from pkm.resolution.packages_lock import PackagesLock
-from pkm.utils.commons import UnsupportedOperationException, NoSuchElementException
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -25,22 +28,40 @@ if TYPE_CHECKING:
 
 class Project(Package):
 
-    def __init__(self, pyproject: PyProjectConfiguration):
+    def __init__(self, pyproject: PyProjectConfiguration, group: Optional["ProjectGroup"] = None):
         self._path = pyproject.path.absolute().parent
         self._pyproject = pyproject
         self._descriptor = pyproject.project.package_descriptor()
+        if group:
+            self.group = group  # noqa
 
     @property
     def config(self) -> PyProjectConfiguration:
+        """
+        :return: the project configuration (a.k.a., pyproject.toml)
+        """
         return self._pyproject
 
     @cached_property
     def group(self) -> Optional["ProjectGroup"]:
+        """
+        :return: the project group if it belongs to such, otherwise None
+        """
         from pkm.api.projects.project_group import ProjectGroup
         return ProjectGroup.of(self)
 
+    @cached_property
+    def environments_config(self) -> EnvironmentsConfiguration:
+        """
+        :return: the environments.toml configuration (etc/pkm/environments.toml)
+        """
+        return EnvironmentsConfiguration.load(self.path / ENVIRONMENT_CONFIGURATION_PATH)
+
     @property
     def path(self) -> Path:
+        """
+        :return: the path to the project root (where the pyproject.toml is located)
+        """
         return self._path
 
     @cached_property
@@ -77,6 +98,9 @@ class Project(Package):
 
     @cached_property
     def lock(self) -> PackagesLock:
+        """
+        :return: the project lock, read more about it in `PackagesLock` documentation
+        """
         return PackagesLock.load(self.directories.etc_pkm / 'packages-lock.toml')
 
     @cached_property
@@ -150,8 +174,6 @@ class Project(Package):
             dependencies=uninvolved_deps + list(new_deps.values()))
         self.config.save()
 
-        print(f"dependencies after update: {self.config.project.dependencies}")
-
         repository = self.attached_repository
         self.attached_environment.force_remove(self.name)
         self.attached_environment.install(
@@ -188,20 +210,35 @@ class Project(Package):
 
     @cached_property
     def attached_environment(self) -> "Environment":
+        """
+        :return: the virtual environment that is attached to this project
+        """
+
+        cfg = self.environments_config.attached_env
+        if not cfg and self.group:
+            cfg = self.group.environments_config.attached_env
+
+        cfg = cfg or AttachedEnvironmentConfig()
+
+        if not cfg.path and not cfg.zoo:
+            env_path = self.path / ".venv"
+        elif cfg.path:
+            env_path = cfg.path
+        else:
+            env_path = cfg.zoo / self.name
+
         from pkm.api.environments.environment import Environment
-        default_env = Environment(self._path / '.venv')
-        if not default_env.path.exists():
-            requirement = self._pyproject.project.requires_python
-            python_versions = pkm.repositories.installed_pythons.match(Dependency('python', requirement))
-            if not python_versions:
-                raise NoSuchElementException("could not find installed python interpreter "
-                                             f"that match the project requirements: {requirement}")
-            python_versions[0].install_to(default_env)
-        return default_env
+        if not Environment.is_valid(env_path):
+            return EnvironmentBuilder.create_matching(
+                env_path, Dependency('python', self.config.project.requires_python))
+        return Environment(env_path)
 
     @cached_property
     def attached_repository(self) -> "Repository":
-        return pkm.repository_loader.load_for_context(f"{self.name}'s repository", self.path, self)
+        """
+        :return: the repository that is attached to this project (will be used with its attached environment)
+        """
+        return pkm.repository_loader.load_for_project(self)
 
     def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
         """
@@ -307,10 +344,11 @@ class Project(Package):
                         publisher.publish(auth, metadata, distribution)
 
     @classmethod
-    def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None) -> "Project":
+    def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None,
+             group: Optional["ProjectGroup"] = None) -> "Project":
         path = Path(path)
         pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml', package)
-        return Project(pyproject)
+        return Project(pyproject, group=group)
 
 
 @dataclass()

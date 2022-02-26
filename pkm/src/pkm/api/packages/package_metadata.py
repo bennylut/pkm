@@ -23,6 +23,7 @@ _MULTI_FIELDS = {
 
 class PackageMetadata(FileConfiguration):
     dependencies: List[Dependency]
+    required_python_spec: VersionSpecifier
 
     """
     implementation of the package metadata 2.1 specification as described in pep 566

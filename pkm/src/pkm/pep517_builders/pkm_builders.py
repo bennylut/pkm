@@ -76,7 +76,7 @@ def build_wheel(project: Project, target_dir: Optional[Path] = None, only_meta: 
         dist_info = bc.build_dist_info(dist_info_path)
         bc.copy_sources(bc.build_dir, editable)
         records_file = dist_info.load_record_cfg()
-        records_file.sign(bc.build_dir)
+        records_file.sign_recursive(bc.build_dir)
         records_file.save()
 
         wheel_path = target_dir / bc.wheel_file_name()

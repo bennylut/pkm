@@ -57,5 +57,25 @@ def path_to(source: Path, destination: Path) -> Path:
 
 @contextmanager
 def temp_dir() -> ContextManager[Path]:
+    """
+    creates a temporary directory and return a context manager, which, when closing, deletes it
+    :return:
+    """
+
     with TemporaryDirectory() as tdir:
         yield Path(tdir)
+
+
+def name_without_ext(path: Path) -> str:
+    """
+    extract the given path name without extensions, unlike `path.stem` this will remove all composed extensions
+    like `.tar.gz`
+    :param path: a path to a file, its name you want to get
+    :return: the file name without any extension (read: until the first '.')
+    """
+
+    name = path.name
+    try:
+        return name[:name.index('.')]
+    except ValueError:
+        return name

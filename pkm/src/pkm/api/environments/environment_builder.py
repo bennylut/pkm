@@ -4,16 +4,32 @@ import shutil
 from pathlib import Path
 from typing import Dict, Union
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
+from pkm.api.pkm import pkm
 from pkm.config.configuration import FileConfiguration
 import sys
+
+from pkm.utils.commons import NoSuchElementException
 
 _INTERPRETER_INTROSPECTIONS: Dict[str, EnvironmentIntrospection] = {}
 _PYVENV_SEP_RX = re.compile("\\s*=\\s*")
 
 
-class LightweightEnvironments:
+class EnvironmentBuilder:
+
+    @staticmethod
+    def create_matching(env_path: Path, interpreter: Dependency) -> Environment:
+        result = Environment(env_path)
+
+        python_versions = pkm.repositories.installed_pythons.match(interpreter)
+        if not python_versions:
+            raise NoSuchElementException("could not find installed python interpreter "
+                                         f"that match the given dependency: {interpreter}")
+        python_versions[0].install_to(result)
+        return result
+
     @staticmethod
     def create(env_path: Path, interpreter_path: Path = Path(sys.executable)) -> Environment:
         interpreter_path = interpreter_path.absolute()

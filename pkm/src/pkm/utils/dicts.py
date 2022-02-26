@@ -5,6 +5,7 @@ from pkm.utils.types import SupportHashCode
 _K = TypeVar("_K", bound=SupportHashCode)
 _V = TypeVar("_V")
 _M = TypeVar("_M", bound=MutableMapping)
+_IM = TypeVar("_IM", bound=Mapping)
 _SENTINAL = object()
 
 
@@ -93,3 +94,19 @@ def remove_by_value(
         del d[k]
 
     return d
+
+
+def udict_hash(d: "_IM[_K, _V]", key_hash: Callable[[_K], int] = hash, value_hash: Callable[[_V], int] = hash):
+    """
+    unordered dict hash - computes a hash value for the given dict, the hash will be the same for all dicts with
+    the same elements without considering their insertion order
+    :param d: the dict to compute hash to
+    :param key_hash: a function that can compute hash for the dict keys
+    :param value_hash: a function that can compute hash for the dict values
+    :return: the computed hashcode
+    """
+    result = 0
+    for k, v in d.items():
+        kvh = (7 * 31 + key_hash(k)) * 31 + value_hash(v)
+        result = result ^ kvh
+    return result

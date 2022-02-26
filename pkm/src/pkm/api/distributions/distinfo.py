@@ -1,15 +1,17 @@
+from __future__ import annotations
 import csv
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Iterable, Dict
+from typing import Optional, List, Iterable, Dict, Iterator
 
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
+from pkm.utils.files import path_to, resolve_relativity
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import groupby
 
@@ -45,10 +47,18 @@ class DistInfo:
 
     @classmethod
     def load(cls, path: Path) -> "DistInfo":
-        if path.suffix != '.dist-info':
-            raise UnsupportedOperationException("not a dist-info directory")
-
         return cls(path)
+
+    def installed_files(self) -> Iterator[Path]:
+        """
+        :return: paths to all the files that were installed to the environment via this package (taken from RECORD)
+        """
+        root = self.path.parent
+        for record in self.load_record_cfg().records:
+            file = resolve_relativity(Path(record.file), root).resolve()
+            yield file
+
+        yield self.record_path()
 
 
 class EntrypointsConfiguration(IniFileConfiguration):
@@ -133,21 +143,33 @@ class RecordsFileConfiguration(FileConfiguration):
                 (str(r.file), str(r.hash_signature), r.length)
                 for r in self['records'])
 
-    def sign(self, content_root: Path):
+    def sign_files(self, files: Iterable[Path], root: Path) -> RecordsFileConfiguration:
+        """
+        add to the records in this file the signatures for the given `files`
+        :param files: the files to sign
+        :param root: a root directory to sign the files relative to, when signing, the record file path will be writen
+                     relative to this root
+        :return: self (for chaining support)
+        """
+        records: List[Record] = self.records
+        for file in files:
+            if not file.is_dir():
+                records.append(Record(
+                    str(path_to(root, file)),  # path
+                    HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file),  # signature
+                    file.lstat().st_size  # size
+                ))
+
+        return self
+
+    def sign_recursive(self, content_root: Path) -> RecordsFileConfiguration:
         """
         add to the records in this file the signatures for files inside the `content_root`
         :param content_root: the content to sign
                (will recursively sign all files in the content root and add their signature to the created record file)
+        :return: self (for chaining support)
         """
-
-        records: List[Record] = self.records
-        for file in content_root.rglob("*"):
-            if not file.is_dir():
-                records.append(Record(
-                    str(file.relative_to(content_root)),  # path
-                    HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file),  # signature
-                    file.lstat().st_size  # size
-                ))
+        return self.sign_files(content_root.rglob("*"), content_root)
 
     @classmethod
     def load(cls, path: Path) -> "RecordsFileConfiguration":

@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from base64 import b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Dict, Any, Protocol
+from typing import List, Union, Optional, Tuple, Any, Protocol
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
@@ -30,12 +30,12 @@ class Repository(Protocol):
         :return: list of all the packages in this repository that match the given `dependency`
         """
 
-    @abstractmethod
     def list(self, package_name: str) -> List[Package]:
         """
         :param package_name: the package to match 
         :return: list of all the packages that match the given `package_name`
         """
+        return self.match(Dependency(package_name, AnyVersion))
 
     @property
     @abstractmethod
@@ -62,10 +62,6 @@ class AbstractRepository(Repository, ABC):
         matched = self._do_match(dependency)
         filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched
         return self._sort_by_priority(dependency, filtered)
-
-    def list(self, package_name: str) -> List[Package]:
-        dependency = Dependency(package_name, AnyVersion)
-        return self.match(dependency)
 
     @property
     def publisher(self) -> Optional["RepositoryPublisher"]:
@@ -138,7 +134,8 @@ class RepositoryBuilder(ABC):
         """
         build a new repository instance using the given `kwargs`
         :param name: name for the created repository
-        :param packages: list of packages the user ask the repository to be limited to (or None if no such request was made)
+        :param packages: list of packages the user ask the repository to be limited to
+                (or None if no such request was made)
         :param kwargs: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """

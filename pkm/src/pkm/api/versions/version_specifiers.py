@@ -10,39 +10,85 @@ from pkm.utils.sequences import subiter
 
 
 class VersionSpecifier(ABC):
+    """
+    represents a version specifier (e.g., >=1.0.1)
+    supported operators are: 
+    comparison: >,>=,<,<=
+    equality: ==, ===, !==, !===, ~=
+    url matching: @ 
+    """
 
     def specific_url(self) -> Optional[UrlVersion]:
+        """
+        :return: if the version specifier is a url matching specifier, returns its version, otherwise returns None  
+        """
         return None
 
     def allows_all(self, other: "VersionSpecifier") -> bool:
+        """
+        :param other: 
+        :return: True if this specifier allows all the versions that are allowed by `other`
+        """
         return self.intersect(other) == other
 
     def allows_any(self, other: "VersionSpecifier") -> bool:
+        """
+        :param other: 
+        :return: True if this specifier allows at least one of the versions that are allowed by `other` 
+        """
         return not self.intersect(other).is_none()
 
     def allows_version(self, version: "Version"):
+        """
+        :param version: the version to check 
+        :return: True if the given `version` is allowed by this version specifier, False otherwise
+        """
         return any(segment.allows_version(version) for segment in self._segments())
 
     def allows_pre_or_dev_releases(self) -> bool:
+        """
+        :return: True if this specifier accepts version that are pre or dev releases, False otherwise 
+        """
         return any(segment.allows_pre_or_dev_releases() for segment in self._segments())
 
     def intersect(self, other: "VersionSpecifier") -> "VersionSpecifier":
+        """
+        :param other: 
+        :return: a new version specifier that accepts only versions 
+                 that are accepted by both self and `other` 
+        """
         return _intersect(self, other)
 
     def union(self, other: "VersionSpecifier") -> "VersionSpecifier":
+        """
+        :param other: 
+        :return: a new version specifier that accepts any versions that are accepted
+                 by either self or `other` 
+        """
         result = _unite([*self._segments(), *other._segments()])
         return result
 
     def is_none(self):
+        """
+        :return: True if this version specifier does not accept any version, False otherwise 
+        """
         return self.min == self.max and self.includes_min == self.includes_max == False  # noqa
 
     def is_any(self):
+        """
+        :return: True if this version specifier accepts all versions, False otherwise
+        """
         return (self.min is self.max is None) and self.includes_min == self.includes_max == True  # noqa
 
     def _segments(self) -> List["VersionSpecifier"]:
         return [self]
 
     def difference(self, other: "VersionSpecifier") -> "VersionSpecifier":
+        """
+        :param other: 
+        :return: a new version specifier that accepts any versions that are accepted
+                 by self but not by `other` 
+        """
         return self.intersect(other.inverse())
 
     def __lt__(self, other: "VersionSpecifier") -> bool:
@@ -67,23 +113,37 @@ class VersionSpecifier(ABC):
 
     @property
     def min(self) -> Optional["Version"]:
+        """
+        :return: the minimal version that is accepted by this specifier (may-be exclusive)
+        """
         return self._segments()[0].min
 
     @property
     def max(self) -> Optional["Version"]:
+        """
+        :return: the maximal version that is accepted by this specifier (may-be exclusive)
+        """
         return self._segments()[-1].max
 
     @property
     def includes_min(self) -> bool:
+        """
+        :return: True if the value returned by `self.min` is inclusive
+        """
         return self._segments()[0].includes_min
 
     @property
     def includes_max(self) -> bool:
+        """
+        :return: True if the value returned by `self.max` is inclusive
+        """
         return self._segments()[1].includes_max
 
     @abstractmethod
     def inverse(self) -> "VersionSpecifier":
-        ...
+        """
+        :return: a new version specifier that accepts any version that was not accepted by this specifier
+        """
 
     @abstractmethod
     def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
@@ -299,11 +359,6 @@ AnyVersion = VersionRange(includes_min=True, includes_max=True)
 
 
 # UTILS
-def _no_local(v: Version):
-    if v is None:
-        return None
-    return v.without_local()
-
 
 def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
     if not segments:
@@ -314,7 +369,7 @@ def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
 
     last: VersionSpecifier = segments[0]
     for segment in subiter(segments, 1):
-        joined = last._try_merge(segment) # noqa
+        joined = last._try_merge(segment)  # noqa
         if joined:
             last = joined
         else:
@@ -391,25 +446,3 @@ def _intersect(a: VersionSpecifier, b: VersionSpecifier) -> "VersionSpecifier":
             min=selected_min, max=selected_max, includes_min=includes_min, includes_max=includes_max)
 
     return NoVersion
-
-#
-# _VERSION_URL_RX = re.compile(r"((?P<repo>\w+)\+)?(?P<url>.*)")
-#
-#
-# @dataclass(eq=True, frozen=True)
-# class VersionUrl:
-#     repository_protocol: Optional[str]
-#     url: str
-#
-#     def __str__(self):
-#         if self.repository_protocol:
-#             return f"{self.repository_protocol}+{self.url}"
-#         return self.url
-#
-#     def to_version_spec(self) -> SpecificVersion:
-#         return SpecificVersion(NamedVersion(str(self)))
-#
-#     @classmethod
-#     def parse(cls, vurl_str: str) -> VersionUrl:
-#         match = _VERSION_URL_RX.match(vurl_str)
-#         return VersionUrl(match.group('repo'), match.group('url'))

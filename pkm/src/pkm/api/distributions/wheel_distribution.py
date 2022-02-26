@@ -11,13 +11,12 @@ from zipfile import ZipFile
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, Record
 from pkm.api.distributions.distribution import Distribution
-from pkm.distributions.executables import Executables
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.distributions.executables import Executables
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import first_or_none
-from pkm.utils.strings import without_suffix
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
@@ -37,6 +36,9 @@ class _FileMoveCommand:
 
     def run(self, env: "Environment"):
         if self.is_script:
+            # if it is ever decided to also convert the script to exe in windows, we also need to keep the original
+            # for other tools (like the shared repository) to be able to examine and re-patch the script for different
+            # environments
             Executables.patch_shabang_for_env(self.source, self.target, env)
         else:
             shutil.move(self.source, self.target)

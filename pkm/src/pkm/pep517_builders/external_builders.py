@@ -54,7 +54,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
     :return: the path to the created archive
     """
 
-    from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
+    from pkm.api.environments.environment_builder import EnvironmentBuilder
     target_dir = target_dir or (project.directories.dist / str(project.version))
     target_env = target_env or project.attached_environment
 
@@ -67,7 +67,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
         buildsys: BuildSystemConfig = pyproject.build_system
         build_packages_repo = project.attached_repository
 
-        build_env = LightweightEnvironments.create(tdir / 'venv', target_env.interpreter_path)
+        build_env = EnvironmentBuilder.create(tdir / 'venv', target_env.interpreter_path)
 
         if buildsys.requirements:
             build_env.install(buildsys.requirements, build_packages_repo)
@@ -108,7 +108,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
 
-    from pkm.api.environments.lightweight_environment_builder import LightweightEnvironments
+    from pkm.api.environments.environment_builder import EnvironmentBuilder
     target_dir = target_dir or (project.directories.dist / str(project.version))
     target_env = target_env or project.attached_environment
 
@@ -121,7 +121,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
         buildsys: BuildSystemConfig = pyproject.build_system
         build_packages_repo = project.attached_repository
 
-        build_env = LightweightEnvironments.create(tdir / 'venv', target_env.interpreter_path)
+        build_env = EnvironmentBuilder.create(tdir / 'venv', target_env.interpreter_path)
 
         if buildsys.requirements:
             build_env.install(buildsys.requirements, build_packages_repo)
