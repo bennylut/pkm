@@ -8,12 +8,12 @@ from typing import List, Dict, Optional, Any, Tuple, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.environments.zoo.environments_zoo import EnvironmentsZoo
+from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
-from pkm.api.repositories.shared_pacakges_repo import SharedPackagesRepository
+from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.packages_lock import LockPrioritizingRepository
 from pkm.utils.commons import NoSuchElementException
@@ -28,11 +28,11 @@ class RepositoryLoader:
     def __init__(self, main_cfg: Path, http: HttpClient, workspace: Path):
 
         from pkm.api.environments.environment import Environment
-        from pkm.api.repositories.simple_repository import SimpleRepositoryBuilder
-        from pkm.api.repositories.git_repository import GitRepository
-        from pkm.api.repositories.pypi_repository import PyPiRepository
-        from pkm.api.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
-        from pkm.api.repositories.url_repository import UrlRepository
+        from pkm.repositories.simple_repository import SimpleRepositoryBuilder
+        from pkm.repositories.git_repository import GitRepository
+        from pkm.repositories.pypi_repository import PyPiRepository
+        from pkm.repositories.local_packages_repository import LocalPackagesRepositoryBuilder
+        from pkm.repositories.url_repository import UrlRepository
 
         # base repositories
         self.pypi = PyPiRepository(http)

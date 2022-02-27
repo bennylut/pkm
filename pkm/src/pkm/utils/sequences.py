@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any
+from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
 
 from pkm.utils.types import SupportHashCode, SupportsLessThan
 
@@ -76,3 +76,15 @@ def get_or_default(seq: Sequence[_T], index: int, default: _T) -> _T:
         return default
     return seq[index]
 
+
+def oseq_hash(seq: List[_T], item_hash: Callable[[_K], int] = hash):
+    """
+    ordered sequence hash - computes a hash value for the given seq
+    :param seq: the sequence to compute hash to
+    :param item_hash: a function that can compute hash for the sequence items
+    :return: the computed hashcode
+    """
+    result = 7
+    for item in seq:
+        result = result * 31 + item_hash(item)
+    return result

@@ -14,6 +14,7 @@ from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
+from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.properties import cached_property
 
@@ -42,6 +43,11 @@ class EnvironmentsZoo:
     def delete_environment(self, name: str):
         # shared repository gc
         shutil.rmtree(self.path / name)
+
+    def clean_unused_shared(self):
+        repo = self.attached_repository
+        if isinstance(repo, SharedPackagesRepository):
+            repo.remove_unused_packages(self.list())
 
     @contextmanager
     def activate(self, env: Dict[str, str] = os.environ):

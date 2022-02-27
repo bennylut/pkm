@@ -30,7 +30,7 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
 
 if TYPE_CHECKING:
-    from pkm.api.environments.zoo.environments_zoo import EnvironmentsZoo
+    from pkm.api.environments.environments_zoo import EnvironmentsZoo
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
@@ -57,7 +57,7 @@ class Environment:
 
     @cached_property
     def zoo(self) -> Optional["EnvironmentsZoo"]:
-        from pkm.api.environments.zoo.environments_zoo import EnvironmentsZoo
+        from pkm.api.environments.environments_zoo import EnvironmentsZoo
         if EnvironmentsZoo.is_valid(zoo_path := self.path.parent):
             return EnvironmentsZoo.load(zoo_path)
         return None

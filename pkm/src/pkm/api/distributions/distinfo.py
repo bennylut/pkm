@@ -11,7 +11,7 @@ from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
-from pkm.utils.files import path_to, resolve_relativity
+from pkm.utils.files import path_to, resolve_relativity, CopyTransaction
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import groupby
 
@@ -143,20 +143,29 @@ class RecordsFileConfiguration(FileConfiguration):
                 (str(r.file), str(r.hash_signature), r.length)
                 for r in self['records'])
 
-    def sign_files(self, files: Iterable[Path], root: Path) -> RecordsFileConfiguration:
+    def sign_files(self, files: Iterable[Path], root: Path,
+                   precomputed_hashes: Optional[Dict[str, HashSignature]] = None) -> RecordsFileConfiguration:
         """
         add to the records in this file the signatures for the given `files`
         :param files: the files to sign
         :param root: a root directory to sign the files relative to, when signing, the record file path will be writen
                      relative to this root
+        :param precomputed_hashes: dictionary containing some or all of the given files precomputed hashes,
+               its key is the relative path from root to each of the files
         :return: self (for chaining support)
         """
+
+        precomputed_hashes = precomputed_hashes or {}
         records: List[Record] = self.records
         for file in files:
             if not file.is_dir():
+                path = str(path_to(root, file))
+                hash_sig = precomputed_hashes.get(
+                    path, HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file))
+
                 records.append(Record(
-                    str(path_to(root, file)),  # path
-                    HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file),  # signature
+                    path,
+                    hash_sig,
                     file.lstat().st_size  # size
                 ))
 

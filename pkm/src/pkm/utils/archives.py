@@ -3,11 +3,13 @@ from io import UnsupportedOperation
 from pathlib import Path
 from zipfile import ZipFile
 
+from pkm.utils.strings import endswith_any
+
 
 def extract_archive(archive_path: Path, target_directory: Path):
     target_directory.mkdir(exist_ok=True, parents=True)
 
-    if archive_path.name.endswith(".zip"):
+    if endswith_any(archive_path.name, (".zip", '.whl')):
         with ZipFile(archive_path) as z:
             z.extractall(target_directory)
     elif archive_path.name.endswith('.tar.gz'):

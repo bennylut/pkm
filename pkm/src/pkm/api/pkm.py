@@ -10,7 +10,7 @@ from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
-    from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
+    from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
     from pkm.api.repositories.repository import Repository
     from pkm.api.repositories.repository_loader import RepositoryLoader
     from pkm.distributions.source_build_cache import SourceBuildCache
@@ -50,7 +50,7 @@ class _Pkm:
 
     @cached_property
     def repositories(self) -> _PkmRepositories:
-        from pkm.api.repositories.local_pythons_repository import InstalledPythonsRepository
+        from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
 
         return _PkmRepositories(
             self.repository_loader.pypi,

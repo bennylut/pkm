@@ -11,7 +11,7 @@ from pkm.pep517_builders.external_builders import BuildError
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
 from pkm.utils.promises import Promise
-from pkm.utils.sequences import single_or_raise
+from pkm.utils.sequences import single_or_raise, oseq_hash
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -123,6 +123,12 @@ class _Pkg:
 
     def __lt__(self, other):
         return str(self) < str(other)
+
+    def __hash__(self):
+        h = hash(self.name)
+        if self.extras:
+            h = h * 31 + oseq_hash(self.extras)
+        return h
 
     @classmethod
     def of(cls, d: Dependency) -> _Pkg:

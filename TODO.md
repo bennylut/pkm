@@ -4,34 +4,29 @@
 - documentation: describe repositories
 - make dependency resolution less verbose
 - documentation: extensions + torch repository
-- environment zoo
-    - shared packages - implement gc
-        - shared repository garbage collection should be invoked at exit (if any operation done during the execution of
-          pkm justifies it)
-    - application export (zoo should have a bin directory)
-- some of the classes in repositories should be removed from the api
+- cli: pkm clean shared | pkm clean cache | pkm clean dist
 - check pkm installation in app mode on system environment + torch-repo in app mode
 - entrypoint to allow for default repository instances (pkm-torch /-repository)
-
+- `pkm shell -e` : like `npm run` and `poetry run`
 
 ## DONE IN THIS VERSION
-- document project
-- documentation: document VersionSpecifier
-- new pyproject-group template
-- environment zoo
-    - attach environment zoo to project
-    - shared packages - check sharing torch
-    - contextualized configuration
-    - cli: create zoo
+- several bug fixes with shared packages 
+- reduce code complexity for wheel install and uninstall
+- move some classes in repositories out from the api
+- bug: when installation fails, environment is dirty
+    - update wheel installer
+    - update shared packages repository
+- environment zoo: shared packages add functionality to clean unused packages 
+
 
 ## BACKLOG TASKS:
-
+- pkm shell: automatic zoo export (zoo should have a bin directory), think about that, do we need it as non pkm shell
+  extension?
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
-- test pkm on os where platlib and purelib are different
-- pkm stat : print cache size, repositories loaded, etc.
+- test pkm on os where platlib and purelib are different (centos?)
+- pkm stat : print cache size, attached repository, etc.
 - refactoring: repositories should by itself be a project group
 - support application-only packages (the package itself is the installer)
-- `pkm shell -e` : like `npm run` and `poetry run`
 - repositories: conda (currently requires that conda itself is installed as it cannot be built or fetched from pypi)
 - repositories: pyvenv
 - consider exposing application script entrypoint using the old application loader
@@ -75,11 +70,6 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
-- when installation fails, environment is dirty
-    - wheel installer, when installation failed during the copying phase need to revert into a stable system state (
-      probably by removing what we have already written)
-    - dont forget to handle overwriten files
-    - create a filesystem transaction class, shared packages repository can also benefit from that
 - `pkm shell` support custom environment variables loading like in pipenv
 - improve api documentation
 - test pkm on windows, think how to test it on osx
@@ -106,7 +96,7 @@
 - automatic monkey patching of a module by import hooks - this hooks can be defined in the project level = extension
   methods, this can be done with pth files and import hooks!
 - mechanism for lazy importing (like in java) that use the new module level "get attr" or locals:
-    - include('module', 'name1 as x', 'name2', ...), maybe also specify that you want to import the type only
-    - can be also made by a preprocessor (like: '#preprocessor: lazy imports' on the beginning of the file)
+    - can be made by a preprocessor (like: '#preprocessor: lazy imports' on the beginning of the file)
+    - it will then have to replace all the type annotations into string based or something similar..
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - python installation repository (no sudo! - download for os and install in data files - if possible)

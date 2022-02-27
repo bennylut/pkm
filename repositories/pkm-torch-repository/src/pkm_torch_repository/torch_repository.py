@@ -4,7 +4,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
-from pkm.api.repositories.simple_repository import SimpleRepository
+from pkm.repositories.simple_repository import SimpleRepository
 from pkm.api.versions.version import StandardVersion
 from pkm.utils.commons import unone
 from pkm.utils.properties import cached_property

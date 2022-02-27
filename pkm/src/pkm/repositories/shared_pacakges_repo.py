@@ -3,7 +3,7 @@ import shutil
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Set, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration
@@ -11,8 +11,11 @@ from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.repositories.repository import AbstractRepository, Repository
 from pkm.distributions.executables import Executables
+from pkm.utils.commons import NoSuchElementException
+from pkm.utils.files import CopyTransaction, is_empty_directory
 from pkm.utils.iterators import first_or_none
 
 
@@ -22,6 +25,34 @@ class SharedPackagesRepository(AbstractRepository):
         super().__init__("shared")
         self._workspace = workspace
         self._base_repo = base_repository
+
+    def remove_unused_packages(self, package_users: Iterator[Environment]):
+        used_packages: Set[str] = set()
+        for package_user in package_users:
+            for used_package in package_user.site_packages.installed_packages():
+                if (shared_marker := used_package.dist_info.path / "SHARED").exists():
+                    used_packages.add(shared_marker.read_text())
+
+        for package_dir in self._workspace.iterdir():
+            if not package_dir.is_dir():
+                continue
+
+            for version_dir in package_dir.iterdir():
+                if not version_dir.is_dir():
+                    continue
+
+                for shared_dir in version_dir.iterdir():
+                    if not shared_dir.is_dir():
+                        continue
+
+                    if str(shared_dir.absolute()) not in used_packages:
+                        shutil.rmtree(shared_dir)
+
+                if is_empty_directory(version_dir):
+                    version_dir.rmdir()
+
+            if is_empty_directory(package_dir):
+                package_dir.rmdir()
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         packages_dir = self._workspace / dependency.package_name
@@ -82,9 +113,7 @@ class _SharedPackage(Package):
             _link_shared(self.descriptor, shared, env)
         else:
             self._package.install_to(env)
-            env.reload()  # TODO: does that needed?
-            shared = _copy_to_shared(self._package.descriptor, env, self._shared_path)
-            env.force_remove(self._package.name)
+            shared = _move_to_shared(self._package.descriptor, env, self._shared_path)
             _link_shared(self.descriptor, shared, env)
 
 
@@ -96,7 +125,7 @@ def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
             shared_path = shared / record.relative_to(root)
             if record.is_dir():
                 shared_path.mkdir(exist_ok=True, parents=True)
-            else:
+            elif record.exists():
                 shared_path.parent.mkdir(exist_ok=True, parents=True)
                 shutil.copy(record, shared_path)
         else:
@@ -104,14 +133,22 @@ def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
     return records_left
 
 
-def _copy_to_shared(package: PackageDescriptor, env: Environment, shared_path: Path) -> _SharedPackageArtifact:
-    installed_package = env.site_packages.installed_package(package.name)
+def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: Path) -> _SharedPackageArtifact:
+    psname = (package.expected_source_package_name + "-").lower()
 
-    site_name = "purelib" if installed_package.is_in_purelib() else "platlib"
+    for site in ('purelib', 'platlib'):
+        dist_info_path = first_or_none(
+            it for it in Path(env.paths[site]).glob("*.dist-info") if it.name.lower().startswith(psname))
 
-    dist_info = installed_package.dist_info
+        if dist_info_path:
+            break
+    else:
+        raise NoSuchElementException(f"package: {package} is reported as installed but could not be find inside venv")
+
+    dist_info = DistInfo.load(dist_info_path)
+
     shared_target = shared_path / hashlib.md5(
-        str(installed_package.published_metadata.required_python_spec).encode()).hexdigest()
+        str(dist_info.load_metadata_cfg().required_python_spec).encode()).hexdigest()
 
     records = list(dist_info.installed_files())
 
@@ -121,7 +158,7 @@ def _copy_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
         if not r.is_relative_to(dist_info.path)]
 
     # copy site
-    shared_purelib = shared_target / site_name
+    shared_purelib = shared_target / site
     records = _copy_records(dist_info.path.parent, shared_purelib, records)
 
     # copy scripts
@@ -140,41 +177,45 @@ def _copy_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
         warnings.warn(f"{len(records)} unsharable records found in package: {package.name} {package.version}: "
                       f"{', '.join(str(r) for r in records)}")
 
+    # uninstall the original package
+    InstalledPackage(dist_info).uninstall()
+
     return _SharedPackageArtifact(shared_target, dist_info.load_metadata_cfg())
 
 
 def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, env: Environment):
-    files_created: List[Path] = []
+    with CopyTransaction() as ct:
 
-    package_prefix = f"{package.expected_source_package_name}-{package.version}"
+        package_prefix = f"{package.expected_source_package_name}-{package.version}"
 
-    site_name = "purelib" if (shared.path / "purelib").exists() else "platlib"
-    site_path = Path(env.paths[site_name])
+        site_name = "purelib" if (shared.path / "purelib").exists() else "platlib"
+        site_path = Path(env.paths[site_name])
 
-    # first link the site data
-    purelib_link = PthLink(site_path / f"{package_prefix}.pth", [shared.path / site_name])
-    purelib_link.save()
-    files_created.append(purelib_link.path)
+        # first link the site data
+        purelib_link = PthLink(site_path / f"{package_prefix}.pth", [shared.path / site_name])
+        purelib_link.save()
+        ct.touch(purelib_link.path)
 
-    # now create all script entrypoints
-    shared_distinfo = DistInfo.load(shared.path / "dist-info")
-    bin_dir = Path(env.paths['scripts'])
-    for entrypoint in shared_distinfo.load_entrypoints_cfg().entrypoints:
-        if entrypoint.is_script():
-            files_created.append(Executables.generate_for_entrypoint(entrypoint, env, bin_dir))
+        # now create all script entrypoints
+        shared_distinfo = DistInfo.load(shared.path / "dist-info")
+        bin_dir = Path(env.paths['scripts'])
+        for entrypoint in shared_distinfo.load_entrypoints_cfg().entrypoints:
+            if entrypoint.is_script():
+                ct.touch(Executables.generate_for_entrypoint(entrypoint, env, bin_dir))
 
-    # then, patch non entrypoint scripts
-    for script in (shared.path / 'bin').iterdir():
-        target_script = bin_dir / script.name
-        Executables.patch_shabang_for_env(script, target_script, env)
-        files_created.append(target_script)
+        # then, patch non entrypoint scripts
+        for script in (shared.path / 'bin').iterdir():
+            target_script = bin_dir / script.name
+            Executables.patch_shabang_for_env(script, target_script, env)
+            ct.touch(target_script)
 
-    # we are almost done, copy dist-info
-    distinfo_path = site_path / f"{package_prefix}.dist-info"
-    shutil.copytree(shared_distinfo.path, distinfo_path)
-    files_created.extend(file for file in distinfo_path.rglob("*") if file.name != "RECORD")
+        # we are almost done, copy dist-info
+        distinfo_path = site_path / f"{package_prefix}.dist-info"
+        ct.copy_tree(shared_distinfo.path, distinfo_path, lambda it: it.name != "RECORD")
+        shared_marker = (distinfo_path / "SHARED")
+        shared_marker.write_text(str(shared.path.absolute()))
+        ct.touch(shared_marker)
 
-    # and finally, sign the installation
-    record_path = distinfo_path / "RECORD"
-    record_path.unlink(missing_ok=True)
-    RecordsFileConfiguration.load(record_path).sign_files(files_created, site_path).save()
+        # and finally, sign the installation
+        record_path = distinfo_path / "RECORD"
+        RecordsFileConfiguration.load(record_path).sign_files(ct.copied_files, site_path).save()

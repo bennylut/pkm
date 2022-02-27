@@ -1,9 +1,3 @@
-def x():
-    for i in range(19):
-        yield i
+from pkm.api.packages.package import PackageDescriptor
 
-
-a = x()
-i1 = iter(a)
-i2 = iter(a)
-print(next(i1), next(i2))
+print(PackageDescriptor.normalize_source_dir_name("poetry-core"))

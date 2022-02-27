@@ -1,5 +1,6 @@
 import csv
 import shutil
+import warnings
 from pathlib import Path
 from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
 
@@ -58,9 +59,8 @@ class SitePackages:
             if file.suffix == ".dist-info":
                 metadata_file = file / "METADATA"
                 if metadata_file.exists():
-                    metadata = PackageMetadata.load(metadata_file)
-                    user_request = _read_user_request(file, metadata)
-                    result[metadata.package_name] = InstalledPackage(file, metadata, user_request, self, readonly)
+                    result[file.name.split("-")[0].lower()] = \
+                        InstalledPackage(DistInfo.load(file), self, readonly)
 
     def installed_packages(self) -> Iterable["InstalledPackage"]:
         return self._name_to_packages.values()
@@ -89,41 +89,36 @@ def _read_user_request(dist_info: Path, metadata: PackageMetadata) -> Optional[D
 
 class InstalledPackage(Package):
 
-    def __init__(
-            self, dist_info: Path, metadata: PackageMetadata, user_request: Optional[Dependency],
-            site: SitePackages, readonly: bool):
-
-        self._meta = metadata
-        self._desc = PackageDescriptor(metadata.package_name, metadata.package_version)
+    def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None, readonly: bool = False):
 
         self._dist_info = dist_info
-        self._user_request = user_request
         self.site = site
         self.readonly = readonly
 
-    @property
-    def published_metadata(self) -> Optional["PackageMetadata"]:
-        return self._meta
-
     @cached_property
+    def published_metadata(self) -> Optional["PackageMetadata"]:
+        return self._dist_info.load_metadata_cfg()
+
+    @property
     def dist_info(self) -> DistInfo:
         """
         :return: the installed package dist-info
         """
-        return DistInfo.load(self._dist_info)
+        return self._dist_info
 
-    @property
+    @cached_property
     def descriptor(self) -> PackageDescriptor:
-        return self._desc
+        meta = self.published_metadata
+        return PackageDescriptor(meta.package_name, meta.package_version)
 
-    @property
+    @cached_property
     def user_request(self) -> Optional[Dependency]:
         """
         :return: the dependency that was requested by the user
                  if this package was directly requested by the user or its project
                  otherwise None
         """
-        return self._user_request
+        return _read_user_request(self._dist_info.path, self.published_metadata)
 
     def unmark_user_requested(self) -> bool:
         """
@@ -134,23 +129,23 @@ class InstalledPackage(Package):
         if self.readonly:
             return False
 
-        (self._dist_info / "REQUESTED").unlink(missing_ok=True)
-        self._user_request = None
+        (self._dist_info.path / "REQUESTED").unlink(missing_ok=True)
+        del self.user_request  # noqa
         return True
 
     def mark_user_requested(self, request: Dependency) -> bool:
         if self.readonly:
             return False
 
-        (self._dist_info / "REQUESTED").write_text(str(request))
-        self._user_request = request
+        (self._dist_info.path / "REQUESTED").write_text(str(request))
+        del self.user_request  # noqa
         return True
 
     def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self._meta.dependencies
+        return self.published_metadata.dependencies
 
     def is_compatible_with(self, env: "Environment") -> bool:
-        return self._meta.required_python_spec.allows_version(env.interpreter_version)
+        return self.published_metadata.required_python_spec.allows_version(env.interpreter_version)
 
     def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
         raise NotImplemented()  # maybe re-mark user request?
@@ -163,43 +158,33 @@ class InstalledPackage(Package):
         return self.dist_info.path.is_relative_to(self.site.purelib_path)
 
     def uninstall(self) -> bool:
-        # monitor.on_uninstall(self, self.site.env)
         if self.readonly:
-            print("could not uninstall, package is readonly")
+            warnings.warn("could not uninstall, package is readonly")
             return False
 
-        root = self._dist_info.parent
+        parents_to_check = set()
+        for installed_file in self._dist_info.installed_files():
+            installed_file.unlink(missing_ok=True)
+            parents_to_check.add(installed_file.parent)
 
-        parents: Set[Path] = set()
-        record_file = self._dist_info / "RECORD"
+        installation_site = self.dist_info.path.parent
+        while parents_to_check:
+            parent = parents_to_check.pop()
 
-        if not record_file.exists():
-            return False
-
-        with record_file.open('r', newline='') as record_fd:
-            for record in csv.reader(record_fd):
-                record_path = root / record[0]
-                record_path.unlink(missing_ok=True)
-                parents.add(record_path.parent)
-
-        for parent in sorted(parents, key=lambda it: len(str(it)), reverse=True):
-            if not parent.exists():
+            if parent == installation_site or not parent.is_relative_to(installation_site):
                 continue
 
-            to_check = [parent, *parent.parents]
+            if (precompiled := parent / "__pycache__").exists():
+                shutil.rmtree(precompiled, ignore_errors=True)
 
-            while to_check:
-                if root == to_check.pop():
-                    break
+            if is_empty_directory(parent):
+                parent.rmdir()
+                parents_to_check.add(parent.parent)
 
-            for path in to_check:
-                if (precompiled := path / "__pycache__").exists():
-                    shutil.rmtree(precompiled, ignore_errors=True)
-                if is_empty_directory(path):
-                    path.rmdir()
+        if self._dist_info.path.exists():
+            shutil.rmtree(self._dist_info.path)
 
-        shutil.rmtree(self._dist_info)
-
-        self.site.reload()
+        if self.site:
+            self.site.reload()
 
         return True

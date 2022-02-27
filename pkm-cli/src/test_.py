@@ -24,7 +24,7 @@
 # # # SourceDistribution(PackageDescriptor("pkm-conda-repository-app", Version.parse("0.1.0")), ip).install_to(env)
 from pathlib import Path
 
-from pkm.api.repositories.shared_pacakges_repo import SharedPackagesRepository
+from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.api.projects.project import Project
 from pkm_cli.cli_monitors import listen
 
