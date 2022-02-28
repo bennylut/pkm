@@ -7,6 +7,7 @@ from argparse import Namespace
 from typing import Optional, Callable
 
 from pkm.api.environments.environment import Environment
+from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.utils.commons import UnsupportedOperationException
@@ -28,11 +29,17 @@ def _lookup_env(path: Path) -> Optional[Environment]:
         return Environment(path)
 
 
+def _lookup_env_zoo(path: Path) -> Optional[EnvironmentsZoo]:
+    if EnvironmentsZoo.is_valid(path):
+        return EnvironmentsZoo.load(path)
+
+
 @dataclass
 class _ContextualCommand:
     on_project: Optional[Callable[[Project], None]] = None,
     on_project_group: Optional[Callable[[ProjectGroup], None]] = None,
     on_environment: Optional[Callable[[Environment], None]] = None,
+    on_env_zoo: Optional[Callable[[EnvironmentsZoo], None]] = None,
 
     # noinspection PyCallingNonCallable
     def execute(self, path: Path):
@@ -45,6 +52,9 @@ class _ContextualCommand:
         elif (on_environment := self.on_environment) and (env := _lookup_env(path)):
             Display.print(f"using virtual-env context: {env.path}")
             on_environment(env)
+        elif (on_env_zoo := self.on_env_zoo) and (env_zoo := _lookup_env_zoo(path)):
+            Display.print(f"using env-zoo context: {env_zoo.path}")
+            on_env_zoo(env_zoo)
         else:
             return False
         return True
@@ -62,6 +72,7 @@ class Context:
             on_project_group: Optional[Callable[[ProjectGroup], None]] = None,
             on_environment: Optional[Callable[[Environment], None]] = None,
             on_free_context: Optional[Callable[[], None]] = None,
+            on_env_zoo: Optional[Callable[[EnvironmentsZoo], None]] = None,
             on_missing: Optional[Callable[[], None]] = None,
             **junk):
 
@@ -72,8 +83,11 @@ class Context:
             return
 
         path = self._path
-        cmd = _ContextualCommand(on_project=on_project, on_project_group=on_project_group,
-                                 on_environment=on_environment)
+        cmd = _ContextualCommand(
+            on_project=on_project, on_project_group=on_project_group,
+            on_environment=on_environment, on_env_zoo=on_env_zoo
+        )
+
         executed = cmd.execute(path)
 
         if not executed and self._lookup:

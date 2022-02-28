@@ -3,6 +3,10 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "rich", version = "11.1.0"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "rich", version = "11.1.0"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "jinja2", version = "3.0.3"}
 
@@ -11,7 +15,15 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "wcwidth", version = "0.2.5"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "wcwidth", version = "0.2.5"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "psutil", version = "5.9.0"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "psutil", version = "5.9.0"}
 
 [[lock]]
@@ -19,7 +31,15 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "setproctitle", version = "1.2.2"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "setproctitle", version = "1.2.2"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "questionary", version = "1.10.0"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "questionary", version = "1.10.0"}
 
 [[lock]]
@@ -27,11 +47,23 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "distro", version = "1.6.0"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "distro", version = "1.6.0"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "commonmark", version = "0.9.1"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "commonmark", version = "0.9.1"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "shellingham", version = "1.4.0"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "shellingham", version = "1.4.0"}
 
 [[lock]]
@@ -43,6 +75,10 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "pkm-cli", version = "0.4.26"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "pkm-cli", version = "0.4.26"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "markupsafe", version = "2.0.1"}
 
@@ -51,7 +87,15 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "pkm", version = "0.3.0"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "pkm", version = "0.3.0"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "colorama", version = "0.4.4"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "colorama", version = "0.4.4"}
 
 [[lock]]
@@ -59,9 +103,33 @@ env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "prompt-toolkit", version = "3.0.24"}
 
 [[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "prompt-toolkit", version = "3.0.24"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
+package = {name = "pyperclip", version = "1.8.2"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "pyperclip", version = "1.8.2"}
 
 [[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "xonsh", version = "0.11.0"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "xonsh", version = "0.11.0"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "Jinja2", version = "3.0.3"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "Pygments", version = "2.11.2"}
+
+[[lock]]
+env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
+package = {name = "MarkupSafe", version = "2.0.1"}

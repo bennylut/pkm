@@ -8,6 +8,7 @@ from typing import List, Optional, Set, Iterator
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration
 from pkm.api.distributions.pth_link import PthLink
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -17,6 +18,7 @@ from pkm.distributions.executables import Executables
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import CopyTransaction, is_empty_directory
 from pkm.utils.iterators import first_or_none
+from pkm.utils.sequences import argmax
 
 
 class SharedPackagesRepository(AbstractRepository):
@@ -74,6 +76,7 @@ class SharedPackagesRepository(AbstractRepository):
 class _SharedPackageArtifact:
     path: Path
     metadata: PackageMetadata
+    compatibility_tags: str
 
 
 class _SharedPackage(Package):
@@ -84,7 +87,7 @@ class _SharedPackage(Package):
 
         if shared_path.exists():
             self._artifacts = [
-                _SharedPackageArtifact(artifact, PackageMetadata.load(artifact / "dist-info/METADATA"))
+                _SharedPackageArtifact(artifact, PackageMetadata.load(artifact / "dist-info/METADATA"), artifact.name)
                 for artifact in shared_path.iterdir()
             ]
         else:
@@ -95,9 +98,14 @@ class _SharedPackage(Package):
         return self._package.descriptor
 
     def _shared_artifact_for(self, env: Environment) -> Optional[_SharedPackageArtifact]:
-        return first_or_none(
-            artifact for artifact in self._artifacts
-            if artifact.metadata.required_python_spec.allows_version(env.interpreter_version))
+        try:
+            return max(
+                ((a, s) for a in self._artifacts
+                 if (s := env.compatibility_tag_score(a.compatibility_tags)) is not None),
+                key=lambda it: it[1]
+            )[0]
+        except ValueError:
+            return None
 
     def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         if artifact := self._shared_artifact_for(environment):
@@ -113,8 +121,8 @@ class _SharedPackage(Package):
             _link_shared(self.descriptor, shared, env)
         else:
             self._package.install_to(env)
-            shared = _move_to_shared(self._package.descriptor, env, self._shared_path)
-            _link_shared(self.descriptor, shared, env)
+            if shared := _move_to_shared(self._package.descriptor, env, self._shared_path):
+                _link_shared(self.descriptor, shared, env)
 
 
 def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
@@ -133,7 +141,7 @@ def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
     return records_left
 
 
-def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: Path) -> _SharedPackageArtifact:
+def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: Path) -> Optional[_SharedPackageArtifact]:
     psname = (package.expected_source_package_name + "-").lower()
 
     for site in ('purelib', 'platlib'):
@@ -147,8 +155,12 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
 
     dist_info = DistInfo.load(dist_info_path)
 
-    shared_target = shared_path / hashlib.md5(
-        str(dist_info.load_metadata_cfg().required_python_spec).encode()).hexdigest()
+    archive = (dist_info.path / "INSTALLER").read_text().splitlines(keepends=False)
+    if len(archive) >= 2 and archive[1].endswith(".whl"):
+        compatibility_tags = WheelDistribution.compute_compatibility_tags_of(Path(archive[1]))
+        shared_target = shared_path / compatibility_tags
+    else:
+        return None
 
     records = list(dist_info.installed_files())
 
@@ -180,7 +192,7 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
     # uninstall the original package
     InstalledPackage(dist_info).uninstall()
 
-    return _SharedPackageArtifact(shared_target, dist_info.load_metadata_cfg())
+    return _SharedPackageArtifact(shared_target, dist_info.load_metadata_cfg(), shared_target.name)
 
 
 def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, env: Environment):

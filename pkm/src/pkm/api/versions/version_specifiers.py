@@ -200,7 +200,7 @@ class SpecificVersion(VersionSpecifier):
                 return other
             return None
 
-        assert False, 'merging only support non union versions'
+        assert False, f'merging only support non union versions, attempting to merge: {self} with {other}'
         return None  # noqa
 
     def inverse(self) -> "VersionSpecifier":
@@ -335,7 +335,6 @@ class VersionUnion(VersionSpecifier):
                 return result
 
             result = result.intersect(c.inverse())
-
         return result
 
     def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
@@ -361,6 +360,8 @@ AnyVersion = VersionRange(includes_min=True, includes_max=True)
 # UTILS
 
 def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
+    segments_bu = segments
+
     if not segments:
         return NoVersion
 
@@ -392,7 +393,16 @@ def _intersect(a: VersionSpecifier, b: VersionSpecifier) -> "VersionSpecifier":
 
     if isinstance(a, VersionUnion) or (swap := isinstance(b, VersionUnion)):
         if swap: a, b = b, a  # noqa
-        return _unite([intersection for it in a.unions if not (intersection := _intersect(it, b)).is_none()])
+
+        b_segments = [b]
+        if isinstance(b, VersionUnion):
+            b_segments = b.unions
+
+        return _unite([
+            intersection
+            for it in a.unions
+            for segment in b_segments
+            if not (intersection := _intersect(it, segment)).is_none()])
 
     if isinstance(a, SpecificVersion) or (swap := isinstance(b, SpecificVersion)):
         if swap: a, b = b, a  # noqa

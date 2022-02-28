@@ -127,6 +127,11 @@ class SimpleParser:
             return ''
 
     def until(self, predicate: Callable[[int, str], bool]) -> str:
+        """
+        match chars from this parser until `predicate` return True
+        :param predicate: the stop condition to evaluate
+        :return: the matched chars
+        """
         p = self.position
         for i in range(self.position, len(self.text)):
             if predicate(i, self.text):

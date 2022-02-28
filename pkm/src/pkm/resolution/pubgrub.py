@@ -51,10 +51,6 @@ class Term:
     # this means that both if y not exists or not y then the incompatibility is satisfied
     optional: bool = False
 
-    def __post_init__(self):
-        if self.constraint is None:
-            raise Exception("HERE")
-
     def negate(self, optional: bool = False) -> "Term":
         return Term(self.package, self.constraint.inverse(), optional)
 

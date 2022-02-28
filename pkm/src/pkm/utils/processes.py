@@ -7,6 +7,7 @@ from subprocess import CompletedProcess
 from typing import List, NoReturn, Mapping
 
 from pkm.utils.monitors import MonitoredOperation, MonitoredEvent
+from pkm.utils.parsers import SimpleParser
 
 _IS_WINDOWS = platform.system() == 'Windows'
 
@@ -39,6 +40,39 @@ def monitored_run(execution_name: str, cmd: List[str], **subprocess_run_kwargs) 
 
         ProcessExecutionExitEvent(rcode).notify(mpo)
         return CompletedProcess(cmd, rcode)
+
+
+class _CommandParser(SimpleParser):
+    def read_command(self):
+        result: List[str] = []
+
+        self.match_ws()
+        while self.is_not_empty():
+            if self.peek() in "\"'":
+                result.append(self.read_str())
+            else:
+                result.append(self.until(lambda i, s: s[i].isspace()))
+            self.match_ws()
+
+        return result
+
+    def read_str(self) -> str:
+        quotes = self.match_any('"', "'")
+        if not quotes:
+            self.raise_err("expecting start of string")
+
+        s = quotes + self.until_match(quotes)
+        while s[-1] == '\\':
+            s += self.next() + self.until_match(quotes)
+
+        s += quotes
+        self.match_or_err(quotes, 'basic string ending expected')
+
+        return eval(s)
+
+
+def split_command(cmd: str) -> List[str]:
+    return _CommandParser(cmd).read_command()
 
 
 @dataclass

@@ -286,9 +286,9 @@ def _add_standard_headers(headers: Dict[str, str]):
 
 class HttpClient:
 
-    def __init__(self, resources_dir: Path, max_redirects: int = 3, max_connection_retries: int = 2):
-        self._resources_dir = resources_dir
-        resources_dir.mkdir(exist_ok=True, parents=True)
+    def __init__(self, workspace: Path, max_redirects: int = 3, max_connection_retries: int = 2):
+        self.workspace = workspace
+        workspace.mkdir(exist_ok=True, parents=True)
 
         self._pool = _ConnectionPool()
         self._fetch_inprogress: Dict[str, Promise[FetchedResource]] = {}
@@ -301,14 +301,14 @@ class HttpClient:
         url_path = Path(url.path.lstrip('/'))
 
         if url_path.parent:
-            cache_dir = self._resources_dir / url.host / url_path.parent / url_hash
+            cache_dir = self.workspace / url.host / url_path.parent / url_hash
         else:
-            cache_dir = self._resources_dir / url.host / url_hash
+            cache_dir = self.workspace / url.host / url_hash
 
         data_file = cache_dir / url_path.name
         fetch_file = data_file.with_suffix(".fetch.toml")
 
-        return FetchedResource(fetch_file, data_file, self._resources_dir)
+        return FetchedResource(fetch_file, data_file, self.workspace)
 
     @contextmanager
     def _request(
@@ -455,5 +455,5 @@ class HttpClient:
             return promise.result()
 
     def clear_resources(self):
-        shutil.rmtree(self._resources_dir)
-        self._resources_dir.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(self.workspace)
+        self.workspace.mkdir(parents=True, exist_ok=True)

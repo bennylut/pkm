@@ -21,11 +21,11 @@ _normalize = PackageDescriptor.normalize_source_dir_name
 
 class SourceBuildCache:
     def __init__(self, workspace: Path):
-        self._workspace = workspace
+        self.workspace = workspace
         workspace.mkdir(parents=True, exist_ok=True)
 
     def _version_dir(self, package: PackageDescriptor) -> Path:
-        return self._workspace / package.name / _normalize(str(package.version))
+        return self.workspace / package.name / _normalize(str(package.version))
 
     def get_or_build_wheel(self, env: Environment, dist: SourceDistribution) -> Path:
         return self._get_or_build(env, dist, 'wheel')
@@ -35,7 +35,7 @@ class SourceBuildCache:
 
     def _get_or_build(self, env: Environment, dist: SourceDistribution, artifact: str) -> Any:
 
-        base_cache_dir = self._workspace / _normalize(dist.owner_package.name) / \
+        base_cache_dir = self.workspace / _normalize(dist.owner_package.name) / \
                          _normalize(str(dist.owner_package.version)) / \
                          env.markers_hash
 

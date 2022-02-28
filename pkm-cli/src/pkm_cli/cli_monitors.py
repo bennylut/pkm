@@ -16,8 +16,6 @@ from pkm_cli.display.display import Display
 from pkm_cli.display.progress import Progress
 from pkm_cli.display.spinner import Spinner
 
-_verbose = False
-
 _packages_being_installed = []
 _packages_being_installed_spinner = Spinner("")
 _packages_being_installed_spinner_context = None
@@ -53,7 +51,7 @@ def with_package_install(e: PackageInstallMonitoredOp):
 
 
 def with_external_proc_execution(e: ProcessExecutionMonitoredOp):
-    if _verbose:
+    if Display.verbose:
         def on_output(oe: ProcessExecutionOutputLineEvent):
             Display.print(f"[{e.execution_name}]: {oe.line}", use_markup=False)
 
@@ -70,19 +68,20 @@ def with_fetch_resource(e: FetchResourceMonitoredOp):
 
     done: bool = False
 
-    def on_cache_hit(_: FetchResourceCacheHitEvent):
-        Display.print(f"{e.resource_name} found in cache, using it.")
+    if Display.verbose:
+        def on_cache_hit(_: FetchResourceCacheHitEvent):
+            Display.print(f"{e.resource_name} found in cache, using it.")
 
     def on_download(download: FetchResourceDownloadStartEvent):
+        if Display.verbose or download.file_size > 2_000_000:  # 2m
+            def monitor():
+                with Display.show(Progress(f"Fetch {e.resource_name}", download.file_size)) as progress:
+                    while not done:
+                        newsize = download.store_path.stat().st_size if download.store_path.exists() else 0
+                        progress.completed = newsize
+                        sleep(0.25)
 
-        def monitor():
-            with Display.show(Progress(f"Fetch {e.resource_name}", download.file_size)) as progress:
-                while not done:
-                    newsize = download.store_path.stat().st_size if download.store_path.exists() else 0
-                    progress.completed = newsize
-                    sleep(0.25)
-
-        pkm.threads.submit(monitor)
+            pkm.threads.submit(monitor)
 
     with e.listen(**locals()):
         try:
@@ -100,7 +99,7 @@ def with_dependency_resolution(e: DependencyResolutionMonitoredOp):
 
     def on_conclusion(ce: DependencyResolutionConclusionEvent):
         d = {k: v for k, v in ce.decisions.items() if str(k) != 'installation-request'}
-        Display.print(f"Reached decision: {d}")
+        Display.print(f"Resolved Requirements: {d}")
 
     with e.listen(**locals()), Display.show(progress):
         yield
@@ -118,6 +117,5 @@ _listeners = locals()
 
 
 def listen(verbose: bool):
-    global _verbose
-    _verbose = verbose
+    Display.verbose = verbose
     Monitor.add_listeners(**_listeners)

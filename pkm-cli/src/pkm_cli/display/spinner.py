@@ -38,4 +38,5 @@ class Spinner(InformationUnit):
         self._rich_spinner = RichSpinner("dots", self._description, style="progress.spinner")
         yield self._rich_spinner
 
-        Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")
+        if Display.verbose:
+            Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")

@@ -65,6 +65,7 @@ class RepositoryLoader:
                 traceback.print_exc()
 
         self._main = self._compose('main', main_cfg, self.pypi)
+        self.workspace = workspace
 
     @property
     def main(self) -> Repository:

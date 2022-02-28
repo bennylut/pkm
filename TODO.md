@@ -2,22 +2,16 @@
 
 - documentation: document the application classes and usage
 - documentation: describe repositories
-- make dependency resolution less verbose
 - documentation: extensions + torch repository
-- cli: pkm clean shared | pkm clean cache | pkm clean dist
 - check pkm installation in app mode on system environment + torch-repo in app mode
 - entrypoint to allow for default repository instances (pkm-torch /-repository)
-- `pkm shell -e` : like `npm run` and `poetry run`
 
 ## DONE IN THIS VERSION
-- several bug fixes with shared packages 
-- reduce code complexity for wheel install and uninstall
-- move some classes in repositories out from the api
-- bug: when installation fails, environment is dirty
-    - update wheel installer
-    - update shared packages repository
-- environment zoo: shared packages add functionality to clean unused packages 
-
+- cli: pkm clean shared | pkm clean cache | pkm clean dist
+- make dependency resolution less verbose
+- bug: cached_property: mutation lock should be instance dependent and not global
+- `pkm shell -e` : like `npm run` and `poetry run`
+- bug: shared libs with different abi ware not differentiables 
 
 ## BACKLOG TASKS:
 - pkm shell: automatic zoo export (zoo should have a bin directory), think about that, do we need it as non pkm shell
@@ -28,6 +22,8 @@
 - refactoring: repositories should by itself be a project group
 - support application-only packages (the package itself is the installer)
 - repositories: conda (currently requires that conda itself is installed as it cannot be built or fetched from pypi)
+    - it seems that it will be simple enough to implement
+      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
 - repositories: pyvenv
 - consider exposing application script entrypoint using the old application loader
 - applications can also provide repositories configuration, those should be specified in its table
@@ -39,7 +35,6 @@
 - pkm show: add repositories information
 - cmd: pkm install - support installation of wheel and sdist from path, also from project dir (w/editables)
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
-- cmd: pkm cache clear
 - bug: pkm new - cannot cancel creation - it just continues to the next question
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
 - cmd: pkm remove - display the packages being removed
@@ -62,7 +57,6 @@
 - check that when downloading packages for install, the hash is being validated correctly
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
 - handle project install with extras, usecase: test dependencies
-- bug: cached_property: mutation lock should be instance dependent and not global
 - content information (author and maintainer) name and email should be validated,
     - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
     - email should be a valid email address

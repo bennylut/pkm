@@ -7,14 +7,13 @@ parse = VersionSpecifier.parse
 
 class TestVersionSpecifiers(TestCase):
 
-    def test_url_specifier(self):
-        vurl = VersionSpecifier.parse("@http://x")
-        assert str(vurl.inverse().inverse()) == str(vurl)
+    def test_inverse(self):
+        version = VersionSpecifier.parse(">=0.14.0, <0.17.0")\
+            .union(VersionSpecifier.parse(">0.17.0, <0.17.1"))\
+            .union(VersionSpecifier.parse(">0.17.1, <0.17.2"))\
+            .union(VersionSpecifier.parse(">0.17.2"))
 
-        other = VersionSpecifier.parse("!=1.0.0")
-
-        # url specifier should not allow 'regular versions' even in a negative way
-        assert vurl.intersect(other).is_none()
+        assert str(version.inverse()) == "<0.14.0; ==0.17.0; ==0.17.1; ==0.17.2"
 
     def test_locals(self):
         local_version = parse("==1.0.0+local")

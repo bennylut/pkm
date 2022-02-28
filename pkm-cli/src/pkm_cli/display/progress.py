@@ -33,7 +33,8 @@ class Progress(InformationUnit):
 
         yield self._rich_progress
 
-        Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")
+        if Display.verbose:
+            Display.print(f"Done {self._description}, took: {time() - starttime:.2f} seconds")
 
     @property
     def total(self) -> int:

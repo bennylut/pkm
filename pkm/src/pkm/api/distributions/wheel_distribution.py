@@ -141,7 +141,7 @@ class WheelDistribution(Distribution):
                 new_record_file.save()
 
                 # mark the installer and the requested flag
-                (new_dist_info.path / "INSTALLER").write_text("pkm")
+                (new_dist_info.path / "INSTALLER").write_text(f"pkm\n{self._wheel.name}")
                 if user_request:
                     (new_dist_info.path / "REQUESTED").write_text(str(user_request))
 

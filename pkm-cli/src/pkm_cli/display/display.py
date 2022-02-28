@@ -73,6 +73,7 @@ class _Display:
         self._console = Console()
         self._dumb = self._console.is_dumb_terminal if dumb is None else dumb
         self._live_output = None if self._dumb else _LiveOutput(self._console)
+        self.verbose = False
 
         if self._dumb:
             self.print("using dumb display")
@@ -93,21 +94,5 @@ class _Display:
     def is_dumb(self) -> bool:
         return self._dumb
 
-
-# "hack" prompt toolkit to work together with rich
-# import prompt_toolkit.output.defaults as pt_defaults
-#
-# _original_stdout = sys.stdout
-# _original_pt_create_output = pt_defaults.create_output
-#
-#
-# def _pt_create_defaults(stdout: Optional[TextIO] = None, always_prefer_tty: bool = True):
-#     if stdout is None:
-#         stdout = _original_stdout
-#     return _original_pt_create_output(stdout, always_prefer_tty)
-#
-#
-# pt_defaults.create_output = _pt_create_defaults
-# --------------------------------------------------
 
 Display = _Display()

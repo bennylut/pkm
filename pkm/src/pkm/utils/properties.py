@@ -1,10 +1,9 @@
 from dataclasses import FrozenInstanceError
-from threading import Lock
+from threading import Lock, RLock
 
-from typing import TypeVar, Callable, Any
+from typing import TypeVar, Callable, Any, Dict
 
 _T = TypeVar("_T")
-
 
 # noinspection PyPep8Naming
 class cached_property:
@@ -13,11 +12,35 @@ class cached_property:
         self._func = func
         self._attr = None
         self.__doc__ = func.__doc__
-        # TODO: mutation lock should be instance dependant and not global..
-        self._mutation_lock = Lock()
+        self._mutation_lock = RLock()
+        self._instance_locks: Dict[int, RLock] = {}
 
     def __set_name__(self, owner, name):
         self._attr = f"_cached_{name}"
+
+    def _compute(self, instance):
+        compute = True
+        iid = id(instance)
+        with self._mutation_lock:
+            instance_lock = self._instance_locks.get(iid)
+            if instance_lock is not None:
+                compute = False
+            else:
+                instance_lock = self._instance_locks[iid] = RLock()
+                instance_lock.acquire()
+
+        with instance_lock:
+            if compute:
+                try:
+                    if not hasattr(instance, self._attr):
+                        value = self._func(instance)
+                        try:
+                            setattr(instance, self._attr, value)
+                        except FrozenInstanceError:
+                            super(instance.__class__, instance).__setattr__(self._attr, value)
+                finally:
+                    del self._instance_locks[iid]
+                    instance_lock.release()
 
     def __get__(self, instance, owner) -> _T:
         if instance is None:
@@ -27,13 +50,7 @@ class cached_property:
             try:
                 return getattr(instance, self._attr)
             except AttributeError:
-                with self._mutation_lock:
-                    if not hasattr(instance, self._attr):
-                        value = self._func(instance)
-                        try:
-                            setattr(instance, self._attr, value)
-                        except FrozenInstanceError:
-                            super(instance.__class__, instance).__setattr__(self._attr, value)
+                self._compute(instance)
 
     def __set__(self, instance, value: _T):
         setattr(instance, self._attr, value)

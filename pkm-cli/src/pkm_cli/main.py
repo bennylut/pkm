@@ -1,3 +1,7 @@
+import os
+
+import shutil
+
 import argparse
 import sys
 from argparse import ArgumentParser, Namespace
@@ -6,11 +10,13 @@ from typing import List, Optional, Callable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
+from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.processes import execvpe, split_command
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
 from pkm_cli.context import Context
@@ -20,14 +26,20 @@ from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
 
+from pkm_cli.utils.clis import command, Arg, create_args_parser
+
 
 # noinspection PyUnusedLocal
+@command('pkm shell', Arg(["-e", '--execute'], required=False, nargs=argparse.REMAINDER))
 def shell(args: Namespace):
     import xonsh.main
 
     def on_environment(env: Environment):
         Display.print(f"Using environment: {env.path}")
         with env.activate():
+            if execution := args.execute:
+                sys.exit(execvpe(execution[0], execution[1:], os.environ))
+
             sys.argv = ['xonsh']
             sys.exit(xonsh.main.main())
 
@@ -41,6 +53,7 @@ def shell(args: Namespace):
 
 
 # noinspection PyUnusedLocal
+@command('pkm build')
 def build(args: Namespace):
     def on_project(project: Project):
         project.build()
@@ -51,6 +64,9 @@ def build(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command(
+    'pkm vbump',
+    Arg('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?'))
 def vbump(args: Namespace):
     def on_project(project: Project):
         new_version = project.bump_version(args.particle)
@@ -59,6 +75,7 @@ def vbump(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command('pkm install', Arg('dependencies', nargs=argparse.REMAINDER))
 def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.dependencies]
 
@@ -79,6 +96,7 @@ def install(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command('pkm remove', Arg('package_names', nargs=argparse.REMAINDER))
 def remove(args: Namespace):
     if not (package_names := args.package_names):
         raise ValueError("no package names are provided to be removed")
@@ -93,6 +111,7 @@ def remove(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command('pkm publish', Arg('user'), Arg('password'))
 def publish(args: Namespace):
     if not (uname := args.user):
         raise ValueError("missing user name")
@@ -109,12 +128,14 @@ def publish(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command('pkm new', Arg('template'), Arg('template_args', nargs=argparse.REMAINDER))
 def new(args: Namespace):
     ScaffoldingEngine().render(
         ResourcePath('pkm_cli.scaffold', f"new_{args.template}.tar.gz"), Path.cwd(), args.template_args)
 
 
-def show(args: Namespace):
+@command('pkm show context')
+def show_context(args: Namespace):
     def on_project(project: Project):
         ProjectReport(project).display()
 
@@ -124,6 +145,7 @@ def show(args: Namespace):
     Context.of(args).run(**locals())
 
 
+@command('pkm show package', Arg('dependency'))
 def show_package(args: Namespace):
     def on_project(project: Project):
         PackageReport(project, args.dependency).display()
@@ -134,61 +156,40 @@ def show_package(args: Namespace):
     Context.of(args).run(**locals())
 
 
+# noinspection PyUnusedLocal
+@command('pkm clean cache')
+def clean_cache(args: Namespace):
+    pkm.clean_cache()
+
+
+# noinspection PyUnusedLocal
+@command('pkm clean shared')
+def clean_shared(args: Namespace):
+    def on_env_zoo(env_zoo: EnvironmentsZoo):
+        env_zoo.clean_unused_shared()
+
+    Context.of(args).run(**locals())
+
+
+@command('pkm clean dist')
+def clean_dist(args: Namespace):
+    def on_project(project: Project):
+        if (dist := project.directories.dist).exists():
+            shutil.rmtree(dist)
+
+    Context.of(args).run(**locals())
+
+
 def main(args: Optional[List[str]] = None):
     args = args or sys.argv[1:]
 
-    pkm_parser = ArgumentParser(description="pkm - python package management for busy developers")
-    pkm_subparsers = pkm_parser.add_subparsers()
-    all_subparsers = []
+    def customize_command(cmd: ArgumentParser):
+        cmd.add_argument('-v', '--verbose', action='store_true')
+        cmd.add_argument('-c', '--context')
+        cmd.add_argument('-g', '--global-context', action='store_true')
 
-    def create_command(name: str, func: Callable[[Namespace], None],
-                       subparsers=pkm_subparsers,
-                       **defaults) -> ArgumentParser:
-        result = subparsers.add_parser(name)
-        result.set_defaults(func=func, **defaults)
-        all_subparsers.append(result)
-
-        return result
-
-    # pkm build
-    create_command('build', build)
-
-    # pkm shell
-    create_command('shell', shell)
-
-    # pkm install
-    pkm_install_parser = create_command('install', install)
-    pkm_install_parser.add_argument('dependencies', nargs=argparse.REMAINDER)
-
-    # pkm remove
-    pkm_remove_parser = create_command('remove', remove)
-    pkm_remove_parser.add_argument('package_names', nargs=argparse.REMAINDER)
-
-    # pkm new
-    pkm_new_parser = create_command('new', new)
-    pkm_new_parser.add_argument('template')
-    pkm_new_parser.add_argument('template_args', nargs=argparse.REMAINDER)
-
-    # pkm publish
-    pkm_publish_parser = create_command('publish', publish)
-    pkm_publish_parser.add_argument('user')
-    pkm_publish_parser.add_argument('password')
-
-    # pkm vbump
-    pkm_vbump_parser = create_command('vbump', vbump, particle='patch')
-    pkm_vbump_parser.add_argument('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?')
-
-    # pkm test
-    pkm_show_parser = create_command('show', show)
-    pkm_show_subparsers = pkm_show_parser.add_subparsers()
-    pkm_show_package_parser = create_command('package', show_package, pkm_show_subparsers)
-    pkm_show_package_parser.add_argument('dependency')
-
-    # context altering flags
-    for subparser in all_subparsers:
-        subparser.add_argument('-v', '--verbose', action='store_true')
-        subparser.add_argument('-c', '--context')
-        subparser.add_argument('-g', '--global-context', action='store_true')
+    pkm_parser = create_args_parser(
+        "pkm - python package management for busy developers", globals().values(), customize_command)
 
     pargs = pkm_parser.parse_args(args)
     cli_monitors.listen('verbose' in pargs and pargs.verbose)
@@ -196,6 +197,8 @@ def main(args: Optional[List[str]] = None):
         pargs.func(pargs)
     else:
         pkm_parser.print_help()
+
+    Display.print("")
 
 
 if __name__ == "__main__":

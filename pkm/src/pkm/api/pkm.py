@@ -1,13 +1,13 @@
 import os
+import shutil
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pkm.config.etc_chain import EtcChain
 from pkm.utils.http.http_client import HttpClient
-from pkm.utils.properties import cached_property
+from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
     from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
@@ -31,7 +31,6 @@ class _Pkm:
     def __init__(self):
         self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
-        self.etc_chain = EtcChain(workspace / 'etc', 'pkm')
         self.httpclient = HttpClient(workspace / 'resources/http')
         self.threads = ThreadPoolExecutor()
 
@@ -58,6 +57,12 @@ class _Pkm:
             InstalledPythonsRepository(),
         )
 
+    def clean_cache(self):
+        shutil.rmtree(self.repository_loader.workspace)
+        shutil.rmtree(self.source_build_cache.workspace)
+        shutil.rmtree(self.httpclient.workspace)
+
+        clear_cached_properties(self)
 
 # the methods used for finding the default data directory were adapted from the appdirs library
 

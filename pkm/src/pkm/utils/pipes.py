@@ -71,6 +71,16 @@ def p_limit(n: int) -> PipeTransformer[_T, _T]:
     return _Limit()
 
 
+def p_for_each(call: Callable[[_T], None]) -> PipeTerminator[_T, None]:
+    class _ForEach(PipeTerminator[_T, None]):
+        def __call__(self, target: Iterable[_T]) -> None:
+            for i in target:
+                call(i)
+            return None
+
+    return _ForEach()
+
+
 def p_collect(into: Optional[MutableSequence[_T]] = None) -> PipeTerminator[_T, Sequence[_T]]:
     into = unone(into, list)  # noqa
 
@@ -105,6 +115,16 @@ def p_filter(selector: Callable[[_T], bool]) -> PipeTransformer[_T, _T]:
                     yield v
 
     return _Filter()
+
+
+def p_map_not_none(mapper: Callable[[_T], Optional[_U]]) -> PipeTransformer[_T, _U]:
+    class _MapNotNone(PipeTransformer[_T, _U]):
+        def __call__(self, target: Iterable[_T]) -> Iterable[_U]:
+            for v in target:
+                if (m := mapper(v)) is not None:
+                    yield m
+
+    return _MapNotNone()
 
 
 def p_map(mapper: Callable[[_T], _U]) -> PipeTransformer[_T, _U]:
