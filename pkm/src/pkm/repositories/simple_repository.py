@@ -4,7 +4,7 @@ from typing import List, Union, Tuple, Dict, Optional, Callable, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.standard_package import StandardPackageArtifact, AbstractPackage
+from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -34,7 +34,7 @@ class SimpleRepository(AbstractRepository):
             extractor.feed(data.read_text())
 
             all_artifacts = extractor.artifacts
-            grouped_by_version: Dict[str, List[StandardPackageArtifact]] = groupby(
+            grouped_by_version: Dict[str, List[PackageArtifact]] = groupby(
                 all_artifacts, lambda a: _extract_version(a.file_name))
 
             version_to_package = {
@@ -66,7 +66,7 @@ class _HtmlArtifactsExtractor(HTMLParser):
     def __init__(self, base_url: str, *, convert_charrefs: bool = ...) -> None:
         super().__init__(convert_charrefs=convert_charrefs)
         self._text_handler: Optional[Callable[[str], None]] = None
-        self.artifacts: List[StandardPackageArtifact] = []
+        self.artifacts: List[PackageArtifact] = []
         self._base_url = base_url
 
     def handle_data(self, data: str) -> None:
@@ -93,16 +93,16 @@ class _HtmlArtifactsExtractor(HTMLParser):
                 url = f"{self._base_url}/{url.lstrip('/')}"
 
             if endswith_any(text, _DISTRIBUTION_EXTENSIONS):
-                self.artifacts.append(StandardPackageArtifact(text, requires_python, {'url': url}))
+                self.artifacts.append(PackageArtifact(text, requires_python, {'url': url}))
 
 
 class _SimplePackage(AbstractPackage):
     def __init__(self, http_client: HttpClient, descriptor: PackageDescriptor,
-                 artifacts: List[StandardPackageArtifact]):
+                 artifacts: List[PackageArtifact]):
         super().__init__(descriptor, artifacts)
         self._http_client = http_client
 
-    def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
+    def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
         return self._http_client.fetch_resource(
             artifact.other_info['url'], CacheDirective.allways(),
             resource_name=f"{self.name} {self.version}"

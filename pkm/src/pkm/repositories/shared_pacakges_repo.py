@@ -1,4 +1,3 @@
-import hashlib
 import shutil
 import warnings
 from dataclasses import dataclass
@@ -16,9 +15,8 @@ from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.repositories.repository import AbstractRepository, Repository
 from pkm.distributions.executables import Executables
 from pkm.utils.commons import NoSuchElementException
-from pkm.utils.files import CopyTransaction, is_empty_directory
+from pkm.utils.files import CopyTransaction, is_empty_directory, is_relative_to
 from pkm.utils.iterators import first_or_none
-from pkm.utils.sequences import argmax
 
 
 class SharedPackagesRepository(AbstractRepository):
@@ -129,7 +127,7 @@ def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
     shared.mkdir(parents=True)
     records_left = []
     for record in records:
-        if record.is_relative_to(root):  # the path may lead out of the required source
+        if is_relative_to(record, root):  # the path may lead out of the required source
             shared_path = shared / record.relative_to(root)
             if record.is_dir():
                 shared_path.mkdir(exist_ok=True, parents=True)
@@ -167,7 +165,7 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
     # filter dist info records:
     records = [
         r for r in records
-        if not r.is_relative_to(dist_info.path)]
+        if not is_relative_to(r, dist_info.path)]
 
     # copy site
     shared_purelib = shared_target / site
@@ -179,7 +177,7 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
     shared_bin = shared_target / "bin"
 
     # filter script entrypoints - they should be re-generated
-    records = [r for r in records if not r.is_relative_to(bin_path) or r.stem not in script_entrypoints]
+    records = [r for r in records if not is_relative_to(r, bin_path) or r.stem not in script_entrypoints]
     records = _copy_records(bin_path, shared_bin, records)
 
     # copy dist-info

@@ -71,6 +71,21 @@ def temp_dir() -> ContextManager[Path]:
         yield Path(tdir)
 
 
+def extension_of(path: Path) -> str:
+    """
+    extract the given path extension, unlike `path.suffix` this will capture all composed extensions
+    like `.tar.gz`
+    :param path: a path to a file, its extension you want to get
+    :return: the file extension
+    """
+
+    name = path.name
+    try:
+        return name[name.index('.'):]
+    except ValueError:
+        return ""
+
+
 def name_without_ext(path: Path) -> str:
     """
     extract the given path name without extensions, unlike `path.stem` this will remove all composed extensions
@@ -206,3 +221,13 @@ class CopyTransaction:
             shutil.move(restore_path, path)
 
         self._commit()
+
+
+def is_relative_to(path: Path, root: Path) -> bool:
+    """
+    tests if `path` is relative (read "resides in") root
+    :param path: the path to check
+    :param root: the path that may contain `path`
+    """
+
+    return str(path.absolute()).startswith(str(root.absolute()))

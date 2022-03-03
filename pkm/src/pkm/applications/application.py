@@ -8,19 +8,31 @@ from typing import List, Optional
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
-from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
-from pkm.api.repositories.repository import Repository
+from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, ProjectConfig
+from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.applications.application_loader import PACKAGE_LAYER
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.entrypoints import EntryPoint
-from pkm.utils.files import temp_dir
+from pkm.utils.files import temp_dir, extension_of
 
 
 class Application:
     def __init__(self, project: Project):
         self._project = project
+
+    # def install_as_application(self, dependency: Dependency, env: Environment, repo: Optional[Repository] = None):
+    #     package_layer = installation_src / PACKAGE_LAYER
+    #     package_layer.parent.mkdir(exist_ok=True, parents=True)
+    #
+    #     with temp_dir() as tdir:
+    #         temp_env = EnvironmentBuilder.create(tdir, env.interpreter_path)
+    #         temp_env.install(dependency, repository=repo)
+    #
+    #         package = temp_env.site_packages.installed_package(dependency.package_name)
+    #         installation_src = env.site_packages.purelib_path /
 
     def build_installation_package(self, target_dir: Path, repository: Optional[Repository] = None) -> Path:
         """
@@ -62,6 +74,8 @@ class Application:
             package_layer = installation_src / PACKAGE_LAYER
             package_layer.parent.mkdir(exist_ok=True, parents=True)
             shutil.move(env.site_packages.purelib_path, package_layer)
+            if env.site_packages.platlib_path != env.site_packages.purelib_path:
+                shutil.move(env.site_packages.platlib_path, package_layer)
 
             # build the wheel for the installation project
             print("building wheel")
@@ -70,6 +84,24 @@ class Application:
                 tdir, PackageDescriptor(app_dep.package_name, app_dep.version_spec.min))
 
             return installation_project.build_wheel(target_dir)
+
+    def publish_installer(self, publisher: RepositoryPublisher, auth: Authentication,
+                          distributions_dir: Optional[Path] = None):
+
+        application_config = self._project.config.pkm_application
+        if not (installer_project_name := application_config.installer_package):
+            raise UnsupportedOperationException(
+                f"cannot create installer to application {self._project.name}, no installer package defined")
+        metadata = PackageMetadata.from_project_config(
+            _project_to_app_installer_project(self._project.config.project, installer_project_name))
+
+        print(f"metadata: {metadata}")
+
+        print("publishing application installer project")
+        if (app_installer_dist_dir := distributions_dir / 'app').exists() and app_installer_dist_dir.is_dir():
+            for distribution in app_installer_dist_dir.iterdir():
+                if distribution.is_file() and distribution.name.endswith(".tar.gz"):
+                    publisher.publish(auth, metadata, distribution)
 
     def build_installer_package(self, target_dir: Path) -> Path:
         """
@@ -97,11 +129,8 @@ class Application:
             epoints_writer.add_entrypoints(self._project.config.project.all_entrypoints())
 
             installer_pyproject = PyProjectConfiguration.load(tdir / 'pyproject.toml')
-            installer_pyproject.project = replace(
-                self._project.config.project,
-                name=installer_project_name,
-                dependencies=[],
-            )
+            installer_pyproject.project = _project_to_app_installer_project(self._project.config.project,
+                                                                            installer_project_name)
 
             installer_pyproject['tool.pkm.application-installer'] = {
                 'app': str(self._project.descriptor.to_dependency())
@@ -120,6 +149,15 @@ class Application:
     @staticmethod
     def is_application_installer(project: Project) -> bool:
         return project.config['tool.pkm.application-installer.app'] is not None
+
+
+def _project_to_app_installer_project(project: ProjectConfig, installer_project_name: str) -> ProjectConfig:
+    return replace(
+        project,
+        name=installer_project_name,
+        dependencies=[],
+        optional_dependencies={}
+    )
 
 
 class _ApplicationEntrypointsWriter:

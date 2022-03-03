@@ -16,6 +16,7 @@ from pkm.api.repositories.repository import Repository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
+from pkm.utils.files import is_relative_to
 from pkm.utils.properties import cached_property
 
 
@@ -96,7 +97,7 @@ class EnvironmentsZoo:
         bin_path = self._bin_path
 
         for file in env.site_packages.installed_package(package).dist_info.installed_files():
-            if file.is_relative_to(env_scripts):
+            if is_relative_to(file, Path(env_scripts)):
                 shutil.copy(file, bin_path / file.name)
 
     @classmethod

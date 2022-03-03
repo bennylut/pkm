@@ -1,6 +1,6 @@
 [project]
 name = "pkm-cli"
-version = "0.4.26"
+version = "0.4.30"
 description = "Command line interface for PKM"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"
@@ -11,9 +11,9 @@ dependencies = [ "questionary ",  "pkm ",  "jinja2 ",  "xonsh ",  "pygments ",  
 [project.scripts]
 pkm = "pkm_cli.main:main"
 
-[tool.pkm.project]
-application = true
+[tool.pkm.application]
+installer-package = 'pkm-cli-app'
 
 [build-system]
-requires = ['pkm >= 0.4.21']
+requires = ['pkm >= 0.4.23']
 build-backend = "pkm.api.buildsys"

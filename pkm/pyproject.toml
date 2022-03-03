@@ -1,6 +1,6 @@
 [project]
 name = "pkm"
-version = "0.4.22"
+version = "0.4.27"
 description = "Package Manager For Python"
 authors = [{ name = "bennyl" }]
 license.text = "MIT License"
@@ -10,3 +10,4 @@ requires-python = ">=3.8, <4.0"
 [build-system]
 build-backend = "pkm.api.buildsys"
 backend-path = ["src"]
+requires = []

@@ -1,34 +1,46 @@
 ## RUNNING TASKS:
-
-- documentation: document the application classes and usage
-- documentation: describe repositories
-- documentation: extensions + torch repository
-- check pkm installation in app mode on system environment + torch-repo in app mode
-- entrypoint to allow for default repository instances (pkm-torch /-repository)
-
+- pkm: support installing as applications packages which were not built as self-contained ones
+- documentation: describe repositories, 
+  - describe repositories extensions + torch repository
+  - describe inheritance mode 
+- repositories: conda
+    - it seems that it will be simple enough to implement
+      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
+- package artifact hash validation: pypi, simple, torch
+- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
+- `pkm install torch --repo download-torch +arch=cpu`, `pkm install torch --repo conda +channel=main`
+    - if such source is not defined will auto define it with the same type
+    - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
+    - for the conda, repository instance builder should support "url" based configuration
+    - cli managed configuration
+- bug: pkm applications: support pth loading
+- bug: app installs packages on host 
+- bug: mac could not install numpy
+- pkm: update package installation / update all packages (include support for locks and shared)
+- bug: `pkm new *` when showing python versions to choose, the order keeps changing
+- bug `pkm clean dist` should remove all but current version of dist
+- bug `pkm vbump` with no arguments fails
+- enhancement: application metadata build
 ## DONE IN THIS VERSION
-- cli: pkm clean shared | pkm clean cache | pkm clean dist
-- make dependency resolution less verbose
-- bug: cached_property: mutation lock should be instance dependent and not global
-- `pkm shell -e` : like `npm run` and `poetry run`
-- bug: shared libs with different abi ware not differentiables 
+- pkm repositories: add inheritance control
+- pkm repositories: add specific + search repository instance spec
+- bug: `pkm new zoo` creates config file with `True` instead of `true`
+- bug: application loader wrong `__import__` implementation  
 
 ## BACKLOG TASKS:
+- refactoring: repositories should by itself be a project group
+- check pkm installation in app mode on system environment + torch-repo in app mode
+- bug: when running in "build-sys" mode should not "implicitly install" cache files
+    - also when running in this mode some basic monitoring should be made
+- documentation: document the application usage
 - pkm shell: automatic zoo export (zoo should have a bin directory), think about that, do we need it as non pkm shell
   extension?
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
 - test pkm on os where platlib and purelib are different (centos?)
 - pkm stat : print cache size, attached repository, etc.
-- refactoring: repositories should by itself be a project group
-- support application-only packages (the package itself is the installer)
-- repositories: conda (currently requires that conda itself is installed as it cannot be built or fetched from pypi)
-    - it seems that it will be simple enough to implement
-      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
 - repositories: pyvenv
 - consider exposing application script entrypoint using the old application loader
 - applications can also provide repositories configuration, those should be specified in its table
-- bug: when running in "build-sys" mode should not "implicitly install" cache files
-    - also when running in this mode some basic monitoring should be made
 - cli: if building packages during dependency resolution, output is very convoluted
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - misc: build readme, set github's site
@@ -39,8 +51,6 @@
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
 - cmd: pkm remove - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
-- pkm: update package installation / update all packages
-- pkm: support installing as applications packages which were not built as self-contained ones
 - documentation site: projects and project groups, self-contained applications
 - environment naming (for project for example..)
 - cli: publish keyring
@@ -54,7 +64,6 @@
 - site: sidebar responsive to phones
 - toml parser/writer need unit tests
 - toml - lists user style - check the pre-last delimiter and repeat it
-- check that when downloading packages for install, the hash is being validated correctly
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
 - handle project install with extras, usecase: test dependencies
 - content information (author and maintainer) name and email should be validated,

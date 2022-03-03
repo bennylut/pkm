@@ -45,7 +45,7 @@ class InstalledPythonsRepository(AbstractRepository):
             except (ChildProcessError, CalledProcessError):
                 pass  # skip this interpreter
 
-        return result
+        return sorted(result, key=lambda p: p.version, reverse=True)
 
     def _do_match(self, dependency: Dependency) -> List[Package]:
         # monitor.on_dependency_match(dependency)

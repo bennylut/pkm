@@ -24,6 +24,7 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 if TYPE_CHECKING:
     from pkm.api.projects.project_group import ProjectGroup
     from pkm.api.environments.environment import Environment
+    from pkm.applications.application import Application
 
 
 class Project(Package):
@@ -240,18 +241,6 @@ class Project(Package):
         """
         return pkm.repository_loader.load_for_project(self)
 
-    def build_application_installer(self, target_dir: Optional[Path] = None) -> Path:
-        """
-        builds a package that contains application installer for this project
-        note that the installer is itself a project with the same name as this project appended with '-app'
-        and therefore on publishing will require different project registration
-
-        :param target_dir: the directory to put the installer in
-        :return: the path to the created installer package
-        """
-        from pkm.applications.application_builders import build_app_installer
-        return build_app_installer(self, target_dir)
-
     def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
         """
         build a source distribution from this project
@@ -275,8 +264,6 @@ class Project(Package):
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
         if self.is_pkm_project():
-            # from pkm.applications.application_builders import is_application_installer_project, \
-            #     build_app_installation
             from pkm.applications.application import Application
             from pkm.pep517_builders.pkm_builders import build_wheel
 
@@ -296,8 +283,10 @@ class Project(Package):
         """
         result: List[Path] = [self.build_sdist(target_dir),
                               self.build_wheel(target_dir)]
-        if self.config.pkm_project.application:
-            result.append(self.build_application_installer(target_dir))
+        if self.config.pkm_application.installer_package:
+            from pkm.applications.application import Application
+            result.append(
+                Application(self).build_installer_package(target_dir))
 
         return result
 
@@ -332,16 +321,9 @@ class Project(Package):
             if distribution.is_file():
                 publisher.publish(auth, metadata, distribution)
 
-        print("publishing application project")
-        if self.config.pkm_project.application:
-            from pkm.applications.application_builders import application_installer_project_name, \
-                application_installer_dir
-            metadata['Name'] = application_installer_project_name(self)
-            if (app_installer_dist_dir := application_installer_dir(
-                    distributions_dir)).exists() and app_installer_dist_dir.is_dir():
-                for distribution in app_installer_dist_dir.iterdir():
-                    if distribution.is_file():
-                        publisher.publish(auth, metadata, distribution)
+        if self.config.pkm_application.installer_package:
+            from pkm.applications.application import Application
+            Application(self).publish_installer(publisher, auth, distributions_dir)
 
     @classmethod
     def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None,

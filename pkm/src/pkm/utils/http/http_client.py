@@ -31,7 +31,10 @@ HTTPConnection.debuglevel = 0
 # ------------
 # this sad hack is made because http timestamp parsing requires en_us locale, I can probably write my own parser/writer
 # to remove this hack
-locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 # this sad hack is made because for some reason,
 # many services still has problem with ipv6 (like cloudfront occasionally have)

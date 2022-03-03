@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from copy import copy
-from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Optional, Any, Tuple, Iterable
+from typing import List, Dict, Optional, Tuple, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -12,12 +10,13 @@ from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
+from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig, RepositoriesConfiguration, \
+    RepositoriesConfigInheritanceMode
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
-from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.packages_lock import LockPrioritizingRepository
 from pkm.utils.commons import NoSuchElementException
-from pkm.utils.dicts import remove_none_values, put_if_absent, udict_hash
+from pkm.utils.dicts import put_if_absent
 from pkm.utils.http.http_client import HttpClient
 
 REPOSITORIES_ENTRYPOINT_GROUP = "pkm-repositories"
@@ -119,25 +118,33 @@ class RepositoryLoader:
         repo = _ProjectsRepository.create("group-projects-repository", group.project_children_recursive, repo)
         return repo
 
-    def _compose(self, name: str, config_path: Path, main: Repository) -> Repository:
+    def _compose(self, name: str, config_path: Path, next_in_context: Repository) -> Repository:
         package_search_list = []
         package_associated_repo = {}
 
         config = RepositoriesConfiguration.load(config_path)
 
         if not (new_repos := config.repositories):
-            return main
+            if config.inheritance_mode == RepositoriesConfigInheritanceMode.INHERIT_MAIN:
+                return self.main
+            return next_in_context
 
         for definition in new_repos:
             instance = self.build(definition)
 
             if definition.packages:
                 for package in definition.packages:
-                    put_if_absent(package_associated_repo, package, instance)
+                    if package == '*':
+                        package_search_list.append(instance)
+                    else:
+                        put_if_absent(package_associated_repo, package, instance)
             else:
                 package_search_list.append(instance)
 
-        package_search_list.append(main)
+        if config.inheritance_mode == RepositoriesConfigInheritanceMode.INHERIT_CONTEXT:
+            package_search_list.append(next_in_context)
+        elif config.inheritance_mode == RepositoriesConfigInheritanceMode.INHERIT_MAIN:
+            package_search_list.append(self.main)
 
         return _CompositeRepository(name, self._url_repos, package_search_list, package_associated_repo)
 
@@ -149,46 +156,6 @@ class RepositoryLoader:
             self._cached_instances[config] = cached
 
         return cached
-
-
-class RepositoriesConfiguration(TomlFileConfiguration):
-    repositories: List[RepositoryInstanceConfig]
-
-    @computed_based_on("")
-    def repositories(self) -> List[RepositoryInstanceConfig]:
-        return [RepositoryInstanceConfig.from_config(name, repo) for name, repo in self.items()]
-
-
-@dataclass(frozen=True, eq=True)
-class RepositoryInstanceConfig:
-    type: str
-    packages: Optional[List[str]]
-    name: Optional[str]
-    args: Dict[str, Any]
-
-    def __hash__(self):
-        h = 7
-        h = h * 31 + hash(self.type)
-        h = h * 31 + hash(self.packages)
-        h = h * 31 + hash(self.name)
-        h = h * 31 + udict_hash(self.args)
-
-        return h
-
-    def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            **self.args,
-            'type': self.type,
-            'packages': self.packages,
-        })
-
-    @classmethod
-    def from_config(cls, name: str, config: Dict[str, Any]) -> "RepositoryInstanceConfig":
-        config = copy(config)
-        type_ = config.pop('type')
-        packages: Optional[List[str]] = config.pop('packages', None)
-        args = config
-        return RepositoryInstanceConfig(type_, packages, name, args)
 
 
 class _CompositeRepository(AbstractRepository):

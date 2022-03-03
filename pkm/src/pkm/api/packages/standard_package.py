@@ -11,6 +11,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.utils.hashes import HashSignature
 from pkm.utils.types import SupportsLessThanEq
 
 if TYPE_CHECKING:
@@ -18,10 +19,11 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, eq=True)
-class StandardPackageArtifact:
+class PackageArtifact:
     file_name: str
     requires_python: Optional[VersionSpecifier] = None
     other_info: Dict[str, Any] = field(default_factory=dict)
+    hash_sig: Optional[HashSignature] = None
 
     def is_wheel(self):
         return self.file_name.endswith(".whl")
@@ -29,7 +31,7 @@ class StandardPackageArtifact:
 
 class AbstractPackage(Package):
 
-    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact],
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact],
                  published_metadata: Optional[PackageMetadata] = None):
         self._descriptor = descriptor
         self._artifacts = artifacts
@@ -45,7 +47,7 @@ class AbstractPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
-    def best_artifact_for(self, env: "Environment") -> Optional[StandardPackageArtifact]:
+    def best_artifact_for(self, env: "Environment") -> Optional[PackageArtifact]:
         """
         searches for the best artifact that compatible with `env`
         :param env: the environment that the searched artifact should be compatible with
@@ -54,8 +56,8 @@ class AbstractPackage(Package):
 
         env_interpreter = env.interpreter_version
 
-        source_dist: Optional[StandardPackageArtifact] = None
-        best_binary_dist: Optional[StandardPackageArtifact] = None
+        source_dist: Optional[PackageArtifact] = None
+        best_binary_dist: Optional[PackageArtifact] = None
         best_binary_dist_score: Optional[SupportsLessThanEq] = None
 
         for artifact in self._artifacts:
@@ -90,7 +92,7 @@ class AbstractPackage(Package):
         return self.best_artifact_for(env) is not None
 
     @abstractmethod
-    def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
+    def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
         """
         retrieve the given artifact, storing it to the file system and returning it
         :param artifact: the artifact to retrieve
@@ -101,15 +103,19 @@ class AbstractPackage(Package):
         with PackageInstallMonitoredOp(self.descriptor):
             artifact = self.best_artifact_for(env)
             artifact_path = self._get_or_retrieve_artifact_path(artifact)
+            if hashsig := artifact.hash_sig:
+                if not hashsig.validate_against(artifact_path):
+                    raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
             if artifact.is_wheel():
                 WheelDistribution(self.descriptor, artifact_path).install_to(env, user_request)
             else:
                 SourceDistribution(self.descriptor, artifact_path).install_to(env, user_request)
 
-    def _get_or_retrieve_artifact_path(self, artifact):
+    def _get_or_retrieve_artifact_path(self, artifact: PackageArtifact):
         if not (artifact_path := self._path_per_artifact_id.get(id(artifact))):
             artifact_path = self._retrieve_artifact(artifact)
+
             self._path_per_artifact_id[id(artifact)] = artifact_path
         return artifact_path
 

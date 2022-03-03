@@ -9,7 +9,7 @@ from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.utils.files import is_empty_directory
+from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -155,7 +155,7 @@ class InstalledPackage(Package):
         :return: True if this package is installed to purelib, False if it is installed into platlib
         """
 
-        return self.dist_info.path.is_relative_to(self.site.purelib_path)
+        return is_relative_to(self.dist_info.path, self.site.purelib_path)
 
     def uninstall(self) -> bool:
         if self.readonly:
@@ -171,7 +171,7 @@ class InstalledPackage(Package):
         while parents_to_check:
             parent = parents_to_check.pop()
 
-            if parent == installation_site or not parent.is_relative_to(installation_site):
+            if parent == installation_site or not is_relative_to(parent, installation_site):
                 continue
 
             if (precompiled := parent / "__pycache__").exists():

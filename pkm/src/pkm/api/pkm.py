@@ -58,9 +58,9 @@ class _Pkm:
         )
 
     def clean_cache(self):
-        shutil.rmtree(self.repository_loader.workspace)
-        shutil.rmtree(self.source_build_cache.workspace)
-        shutil.rmtree(self.httpclient.workspace)
+        shutil.rmtree(self.repository_loader.workspace, ignore_errors=True)
+        shutil.rmtree(self.source_build_cache.workspace, ignore_errors=True)
+        shutil.rmtree(self.httpclient.workspace, ignore_errors=True)
 
         clear_cached_properties(self)
 

@@ -6,7 +6,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.standard_package import AbstractPackage, StandardPackageArtifact
+from pkm.api.packages.standard_package import AbstractPackage, PackageArtifact
 from pkm.api.repositories.repository import Authentication, AbstractRepository
 from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
@@ -67,13 +67,13 @@ class PyPiRepository(AbstractRepository):
 # noinspection PyProtectedMember
 class PypiPackage(AbstractPackage):
 
-    def __init__(self, descriptor: PackageDescriptor, artifacts: List[StandardPackageArtifact], repo: PyPiRepository,
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact], repo: PyPiRepository,
                  metadata: PackageMetadata):
 
         super().__init__(descriptor, artifacts, metadata)
         self._repo = repo
 
-    def _retrieve_artifact(self, artifact: StandardPackageArtifact) -> Path:
+    def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
         url = artifact.other_info.get('url')
         if not url:
             raise KeyError(f'could not find url in given artifact info: {artifact}')
@@ -97,14 +97,14 @@ class PypiPackage(AbstractPackage):
         return [Dependency.parse(dstr) for dstr in requires_dist]
 
 
-def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[StandardPackageArtifact]:
+def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[PackageArtifact]:
     requires_python = release.get('requires_python')
 
     file_name: str = release.get('filename')
     if not file_name:
         return None
 
-    return StandardPackageArtifact(
+    return PackageArtifact(
         file_name, VersionSpecifier.parse(requires_python) if requires_python else None, release
     )
 

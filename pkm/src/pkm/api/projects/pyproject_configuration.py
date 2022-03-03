@@ -94,13 +94,11 @@ class PkmApplicationConfig:
 class PkmProjectConfig:
     packages: Optional[List[str]] = None
     group: Optional[str] = None  # TODO: remove group and use conventions only?
-    application: bool = False
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({
             'packages': self.packages,
-            'group': self.group,
-            'application': self.application
+            'group': self.group
         })
 
     @classmethod

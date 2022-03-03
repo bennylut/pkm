@@ -66,7 +66,7 @@ def build(args: Namespace):
 
 @command(
     'pkm vbump',
-    Arg('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?'))
+    Arg('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?', default='patch'))
 def vbump(args: Namespace):
     def on_project(project: Project):
         new_version = project.bump_version(args.particle)

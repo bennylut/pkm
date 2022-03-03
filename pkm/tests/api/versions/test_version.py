@@ -1,9 +1,15 @@
 from unittest import TestCase
 
 from pkm.api.versions.version import Version, StandardVersion
+from pkm.utils.pipes import pipe, p_map, p_collect
 
 
 class TestVersion(TestCase):
+
+    def test_ordering(self):
+        versions = [Version.parse(it) for it in ("3.6", "3.8", "2.7", "3.9")]
+        sorted_versions = [str(it) for it in sorted(versions, reverse=True)]
+        assert ["3.9", "3.8", "3.6", "2.7"] == sorted_versions
 
     def test_parsing(self):
         assert_version(Version.parse("2012.10"), "2012.10")
