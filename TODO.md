@@ -1,8 +1,9 @@
 ## RUNNING TASKS:
+
 - pkm: support installing as applications packages which were not built as self-contained ones
-- documentation: describe repositories, 
-  - describe repositories extensions + torch repository
-  - describe inheritance mode 
+- documentation: describe repositories,
+    - describe repositories extensions + torch repository
+    - describe inheritance mode
 - repositories: conda
     - it seems that it will be simple enough to implement
       myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
@@ -14,20 +15,22 @@
     - for the conda, repository instance builder should support "url" based configuration
     - cli managed configuration
 - bug: pkm applications: support pth loading
-- bug: app installs packages on host 
 - bug: mac could not install numpy
 - pkm: update package installation / update all packages (include support for locks and shared)
-- bug: `pkm new *` when showing python versions to choose, the order keeps changing
 - bug `pkm clean dist` should remove all but current version of dist
-- bug `pkm vbump` with no arguments fails
 - enhancement: application metadata build
+- enhancement: pkm publish with no build should just run the build itself
+
 ## DONE IN THIS VERSION
-- pkm repositories: add inheritance control
-- pkm repositories: add specific + search repository instance spec
-- bug: `pkm new zoo` creates config file with `True` instead of `true`
-- bug: application loader wrong `__import__` implementation  
+
+- bug: app installs packages on host
+- bug `pkm vbump` with no arguments fails
+- bug: `pkm new *` when showing python versions to choose, the order keeps changing
+- full reimplementation of the application loader - include app_sys and app_importlib in order to better mimic the
+  environment
 
 ## BACKLOG TASKS:
+
 - refactoring: repositories should by itself be a project group
 - check pkm installation in app mode on system environment + torch-repo in app mode
 - bug: when running in "build-sys" mode should not "implicitly install" cache files
