@@ -33,13 +33,16 @@ class InstalledPythonsRepository(AbstractRepository):
         for interpreter_path in interpreters_in_path:
             try:
                 cmdout = subprocess.run(
-                    [str(interpreter_path), "-c", "import platform; print(platform.python_version())"],
+                    [str(interpreter_path), "-c",
+                     "import platform;import sys;print(platform.python_version());print(sys.executable)"],
                     capture_output=True)
                 cmdout.check_returncode()
 
+                version_str, executable = cmdout.stdout.decode().strip().splitlines(keepends=False)
+
                 result.append(LocalInterpreterPackage(
-                    interpreter_path,
-                    PackageDescriptor("python", Version.parse(cmdout.stdout.decode().strip())),
+                    Path(executable.strip()),
+                    PackageDescriptor("python", Version.parse(version_str.strip())),
                     _DEFAULT_PKG_EXTRAS))
 
             except (ChildProcessError, CalledProcessError):

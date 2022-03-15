@@ -32,11 +32,12 @@ class Command:
     args: Iterable[Arg]
     handler: _CommandHandler
     help: str
+    kwargs: Dict[str, Any]
 
 
-def command(path: str, *args: Arg):
+def command(path: str, *args: Arg, **kwargs):
     def _command(func: _CommandHandler) -> _CommandHandler:
-        func.__command = Command(path, args, func, func.__doc__)
+        func.__command = Command(path, args, func, func.__doc__, kwargs)
         return func
 
     return _command
@@ -78,14 +79,14 @@ class SubParsers:
 
 
 def create_args_parser(
-        desc: str, commands: Iterable[Any], command_customizer: Callable[[ArgumentParser], None] = lambda _: None
+        desc: str, commands: Iterable[Any],
+        command_customizer: Callable[[ArgumentParser, Command], None] = lambda _1, _2: None
 ) -> ArgumentParser:
     main = ArgumentParser(description=desc)
     parser = SubParsers(main)
 
     pipe(commands) \
         | p_map_not_none(lambda it: getattr(it, "__command", None)) \
-        | p_for_each(lambda it: command_customizer(parser.add_command(it)))
+        | p_for_each(lambda it: command_customizer(parser.add_command(it), it))
 
     return main
-

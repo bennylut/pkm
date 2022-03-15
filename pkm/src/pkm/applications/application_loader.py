@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import importlib.resources as ir
 import importlib.util as iu
 import sys
 from dataclasses import dataclass
+from importlib.machinery import ModuleSpec
+from importlib.resources import Package, Resource
+from pathlib import Path
 from threading import RLock
 from types import ModuleType, TracebackType
-from typing import Any, Optional, Sequence, Dict
+from typing import Any, Optional, Sequence, Dict, Iterable, ContextManager, BinaryIO, TextIO
 
 PACKAGE_LAYER = "__package_layer__"
 _MISSING = object()
@@ -63,28 +67,65 @@ class _AppImporter:
     def __init__(self, app_package: str):
         self.app_builtins = ModuleType(builtins.__name__, builtins.__doc__)
         self.app_builtins.__dict__.update(builtins.__dict__)
-        self.app_builtins.__import__ = self.__import__
-
-        self.app_importlib = ModuleType(importlib.__name__, importlib.__doc__)
-        self.app_importlib.__dict__.update(importlib.__dict__)
-        self.app_importlib.__import__ = self.__import__
-        self.app_importlib.import_module = self.import_module
+        self.app_builtins.__import__ = self.il___import__
 
         self.app_sys = ModuleType(sys.__name__, sys.__doc__)
         self.app_sys.__dict__.update(sys.__dict__)
+        self.app_sys.modules = _AppModules()
 
         self._import_lock = RLock()
         self._import_cache: Dict[str, _AppImport] = {
             'sys': _AppImport(self, 'sys', self.app_sys),
-            'importlib': _AppImport(self, 'importlib', self.app_importlib),
-            'builtins': _AppImport(self, 'builtins', self.app_builtins)
+            'builtins': _AppImport(self, 'builtins', self.app_builtins),
         }
-
-        self.app_sys.modules = _AppModules()
-        self.app_sys.modules.update({k: i.module for k, i in self._import_cache.items()})
 
         self.app_package = app_package
         self.app_prefix = f"{app_package}.{PACKAGE_LAYER}"
+
+        app_importlib = self._patch_module(importlib, 'il')
+        app_importlib_util = self._patch_module(iu, 'iu')
+        app_importlib_resources = self._patch_module(ir, 'ir')
+        app_importlib.util = app_importlib_util
+        app_importlib.resources = app_importlib_resources
+
+    def _patch_module(self, module: ModuleType, prefix: str) -> ModuleType:
+        patched = ModuleType(module.__name__, module.__doc__)
+        patched.__dict__.update({
+            m: getattr(self, f"{prefix}_{m}", original_impl) for m, original_impl in
+            module.__dict__.items()
+        })
+
+        self._import_cache[module.__name__] = _AppImport(self, module.__name__, patched)
+        self.app_sys.modules[module.__name__] = patched  # noqa
+        return patched
+
+    def _package_to_module(self, package: Package) -> ModuleType:
+        if isinstance(package, str):
+            return self.il_import_module(package)
+        return package
+
+    def ir_read_text(
+            self, package: Package, resource: Resource, encoding: str = 'utf-8', errors: str = 'strict') -> str:
+        return ir.read_text(self._package_to_module(package), resource, encoding, errors)
+
+    def ir_read_binary(self, package: Package, resource: Resource) -> bytes:
+        return ir.read_binary(self._package_to_module(package), resource)
+
+    def ir_path(self, package: Package, resource: Resource) -> ContextManager[Path]:
+        return ir.path(self._package_to_module(package), resource)
+
+    def ir_open_binary(self, package: Package, resource: Resource) -> BinaryIO:
+        return ir.open_binary(self._package_to_module(package), resource)
+
+    def ir_open_text(
+            self, package: Package, resource: Resource, encoding: str = 'utf-8', errors: str = 'strict') -> TextIO:
+        return ir.open_text(self._package_to_module(package), resource, encoding, errors)
+
+    def ir_contents(self, package: Package) -> Iterable[str]:
+        return ir.contents(self._package_to_module(package))
+
+    def ir_is_resource(self, package: Package, name: str) -> bool:
+        return ir.is_resource(self._package_to_module(package), name)
 
     def _single_import(self, fqn: str, check_app_packages: bool = True) -> _AppImport:
         with self._import_lock:
@@ -113,21 +154,39 @@ class _AppImporter:
 
         return _PathImport(first_module, last_module, in_app_packages)
 
-    def import_module(self, name: str, package: Optional[str] = None):
+    def _compute_app_fqn_for_module(self, name: str, package: Optional[str] = None) -> str:
         app_fqn = name
         if package is not None:
             app_fqn = iu.resolve_name(name, package)
             if app_fqn.startswith(self.app_prefix + "."):
                 app_fqn = app_fqn[len(self.app_prefix) + 1:]
+        return app_fqn
+
+    def iu_find_spec(self, name: str, package: Optional[str] = None) -> Optional[ModuleSpec]:
+        app_fqn = self._compute_app_fqn_for_module(name, package)
+        try:
+            return iu.find_spec(f"{self.app_prefix}.{app_fqn}")
+        except:  # noqa
+            pass
+
+        return iu.find_spec(app_fqn)
+
+    def iu_module_from_spec(self, spec: ModuleSpec):
+        result = iu.module_from_spec(spec)
+        result.__builtins__ = self.app_builtins.__dict__
+        return result
+
+    def il_import_module(self, name: str, package: Optional[str] = None):
+        app_fqn = self._compute_app_fqn_for_module(name, package)
 
         try:
             return self._path_import(app_fqn).last_module
         except Exception as e:
             raise e.with_traceback(filter_stack())
 
-    def __import__(self, name: str, globals: Optional[Dict[str, Any]] = None,  # noqa
-                   locals: Optional[Dict[str, Any]] = None,  # noqa
-                   fromlist: Sequence[str] = (), level: int = 0):
+    def il___import__(self, name: str, globals: Optional[Dict[str, Any]] = None,  # noqa
+                      locals: Optional[Dict[str, Any]] = None,  # noqa
+                      fromlist: Sequence[str] = (), level: int = 0):
 
         if level > 0:
             app_fqn = iu.resolve_name('.' * level + name, globals['__package__'])
@@ -217,7 +276,7 @@ class ApplicationLoader:
         self.importer = _AppImporter(app_package)
 
     def load(self, module: str) -> Any:
-        return self.importer.import_module(module)
+        return self.importer.il_import_module(module)
     #
     # def exec(self, module: str, object_ref: Optional[str]) -> NoReturn:
     #     from importlib.resources import path

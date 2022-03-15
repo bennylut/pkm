@@ -281,8 +281,7 @@ class Project(Package):
         :param target_dir: directory to put the resulted distributions in
         :return list of paths to all the distributions created
         """
-        result: List[Path] = [self.build_sdist(target_dir),
-                              self.build_wheel(target_dir)]
+        result: List[Path] = [self.build_sdist(target_dir), self.build_wheel(target_dir)]
         if self.config.pkm_application.installer_package:
             from pkm.applications.application import Application
             result.append(
@@ -295,6 +294,14 @@ class Project(Package):
         :return: True if this project is a pkm project, False otherwise
         """
         return self.config.build_system.build_backend == 'pkm.api.buildsys'
+
+    def is_built_in_default_location(self) -> bool:
+        """
+        :return: True if the project default dist folder contain a build directory for the current version,
+                 False otherwise
+        """
+
+        return (self.directories.dist / str(self.version)).exists()
 
     def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
                 distributions_dir: Optional[Path] = None):

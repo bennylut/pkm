@@ -1,6 +1,24 @@
 ## RUNNING TASKS:
 
 - pkm: support installing as applications packages which were not built as self-contained ones
+- bug: pkm applications: support pth loading
+- pkm: update package installation / update all packages (include support for locks and shared)
+- bug `pkm clean dist` should remove all but current version of dist
+- enhancement: application metadata build
+- replace "app" with "container"
+- use more specific exposing of entrypoints
+- allow containers to request "provided" dependencies
+
+
+## DONE IN THIS VERSION
+- yet another improvements for the application loader (did not work on spec-loaded modules)
+- bug: mac osx platform compatibility tags was wrongly parsed
+- enhancement: venv creation - gets the real executable from sys.executable to overcome mac executable router
+- enhancement: pkm publish with no build should just run the build itself
+- bug: macos could not install numpy because of a wrong binary compatibility detection
+- cmd: add the py command as a shortcut to run context aware python execution
+
+## BACKLOG TASKS:
 - documentation: describe repositories,
     - describe repositories extensions + torch repository
     - describe inheritance mode
@@ -14,23 +32,6 @@
     - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
     - for the conda, repository instance builder should support "url" based configuration
     - cli managed configuration
-- bug: pkm applications: support pth loading
-- bug: mac could not install numpy
-- pkm: update package installation / update all packages (include support for locks and shared)
-- bug `pkm clean dist` should remove all but current version of dist
-- enhancement: application metadata build
-- enhancement: pkm publish with no build should just run the build itself
-
-## DONE IN THIS VERSION
-
-- bug: app installs packages on host
-- bug `pkm vbump` with no arguments fails
-- bug: `pkm new *` when showing python versions to choose, the order keeps changing
-- full reimplementation of the application loader - include app_sys and app_importlib in order to better mimic the
-  environment
-
-## BACKLOG TASKS:
-
 - refactoring: repositories should by itself be a project group
 - check pkm installation in app mode on system environment + torch-repo in app mode
 - bug: when running in "build-sys" mode should not "implicitly install" cache files

@@ -26,22 +26,31 @@ from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
 
-from pkm_cli.utils.clis import command, Arg, create_args_parser
+from pkm_cli.utils.clis import command, Arg, create_args_parser, Command
+
+
+@command('pkm py', Arg('cmd', nargs=argparse.REMAINDER))
+def py(args: Namespace):
+    if args.cmd and args.cmd[0] == '--':
+        del args.cmd[0]
+
+    def on_environment(env: Environment):
+        with env.activate():
+            sys.exit(execvpe('python', args.cmd, os.environ))
+
+    Context.of(args).run(**locals())
 
 
 # noinspection PyUnusedLocal
 @command('pkm shell', Arg(["-e", '--execute'], required=False, nargs=argparse.REMAINDER))
 def shell(args: Namespace):
-    import xonsh.main
-
     def on_environment(env: Environment):
-        Display.print(f"Using environment: {env.path}")
         with env.activate():
             if execution := args.execute:
                 sys.exit(execvpe(execution[0], execution[1:], os.environ))
 
-            sys.argv = ['xonsh']
-            sys.exit(xonsh.main.main())
+            import xonsh.main
+            sys.exit(xonsh.main.main([]))
 
     def on_project(project: Project):
         on_environment(project.attached_environment)
@@ -120,6 +129,9 @@ def publish(args: Namespace):
         raise ValueError("missing password")
 
     def on_project(project: Project):
+        if not project.is_built_in_default_location():
+            project.build()
+
         project.publish(pkm.repositories.pypi, Authentication(uname, password))
 
     def on_project_group(project_group: ProjectGroup):
@@ -183,7 +195,7 @@ def clean_dist(args: Namespace):
 def main(args: Optional[List[str]] = None):
     args = args or sys.argv[1:]
 
-    def customize_command(cmd: ArgumentParser):
+    def customize_command(cmd: ArgumentParser, _: Command):
         cmd.add_argument('-v', '--verbose', action='store_true')
         cmd.add_argument('-c', '--context')
         cmd.add_argument('-g', '--global-context', action='store_true')

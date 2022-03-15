@@ -271,8 +271,8 @@ class EnvironmentIntrospection(Configuration):
             my_plat_supported_binary_formats.reverse()
 
             def darwin_score(plt: str) -> Optional[Tuple]:
-                plt_components = plt.split('_')
-                if len(plt_components) != 4 or plt_components[0] != 'macosx':
+                plt_components = plt.split('_', 3)
+                if plt_components[0] != 'macosx':
                     return None
                 _, vmajor_str, vminor_str, binary_format = plt_components
                 plat_version = (int(vmajor_str), int(vminor_str))

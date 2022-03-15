@@ -1,3 +1,9 @@
-from pkm.api.packages.package import PackageDescriptor
+class Test:
+    def __init__(self):
+        print(Test.__dict__)
 
-print(PackageDescriptor.normalize_source_dir_name("poetry-core"))
+    def xxx(self):
+        print("xxx")
+
+
+Test()
