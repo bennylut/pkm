@@ -8,6 +8,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -99,18 +100,18 @@ class AbstractPackage(Package):
         :return: the stored artifact
         """
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
+    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
         with PackageInstallMonitoredOp(self.descriptor):
-            artifact = self.best_artifact_for(env)
+            artifact = self.best_artifact_for(target.env)
             artifact_path = self._get_or_retrieve_artifact_path(artifact)
             if hashsig := artifact.hash_sig:
                 if not hashsig.validate_against(artifact_path):
                     raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
             if artifact.is_wheel():
-                WheelDistribution(self.descriptor, artifact_path).install_to(env, user_request)
+                WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request)
             else:
-                SourceDistribution(self.descriptor, artifact_path).install_to(env, user_request)
+                SourceDistribution(self.descriptor, artifact_path).install_to(target, user_request)
 
     def _get_or_retrieve_artifact_path(self, artifact: PackageArtifact):
         if not (artifact_path := self._path_per_artifact_id.get(id(artifact))):

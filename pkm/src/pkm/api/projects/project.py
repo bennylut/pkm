@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import List, Optional, Union, TYPE_CHECKING, Dict
+from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
-from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
@@ -24,7 +25,7 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 if TYPE_CHECKING:
     from pkm.api.projects.project_group import ProjectGroup
     from pkm.api.environments.environment import Environment
-    from pkm.applications.application import Application
+    from pkm.api.dependencies.dependency import Dependency
 
 
 class Project(Package):
@@ -61,7 +62,8 @@ class Project(Package):
     @property
     def path(self) -> Path:
         """
-        :return: the path to the project root (where the pyproject.toml is located)
+        :return: the path to the project root (where the pyproject.toml is located) or
+                 None if this project was not loaded from a path
         """
         return self._path
 
@@ -91,11 +93,20 @@ class Project(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None, editable: bool = True):
+    def install_to(
+            self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
+            editable: bool = True):
+
+        # fast alternative for application to be installed without passing through wheels
+        if self.is_pkm_application():
+            target.app_containers.install(self, editable)
+            return
+
+        from pkm.api.distributions.wheel_distribution import WheelDistribution
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             wheel = self.build_wheel(tdir, editable=editable)
             distribution = WheelDistribution(self.descriptor, wheel)
-            distribution.install_to(env, user_request)
+            distribution.install_to(target, user_request)
 
     @cached_property
     def lock(self) -> PackagesLock:
@@ -152,57 +163,65 @@ class Project(Package):
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
         self.attached_environment.force_remove(self.name)
-        self.install_to(self.attached_environment, self.descriptor.to_dependency())
+        self.install_to(self.attached_environment.default_installation_target, self.descriptor.to_dependency())
 
         self.attached_environment.uninstall(packages)
 
         self.lock.update_lock(self.attached_environment)
         self.lock.save()
 
-    def install_with_dependencies(self, new_dependencies: Optional[List[Dependency]] = None):
+    def install_with_dependencies(
+            self, new_dependencies: Optional[List["Dependency"]] = None,
+            optional_group: Optional[str] = None):
         """
         install the dependencies of this project to its assigned environments
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
+        :param optional_group: if not None, installs the dependencies including the ones from the given group,
+                               also, mark the newly installed dependencies as optional and add them to that group
         """
 
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
-        new_deps: Dict[str, Dependency] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
-        uninvolved_deps = [d for d in deps.values() if d.package_name not in new_deps]
-        dependency_overrides = self.config.pkm_application.dependency_overrides or {}
+        if optional_group:
+            deps.update(
+                {d.package_name: d for d in (self._pyproject.project.optional_dependencies.get(optional_group) or [])})
 
-        self._pyproject.project = replace(
-            self._pyproject.project,
-            dependencies=uninvolved_deps + list(new_deps.values()))
-        self.config.save()
+        new_deps: Dict[str, "Dependency"] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
+        # dependency_overrides = self.config.pkm_application.dependency_overrides or {}
+        dependency_overrides = {}
+
+        # save the new dependencies to the configuration:
+        _update_dependencies(self.config, new_deps, optional_group)
 
         repository = self.attached_repository
         self.attached_environment.force_remove(self.name)
+        project_dependency = self.descriptor.to_dependency()
+        if optional_group:
+            project_dependency = project_dependency.with_extras([optional_group])
         self.attached_environment.install(
-            self.descriptor.to_dependency(), repository, dependencies_override=dependency_overrides)
+            project_dependency, repository, dependencies_override=dependency_overrides)
 
-        new_deps_with_version = []
+        new_deps_with_version = {}
+        site_packages = self.attached_environment.site_packages
         for dep in new_deps.values():
-
             if not dep.version_spec.is_any():
                 spec = dep.version_spec
             else:
-                installed = self.attached_environment.site_packages.installed_package(dep.package_name).version
-                if isinstance(installed, StandardVersion):
+                installed_package = site_packages.installed_package(dep.package_name)
+                assert installed_package, \
+                    f"package: {dep.package_name} could not be found in site packages after installation"
+
+                installed_version = installed_package.version
+                if isinstance(installed_version, StandardVersion):
                     spec = VersionRange(
-                        installed,
-                        replace(installed, release=(installed.release[0] + 1,)),
+                        installed_version,
+                        replace(installed_version, release=(installed_version.release[0] + 1,)),
                         True, False)
                 else:
-                    spec = SpecificVersion(installed)
+                    spec = SpecificVersion(installed_version)
 
-            new_deps_with_version.append(replace(dep, version_spec=spec))
+            new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
 
-        self.config.project = replace(
-            self._pyproject.project,
-            dependencies=uninvolved_deps + new_deps_with_version
-        )
-        self.config.save()
-
+        _update_dependencies(self.config, new_deps_with_version, optional_group)
         self.lock.update_lock(self.attached_environment)
         self.lock.save()
 
@@ -229,6 +248,8 @@ class Project(Package):
             env_path = cfg.zoo / self.name
 
         from pkm.api.environments.environment import Environment
+        from pkm.api.dependencies.dependency import Dependency
+
         if not Environment.is_valid(env_path):
             return EnvironmentBuilder.create_matching(
                 env_path, Dependency('python', self.config.project.requires_python))
@@ -255,25 +276,22 @@ class Project(Package):
             from pkm.pep517_builders.external_builders import build_sdist
             return build_sdist(self, target_dir)
 
-    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False) -> Path:
+    def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False,
+                    target_env: Optional[Environment] = None) -> Path:
         """
         build a wheel distribution from this project
         :param target_dir: directory to put the resulted wheel in
         :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
         :param editable: if True, a wheel for editable install will be created
+        :param target_env: the environment that this build should be compatible with, defaults to attached env
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
         if self.is_pkm_project():
-            from pkm.applications.application import Application
             from pkm.pep517_builders.pkm_builders import build_wheel
-
-            if not only_meta and Application.is_application_installer(self):
-                return Application(self).build_installation_package(target_dir, self.attached_repository)
-
-            return build_wheel(self, target_dir, only_meta, editable)
+            return build_wheel(self, target_dir, only_meta, editable, target_env=target_env)
         else:
             from pkm.pep517_builders.external_builders import build_wheel
-            return build_wheel(self, target_dir, only_meta, editable)
+            return build_wheel(self, target_dir, only_meta, editable, target_env=target_env)
 
     def build(self, target_dir: Optional[Path] = None) -> List[Path]:
         """
@@ -281,19 +299,25 @@ class Project(Package):
         :param target_dir: directory to put the resulted distributions in
         :return list of paths to all the distributions created
         """
-        result: List[Path] = [self.build_sdist(target_dir), self.build_wheel(target_dir)]
-        if self.config.pkm_application.installer_package:
-            from pkm.applications.application import Application
-            result.append(
-                Application(self).build_installer_package(target_dir))
 
-        return result
+        builders: List[Callable[[Path], Path]] = [self.build_sdist, self.build_wheel]
+        if self.is_pkm_application():
+            builders = [self.build_sdist]
+
+        return [build(target_dir) for build in builders]
 
     def is_pkm_project(self) -> bool:
         """
         :return: True if this project is a pkm project, False otherwise
         """
         return self.config.build_system.build_backend == 'pkm.api.buildsys'
+
+    def is_pkm_application(self) -> bool:
+        """
+        :return: true if this project represents a containerized application project
+                 (the `tool.pkm.application` section exists)
+        """
+        return self._pyproject.pkm_application is not None
 
     def is_built_in_default_location(self) -> bool:
         """
@@ -328,10 +352,6 @@ class Project(Package):
             if distribution.is_file():
                 publisher.publish(auth, metadata, distribution)
 
-        if self.config.pkm_application.installer_package:
-            from pkm.applications.application import Application
-            Application(self).publish_installer(publisher, auth, distributions_dir)
-
     @classmethod
     def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None,
              group: Optional["ProjectGroup"] = None) -> "Project":
@@ -360,3 +380,22 @@ class ProjectDirectories:
         etc_pkm = project_path / 'etc' / 'pkm'
         etc_pkm.mkdir(parents=True, exist_ok=True)
         return ProjectDirectories(packages, project_path / 'dist', etc_pkm)
+
+
+def _update_dependencies(
+        config: PyProjectConfiguration, new_deps: Dict[str, "Dependency"], optional_group: Optional[str]):
+    save_dependencies = [d for d in (config.project.dependencies or []) if d.package_name not in new_deps]
+    save_optional_dependencies = config.project.optional_dependencies
+
+    if optional_group:
+        save_optional_dependencies[optional_group] = \
+            [d
+             for d in save_optional_dependencies.get(optional_group, [])
+             if d.package_name not in new_deps] + list(new_deps.values())
+    else:
+        save_dependencies = save_dependencies + list(new_deps.values())
+
+    config.project = replace(
+        config.project,
+        dependencies=save_dependencies, optional_dependencies=save_optional_dependencies)
+    config.save()

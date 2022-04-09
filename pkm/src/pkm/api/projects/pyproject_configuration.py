@@ -11,9 +11,11 @@ from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
+from pkm.utils.commons import unone
 from pkm.utils.dicts import remove_none_values, without_keys
 from pkm.utils.files import path_to
 from pkm.utils.properties import cached_property
+from pkm.utils.sequences import strs
 
 
 @dataclass(frozen=True, eq=True)
@@ -63,31 +65,28 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
 
 @dataclass(frozen=True, eq=True)
 class PkmApplicationConfig:
-    installer_package: Optional[str] = None
-    dependency_overrides: Optional[Dict[str, Dependency]] = None
+    containerized: bool
+
+    inner_deps: List[Dependency]
+    inner_deps_overwrites: Dict[str, Dependency]
+    exposed_inner_apps: List[str]
 
     def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            'installer-package': self.installer_package,
-            'dependency-overrides': {
-                package: str(dependency)
-                for package, dependency in self.dependency_overrides.items()
-            } if self.dependency_overrides else None
-        })
+        return {
+            'containerized': self.containerized,
+            'inner-deps': strs(self.inner_deps),
+            'inner-deps-overwrites': {p: str(d) for p, d in self.inner_deps_overwrites.items()},
+            'exposed-inner-apps': self.exposed_inner_apps
+        }
 
     @classmethod
-    def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional["PkmApplicationConfig"]:
-        if not config:
-            return PkmApplicationConfig()
-
-        dependency_overrides = None
-        if unparsed_forced_versions := config.get('dependency-overrides'):
-            dependency_overrides = {
-                override['from']: Dependency.parse(override['to'])
-                for override in unparsed_forced_versions
-            }
-
-        return PkmApplicationConfig(config.get('installer-package'), dependency_overrides)
+    def from_config(cls, config: Dict[str, Any]):
+        return cls(
+            config.get('containerized', False),
+            [Dependency.parse(it) for it in unone(config.get('inner-deps'), list)],
+            {pk: Dependency.parse(dep) for pk, dep in unone(config.get('inner-deps-overwrites'), dict).items()},
+            unone(config.get('exposed-inner-apps'), list)
+        )
 
 
 @dataclass(frozen=True, eq=True)
@@ -171,8 +170,9 @@ class ProjectConfig:
         for od_group, deps in optional_deps.items():
             extra_rx = re.compile(f'extra\\s*==\\s*(\'{od_group}\'|"{od_group}")')
             for dep in deps:
-                if not extra_rx.match(str(dep.env_marker)):
-                    new_marker = f"{str(dep.env_marker).rstrip(';')};extra=\'{od_group}\'"
+                if not dep.env_marker or not extra_rx.match(str(dep.env_marker)):
+                    new_marker = (str(dep.env_marker).rstrip(';') + ';') if dep.env_marker else ''
+                    new_marker = f"{new_marker}extra==\'{od_group}\'"
                     all_deps.append(replace(dep, env_marker=EnvironmentMarker.parse_pep508(new_marker)))
                 else:
                     all_deps.append(dep)
@@ -222,7 +222,8 @@ class ProjectConfig:
 
         return self.license.read_text()
 
-    def to_config(self, project_path: Path) -> Dict[str, Any]:
+    def to_config(self, project_path: Optional[Path] = None) -> Dict[str, Any]:
+        project_path = project_path or Path.cwd()
         readme_value = None
         if self.readme:
             readme_value = self.readme if isinstance(self.readme, str) \
@@ -261,12 +262,14 @@ class ProjectConfig:
         return remove_none_values(project)
 
     @classmethod
-    def from_config(cls, project_path: Path, project: Dict[str, Any]) -> "ProjectConfig":
-        version = Version.parse(project['version'])
+    def from_config(cls, config: Dict[str, Any], project_path: Optional[Path] = None) -> "ProjectConfig":
+        project_path = project_path or Path.cwd()
+
+        version = Version.parse(config['version'])
 
         # decide the readme value
         readme = None
-        if readme_entry := project.get('readme'):
+        if readme_entry := config.get('readme'):
             if isinstance(readme_entry, Mapping):
                 if readme_file := readme_entry.get('file'):
                     readme = project_path / readme_file
@@ -275,53 +278,53 @@ class ProjectConfig:
             else:
                 readme = str(readme_entry)
 
-        requires_python = VersionSpecifier.parse(project['requires-python']) \
-            if 'requires-python' in project else AnyVersion
+        requires_python = VersionSpecifier.parse(config['requires-python']) \
+            if 'requires-python' in config else AnyVersion
 
         license_ = None
-        if license_table := project.get('license'):
+        if license_table := config.get('license'):
             license_ = (project_path / license_table['file']) if 'file' in license_table else str(license_table['text'])
 
         authors = None
-        if authors_array := project.get('authors'):
+        if authors_array := config.get('authors'):
             authors = [ContactInfo.from_config(a) for a in authors_array]
 
         maintainers = None
-        if maintainers_array := project.get('maintainers'):
+        if maintainers_array := config.get('maintainers'):
             maintainers = [ContactInfo.from_config(a) for a in maintainers_array]
 
         entry_points = {}
-        if scripts_table := project.get('scripts'):
+        if scripts_table := config.get('scripts'):
             entry_points[EntryPoint.G_CONSOLE_SCRIPTS] = _entrypoints_from_config(
                 EntryPoint.G_CONSOLE_SCRIPTS, scripts_table)
 
-        if gui_scripts_table := project.get('gui-scripts'):
+        if gui_scripts_table := config.get('gui-scripts'):
             entry_points[EntryPoint.G_GUI_SCRIPTS] = _entrypoints_from_config(
                 EntryPoint.G_GUI_SCRIPTS, gui_scripts_table)
 
-        if entry_points_tables := project.get('entry-points'):
+        if entry_points_tables := config.get('entry-points'):
             entry_points.update({
                 group: _entrypoints_from_config(group, entries)
                 for group, entries in entry_points_tables.items()
             })
 
         dependencies = None
-        if dependencies_array := project.get('dependencies'):
+        if dependencies_array := config.get('dependencies'):
             dependencies = [Dependency.parse(it) for it in dependencies_array]
 
-        optional_dependencies = None
-        if optional_dependencies_table := project.get('optional-dependencies'):
+        optional_dependencies = {}
+        if optional_dependencies_table := config.get('optional-dependencies'):
             optional_dependencies = {
                 extra: [Dependency.parse(it) for it in deps]
                 for extra, deps in optional_dependencies_table.items()
             }
 
         return ProjectConfig(
-            name=project['name'], version=version, description=project.get('description'), readme=readme,
+            name=config['name'], version=version, description=config.get('description'), readme=readme,
             requires_python=requires_python, license=license_, authors=authors, maintainers=maintainers,
-            keywords=project.get('keywords'), classifiers=project.get('classifiers'), urls=project.get('urls'),
+            keywords=config.get('keywords'), classifiers=config.get('classifiers'), urls=config.get('urls'),
             entry_points=entry_points, dependencies=dependencies, optional_dependencies=optional_dependencies,
-            dynamic=project.get('dynamic'), all_fields=project)
+            dynamic=config.get('dynamic'), all_fields=config)
 
 
 _LEGACY_BUILDSYS = {
@@ -347,22 +350,28 @@ class PyProjectConfiguration(TomlFileConfiguration):
         return PkmProjectConfig.from_config(self['tool.pkm.project'])
 
     @computed_based_on("tool.pkm.application")
-    def pkm_application(self) -> PkmApplicationConfig:
-        return PkmApplicationConfig.from_config(self['tool.pkm.application'])
+    def pkm_application(self) -> Optional[PkmApplicationConfig]:
+        if app_config := self['tool.pkm.application']:
+            return PkmApplicationConfig.from_config(app_config)
+        return None
+
+    @pkm_application.modifier
+    def set_pkm_application(self, app: PkmApplicationConfig):
+        self['tool.pkm.application'] = app.to_config()
 
     @computed_based_on("project")
     def project(self) -> Optional[ProjectConfig]:
-        project_path = self._path.parent
+        project_path = self._path.parent if self._path else None
 
         project: Dict[str, Any] = self['project']
         if project is None:
             return None
 
-        return ProjectConfig.from_config(project_path, project)
+        return ProjectConfig.from_config(project, project_path)
 
     @project.modifier
     def set_project(self, value: ProjectConfig):
-        project_path = self.path.parent
+        project_path = self.path and self.path.parent
         self['project'] = value.to_config(project_path)
 
     @computed_based_on("build-system")

@@ -34,11 +34,19 @@ class RepositoriesConfiguration(TomlFileConfiguration):
             RepositoryInstanceConfig.from_config(name, repo) for name, repo in self.items()
             if isinstance(repo, Dict)]
 
+    @repositories.modifier
+    def set_repositories(self, repos: List[RepositoryInstanceConfig]):
+        for k, v in list(self.items()):
+            if isinstance(v, Dict):
+                del self[k]
+        for repo in repos:
+            self[repo.name] = repo.to_config()
+
 
 @dataclass(frozen=True, eq=True)
 class RepositoryInstanceConfig:
     type: str
-    packages: Optional[List[str]]
+    packages: Optional[List[str]]  # use to limit to the repository to only the given packages
     name: Optional[str]
     args: Dict[str, Any]
 

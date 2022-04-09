@@ -360,8 +360,6 @@ AnyVersion = VersionRange(includes_min=True, includes_max=True)
 # UTILS
 
 def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
-    segments_bu = segments
-
     if not segments:
         return NoVersion
 

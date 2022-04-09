@@ -10,6 +10,7 @@ from pkm.api.distributions.pth_link import PthLink
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.repositories.repository import AbstractRepository, Repository
@@ -114,13 +115,13 @@ class _SharedPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._package.is_compatible_with(env)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        if shared := self._shared_artifact_for(env):
-            _link_shared(self.descriptor, shared, env)
+    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
+        if shared := self._shared_artifact_for(target.env):
+            _link_shared(self.descriptor, shared, target)
         else:
-            self._package.install_to(env)
-            if shared := _move_to_shared(self._package.descriptor, env, self._shared_path):
-                _link_shared(self.descriptor, shared, env)
+            self._package.install_to(target)
+            if shared := _move_to_shared(self._package.descriptor, target, self._shared_path):
+                _link_shared(self.descriptor, shared, target)
 
 
 def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
@@ -139,12 +140,13 @@ def _copy_records(root: Path, shared: Path, records: List[Path]) -> List[Path]:
     return records_left
 
 
-def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: Path) -> Optional[_SharedPackageArtifact]:
-    psname = (package.expected_source_package_name + "-").lower()
+def _move_to_shared(package: PackageDescriptor,
+                    target: PackageInstallationTarget, shared_path: Path) -> Optional[_SharedPackageArtifact]:
+    psname = (package.expected_src_package_name + "-").lower()
 
     for site in ('purelib', 'platlib'):
         dist_info_path = first_or_none(
-            it for it in Path(env.paths[site]).glob("*.dist-info") if it.name.lower().startswith(psname))
+            it for it in Path(getattr(target, site)).glob("*.dist-info") if it.name.lower().startswith(psname))
 
         if dist_info_path:
             break
@@ -173,7 +175,7 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
 
     # copy scripts
     script_entrypoints = {e.name for e in dist_info.load_entrypoints_cfg().entrypoints if e.is_script()}
-    bin_path = Path(env.paths["scripts"])
+    bin_path = Path(target.scripts)
     shared_bin = shared_target / "bin"
 
     # filter script entrypoints - they should be re-generated
@@ -193,13 +195,13 @@ def _move_to_shared(package: PackageDescriptor, env: Environment, shared_path: P
     return _SharedPackageArtifact(shared_target, dist_info.load_metadata_cfg(), shared_target.name)
 
 
-def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, env: Environment):
+def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, target: PackageInstallationTarget):
     with CopyTransaction() as ct:
 
-        package_prefix = f"{package.expected_source_package_name}-{package.version}"
+        package_prefix = f"{package.expected_src_package_name}-{package.version}"
 
         site_name = "purelib" if (shared.path / "purelib").exists() else "platlib"
-        site_path = Path(env.paths[site_name])
+        site_path = Path(getattr(target, site_name))
 
         # first link the site data
         purelib_link = PthLink(site_path / f"{package_prefix}.pth", [shared.path / site_name])
@@ -208,15 +210,15 @@ def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, env
 
         # now create all script entrypoints
         shared_distinfo = DistInfo.load(shared.path / "dist-info")
-        bin_dir = Path(env.paths['scripts'])
+        bin_dir = Path(target.scripts)
         for entrypoint in shared_distinfo.load_entrypoints_cfg().entrypoints:
             if entrypoint.is_script():
-                ct.touch(Executables.generate_for_entrypoint(entrypoint, env, bin_dir))
+                ct.touch(Executables.generate_for_entrypoint(target.env, entrypoint, bin_dir))
 
         # then, patch non entrypoint scripts
         for script in (shared.path / 'bin').iterdir():
             target_script = bin_dir / script.name
-            Executables.patch_shabang_for_env(script, target_script, env)
+            Executables.patch_shabang_for_interpreter(script, target_script, target.env.interpreter_path)
             ct.touch(target_script)
 
         # we are almost done, copy dist-info

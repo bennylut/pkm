@@ -5,6 +5,7 @@ from pkm.api.distributions.distribution import Distribution
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import pkm
 
@@ -25,6 +26,7 @@ class SourceDistribution(Distribution):
     def extract_metadata(self, env: "Environment") -> PackageMetadata:
         return pkm.source_build_cache.get_or_build_meta(env, self)
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
-        WheelDistribution(self.owner_package, pkm.source_build_cache.get_or_build_wheel(env, self)) \
-            .install_to(env, user_request)
+    def install_to(
+            self, target: PackageInstallationTarget, user_request: Optional[Dependency] = None):
+        WheelDistribution(self.owner_package, pkm.source_build_cache.get_or_build_wheel(target, self)) \
+            .install_to(target, user_request)

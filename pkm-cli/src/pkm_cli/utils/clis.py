@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import List, Type, Union, Optional, Any, TypeVar, Generic, Callable, Tuple, Iterable, Dict
 
 from pkm.utils.dicts import remove_none_values
-from pkm.utils.pipes import pipe, p_map_not_none, p_for_each
+# from pkm.utils.pipes import pipe, p_map_not_none, p_for_each
+from pkm.utils.seqs import seq
 
 _T = TypeVar("_T")
 _CommandHandler = Callable[[Namespace], None]
@@ -85,8 +86,8 @@ def create_args_parser(
     main = ArgumentParser(description=desc)
     parser = SubParsers(main)
 
-    pipe(commands) \
-        | p_map_not_none(lambda it: getattr(it, "__command", None)) \
-        | p_for_each(lambda it: command_customizer(parser.add_command(it), it))
+    seq(commands)\
+        .map_not_none(lambda it: getattr(it, "__command", None))\
+        .for_each(lambda it: command_customizer(parser.add_command(it), it))
 
     return main

@@ -1,19 +1,24 @@
 from __future__ import annotations
+
 import csv
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Iterable, Dict, Iterator
+from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING
 
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
-from pkm.utils.files import path_to, resolve_relativity, CopyTransaction
+from pkm.utils.files import path_to, resolve_relativity
 from pkm.utils.hashes import HashSignature
 from pkm.utils.iterators import groupby
+from pkm.utils.properties import cached_property
+
+if TYPE_CHECKING:
+    from pkm.api.packages.package import PackageDescriptor
 
 
 class DistInfo:
@@ -21,11 +26,21 @@ class DistInfo:
     def __init__(self, path: Path):
         self.path = path
 
+    @cached_property
+    def package_name(self):
+        return self.path.name.split("-")[0]
+
     def load_wheel_cfg(self) -> "WheelFileConfiguration":
         return WheelFileConfiguration.load(self.wheel_path())
 
     def wheel_path(self) -> Path:
         return self.path / "WHEEL"
+
+    def is_app_container(self) -> bool:
+        return self.app_container_path().exists()
+
+    def is_user_requested(self) -> bool:
+        return self.user_requested_path().exists()
 
     def load_entrypoints_cfg(self) -> "EntrypointsConfiguration":
         return EntrypointsConfiguration.load(self.path / "entry_points.txt")
@@ -45,9 +60,33 @@ class DistInfo:
     def license_path(self) -> Path:
         return self.path / "LICENSE"
 
+    def app_container_path(self) -> Path:
+        return self.path / "APP_CONTAINER"
+
+    def user_requested_path(self) -> Path:
+        return self.path / "REQUESTED"
+
     @classmethod
     def load(cls, path: Path) -> "DistInfo":
+        if path.suffix != '.dist-info':
+            raise ValueError("not a properly named dist-info directory")
+
         return cls(path)
+
+    @classmethod
+    def scan(cls, path: Path) -> Iterator[DistInfo]:
+        for file in path.iterdir():
+            if file.suffix == ".dist-info":
+                yield DistInfo.load(file)
+
+    @classmethod
+    def expected_dir_name(cls, package: "PackageDescriptor") -> str:
+        """
+        :param package: the package to compute the expected directory name for
+        :return: the name of the dist-info directory (last element in the path for the dist-info) that is expected to be
+                 created for the given package
+        """
+        return f"{package.expected_src_package_name}-{str(package.version).replace('-', '_')}.dist-info"
 
     def installed_files(self) -> Iterator[Path]:
         """
@@ -122,6 +161,9 @@ class Record:
     file: str
     hash_signature: HashSignature
     length: int
+
+    def absolute_path(self, dist_info: DistInfo) -> Path:
+        return resolve_relativity(Path(self.file), dist_info.path).resolve()
 
 
 class RecordsFileConfiguration(FileConfiguration):

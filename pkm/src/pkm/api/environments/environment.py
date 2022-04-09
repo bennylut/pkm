@@ -1,7 +1,9 @@
+from __future__ import annotations
+
+import dataclasses
 import hashlib
 import os
 import sys
-from abc import ABC
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -9,25 +11,20 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping, TYPE_CHECKING
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
-from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.site_packages import SitePackages, InstalledPackage
+from pkm.api.packages.package_installation import PackageInstallationTarget
+from pkm.api.packages.site_packages import SitePackages
 from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Repository, AbstractRepository
-from pkm.api.versions.version import NamedVersion, StandardVersion, Version
-from pkm.api.versions.version_specifiers import SpecificVersion
-from pkm.resolution.dependency_resolver import resolve_dependencies
-from pkm.resolution.pubgrub import UnsolvableProblemException
+from pkm.api.repositories.repository import Repository
+from pkm.api.versions.version import StandardVersion, Version
 from pkm.utils.commons import unone
-from pkm.utils.delegations import delegate
 from pkm.utils.entrypoints import EntryPoint
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
-from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
+from pkm.api.dependencies.dependency import Dependency
 
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
@@ -78,11 +75,17 @@ class Environment:
         return self.path.name
 
     @property
-    def paths(self) -> Dict[str, str]:
-        """
-        :return: environment paths as returned by `sysconfig.getpaths()`
-        """
-        return self._introspection.paths
+    def is_readonly(self) -> bool:
+        return self._readonly
+
+    @cached_property
+    def default_installation_target(self) -> PackageInstallationTarget:
+        paths = self._introspection.paths
+        return PackageInstallationTarget(self, **{
+            field.name: paths.get(field.name) or ""
+            for field in dataclasses.fields(PackageInstallationTarget)
+            if field.name != 'env'
+        })
 
     def __repr__(self):
         return f"Environment({self.path})"
@@ -137,7 +140,7 @@ class Environment:
 
     @cached_property
     def site_packages(self) -> SitePackages:
-        return self._introspection.create_site_packages(self, False)
+        return self.default_installation_target.site_packages
 
     @cached_property
     def markers_hash(self) -> str:
@@ -150,7 +153,7 @@ class Environment:
 
     @contextmanager
     def activate(self, env: MutableMapping[str, str] = os.environ):
-        new_path = f"{self.paths['scripts']}"
+        new_path = f"{self._introspection.paths['scripts']}"
         if old_path := env.get("PATH"):
             new_path = f"{new_path}{os.pathsep}{old_path}"
 
@@ -228,61 +231,18 @@ class Environment:
 
         PthLink(pth_file, paths, imports).save()
 
-    def install(self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None,
-                user_requested: bool = True,
-                dependencies_override: Optional[Dict[str, List[Dependency]]] = None
-                ):
+    def install(
+            self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None,
+            user_requested: bool = True,
+            dependencies_override: Optional[Dict[str, List[Dependency]]] = None):
         """
-        retrieve the `dependencies` from the `repository` together with all their dependencies and install them inside
-        this environment, making sure to not break any pre-installed "user-requested" packages
-        (but may upgrade their dependencies if it needs to)
-
-        :param dependencies: the dependency to install
-        :param repository: the repository to fetch this dependency from, if not given will use the attached repository
-        :param user_requested: indicator that the user requested this dependency themselves
-            (this will be marked on the installation as per pep376)
-        :param dependencies_override: mapping from package name into dependency that should be "forcefully"
-            used for this package
+        installs the given set of dependencies into this environment.
+        see: `prepare_installation` for more information about this method arguments
         """
 
-        repository = repository or self.attached_repository
-
-        self.reload()
-
-        preinstalled_packages = list(self.site_packages.installed_packages())
-        pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
-        new_deps = {d.package_name: d for d in _coerce_dependencies(dependencies)}
-        all_deps = {**pre_requested_deps, **new_deps}
-
-        try:
-            # first we try the fast path: only adding packages without updating
-            user_request = _UserRequestPackage(list(new_deps.values()))
-            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
-            installation = resolve_dependencies(
-                user_request.to_dependency(), self, installation_repo, dependencies_override)
-
-            installation_names = {i.name for i in installation}
-            for preinstalled in preinstalled_packages:
-                if preinstalled.name not in installation_names:
-                    installation.append(preinstalled)
-
-        except UnsolvableProblemException:
-            # if we cannot we try the slow path in which we allow preinstalled packages dependencies to be updated
-            user_request = _UserRequestPackage(list(all_deps.values()))
-            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
-            installation = resolve_dependencies(
-                user_request.to_dependency(), self, installation_repo)
-
-        _sync_package(self, installation)
-
-        self.reload()
-
-        if user_requested:
-            for package, dep in new_deps.items():
-                if installed_package := self.site_packages.installed_package(package):
-                    # note that the package may not get installed if the dependency
-                    # is not required for our specific environment
-                    installed_package.mark_user_requested(dep)
+        self.default_installation_target.install(
+            _coerce_dependencies(dependencies), repository, user_requested,
+            dependencies_override).install()
 
     def force_remove(self, package: str):
         """
@@ -290,8 +250,7 @@ class Environment:
         depends on it - use this method with care (or don't use it at all :) )
         :param package: the name of the package to be removed
         """
-        if installed := self.site_packages.installed_package(package):
-            installed.uninstall()
+        self.default_installation_target.force_remove(package)
 
     def uninstall(self, packages: _PACKAGE_NAMES_T) -> Set[str]:
         """
@@ -305,30 +264,7 @@ class Environment:
         :param packages: the package names to remove
         :return the set of package names that were successfully removed from the environment
         """
-
-        # with monitor.on_uninstall() as package_modification_monitor:
-        self.reload()
-
-        packages = _coerce_package_names(packages)
-        preinstalled_packages = list(self.site_packages.installed_packages())
-        requested_deps = {p.name: p.user_request for p in preinstalled_packages if p.user_request}
-        for package_name in packages:
-            requested_deps.pop(package_name, None)
-
-        user_request = _UserRequestPackage(list(requested_deps.values()))
-        installation_repo = _RemovalRepository(preinstalled_packages, user_request)
-
-        installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
-        _sync_package(self, installation)
-
-        kept = {p.name for p in installation}
-
-        for p in packages:
-            if p in kept:
-                self.site_packages.installed_package(p).unmark_user_requested()
-
-        self.reload()
-        return {p for p in packages if p not in kept}
+        return self.default_installation_target.uninstall(_coerce_package_names(packages))
 
     @cached_property
     def entrypoints(self) -> Dict[str, List[EntryPoint]]:
@@ -353,110 +289,15 @@ class Environment:
         return (path / "pyvenv.cfg").exists() and _find_interpreter(path) is not None
 
     @classmethod
-    def current(cls) -> "Environment":
-        interpreter = Path(sys.executable)
+    def of_interpreter(cls, interpreter: Path) -> Environment:
         if (interpreter.parent.parent / "pyvenv.cfg").exists():
             return Environment(interpreter.parent.parent, interpreter)
         else:  # this is a system environment
             return Environment(Path("/"), interpreter, readonly=True)
 
-
-def _sync_package(env: Environment, packages: List[Package]):
-    preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in env.site_packages.installed_packages()}
-    toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
-
-    promises: List[Promise] = []
-    from pkm.api.pkm import pkm
-
-    def install(p: Package):
-        # with monitor.on_access_package(p) as package_monitor:
-        p.install_to(env)
-
-    def uninstall(p: InstalledPackage):
-        # with monitor.on_access_package(p) as package_monitor:
-        p.uninstall()
-
-    def upgrade(p_old: InstalledPackage, p_new: Package):
-        uninstall(p_old)
-        install(p_new)
-
-    for package_to_install in toinstall.values():
-        if preinstalled_package := preinstalled.pop(package_to_install.name, None):
-            if preinstalled_package.version == package_to_install.version:
-                continue
-
-            promises.append(Promise.execute(pkm.threads, upgrade, preinstalled_package, package_to_install))
-        else:
-            promises.append(Promise.execute(pkm.threads, install, package_to_install))
-
-    for package_to_remove in preinstalled.values():
-        promises.append(Promise.execute(pkm.threads, uninstall, package_to_remove))
-
-    for promise in promises:
-        promise.result()
-
-
-class _UserRequestPackage(Package):
-    def __init__(self, request: List[Dependency]):
-        self._desc = PackageDescriptor("installation request", NamedVersion(""))
-        self._request = request
-
-    @property
-    def descriptor(self) -> PackageDescriptor:
-        return self._desc
-
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self._request
-
-    def is_compatible_with(self, env: "Environment") -> bool: return True
-
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None): pass
-
-    def to_dependency(self) -> Dependency:
-        return Dependency(self.name, SpecificVersion(self.version))
-
-
-class _RemovalRepository(AbstractRepository):
-
-    def __init__(self, preinstalled: List[InstalledPackage], user_request: Package):
-        super().__init__('removal repository')
-        self._preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in preinstalled}
-        self._user_request = user_request
-
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        if dependency.package_name == self._user_request.name:
-            return [self._user_request]
-
-        return [self._preinstalled[dependency.package_name]]
-
-
-@delegate(Repository, '_repo')
-class _InstallationRepository(Repository, ABC):
-    def __init__(
-            self, repo: Repository, installed_packages: List[InstalledPackage], user_request: Package,
-            limit_to_installed: bool):
-
-        self._user_request = user_request
-        self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
-        self._limit_to_installed = limit_to_installed
-        self._repo = repo
-
-    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
-        if isinstance(dependency, str):
-            dependency = Dependency.parse(dependency)
-
-        if dependency.package_name == self._user_request.name:
-            return [self._user_request]
-
-        installed = self._installed_packages.get(dependency.package_name)
-        if self._limit_to_installed and installed:
-            return [installed]
-
-        packages = self._repo.match(dependency, check_prereleases)
-        if installed:
-            packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
-
-        return packages
+    @classmethod
+    def current(cls) -> Environment:
+        return Environment.of_interpreter(Path(sys.executable))
 
 
 def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:

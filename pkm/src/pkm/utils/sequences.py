@@ -88,3 +88,11 @@ def oseq_hash(seq: List[_T], item_hash: Callable[[_K], int] = hash):
     for item in seq:
         result = result * 31 + item_hash(item)
     return result
+
+
+def strs(seq: Sequence[_T]) -> List[str]:
+    """
+    :param seq: the sequence to extract items from
+    :return: list containing `str(item)` for each item in `seq`
+    """
+    return [str(it) for it in seq]

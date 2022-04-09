@@ -94,10 +94,15 @@ class RepositoryLoader:
 
     def load_for_project(self, project: Project) -> Repository:
         repo = project.attached_environment.attached_repository
+
         if group := project.group:
             repo = self._load_for_project_group(group, repo)
         else:
             repo = _ProjectsRepository.create('project-repository', [project], repo)
+
+        config = project.path / REPOSITORIES_CONFIGURATION_PATH
+        if config.exists():
+            repo = self._compose("project-configured-repository", config, repo)
 
         repo = LockPrioritizingRepository(
             "lock-prioritizing-repository", repo, project.lock,

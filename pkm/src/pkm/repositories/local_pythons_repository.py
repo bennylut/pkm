@@ -4,12 +4,13 @@ import re
 import subprocess
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Union
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
@@ -85,8 +86,11 @@ class LocalInterpreterPackage(Package):
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        EnvironmentBuilder.create(env.path, self._interpreter.absolute())
+    def install_to(
+            self, target: Union[Environment, PackageInstallationTarget],
+            user_request: Optional["Dependency"] = None):
+        env_dir = target.env.path if isinstance(target, PackageInstallationTarget) else target.path
+        EnvironmentBuilder.create(env_dir, self._interpreter.absolute())
 
 
 _OS = platform.system()

@@ -1,24 +1,29 @@
 ## RUNNING TASKS:
 
-- pkm: support installing as applications packages which were not built as self-contained ones
-- bug: pkm applications: support pth loading
 - pkm: update package installation / update all packages (include support for locks and shared)
 - bug `pkm clean dist` should remove all but current version of dist
-- enhancement: application metadata build
-- replace "app" with "container"
-- use more specific exposing of entrypoints
-- allow containers to request "provided" dependencies
-
+- enhancement: if pkm is installed on some environment we cannot choose a different global environment
+- replace dependency resolution progressbar with spinner?
+- enhancement: shared package installation - use to the new package installation target schema
+- support application plugins
 
 ## DONE IN THIS VERSION
-- yet another improvements for the application loader (did not work on spec-loaded modules)
-- bug: mac osx platform compatibility tags was wrongly parsed
-- enhancement: venv creation - gets the real executable from sys.executable to overcome mac executable router
-- enhancement: pkm publish with no build should just run the build itself
-- bug: macos could not install numpy because of a wrong binary compatibility detection
-- cmd: add the py command as a shortcut to run context aware python execution
+- pkm: support installing as applications packages which were not built as self-contained ones
+- bug: pkm applications: support pth loading
+- add repositories.toml support for projects
+- enhancement: yet another, simpler application model, the old one should be made into a library later
+- package installation api changed, you can now have more control over the installation target,
+    - this will improve performance of shared packages and enable the new container packages
+- warning cleanup
+- enhancement: application metadata build
+- change `pkm py` to `pkm run`
+- cli: support optional dependencies
+    - `pkm install -o "group" | --optional=group -- package?`
 
 ## BACKLOG TASKS:
+
+- bug: copy transaction should be used at the level of the full installation as sometimes it has to upgrade packages
+  which means that they will get deleted - bypassing the copy transaction realm
 - documentation: describe repositories,
     - describe repositories extensions + torch repository
     - describe inheritance mode
@@ -107,3 +112,4 @@
     - it will then have to replace all the type annotations into string based or something similar..
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - python installation repository (no sudo! - download for os and install in data files - if possible)
+- containerized applications (a prototype was previously made, it requires some hacking but it is possible)

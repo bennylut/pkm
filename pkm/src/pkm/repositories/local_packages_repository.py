@@ -10,6 +10,8 @@ from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
 from pkm.utils.strings import endswith_any
 
+LOCAL_PACKAGES_REPOSITORY_TYPE = "local"
+
 
 class PackagesDictRepository(AbstractRepository):
 
@@ -25,7 +27,7 @@ class PackagesDictRepository(AbstractRepository):
 class LocalPackagesRepositoryBuilder(RepositoryBuilder):
 
     def __init__(self):
-        super().__init__('local')
+        super().__init__(LOCAL_PACKAGES_REPOSITORY_TYPE)
 
     def build(self, name: Optional[str], packages: Optional[List[str]], **kwargs: Any) -> Repository:
         projects: List[str] = kwargs.get('projects', [])

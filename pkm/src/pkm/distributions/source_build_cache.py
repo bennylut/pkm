@@ -7,7 +7,7 @@ import pkm.pep517_builders.external_builders as ext_build
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
-from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package import PackageDescriptor, PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.projects.project import Project
 from pkm.pep517_builders.external_builders import BuildError
@@ -16,7 +16,7 @@ from pkm.utils.files import temp_dir
 from pkm.utils.hashes import stream
 from pkm.utils.iterators import single_or, single_or_raise
 
-_normalize = PackageDescriptor.normalize_source_dir_name
+_normalize = PackageDescriptor.normalize_src_package_name
 
 
 class SourceBuildCache:
@@ -27,17 +27,17 @@ class SourceBuildCache:
     def _version_dir(self, package: PackageDescriptor) -> Path:
         return self.workspace / package.name / _normalize(str(package.version))
 
-    def get_or_build_wheel(self, env: Environment, dist: SourceDistribution) -> Path:
-        return self._get_or_build(env, dist, 'wheel')
+    def get_or_build_wheel(self, target: PackageInstallationTarget, dist: SourceDistribution) -> Path:
+        return self._get_or_build(target, dist, 'wheel')
 
     def get_or_build_meta(self, env: Environment, dist: SourceDistribution) -> PackageMetadata:
-        return self._get_or_build(env, dist, 'metadata')
+        return self._get_or_build(env.default_installation_target, dist, 'metadata')
 
-    def _get_or_build(self, env: Environment, dist: SourceDistribution, artifact: str) -> Any:
+    def _get_or_build(self, target: PackageInstallationTarget, dist: SourceDistribution, artifact: str) -> Any:
 
         base_cache_dir = self.workspace / _normalize(dist.owner_package.name) / \
                          _normalize(str(dist.owner_package.version)) / \
-                         env.markers_hash
+                         target.env.markers_hash
 
         dist_hash = hashlib.blake2s()
         stream(dist_hash, dist.archive)
@@ -63,12 +63,12 @@ class SourceBuildCache:
 
             try:
                 output = ext_build.build_wheel(
-                    project, odir, only_meta=metadata, editable=False, target_env=env)
+                    project, odir, only_meta=metadata, editable=False, interpreter_path=target.env.interpreter_path)
             except BuildError as e:
                 if not metadata or not e.missing_hook:
                     raise
                 output = ext_build.build_wheel(
-                    project, odir, only_meta=False, target_env=env)
+                    project, odir, only_meta=False, interpreter_path=target.env.interpreter_path)
 
             if output.is_dir():  # metadata
                 wheel_metadata_path = output / 'METADATA'
@@ -80,7 +80,7 @@ class SourceBuildCache:
                 return PackageMetadata.load(wheel_metadata_path)
             else:
                 if not metadata_file.exists():
-                    metadata = WheelDistribution(dist.owner_package, output).extract_metadata(env)
+                    metadata = WheelDistribution(dist.owner_package, output).extract_metadata()
                     metadata.save_to(metadata_file)
 
                 cached_output = cache_dir / output.name

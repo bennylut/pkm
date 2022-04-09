@@ -1,28 +1,26 @@
-import csv
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, List, Dict, Iterable, Set, TYPE_CHECKING, Iterator
+from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.api.dependencies.dependency import Dependency
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package_installation import PackageInstallationTarget
 
 
 class SitePackages:
-    def __init__(
-            self, env: "Environment", purelib: Path, platlib: Path, other_sites: Iterable[Path], is_read_only: bool):
+    def __init__(self, env: "Environment", purelib: Path, platlib: Path, is_read_only: bool):
 
         self._purelib = purelib
         self._platlib = platlib
-        self._other_sites = other_sites
         self._is_read_only = is_read_only
         self.env = env
 
@@ -31,7 +29,11 @@ class SitePackages:
         if self._platlib != self._purelib:
             yield self._platlib
 
-        yield from self._other_sites
+    def __eq__(self, other):
+        return isinstance(other, SitePackages) \
+               and other._purelib == self._purelib \
+               and other._platlib == self._platlib \
+               and other.env.path == self.env.path
 
     @property
     def purelib_path(self) -> Path:
@@ -46,27 +48,20 @@ class SitePackages:
         result: Dict[str, InstalledPackage] = {}
         self._scan_packages(self._purelib, result, self._is_read_only)
         self._scan_packages(self._platlib, result, self._is_read_only)
-        for other_site in self._other_sites:
-            self._scan_packages(other_site, result, True)
-
         return result
 
     def _scan_packages(self, site: Path, result: Dict[str, "InstalledPackage"], readonly: bool):
         if not site.exists():
             return
 
-        for file in site.iterdir():
-            if file.suffix == ".dist-info":
-                metadata_file = file / "METADATA"
-                if metadata_file.exists():
-                    result[file.name.split("-")[0].lower()] = \
-                        InstalledPackage(DistInfo.load(file), self, readonly)
+        for di in DistInfo.scan(site):
+            result[di.package_name] = InstalledPackage(di, self, readonly)
 
     def installed_packages(self) -> Iterable["InstalledPackage"]:
         return self._name_to_packages.values()
 
     def installed_package(self, package_name: str) -> Optional["InstalledPackage"]:
-        return self._name_to_packages.get(PackageDescriptor.normalize_source_dir_name(package_name))
+        return self._name_to_packages.get(PackageDescriptor.normalize_src_package_name(package_name))
 
     def reload(self):
         clear_cached_properties(self)
@@ -147,8 +142,9 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self.published_metadata.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        raise NotImplemented()  # maybe re-mark user request?
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
+        if target.site_packages != self.site:
+            raise NotImplemented()  # maybe re-mark user request?
 
     def is_in_purelib(self) -> bool:
         """
@@ -169,7 +165,7 @@ class InstalledPackage(Package):
 
         installation_site = self.dist_info.path.parent
         while parents_to_check:
-            parent = parents_to_check.pop()
+            parent = parents_to_check.pop()  # noqa : pycharm does not know's about set's pop method?
 
             if parent == installation_site or not is_relative_to(parent, installation_site):
                 continue

@@ -1,12 +1,10 @@
-import os
-
-import shutil
-
 import argparse
+import os
+import shutil
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import List, Optional, Callable
+from typing import List, Optional
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -16,7 +14,7 @@ from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
 from pkm.utils.commons import UnsupportedOperationException
-from pkm.utils.processes import execvpe, split_command
+from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
 from pkm_cli.context import Context
@@ -25,18 +23,17 @@ from pkm_cli.reports.environment_report import EnvironmentReport
 from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
-
 from pkm_cli.utils.clis import command, Arg, create_args_parser, Command
 
 
-@command('pkm py', Arg('cmd', nargs=argparse.REMAINDER))
+@command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))
 def py(args: Namespace):
-    if args.cmd and args.cmd[0] == '--':
-        del args.cmd[0]
-
     def on_environment(env: Environment):
+        if not args.cmd:
+            raise UnsupportedOperationException("command is required to be executed")
+
         with env.activate():
-            sys.exit(execvpe('python', args.cmd, os.environ))
+            sys.exit(execvpe(args.cmd[0], args.cmd[1:], os.environ))
 
     Context.of(args).run(**locals())
 
@@ -84,13 +81,14 @@ def vbump(args: Namespace):
     Context.of(args).run(**locals())
 
 
-@command('pkm install', Arg('dependencies', nargs=argparse.REMAINDER))
+@command('pkm install', Arg(["-o", "--optional"]), Arg('dependencies', nargs=argparse.REMAINDER))
 def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.dependencies]
+    optional_group = getattr(args, "optional", None)
 
     def on_project(project: Project):
         Display.print(f"Adding dependencies into project: {project.path}")
-        project.install_with_dependencies(dependencies)
+        project.install_with_dependencies(dependencies, optional_group=optional_group)
 
     def on_project_group(project_group: ProjectGroup):
         if dependencies:
@@ -100,6 +98,8 @@ def install(args: Namespace):
         project_group.install_all()
 
     def on_environment(env: Environment):
+        if optional_group:
+            raise UnsupportedOperationException("optional dependencies are only supported inside projects")
         env.install(dependencies)
 
     Context.of(args).run(**locals())

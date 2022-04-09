@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional, List, TYPE_CHECKING
 
 from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentMarker
-from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
 from pkm.utils.parsers import SimpleParser
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package import PackageDescriptor
 
 
 @dataclass(frozen=True, eq=True)
@@ -29,6 +29,9 @@ class Dependency:
 
     def is_applicable_for(self, env: "Environment", extras: List[str]) -> bool:
         return self.env_marker is None or self.env_marker.evaluate_on(env, extras or [])
+
+    def with_extras(self, extras: Optional[List[str]]) -> Dependency:
+        return replace(self, extras=extras)
 
     def __str__(self):
         extras_str = f"[{','.join(self.extras)}]" if self.extras else ''
@@ -76,6 +79,8 @@ class PEP508DependencyParser(SimpleParser):
         return self.subparser(PEP508EnvMarkerParser).read_marker()
 
     def read_dependency(self) -> Dependency:
+        from pkm.api.packages.package import PackageDescriptor
+
         self.match_ws()
         package_name = PackageDescriptor.normalize_name(self._read_identifier())
         self.match_ws()

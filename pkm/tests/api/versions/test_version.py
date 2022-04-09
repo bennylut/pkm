@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from pkm.api.versions.version import Version, StandardVersion
-from pkm.utils.pipes import pipe, p_map, p_collect
 
 
 class TestVersion(TestCase):

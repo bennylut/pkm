@@ -8,10 +8,9 @@ from textwrap import dedent
 from typing import Optional, Dict, Set, Literal, Any, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-
+from pkm.api.distributions.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.projects.pyproject_configuration import BuildSystemConfig
-from pkm.api.distributions.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.utils.files import temp_dir
 
 if TYPE_CHECKING:
@@ -104,13 +103,13 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
     :param target_dir: directory to put the resulted wheel in
     :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
     :param editable: if True, a wheel for editable install will be created
-    :param target_env: the environment to build this distribution for
+    :param target_env: the environment that this build should be compatible with
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
 
     from pkm.api.environments.environment_builder import EnvironmentBuilder
     target_dir = target_dir or (project.directories.dist / str(project.version))
-    target_env = target_env or project.attached_environment
+    interpreter_path = target_env.interpreter_path if target_env else project.attached_environment.interpreter_path
 
     target_dir.mkdir(exist_ok=True, parents=True)
 
@@ -121,7 +120,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
         buildsys: BuildSystemConfig = pyproject.build_system
         build_packages_repo = project.attached_repository
 
-        build_env = EnvironmentBuilder.create(tdir / 'venv', target_env.interpreter_path)
+        build_env = EnvironmentBuilder.create(tdir / 'venv', interpreter_path)
 
         if buildsys.requirements:
             build_env.install(buildsys.requirements, build_packages_repo)

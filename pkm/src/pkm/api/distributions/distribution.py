@@ -2,12 +2,13 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package import PackageInstallationTarget
 
 
 class Distribution(Protocol):
@@ -20,13 +21,12 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None):
         """
         installs this package into the given `env`
-        :param env: the environment to install this package into
+        :param target: information about the target to install this distribution into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param editable: if true will install the distribution in editable mode (if such applicable)
         """
 
     @abstractmethod
@@ -83,5 +83,5 @@ class _DistributionPackage(Package):
             return env.compatibility_tag_score(self._dist.compute_compatibility_tags()) is not None
         return True
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        self._dist.install_to(env, user_request)
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
+        self._dist.install_to(target, user_request)

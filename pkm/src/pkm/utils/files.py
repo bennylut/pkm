@@ -31,6 +31,16 @@ def ensure_exists(path: Path, error_msg: Optional[Callable[[], str]] = None) -> 
     raise FileNotFoundError(f"no such file or directory: {path}" if error_msg is None else error_msg())
 
 
+def mkdir(path: Path) -> Path:
+    """
+    make the given path as a directory (including parents), will do nothing if already exists
+    :param path: the path to make as a directory
+    :return: the given path (allows usage with chaining)
+    """
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def resolve_relativity(path: Path, parent: Path) -> Path:
     """
     :param path: the path to resolve
@@ -143,16 +153,19 @@ class CopyTransaction:
             else:
                 cp(file, target / file.name)
 
-    def mkdir(self, target: Path):
+    def mkdir(self, target: Path) -> Path:
         """
         creates a directory in the given `target` path
         :param target: the directory path to create
+        :return `target` to be used with chaining
         """
         if not target.exists():
             if not target.parent.exists():
                 self.mkdir(target.parent)
             target.mkdir()
             self._copied_files.add(target)
+
+        return target
 
     def copy(self, source: Path, target: Path):
         """
@@ -179,14 +192,30 @@ class CopyTransaction:
         """
         return iter(self._copied_files)
 
-    def touch(self, path: Path):
+    def touch(self, path: Path, fs_touch: bool = False):
         """
         mark the given `path` as copied in this transaction
         :param path: the path to mark
+        :param fs_touch: if true will also touch the path in the filesystem
         """
         self._copied_files.add(path)
+        if fs_touch:
+            path.touch(exist_ok=True)
+
+    def touch_tree(self, path: Path):
+        """
+        mark the given `path` and all its children as copied in this transaction
+        :param path: the path to mark
+        """
+        self.touch(path)
+        self._copied_files.update(path.rglob("*"))
 
     def rm(self, path: Path):
+        """
+        remove the given path (rollback supported operation)
+        works for both files and directories
+        :param path: the path to remove
+        """
         temp = self._temp_dir / str(len(self._overwritten_files))
         shutil.move(path, temp)
         self._overwritten_files.append(path)

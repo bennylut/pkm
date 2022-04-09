@@ -162,6 +162,6 @@ class VersionParser(SimpleParser):
             if not self.match(',') and self.is_not_empty():
                 if not paren or self.match(')'):
                     break
-                self.raise_err('could not parse token')
+                self.raise_err("expecting comma (',')")
 
         return specifier

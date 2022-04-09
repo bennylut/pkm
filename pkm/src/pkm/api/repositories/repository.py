@@ -87,11 +87,13 @@ class AbstractRepository(Repository, ABC):
     def _do_match(self, dependency: Dependency) -> List[Package]:
         """
         IMPLEMENTATION NOTICE:
-            do not try to filter pre-releases,
-            it is handled for you in the `match` method that call this one.
+            1. do not try to filter pre-releases,
+               it is handled for you in the `match` method that call this one.
+            2. the matching should only be done against the package name and the version spec
+               since the environment markers should not be considered in the level of the repository
 
         :param dependency: the dependency to match
-        :return: list of all the packages in this repository that match the given `dependency`,
+        :return: list of all the packages in this repository that match the given `dependency` version spec
         """
 
 

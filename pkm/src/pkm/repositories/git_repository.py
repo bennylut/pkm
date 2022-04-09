@@ -4,6 +4,7 @@ from typing import List, Optional, cast, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import AbstractRepository
@@ -119,5 +120,5 @@ class _GitPackageWrapper(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._project.is_compatible_with(env)
 
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
-        return self._project.install_to(env, user_request, editable=False)
+    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
+        return self._project.install_to(target, user_request, editable=False)

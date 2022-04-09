@@ -1,9 +1,10 @@
 from dataclasses import FrozenInstanceError
-from threading import Lock, RLock
+from threading import RLock
 
 from typing import TypeVar, Callable, Any, Dict
 
 _T = TypeVar("_T")
+
 
 # noinspection PyPep8Naming
 class cached_property:

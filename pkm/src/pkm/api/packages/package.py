@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import re
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
@@ -6,11 +7,13 @@ from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.utils.commons import UnsupportedOperationException
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
     from pkm.api.packages.package_metadata import PackageMetadata
+    from pkm.api.packages.package_installation import PackageInstallationTarget
 
 
 @dataclass(frozen=True)
@@ -19,7 +22,7 @@ class PackageDescriptor:
     version: Version
 
     @property
-    def expected_source_package_name(self) -> str:
+    def expected_src_package_name(self) -> str:
         """
         The expected name of the source package is the same name of the package
          when hyphen is replaced with underscore, there is no guarantee that the
@@ -27,7 +30,7 @@ class PackageDescriptor:
 
         :return: the expected name of the source package that is stored in this package,
         """
-        return PackageDescriptor.normalize_source_dir_name(self.name)
+        return PackageDescriptor.normalize_src_package_name(self.name)
 
     def __post_init__(self):
         super().__setattr__('name', PackageDescriptor.normalize_name(self.name).replace('_', '-'))
@@ -47,7 +50,7 @@ class PackageDescriptor:
         return cls(data['name'], Version.parse(data['version']))
 
     @staticmethod
-    def normalize_source_dir_name(package_name: str) -> str:
+    def normalize_src_package_name(package_name: str) -> str:
         return PackageDescriptor.normalize_name(package_name).translate({ord('-'): '_', ord('.'): '_'})
 
     @staticmethod
@@ -137,13 +140,32 @@ class Package(ABC):
         """
 
     @abstractmethod
-    def install_to(self, env: "Environment", user_request: Optional["Dependency"] = None):
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
         """
         installs this package into the given `env`
-        :param env: the environment to install this package into
+        :param target: the information about the target to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
         """
+
+    def uninstall(self) -> bool:
+        """
+        uninstall this package from its package installation target, returns true if the package was removed from the
+        site. If a package is a dependency of another 'required' package, then this operation will not remove the
+        package but instead will remove the "user-requested" mark from it (and then return False)
+        :note: this is an optional operation and is only applicable for "installed" packages
+        :return: True if the package was fully removed from the installation target, False otherwise
+        """
+        raise UnsupportedOperationException("uninstalling is not supported for non installed packages")
+
+    def update_at(self, target: "PackageInstallationTarget"):
+        """
+        attempt to update the package from a version installed at the given target to this version
+        the update may attempt a full re-installation or a smarted "fast" delta-update like installation
+        :param target: the target that contains the package to update
+        """
+        target.site_packages.installed_package(self.name).uninstall()
+        self.install_to(target)
 
     def __str__(self):
         return f"{self.name} {self.version}"

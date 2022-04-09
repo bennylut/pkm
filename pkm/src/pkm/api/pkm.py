@@ -64,6 +64,7 @@ class _Pkm:
 
         clear_cached_properties(self)
 
+
 # the methods used for finding the default data directory were adapted from the appdirs library
 
 def _get_win_folder() -> str:

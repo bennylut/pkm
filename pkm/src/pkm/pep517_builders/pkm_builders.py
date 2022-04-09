@@ -10,11 +10,11 @@ from zipfile import ZipFile
 
 from pkm.api.distributions.distinfo import WheelFileConfiguration, DistInfo
 from pkm.api.distributions.pth_link import PthLink
+from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.projects.project import ProjectDirectories, Project
 from pkm.api.projects.pyproject_configuration import ProjectConfig, PyProjectConfiguration
-from pkm.api.versions.version import StandardVersion
 from pkm.utils.files import temp_dir
 from pkm.utils.iterators import distinct
 
@@ -54,15 +54,20 @@ def build_sdist(project: Project, target_dir: Optional[Path] = None) -> Path:
 
 
 def build_wheel(project: Project, target_dir: Optional[Path] = None, only_meta: bool = False,
-                editable: bool = False) -> Path:
+                editable: bool = False, target_env: Optional[Environment] = None) -> Path:
     """
     build a wheel distribution from this project
     :param project: the project to build
     :param target_dir: directory to put the resulted wheel in
     :param only_meta: if True, only builds the dist-info directory otherwise the whole wheel
     :param editable: if True, a wheel for editable install will be created
+    :param target_env: the environment that this build should be compatible with, defaults to the project's attached env
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
+
+    if project.is_pkm_application() and not only_meta:
+        from pkm.pep517_builders.pkm_app_builders import build_wheel as app_build_wheel
+        app_build_wheel(project, target_dir, editable=editable, target_env=target_env)
 
     target_dir = target_dir or (project.directories.dist / str(project.version))
 
@@ -95,27 +100,24 @@ def _build_context(project: Project) -> ContextManager["_BuildContext"]:
     project_name_underscores = project_cfg.name.replace('-', '_')
 
     with temp_dir() as build_dir:
-        yield _BuildContext(project.config, build_dir, project_name_underscores)
+        yield _BuildContext(project, build_dir, project_name_underscores)
 
 
 @dataclass
 class _BuildContext:
-    pyproject: PyProjectConfiguration
+    project: Project
     build_dir: Path
     project_name_underscore: str
+
+    @property
+    def pyproject(self) -> PyProjectConfiguration:
+        return self.project.config
 
     def _project_and_version_file_prefix(self):
         return f"{self.project_name_underscore}-{self.pyproject.project.version}"
 
     def wheel_file_name(self) -> str:
-        project_cfg = self.pyproject.project
-        req = project_cfg.requires_python
-
-        min_interpreter: StandardVersion = req.min \
-            if req and not req.is_any() else StandardVersion((Environment.current().interpreter_version.release[0],))
-
-        req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
-        return f"{self._project_and_version_file_prefix()}-{req_interpreter}-none-any.whl"
+        return WheelDistribution.expected_wheel_file_name(self.project)
 
     def sdist_file_name(self) -> str:
         return f"{self._project_and_version_file_prefix()}.tar.gz"

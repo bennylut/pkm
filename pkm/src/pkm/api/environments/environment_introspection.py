@@ -7,18 +7,14 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from struct import Struct
-from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable, TYPE_CHECKING
+from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable
 
-from pkm.api.packages.site_packages import SitePackages
 from pkm.api.versions.version import StandardVersion
 from pkm.config.configuration import Configuration
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
 from pkm.utils.types import SupportsLessThan, SupportsLessThanEq
-
-if TYPE_CHECKING:
-    from pkm.api.environments.environment import Environment
 
 _INTROSPECTION_CODE = """
 import sys
@@ -163,23 +159,23 @@ class EnvironmentIntrospection(Configuration):
     def interpreter_version(self) -> List[int]:
         return self._data['sys']['version_info']
 
-    def create_site_packages(self, env: "Environment", readonly: bool) -> SitePackages:
-        sysconfig_paths = self._data['sysconfig']['paths']
-
-        if self.is_windows_env:
-            def ucase(path: str) -> str:
-                return path.lower()
-        else:
-            def ucase(path: str) -> str:
-                return path
-
-        purelib = ucase(sysconfig_paths['purelib'])
-        platlib = ucase(sysconfig_paths['platlib'])
-
-        rest_sites = [upath for path in self._data['site']['packages'] if
-                      (upath := ucase(path)) != purelib and path != platlib]
-
-        return SitePackages(env, Path(purelib), Path(platlib), [Path(p) for p in rest_sites], readonly)
+    # def create_site_packages(self, env: "Environment", readonly: bool) -> SitePackages:
+    #     sysconfig_paths = self._data['sysconfig']['paths']
+    #
+    #     if self.is_windows_env:
+    #         def ucase(path: str) -> str:
+    #             return path.lower()
+    #     else:
+    #         def ucase(path: str) -> str:
+    #             return path
+    #
+    #     purelib = ucase(sysconfig_paths['purelib'])
+    #     platlib = ucase(sysconfig_paths['platlib'])
+    #
+    #     rest_sites = [upath for path in self._data['site']['packages'] if
+    #                   (upath := ucase(path)) != purelib and path != platlib]
+    #
+    #     return SitePackages(env, Path(purelib), Path(platlib), [Path(p) for p in rest_sites], readonly)
 
     def _compute_generic_abis(self) -> Iterator[str]:
         if abi := self._data['sysconfig']['vars'].get("SOABI"):

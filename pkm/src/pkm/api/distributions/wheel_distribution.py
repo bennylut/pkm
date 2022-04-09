@@ -3,24 +3,25 @@ import re
 import warnings
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, Record
+from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.projects.project import Project
+from pkm.api.versions.version import StandardVersion
 from pkm.distributions.executables import Executables
 from pkm.utils.archives import extract_archive
 from pkm.utils.files import path_to, CopyTransaction, temp_dir
-from pkm.utils.hashes import HashSignature
-from pkm.utils.iterators import first_or_none
+from pkm.api.environments.environment import Environment
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
 if TYPE_CHECKING:
-    from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package import PackageInstallationTarget
 
 
 class InstallationException(IOError):
@@ -33,7 +34,7 @@ class WheelDistribution(Distribution):
         self._wheel = wheel
         self._package = package
 
-    def extract_metadata(self, env: "Environment") -> PackageMetadata:
+    def extract_metadata(self, env: Optional["Environment"] = None) -> PackageMetadata:
         with ZipFile(self._wheel) as zipf:
             for name in zipf.namelist():
                 if _METADATA_FILE_RX.fullmatch(name):
@@ -62,7 +63,18 @@ class WheelDistribution(Distribution):
         """
         return '-'.join(wheel.stem.split('-')[-3:])
 
-    def install_to(self, env: "Environment", user_request: Optional[Dependency] = None, editable: bool = False):
+    @staticmethod
+    def expected_wheel_file_name(project: Project) -> str:
+        project_config = project.config.project
+        req = project_config.requires_python
+
+        min_interpreter: StandardVersion = req.min \
+            if req and not req.is_any() else StandardVersion((Environment.current().interpreter_version.release[0],))
+
+        req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
+        return f"{project.descriptor.expected_src_package_name}-{project.version}-{req_interpreter}-none-any.whl"
+
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None):
         """
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
@@ -76,7 +88,7 @@ class WheelDistribution(Distribution):
 
             entrypoints = dist_info.load_entrypoints_cfg().entrypoints
 
-            site_packages = Path(env.paths['purelib' if wheel_file['Root-Is-Purelib'] == 'true' else 'platlib'])
+            site_packages = Path(target.purelib if wheel_file['Root-Is-Purelib'] == 'true' else target.platlib)
 
             records_file = dist_info.load_record_cfg()
             if not records_file.exists():
@@ -84,7 +96,6 @@ class WheelDistribution(Distribution):
                     f"Unsigned wheel for package {self._package} (no RECORD file found in dist-info)")
 
             # check that the records hash match
-
             record_by_path = {r.file: r for r in records_file.records}
 
             for file in tmp_path.rglob("*"):
@@ -109,14 +120,15 @@ class WheelDistribution(Distribution):
                     if d.is_dir():
                         if d.suffix == '.data':
                             for k in d.iterdir():
-                                target_path = env.paths.get(k.name)
-                                if not target_path:
+                                if not (target_path := getattr(target, k.name, None)):
                                     raise InstallationException(
                                         f'wheel contains data entry with unsupported key: {k.name}')
 
                                 if k.name == 'scripts':
-                                    ct.copy_tree(k, Path(target_path),
-                                                 file_copy=lambda s, t: Executables.patch_shabang_for_env(s, t, env))
+                                    ct.copy_tree(
+                                        k, Path(target_path),
+                                        file_copy=lambda s, t: Executables.patch_shabang_for_interpreter(
+                                            s, t, target.env.interpreter_path))
                                 else:
                                     ct.copy_tree(k, Path(target_path))
                         else:
@@ -125,10 +137,10 @@ class WheelDistribution(Distribution):
                         ct.copy(d, site_packages / d.name)
 
                 # build entry points
-                scripts_path = Path(env.paths.get("scripts", env.path / "bin"))
+                scripts_path = Path(target.scripts)
                 for entrypoint in entrypoints:
                     if entrypoint.is_script():
-                        ct.touch(Executables.generate_for_entrypoint(entrypoint, env, scripts_path))
+                        ct.touch(Executables.generate_for_entrypoint(target.env, entrypoint, scripts_path))
 
                 # build the new records file
                 new_dist_info = DistInfo.load(site_packages / dist_info.path.name)
