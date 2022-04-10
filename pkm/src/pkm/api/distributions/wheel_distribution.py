@@ -32,6 +32,7 @@ class WheelDistribution(Distribution):
 
     def __init__(self, package: PackageDescriptor, wheel: Path):
         self._wheel = wheel
+        assert wheel, "no path for wheel provided"
         self._package = package
 
     def extract_metadata(self, env: Optional["Environment"] = None) -> PackageMetadata:

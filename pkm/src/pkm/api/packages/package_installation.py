@@ -175,14 +175,20 @@ class PreparedInstallation:
 
 
 def _sync_package(target: PackageInstallationTarget, packages: List[Package]):
-    preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in target.site_packages.installed_packages()}
-    toinstall: Dict[str, Package] = {p.name: p for p in packages if not isinstance(p, _UserRequestPackage)}
+    preinstalled: Dict[str, InstalledPackage] = {
+        PackageDescriptor.normalize_src_package_name(p.name).lower(): p
+        for p in target.site_packages.installed_packages()}
+
+    toinstall: Dict[str, Package] = {
+        PackageDescriptor.normalize_src_package_name(p.name).lower(): p
+        for p in packages
+        if not isinstance(p, _UserRequestPackage)}
 
     promises: List[Promise] = []
     from pkm.api.pkm import pkm
 
-    for package_to_install in toinstall.values():
-        if preinstalled_package := preinstalled.pop(package_to_install.name, None):
+    for norm_package_name, package_to_install in toinstall.items():
+        if preinstalled_package := preinstalled.pop(norm_package_name, None):
             if preinstalled_package.version == package_to_install.version:
                 continue
 

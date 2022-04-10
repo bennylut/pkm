@@ -37,9 +37,9 @@ class PyPiRepository(AbstractRepository):
                                 cache=CacheDirective.ask_for_update(),
                                 resource_name=f"matching packages for {dependency}") \
                 .read_data_as_json()
-        except HttpException:
+        except HttpException as e:
             raise NoSuchElementException(
-                f"package: '{dependency.package_name}' does not exists in repository: '{self.name}'")
+                f"package: '{dependency.package_name}' could not be retrieved from repository: '{self.name}'") from e
 
         package_info: Dict[str, Any] = {k.replace('_', '-').title(): v for k, v in json['info'].items()}
 

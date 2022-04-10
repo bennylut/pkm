@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -63,29 +64,45 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
     return {e.name: str(e.ref) for e in entries}
 
 
+PKM_DIST_CFG_TYPE_LIB = "lib"
+PKM_DIST_CFG_TYPE_CAPP = "cnt-app"
+
+
+@dataclass(frozen=True, eq=True)
+class PkmDistributionConfig:
+    type: str  # lib, cnt-app
+
+    def to_config(self) -> Dict[str, Any]:
+        return {**self.__dict__}
+
+    @classmethod
+    def from_config(cls, cfg: Dict[str, Any]) -> PkmDistributionConfig:
+        return cls(**cfg)
+
+
 @dataclass(frozen=True, eq=True)
 class PkmApplicationConfig:
     containerized: bool
 
-    inner_deps: List[Dependency]
-    inner_deps_overwrites: Dict[str, Dependency]
-    exposed_inner_apps: List[str]
+    dependencies: List[Dependency]
+    dependency_overwrites: Dict[str, Dependency]
+    exposed_packages: List[str]
 
     def to_config(self) -> Dict[str, Any]:
         return {
             'containerized': self.containerized,
-            'inner-deps': strs(self.inner_deps),
-            'inner-deps-overwrites': {p: str(d) for p, d in self.inner_deps_overwrites.items()},
-            'exposed-inner-apps': self.exposed_inner_apps
+            'dependencies': strs(self.dependencies),
+            'dependency-overwrites': {p: str(d) for p, d in self.dependency_overwrites.items()},
+            'exposed-packages': self.exposed_packages
         }
 
     @classmethod
     def from_config(cls, config: Dict[str, Any]):
         return cls(
             config.get('containerized', False),
-            [Dependency.parse(it) for it in unone(config.get('inner-deps'), list)],
-            {pk: Dependency.parse(dep) for pk, dep in unone(config.get('inner-deps-overwrites'), dict).items()},
-            unone(config.get('exposed-inner-apps'), list)
+            [Dependency.parse(it) for it in unone(config.get('dependencies'), list)],
+            {pk: Dependency.parse(dep) for pk, dep in unone(config.get('dependency-overwrites'), dict).items()},
+            unone(config.get('exposed-packages'), list)
         )
 
 
@@ -344,6 +361,7 @@ class PyProjectConfiguration(TomlFileConfiguration):
     pkm_project: PkmProjectConfig
     build_system: BuildSystemConfig
     pkm_application: PkmApplicationConfig
+    pkm_distribution: PkmDistributionConfig
 
     @computed_based_on("tool.pkm.project")
     def pkm_project(self) -> PkmProjectConfig:
@@ -358,6 +376,17 @@ class PyProjectConfiguration(TomlFileConfiguration):
     @pkm_application.modifier
     def set_pkm_application(self, app: PkmApplicationConfig):
         self['tool.pkm.application'] = app.to_config()
+
+    @computed_based_on("tool.pkm.distribution")
+    def pkm_distribution(self) -> PkmDistributionConfig:
+        if dist_config := self['tool.pkm.distribution']:
+            return PkmDistributionConfig.from_config(dist_config)
+
+        return PkmDistributionConfig(PKM_DIST_CFG_TYPE_LIB)
+
+    @pkm_distribution.modifier
+    def set_pkm_distribution(self, distribution: PkmDistributionConfig):
+        self['tool.pkm.distribution'] = distribution.to_config()
 
     @computed_based_on("project")
     def project(self) -> Optional[ProjectConfig]:

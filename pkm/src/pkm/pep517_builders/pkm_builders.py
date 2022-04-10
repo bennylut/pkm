@@ -39,7 +39,7 @@ def build_sdist(project: Project, target_dir: Optional[Path] = None) -> Path:
         dist_info_path = bc.build_dir / 'build.dist-info'
         bc.build_dist_info(dist_info_path)
         shutil.copy(dist_info_path / "METADATA", data_dir / "PKG-INFO")
-        shutil.copy(bc.pyproject.path, data_dir / 'pyproject.toml')
+        bc.pyproject.save_to(data_dir / 'pyproject.toml')
 
         if bc.pyproject.pkm_project.packages:
             bc.copy_sources(data_dir)
@@ -64,10 +64,6 @@ def build_wheel(project: Project, target_dir: Optional[Path] = None, only_meta: 
     :param target_env: the environment that this build should be compatible with, defaults to the project's attached env
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
-
-    if project.is_pkm_application() and not only_meta:
-        from pkm.pep517_builders.pkm_app_builders import build_wheel as app_build_wheel
-        app_build_wheel(project, target_dir, editable=editable, target_env=target_env)
 
     target_dir = target_dir or (project.directories.dist / str(project.version))
 

@@ -131,7 +131,7 @@ class ContainerizedApplications:
             app_config = app.config.pkm_application
 
             contained_target.install(
-                app_config.inner_deps, dependencies_override=app_config.inner_deps_overwrites,
+                app_config.dependencies, dependencies_override=app_config.dependency_overwrites,
                 repository=app.attached_repository)
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
@@ -152,11 +152,11 @@ class ContainerizedApplications:
             dist_info = DistInfo.load(mkdir(dist_info_path))
 
             ct.copy_tree(contained_distinfo.path, dist_info.path)
-            (app_dir / "__init__.py").touch()
+            ct.touch(app_dir / "__init__.py", True)
 
             # collect script entrypoints
             script_entrypoints: List[EntryPoint] = []
-            apps_to_expose = app_config.exposed_inner_apps + [app.name]
+            apps_to_expose = app_config.exposed_packages + [app.name]
             for exposed_app in apps_to_expose:
                 if installed := contained_site.installed_package(exposed_app):
                     script_entrypoints.extend(
@@ -166,7 +166,9 @@ class ContainerizedApplications:
             app_entrypoints = dist_info.load_entrypoints_cfg()
             entrypoints = []
             if script_entrypoints:
-                (app_dir / "entrypoints.py").write_text(_entrypoints_script(script_entrypoints))
+                app_entrypoints_script = (app_dir / "entrypoints.py")
+                app_entrypoints_script.write_text(_entrypoints_script(script_entrypoints))
+                ct.touch(app_entrypoints_script)
                 scripts_path = Path(self._target.scripts)
                 for script_ep in script_entrypoints:
                     epn = PackageDescriptor.normalize_src_package_name(script_ep.name)
@@ -198,7 +200,7 @@ class ContainerizedApplications:
         return self.container_of(app.name)
 
     def install(self, app: Union[Dependency, Project], editable: bool = True) -> ContainerizedApplication:
-        if isinstance(app, Project) and app.is_pkm_application():
+        if isinstance(app, Project) and app.is_containerized_application():
             return self._install(app, editable)
 
         with self._wrapper_project(app) as prj:
@@ -208,7 +210,10 @@ class ContainerizedApplications:
 def _entrypoints_script(epoints: List[EntryPoint]):
     def define_epfunc(ep: EntryPoint):
         epn = PackageDescriptor.normalize_src_package_name(ep.name)
-        return f"def {epn}():{ep.ref.execution_script_snippet()}"
+        ref = ep.ref
+        return f"def {epn}():del sys.modules[__package__];" \
+               f"import {ref.module_path};" \
+               f"{ref.module_path}.{ref.object_path}()"
 
     return dedent(f"""
 

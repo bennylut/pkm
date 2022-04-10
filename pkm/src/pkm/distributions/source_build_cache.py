@@ -7,7 +7,8 @@ import pkm.pep517_builders.external_builders as ext_build
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
-from pkm.api.packages.package import PackageDescriptor, PackageInstallationTarget
+from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.projects.project import Project
 from pkm.pep517_builders.external_builders import BuildError

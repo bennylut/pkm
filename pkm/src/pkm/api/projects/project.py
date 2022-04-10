@@ -13,7 +13,8 @@ from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
     AttachedEnvironmentConfig
-from pkm.api.projects.pyproject_configuration import PyProjectConfiguration
+from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmDistributionConfig, \
+    PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
@@ -97,16 +98,18 @@ class Project(Package):
             self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
             editable: bool = True):
 
-        # fast alternative for application to be installed without passing through wheels
-        if self.is_pkm_application():
-            target.app_containers.install(self, editable)
-            return
-
         from pkm.api.distributions.wheel_distribution import WheelDistribution
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
-            wheel = self.build_wheel(tdir, editable=editable)
+            wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(target, user_request)
+
+    def update_at(self, target: "PackageInstallationTarget", editable: bool = True):
+        # fast alternative for application to be installed without passing through wheels
+        if self.is_containerized_application():
+            target.app_containers.install(self, editable)
+        else:
+            super(Project, self).update_at(target)
 
     @cached_property
     def lock(self) -> PackagesLock:
@@ -162,9 +165,7 @@ class Project(Package):
         self._pyproject.save()
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
-        self.attached_environment.force_remove(self.name)
-        self.install_to(self.attached_environment.default_installation_target, self.descriptor.to_dependency())
-
+        self.update_at(self.attached_environment.default_installation_target)
         self.attached_environment.uninstall(packages)
 
         self.lock.update_lock(self.attached_environment)
@@ -186,19 +187,17 @@ class Project(Package):
                 {d.package_name: d for d in (self._pyproject.project.optional_dependencies.get(optional_group) or [])})
 
         new_deps: Dict[str, "Dependency"] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
-        # dependency_overrides = self.config.pkm_application.dependency_overrides or {}
-        dependency_overrides = {}
 
         # save the new dependencies to the configuration:
         _update_dependencies(self.config, new_deps, optional_group)
 
         repository = self.attached_repository
-        self.attached_environment.force_remove(self.name)
+        # self.attached_environment.force_remove(self.name)
         project_dependency = self.descriptor.to_dependency()
         if optional_group:
             project_dependency = project_dependency.with_extras([optional_group])
-        self.attached_environment.install(
-            project_dependency, repository, dependencies_override=dependency_overrides)
+        self.update_at(self.attached_environment.default_installation_target)  # should probably submit the optionals
+        self.attached_environment.install(project_dependency, repository)
 
         new_deps_with_version = {}
         site_packages = self.attached_environment.site_packages
@@ -262,6 +261,18 @@ class Project(Package):
         """
         return pkm.repository_loader.load_for_project(self)
 
+    def build_app_sdist(self, target_dir: Optional[Path] = None) -> Path:
+        """
+        build a containerized application source distribution from this project
+        :param target_dir: the directory to put the created archive in
+        :return: the path to the created archive
+        """
+        cnt_app_prj = Project.load(self.path)
+        cnt_app_prj.config.pkm_distribution = PkmDistributionConfig(PKM_DIST_CFG_TYPE_LIB)
+        cnt_app_prj.config.pkm_application = PkmApplicationConfig(True, self.config.project.dependencies, {}, [])
+        cnt_app_prj.config.project = replace(cnt_app_prj.config.project, dependencies=[])
+        return cnt_app_prj.build_sdist(target_dir)
+
     def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
         """
         build a source distribution from this project
@@ -286,7 +297,10 @@ class Project(Package):
         :param target_env: the environment that this build should be compatible with, defaults to attached env
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
-        if self.is_pkm_project():
+        if self.is_containerized_application() and not only_meta:
+            from pkm.pep517_builders.pkm_app_builders import build_wheel
+            return build_wheel(self, target_dir, editable=editable, target_env=target_env)
+        elif self.is_pkm_project():
             from pkm.pep517_builders.pkm_builders import build_wheel
             return build_wheel(self, target_dir, only_meta, editable, target_env=target_env)
         else:
@@ -301,8 +315,10 @@ class Project(Package):
         """
 
         builders: List[Callable[[Path], Path]] = [self.build_sdist, self.build_wheel]
-        if self.is_pkm_application():
+        if self.is_containerized_application():
             builders = [self.build_sdist]
+        elif self.config.pkm_distribution.type == PKM_DIST_CFG_TYPE_CAPP:
+            builders = [self.build_app_sdist]
 
         return [build(target_dir) for build in builders]
 
@@ -312,7 +328,7 @@ class Project(Package):
         """
         return self.config.build_system.build_backend == 'pkm.api.buildsys'
 
-    def is_pkm_application(self) -> bool:
+    def is_containerized_application(self) -> bool:
         """
         :return: true if this project represents a containerized application project
                  (the `tool.pkm.application` section exists)

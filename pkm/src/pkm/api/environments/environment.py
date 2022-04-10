@@ -242,7 +242,7 @@ class Environment:
 
         self.default_installation_target.install(
             _coerce_dependencies(dependencies), repository, user_requested,
-            dependencies_override).install()
+            dependencies_override)
 
     def force_remove(self, package: str):
         """

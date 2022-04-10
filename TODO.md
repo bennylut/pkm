@@ -5,7 +5,9 @@
 - enhancement: if pkm is installed on some environment we cannot choose a different global environment
 - replace dependency resolution progressbar with spinner?
 - enhancement: shared package installation - use to the new package installation target schema
-- support application plugins
+- support application - install + uninstall + plugins
+- test: install project with optionals and then just install should keep optionals
+- test: check shared + container
 
 ## DONE IN THIS VERSION
 - pkm: support installing as applications packages which were not built as self-contained ones
@@ -19,6 +21,9 @@
 - change `pkm py` to `pkm run`
 - cli: support optional dependencies
     - `pkm install -o "group" | --optional=group -- package?`
+- bug: dependency is being reistalled even if we have the same version in env if its name is not normalized
+- enhancement: faster re-installation of app containers
+- enhancement: containerized application distribution only mode
 
 ## BACKLOG TASKS:
 
