@@ -11,6 +11,7 @@ from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import path_to, resolve_relativity
 from pkm.utils.hashes import HashSignature
@@ -202,8 +203,10 @@ class RecordsFileConfiguration(FileConfiguration):
         for file in files:
             if not file.is_dir():
                 path = str(path_to(root, file))
-                hash_sig = precomputed_hashes.get(
-                    path, HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file))
+
+                hash_sig = get_or_compute(
+                    precomputed_hashes, path,
+                    lambda: HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file))
 
                 records.append(Record(
                     path,

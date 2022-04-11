@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path
 from textwrap import dedent
-from typing import List, Union, Optional, ContextManager, Dict
+from typing import List, Union, Optional, ContextManager, Dict, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo
@@ -11,7 +11,6 @@ from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.site_packages import InstalledPackage
-from pkm.api.projects.project import Project
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmApplicationConfig, ProjectConfig, \
     BuildSystemConfig
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
@@ -23,6 +22,8 @@ from pkm.repositories.local_packages_repository import LOCAL_PACKAGES_REPOSITORY
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import temp_dir, mkdir, CopyTransaction, path_to
 from pkm.utils.hashes import HashSignature
+from pkm.api.projects.project import Project
+from pkm.utils.properties import cached_property
 
 _CONTAINERIZED_WRAPPER_SUFFIX = "_containerized"
 _CONTAINERIZED_WRAPPER_VERSION = "0.0.1"
@@ -38,9 +39,14 @@ class ContainerizedApplication:
         self.package = package
         self._target = target
 
-    @property
+    @cached_property
     def app_package(self) -> InstalledPackage:
-        return self.package
+        site = self._target.site_packages
+        result = None
+        if self.package.name.endswith(_CONTAINERIZED_WRAPPER_SUFFIX):
+            result = site.installed_package(self.package.name[:-len(_CONTAINERIZED_WRAPPER_SUFFIX)])
+
+        return result or site.installed_package(self.package.name)
 
     @property
     def installation_target(self) -> PackageInstallationTarget:
@@ -90,7 +96,8 @@ class ContainerizedApplications:
         return None
 
     @contextmanager
-    def _wrapper_project(self, app: Union[Dependency, Project]) -> ContextManager[Project]:
+    def _wrapper_project(self, app: Union[Dependency, "Project"]) -> ContextManager["Project"]:
+        from pkm.api.projects.project import Project
         with temp_dir() as tdir:
             pyprj = PyProjectConfiguration.load(tdir / 'pyproject.toml')
 
@@ -115,7 +122,7 @@ class ContainerizedApplications:
             pyprj.save()
             yield Project.load(tdir)
 
-    def _install(self, app: Project, editable: bool = True) -> ContainerizedApplication:
+    def _install(self, app: "Project", editable: bool = True) -> ContainerizedApplication:
         contained_target = self._target_of(app.name)
         app_dir = Path(contained_target.purelib).parent.parent
 
@@ -179,6 +186,7 @@ class ContainerizedApplications:
             app_entrypoints.entrypoints = entrypoints
             app_entrypoints.save()
 
+            print("marking as containerized")
             ct.touch(dist_info.app_container_path(), True)  # mark as containerized
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
 
@@ -186,6 +194,7 @@ class ContainerizedApplications:
             records.records.clear()
 
             # reuse precomputed hashes in order to sign our records
+            # TODO: notify a monitor that we are spending time on signing the package
             precomputed_hashes: Dict[str, HashSignature] = {}
             installation_site = dist_info.path.parent
             for pk in contained_site.installed_packages():
@@ -198,6 +207,17 @@ class ContainerizedApplications:
 
         self._target.site_packages.reload()
         return self.container_of(app.name)
+
+    def get_or_install(self, app: Union[Dependency, Project]) -> ContainerizedApplication:
+        dep = app
+        if isinstance(dep, Project):
+            dep = app.descriptor.to_dependency()
+
+        if (container := self.container_of(dep.package_name)) \
+                and dep.version_spec.allows_version(container.app_package.version):
+            return container
+
+        return self.install(app)
 
     def install(self, app: Union[Dependency, Project], editable: bool = True) -> ContainerizedApplication:
         if isinstance(app, Project) and app.is_containerized_application():
@@ -224,10 +244,8 @@ def _entrypoints_script(epoints: List[EntryPoint]):
     from pathlib import Path
 
     container_path = Path(__file__).parent
-
-    sys.path, remainder = sys.path[:1], sys.path[1:]
-    site.addsitedir(container_path / '{CONTAINERIZED_APP_SITE_PATH}')
-    sys.path.extend(remainder)
+    site.addsitedir(container_path / '__container__/site')
+    sys.path.insert(1, sys.path.pop())
 
     old_path = os.environ['PATH']
     new_path = str(container_path / '{CONTAINERIZED_APP_BIN_PATH}')

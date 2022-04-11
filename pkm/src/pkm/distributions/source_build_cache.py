@@ -32,7 +32,7 @@ class SourceBuildCache:
         return self._get_or_build(target, dist, 'wheel')
 
     def get_or_build_meta(self, env: Environment, dist: SourceDistribution) -> PackageMetadata:
-        return self._get_or_build(env.default_installation_target, dist, 'metadata')
+        return self._get_or_build(env.installation_target, dist, 'metadata')
 
     def _get_or_build(self, target: PackageInstallationTarget, dist: SourceDistribution, artifact: str) -> Any:
 
@@ -64,12 +64,12 @@ class SourceBuildCache:
 
             try:
                 output = ext_build.build_wheel(
-                    project, odir, only_meta=metadata, editable=False, interpreter_path=target.env.interpreter_path)
+                    project, odir, only_meta=metadata, editable=False, target_env=target.env)
             except BuildError as e:
                 if not metadata or not e.missing_hook:
                     raise
                 output = ext_build.build_wheel(
-                    project, odir, only_meta=False, interpreter_path=target.env.interpreter_path)
+                    project, odir, only_meta=False, target_env=target.env)
 
             if output.is_dir():  # metadata
                 wheel_metadata_path = output / 'METADATA'

@@ -38,7 +38,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None,
 
     with temp_dir() as tdir:
         tenv = EnvironmentBuilder.create(tdir / "env", interpreter_path)
-        target = tenv.default_installation_target
+        target = tenv.installation_target
 
         target.app_containers.install(project, editable=editable)
 

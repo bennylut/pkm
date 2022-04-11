@@ -11,17 +11,18 @@ from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.projects.project import Project
 from pkm.api.versions.version import StandardVersion
 from pkm.distributions.executables import Executables
 from pkm.utils.archives import extract_archive
 from pkm.utils.files import path_to, CopyTransaction, temp_dir
-from pkm.api.environments.environment import Environment
+
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
 if TYPE_CHECKING:
     from pkm.api.packages.package import PackageInstallationTarget
+    from pkm.api.projects.project import Project
+    from pkm.api.environments.environment import Environment
 
 
 class InstallationException(IOError):
@@ -65,7 +66,8 @@ class WheelDistribution(Distribution):
         return '-'.join(wheel.stem.split('-')[-3:])
 
     @staticmethod
-    def expected_wheel_file_name(project: Project) -> str:
+    def expected_wheel_file_name(project: "Project") -> str:
+        from pkm.api.environments.environment import Environment
         project_config = project.config.project
         req = project_config.requires_python
 

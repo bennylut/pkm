@@ -227,14 +227,18 @@ class _RemovalRepository(AbstractRepository):
 
     def __init__(self, preinstalled: List[InstalledPackage], user_request: Package):
         super().__init__('removal repository')
-        self._preinstalled: Dict[str, InstalledPackage] = {p.name: p for p in preinstalled}
+        self._preinstalled: Dict[str, InstalledPackage] = {
+            PackageDescriptor.normalize_src_package_name(p.name).lower(): p
+            for p in preinstalled
+        }
+
         self._user_request = user_request
 
     def _do_match(self, dependency: "Dependency") -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
-        return [self._preinstalled[dependency.package_name]]
+        return [self._preinstalled[PackageDescriptor.normalize_src_package_name(dependency.package_name).lower()]]
 
 
 @delegate(Repository, '_repo')

@@ -102,7 +102,7 @@ class _PkmPackageInstallationProblem(Problem):
         packages = [p for p in all_packages if p.is_compatible_with(self._env)]
 
         for package in packages:
-            self.opened_packages[package.descriptor] = package
+            self.opened_packages[replace(package.descriptor, name=package.descriptor.name.lower())] = package
 
         return [p.version for p in packages]
 
@@ -132,4 +132,4 @@ class _Pkg:
 
     @classmethod
     def of(cls, d: Dependency) -> _Pkg:
-        return _Pkg(d.package_name, d.extras)
+        return _Pkg(d.package_name.lower(), d.extras)

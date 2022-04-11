@@ -165,7 +165,7 @@ class Project(Package):
         self._pyproject.save()
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
-        self.update_at(self.attached_environment.default_installation_target)
+        self.update_at(self.attached_environment.installation_target)
         self.attached_environment.uninstall(packages)
 
         self.lock.update_lock(self.attached_environment)
@@ -196,7 +196,7 @@ class Project(Package):
         project_dependency = self.descriptor.to_dependency()
         if optional_group:
             project_dependency = project_dependency.with_extras([optional_group])
-        self.update_at(self.attached_environment.default_installation_target)  # should probably submit the optionals
+        self.update_at(self.attached_environment.installation_target)  # should probably submit the optionals
         self.attached_environment.install(project_dependency, repository)
 
         new_deps_with_version = {}

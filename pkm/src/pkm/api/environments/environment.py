@@ -28,6 +28,7 @@ from pkm.api.dependencies.dependency import Dependency
 
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
+    from pkm.api.environments.containerized_apps import ContainerizedApplications
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
@@ -59,6 +60,10 @@ class Environment:
             return EnvironmentsZoo.load(zoo_path)
         return None
 
+    @property
+    def app_containers(self) -> "ContainerizedApplications":
+        return self.installation_target.app_containers
+
     @cached_property
     def attached_repository(self) -> Repository:
         return pkm.repository_loader.load_for_env(self)
@@ -79,7 +84,7 @@ class Environment:
         return self._readonly
 
     @cached_property
-    def default_installation_target(self) -> PackageInstallationTarget:
+    def installation_target(self) -> PackageInstallationTarget:
         paths = self._introspection.paths
         return PackageInstallationTarget(self, **{
             field.name: paths.get(field.name) or ""
@@ -140,7 +145,7 @@ class Environment:
 
     @cached_property
     def site_packages(self) -> SitePackages:
-        return self.default_installation_target.site_packages
+        return self.installation_target.site_packages
 
     @cached_property
     def markers_hash(self) -> str:
@@ -240,7 +245,7 @@ class Environment:
         see: `prepare_installation` for more information about this method arguments
         """
 
-        self.default_installation_target.install(
+        self.installation_target.install(
             _coerce_dependencies(dependencies), repository, user_requested,
             dependencies_override)
 
@@ -250,7 +255,7 @@ class Environment:
         depends on it - use this method with care (or don't use it at all :) )
         :param package: the name of the package to be removed
         """
-        self.default_installation_target.force_remove(package)
+        self.installation_target.force_remove(package)
 
     def uninstall(self, packages: _PACKAGE_NAMES_T) -> Set[str]:
         """
@@ -264,7 +269,7 @@ class Environment:
         :param packages: the package names to remove
         :return the set of package names that were successfully removed from the environment
         """
-        return self.default_installation_target.uninstall(_coerce_package_names(packages))
+        return self.installation_target.uninstall(_coerce_package_names(packages))
 
     @cached_property
     def entrypoints(self) -> Dict[str, List[EntryPoint]]:

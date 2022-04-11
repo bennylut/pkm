@@ -84,7 +84,7 @@ class EnvironmentsZoo:
 
     def export_script(self, env_name: str, script_name: str):
         env = self.load_environment(env_name)
-        env_scripts = Path(env.default_installation_target.scripts)
+        env_scripts = Path(env.installation_target.scripts)
         if not (script_file := env_scripts / script_name).exists() \
                 and not (script_file := env_scripts / f"{script_name}.exe").exists():
             raise NoSuchElementException(f"script {script_name} could not be find in environment {env_name}")
@@ -93,7 +93,7 @@ class EnvironmentsZoo:
 
     def export_all_scripts(self, env_name: str, package: str):
         env = self.load_environment(env_name)
-        env_scripts = env.default_installation_target.scripts
+        env_scripts = env.installation_target.scripts
         bin_path = self._bin_path
 
         for file in env.site_packages.installed_package(package).dist_info.installed_files():

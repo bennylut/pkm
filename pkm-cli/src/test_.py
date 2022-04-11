@@ -1,11 +1,15 @@
 from pathlib import Path
 
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment import Environment
 from pkm.api.projects.project import Project
 from pkm_cli.cli_monitors import listen
 
 listen(True)
-Project.load(Path("/home/bennyl/projects/pkm-new/pkm-cli")).install_with_dependencies()
-
+# Project.load(Path("/home/bennyl/projects/pkm-new/pkm-cli")).install_with_dependencies()
+env = Environment(Path("/home/bennyl/projects/pkm-new/workspace/envs/test"))
+env.app_containers.get_or_install(Dependency.parse("allennlp"))#.install_plugins([Dependency.parse("poetry")])
+# env.default_installation_target.app_containers.container_of("allennlp").uninstall_plugins(["poetry"])
 
 # env = EnvironmentBuilder.create(Path("/home/bennyl/projects/pkm-new/workspace/tmp/venv"))
 # env = Environment(Path("/home/bennyl/projects/pkm-new/workspace/tmp/venv"))

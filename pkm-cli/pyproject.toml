@@ -1,6 +1,6 @@
 [project]
 name = "pkm-cli"
-version = "0.4.32"
+version = "0.4.33"
 description = "Command line interface for PKM"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"

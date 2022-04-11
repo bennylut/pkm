@@ -27,7 +27,7 @@ from pkm_cli.utils.clis import command, Arg, create_args_parser, Command
 
 
 @command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))
-def py(args: Namespace):
+def run(args: Namespace):
     def on_environment(env: Environment):
         if not args.cmd:
             raise UnsupportedOperationException("command is required to be executed")
@@ -81,17 +81,24 @@ def vbump(args: Namespace):
     Context.of(args).run(**locals())
 
 
-@command('pkm install', Arg(["-o", "--optional"]), Arg('dependencies', nargs=argparse.REMAINDER))
+@command(
+    'pkm install',
+    Arg(["-o", "--optional"]), Arg(["-a", "--app"], action='store_true'),
+    Arg('dependencies', nargs=argparse.REMAINDER))
 def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.dependencies]
     optional_group = getattr(args, "optional", None)
+    app_install = bool(args.app)
 
     def on_project(project: Project):
+        if app_install:
+            raise UnsupportedOperationException("application install as project dependency is not supported")
+
         Display.print(f"Adding dependencies into project: {project.path}")
         project.install_with_dependencies(dependencies, optional_group=optional_group)
 
     def on_project_group(project_group: ProjectGroup):
-        if dependencies:
+        if dependencies or app_install:
             raise UnsupportedOperationException("could not install dependencies in project group")
 
         Display.print(f"Installing all projects in group")
@@ -100,22 +107,44 @@ def install(args: Namespace):
     def on_environment(env: Environment):
         if optional_group:
             raise UnsupportedOperationException("optional dependencies are only supported inside projects")
-        env.install(dependencies)
+
+        if dependencies:
+            if app_install:
+                if len(dependencies) > 1:
+                    env.app_containers.get_or_install(dependencies[0]) \
+                        .install_plugins(dependencies[1:])
+                else:
+                    env.app_containers.install(dependencies[0])
+            else:
+                env.install(dependencies)
 
     Context.of(args).run(**locals())
 
 
-@command('pkm remove', Arg('package_names', nargs=argparse.REMAINDER))
+@command('pkm remove', Arg(["-a", "--app"], action='store_true'), Arg('package_names', nargs=argparse.REMAINDER))
 def remove(args: Namespace):
     if not (package_names := args.package_names):
         raise ValueError("no package names are provided to be removed")
 
+    app_install = bool(args.app)
+
     def on_project(project: Project):
+        if app_install:
+            raise UnsupportedOperationException("application install/remove as project dependency is not supported")
+
         Display.print(f"Removing packages from project: {project.path}")
         project.remove_dependencies(package_names)
 
     def on_environment(env: Environment):
-        env.uninstall(package_names)
+        if app_install:
+            container = env.installation_target.app_containers.container_of(package_names[0])
+            if len(package_names) == 1:
+                container.uninstall()
+            else:
+                container.uninstall_plugins(package_names[1:])
+
+        else:
+            env.uninstall(package_names)
 
     Context.of(args).run(**locals())
 

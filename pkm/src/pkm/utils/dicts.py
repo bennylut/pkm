@@ -6,7 +6,7 @@ _K = TypeVar("_K", bound=SupportHashCode)
 _V = TypeVar("_V")
 _M = TypeVar("_M", bound=MutableMapping)
 _IM = TypeVar("_IM", bound=Mapping)
-_SENTINAL = object()
+_MISSING = object()
 
 
 def put_if_absent(d: MutableMapping[_K, _V], key: _K, value: _V) -> bool:
@@ -30,8 +30,21 @@ def get_or_put(d: MutableMapping[_K, _V], key: _K, value_provider: Callable[[], 
     :param value_provider: function providing a new value for `d[key]` in the case where no such value already exists
     :return: `d[key]` if such value exists otherwise set `d[key] = value_provider()` and then returns `d[key]`
     """
-    if (value := d.get(key, _SENTINAL)) is _SENTINAL:
+    if (value := d.get(key, _MISSING)) is _MISSING:
         d[key] = value = value_provider()
+
+    return value
+
+
+def get_or_compute(d: Mapping[_K, _V], key: _K, value_provider: Callable[[], _V]) -> _V:
+    """
+    :param d: the dict to look in
+    :param key: the key to get
+    :param value_provider: function providing a new value for `d[key]` in the case where no such value already exists
+    :return: `d[key]` if such value exists otherwise value_provider(), does not modifies `d`.
+    """
+    if (value := d.get(key, _MISSING)) is _MISSING:
+        return value_provider()
 
     return value
 
@@ -46,7 +59,7 @@ def get_or_raise(d: MutableMapping[_K, _V], key: _K, err_provider: Callable[[], 
     :return: the value `d[key]`
     """
 
-    if (result := d.get(key, _SENTINAL)) is _SENTINAL:
+    if (result := d.get(key, _MISSING)) is _MISSING:
         raise err_provider()
 
     return result
