@@ -2,15 +2,25 @@
 
 `pkm` is a new package management software for python. It provides holistic, fast and modern solution.
 
+## how to install?
+```console
+$ pip install pkm-cli
+```
+The above command is safe to be used in your global python environment, read more about pkm installation [here]({{'/installation' | relative_url}}). 
+
 ## what can I use it for?
 
 - Install python applications and libraries (like <i cmd>pip</i> and <i cmd>pipx</i>)
 - Build and manage virtual environments (like <i cmd>venv</i>)
+- Manage your virtual environments
+  - Build them (like <i cmd>venv</i>)
+  - Enable package sharing between multiple environments
 - Manage your python projects:
     - Generate projects via templates (like <i cmd>cookiecutter</i> and <i cmd>copier</i>)
     - Build, package and deploy projects (like <i cmd>pipenv</i>, <i cmd>poetry</i> and <i cmd>twine</i>)
-    - Build self-contained applications
-    - Build multi-package projects
+    - Distribute self-contained applications
+    - Build and maintain multi-package projects
+    - And way more!
 
 ## why should I use it?
 

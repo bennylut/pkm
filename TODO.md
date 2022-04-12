@@ -2,11 +2,10 @@
 
 
 ## DONE IN THIS VERSION
-- support application - install + uninstall + plugins
-- bug: dependency resolution conflicts when different dependencies requires the same package with different
-  capitalization
+- documentation: describe containerized applications
 
 ## BACKLOG TASKS:
+- feature: environment export
 - bug: app plugin install does not register newly created files in the container records
 - bug: generated pyc files are not getting signed 
 - shell: `pkm -v` print pkm version

@@ -1,6 +1,6 @@
 ## Table Of Content
 {:.no_toc}
- 
+
 * toc 
 {:toc}
 
@@ -18,7 +18,6 @@
 and [518](https://www.python.org/dev/peps/pep-0518). It reads the project configuration from the standard
 <i str>"pyproject.toml"</i> file. `toml` is a fairly human-readable format, you can learn more about
 it [here](https://toml.io/en/).
-
 
 ### The <i tag>[project]</i> table
 
@@ -197,35 +196,56 @@ Following, is a table containing a short explanation for the supported fields in
 
 ### Package locking
 
-Package locking is a mechanism that attempts to reduce package versioning dissimilarities on multi-user projects. It actually
-sounds more complex than it is, lets first try to understand the problem that it tries to solve using an example.
+Package locking is a mechanism that attempts to reduce package versioning dissimilarities on multi-user projects. It
+actually sounds more complex than it is, lets first try to understand the problem that it tries to solve using an
+example.
 <br> <br>
-Say that there are two developers working on your project - <i eg1>Alice</i> and <i eg2>Bob</i>. 
+Say that there are two developers working on your project - <i eg1>Alice</i> and <i eg2>Bob</i>.
 
-<i eg1>Alice</i> added a dependency to the project: <i str> "x >= 1.0.0" </i>, when installing it she got in her environment 
-the package <i str> "x == 1.1.0" </i> (which satisfies the required dependency). Later this week, 
+<i eg1>Alice</i> added a dependency to the project: <i str> "x >= 1.0.0" </i>, when installing it she got in her
+environment the package <i str> "x == 1.1.0" </i> (which satisfies the required dependency). Later this week,
 <i eg2>Bob</i> started to work and fetched <i str>"x == 1.1.1"</i> (which also satisfied the required dependency).
 
 <i eg1> Alice </i> filled a bug which unknowingly, happens because of a behavior specific to  <i str> "x == 1.1.0" </i>. 
 When <i eg2>Bob</i> tried to fix the bug he could not reproduce it, which of-course lead to both of them fighting and
 not talking to each-other for more than a year.  
 
-`pkm`'s Package locking mechanism stores the exact version of the package that was installed inside the file 
-<i str> "etc/pkm/packages-lock.toml" </i> alongside other environment specific information. It then tries to use this information 
-to reduce dissimilarities across the developers. Unlike many other package locking mechanisms, it takes into consideration 
-the fact that different developers may work on totally different environments: they may have different operating systems or may 
-use a different version of python, etc. Therefore, it is usable even on these scenarios.
+`pkm`'s Package locking mechanism stores the exact version of the package that was installed inside the file
+<i str> "etc/pkm/packages-lock.toml" </i> alongside other environment specific information. It then tries to use this
+information to reduce dissimilarities across the developers. Unlike many other package locking mechanisms, it takes into
+consideration the fact that different developers may work on totally different environments: they may have different
+operating systems or may use a different version of python, etc. Therefore, it is usable even on these scenarios.
 
-`pkm` automatically updates <i str>"etc/pkm/packages-lock.toml"</i> when you install new dependencies, all you need to do
-is to make sure that you commit this file to your version control system.
+`pkm` automatically updates <i str>"etc/pkm/packages-lock.toml"</i> when you install new dependencies, all you need to
+do is to make sure that you commit this file to your version control system.
 
 --- 
 
 ## Build & Publish
 
-### Self-contained applications
+### Containerized applications
 
---- 
+Projects can be distributed as containerized application
+
+packages installed as containerized applications creates their own container "sub environment" inside the environment
+they are installed at. they install all their dependencies inside this container and are exposed to the main environment
+only by their registered script entrypoints
+
+To distribute your application as a "containerized application" all you needs to do is to add the following
+into `pyproject.toml`:
+
+```toml
+# ... pyproject.toml
+
+[tool.pkm.distribution]
+type = 'cnt-app'
+```
+
+when building and publishing your project, a special 'sdist' will be created which will take care of containerizing your
+application when it is installed. (it can be installed regularly like any other package with any modern python package
+management that supports pep517, e.g., pip)
+
+If you like, [read more about containerized applications]({{'/containers' | relative_url}}).
 
 ## Running project tasks
 
