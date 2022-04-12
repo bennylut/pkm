@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
@@ -67,10 +68,16 @@ class DistInfo:
     def user_requested_path(self) -> Path:
         return self.path / "REQUESTED"
 
+    def mark_as_user_requested(self, dependency: Dependency):
+        self.user_requested_path().write_text(str(dependency))
+
+    def unmark_as_user_requested(self):
+        self.user_requested_path().unlink(missing_ok=True)
+
     @classmethod
-    def load(cls, path: Path) -> "DistInfo":
-        if path.suffix != '.dist-info':
-            raise ValueError("not a properly named dist-info directory")
+    def load(cls, path: Path, non_standard_name_ok: bool = False) -> "DistInfo":
+        if path.suffix != '.dist-info' and not non_standard_name_ok:
+            raise ValueError(f"{str(path)} is not a properly named dist-info directory")
 
         return cls(path)
 

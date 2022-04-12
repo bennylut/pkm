@@ -85,15 +85,19 @@ class PackageInstallationTarget:
         return {p for p in packages if p not in kept}
 
     def install(
-            self, dependencies: List[Dependency], repository: Optional[Repository] = None,
-            user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, Dependency]] = None):
+            self, dependencies: List[Dependency], repository: Optional[Repository] = None, user_requested: bool = True,
+            dependencies_override: Optional[Dict[str, Dependency]] = None,
+            packages_to_update: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this target.
         see: `prepare_installation` for more information about this method arguments
         """
+        if not dependencies:
+            return  # nothing to do...
+
         repository = repository or self.env.attached_repository
-        self.prepare_installation(dependencies, repository, user_requested, dependencies_override).install()
+        self.prepare_installation(
+            dependencies, repository, user_requested, dependencies_override, packages_to_update).install()
 
     def force_remove(self, package: str):
         """
@@ -106,8 +110,8 @@ class PackageInstallationTarget:
 
     def prepare_installation(
             self, dependencies: List[Dependency], repository: Repository,
-            user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, Dependency]] = None,
+            user_requested: bool = True, dependencies_override: Optional[Dict[str, Dependency]] = None,
+            packages_to_update: Optional[List[str]] = None
     ) -> PreparedInstallation:
 
         """
@@ -121,12 +125,15 @@ class PackageInstallationTarget:
             (this will be marked on the installation as per pep376)
         :param dependencies_override: mapping from package name into dependency that should be "forcefully"
             used for this package
+        :param packages_to_update: If given, the packages listed will be updated if required and already installed
         """
 
         self.reload()
 
-        preinstalled_packages = list(self.site_packages.installed_packages())
+        packages_to_update = set(packages_to_update or [])
+        preinstalled_packages = [p for p in self.site_packages.installed_packages() if p.name not in packages_to_update]
         pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
+
         new_deps = {d.package_name: d for d in dependencies}
         all_deps = {**pre_requested_deps, **new_deps}
 

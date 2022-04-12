@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -42,6 +42,18 @@ class PackagesLock:
         self._locked_packages: Dict[str, List[_LockedVersion]] = \
             groupby(locked_packages, lambda it: it.package.name)
         self._lock_file = lock_file
+
+    def unlock_packages(self, package_names: Iterable[str]) -> PackagesLock:
+        """
+        unlock the given package names, removing their information from the lock
+        (does not automatically save the lock after this operation)
+        :param package_names: the packages to unlock
+        :return self (for chaining support)
+        """
+        for pn in package_names:
+            self._locked_packages.pop(pn, None)
+
+        return self
 
     def env_specific_locks(self, env: Environment):
         """

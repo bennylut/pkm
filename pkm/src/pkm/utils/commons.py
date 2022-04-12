@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import TypeVar, Optional, Callable, Type
+from typing import TypeVar, Optional, Callable, Type, Union
 
 _T = TypeVar("_T")
 # noinspection PyTypeChecker
@@ -28,13 +28,17 @@ def unone_raise(v: Optional[_T], on_none: Callable[[], Exception] = lambda: Valu
     return v
 
 
-def take_if(value: _T, predicate: Callable[[_T], bool]) -> Optional[_T]:
+def take_if(value: _T, predicate: Union[Callable[[_T], bool], bool]) -> Optional[_T]:
     """
     :param value: the value to check
-    :param predicate: predicate accepting the value
+    :param predicate: predicate accepting the value or a boolean indicating if accepting the value
     :return: `value` if `predicate(value)` is `True` otherwise `None`
     """
-    if predicate(value):
+
+    if callable(predicate):
+        if predicate(value):
+            return value
+    elif predicate:
         return value
     return None
 

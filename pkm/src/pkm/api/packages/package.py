@@ -164,8 +164,12 @@ class Package(ABC):
         the update may attempt a full re-installation or a smarted "fast" delta-update like installation
         :param target: the target that contains the package to update
         """
-        target.force_remove(self.name)
-        self.install_to(target, self.descriptor.to_dependency())
+        user_request = False
+        if preinstalled := target.site_packages.installed_package(self.name):
+            user_request = bool(preinstalled.user_request)
+            preinstalled.uninstall()
+
+        self.install_to(target, self.descriptor.to_dependency() if user_request else None)
 
     def __str__(self):
         return f"{self.name} {self.version}"

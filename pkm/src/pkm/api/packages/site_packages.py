@@ -124,7 +124,7 @@ class InstalledPackage(Package):
         if self.readonly:
             return False
 
-        (self._dist_info.path / "REQUESTED").unlink(missing_ok=True)
+        self.dist_info.unmark_as_user_requested()
         del self.user_request  # noqa
         return True
 
@@ -132,7 +132,7 @@ class InstalledPackage(Package):
         if self.readonly:
             return False
 
-        (self._dist_info.path / "REQUESTED").write_text(str(request))
+        self.dist_info.mark_as_user_requested(request)
         del self.user_request  # noqa
         return True
 

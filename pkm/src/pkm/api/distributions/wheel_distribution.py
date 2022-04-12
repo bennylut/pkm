@@ -158,7 +158,7 @@ class WheelDistribution(Distribution):
                 # mark the installer and the requested flag
                 (new_dist_info.path / "INSTALLER").write_text(f"pkm\n{self._wheel.name}")
                 if user_request:
-                    (new_dist_info.path / "REQUESTED").write_text(str(user_request))
+                    new_dist_info.mark_as_user_requested(user_request)
 
                 # and finally, compile py to pyc
                 with warnings.catch_warnings():

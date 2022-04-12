@@ -237,17 +237,16 @@ class Environment:
         PthLink(pth_file, paths, imports).save()
 
     def install(
-            self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None,
-            user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, List[Dependency]]] = None):
+            self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None, user_requested: bool = True,
+            dependencies_override: Optional[Dict[str, List[Dependency]]] = None,
+            packages_to_update: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this environment.
         see: `prepare_installation` for more information about this method arguments
         """
 
         self.installation_target.install(
-            _coerce_dependencies(dependencies), repository, user_requested,
-            dependencies_override)
+            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, packages_to_update)
 
     def force_remove(self, package: str):
         """

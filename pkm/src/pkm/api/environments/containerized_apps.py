@@ -55,13 +55,6 @@ class ContainerizedApplication:
     def uninstall(self):
         self.package.uninstall()
 
-    def install_plugins(
-            self, plugins: List[Dependency], repo: Optional[Repository] = None):
-        self._target.install(plugins, repository=repo, user_requested=True)
-
-    def uninstall_plugins(self, plugin_packages: List[str]):
-        self._target.uninstall(plugin_packages)
-
     def list_installed_plugins(self) -> List[InstalledPackage]:
         return [it
                 for it in self._target.site_packages.installed_packages()
@@ -122,7 +115,9 @@ class ContainerizedApplications:
             pyprj.save()
             yield Project.load(tdir)
 
-    def _install(self, app: "Project", editable: bool = True) -> ContainerizedApplication:
+    def _install(
+            self, app: "Project", editable: bool = True) -> ContainerizedApplication:
+
         contained_target = self._target_of(app.name)
         app_dir = Path(contained_target.purelib).parent.parent
 
@@ -139,7 +134,8 @@ class ContainerizedApplications:
 
             contained_target.install(
                 app_config.dependencies, dependencies_override=app_config.dependency_overwrites,
-                repository=app.attached_repository)
+                repository=app.attached_repository,
+                packages_to_update=[d.package_name for d in app_config.dependencies])
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
                 .install_to(contained_target, app.descriptor.to_dependency())
@@ -186,7 +182,6 @@ class ContainerizedApplications:
             app_entrypoints.entrypoints = entrypoints
             app_entrypoints.save()
 
-            print("marking as containerized")
             ct.touch(dist_info.app_container_path(), True)  # mark as containerized
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
 
@@ -208,7 +203,7 @@ class ContainerizedApplications:
         self._target.site_packages.reload()
         return self.container_of(app.name)
 
-    def get_or_install(self, app: Union[Dependency, Project]) -> ContainerizedApplication:
+    def _get_or_install(self, app: Union[Dependency, Project], editable: bool = True) -> ContainerizedApplication:
         dep = app
         if isinstance(dep, Project):
             dep = app.descriptor.to_dependency()
@@ -217,14 +212,20 @@ class ContainerizedApplications:
                 and dep.version_spec.allows_version(container.app_package.version):
             return container
 
-        return self.install(app)
+        return self.install(app, editable, True)
 
-    def install(self, app: Union[Dependency, Project], editable: bool = True) -> ContainerizedApplication:
+    def install(
+            self, app: Union[Dependency, Project], editable: bool = True, update_existing: bool = False
+    ) -> ContainerizedApplication:
+
+        if not update_existing:
+            return self._get_or_install(app, editable)
+
         if isinstance(app, Project) and app.is_containerized_application():
             return self._install(app, editable)
 
         with self._wrapper_project(app) as prj:
-            return self.install(prj, editable)
+            return self.install(prj, editable, True)
 
 
 def _entrypoints_script(epoints: List[EntryPoint]):

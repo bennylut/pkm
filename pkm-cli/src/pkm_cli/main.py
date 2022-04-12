@@ -13,7 +13,7 @@ from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
-from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.commons import UnsupportedOperationException, take_if
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
@@ -83,40 +83,39 @@ def vbump(args: Namespace):
 
 @command(
     'pkm install',
-    Arg(["-o", "--optional"]), Arg(["-a", "--app"], action='store_true'),
+    Arg(["-o", "--optional"]), Arg(["-a", "--app"], action='store_true'), Arg(["-u", "--update"], action='store_true'),
     Arg('dependencies', nargs=argparse.REMAINDER))
 def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.dependencies]
-    optional_group = getattr(args, "optional", None)
-    app_install = bool(args.app)
 
     def on_project(project: Project):
-        if app_install:
+        if args.app:
             raise UnsupportedOperationException("application install as project dependency is not supported")
 
         Display.print(f"Adding dependencies into project: {project.path}")
-        project.install_with_dependencies(dependencies, optional_group=optional_group)
+        project.install_with_dependencies(dependencies, optional_group=args.optional, update_existing=args.update)
 
     def on_project_group(project_group: ProjectGroup):
-        if dependencies or app_install:
-            raise UnsupportedOperationException("could not install dependencies in project group")
+        if dependencies or args.app or args.update:
+            raise UnsupportedOperationException("could not install/update dependencies in project group")
 
         Display.print(f"Installing all projects in group")
         project_group.install_all()
 
     def on_environment(env: Environment):
-        if optional_group:
+        if args.optional:
             raise UnsupportedOperationException("optional dependencies are only supported inside projects")
 
         if dependencies:
-            if app_install:
-                if len(dependencies) > 1:
-                    env.app_containers.get_or_install(dependencies[0]) \
-                        .install_plugins(dependencies[1:])
-                else:
-                    env.app_containers.install(dependencies[0])
+            if args.app:
+                app, plugins = dependencies[0], dependencies[1:]
+                plugins_to_update = [d.package_name for d in plugins] if args.update else None
+                env.app_containers \
+                    .install(app, update_existing=args.update and not plugins) \
+                    .installation_target.install(plugins, packages_to_update=plugins_to_update)
             else:
-                env.install(dependencies)
+                env.install(
+                    dependencies, packages_to_update=[d.package_name for d in dependencies] if args.update else None)
 
     Context.of(args).run(**locals())
 

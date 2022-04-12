@@ -1,17 +1,21 @@
 ## RUNNING TASKS:
-
+- bug `pkm clean dist` should remove all but current version of dist
+- cmd: pkm install - support installation of wheel and sdist from path, also from project dir (w/editables)
 
 ## DONE IN THIS VERSION
-- documentation: describe containerized applications
+- pkm: update package installation / update all packages
+- bug: package downgrading in project fails
+- test: pkm check shared package update
 
 ## BACKLOG TASKS:
+- `pkm show *` should also show containerized applications
+- `pkm show context` should changed for a simple `pkm show`
+- `pkm clear lock` - allows to update all the project dependencies
 - feature: environment export
 - bug: app plugin install does not register newly created files in the container records
 - bug: generated pyc files are not getting signed 
 - shell: `pkm -v` print pkm version
 - test: check shared + container
-- pkm: update package installation / update all packages (include support for locks and shared)
-- bug `pkm clean dist` should remove all but current version of dist
 - enhancement: if pkm is installed on some environment we cannot choose a different global environment
 - replace dependency resolution progressbar with spinner?
 - enhancement: shared package installation - use to the new package installation target schema
@@ -35,20 +39,14 @@
 - check pkm installation in app mode on system environment + torch-repo in app mode
 - bug: when running in "build-sys" mode should not "implicitly install" cache files
     - also when running in this mode some basic monitoring should be made
-- documentation: document the application usage
-- pkm shell: automatic zoo export (zoo should have a bin directory), think about that, do we need it as non pkm shell
-  extension?
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
 - test pkm on os where platlib and purelib are different (centos?)
-- pkm stat : print cache size, attached repository, etc.
+- pkm show : print cache size, attached repository, etc.
 - repositories: pyvenv
-- consider exposing application script entrypoint using the old application loader
-- applications can also provide repositories configuration, those should be specified in its table
 - cli: if building packages during dependency resolution, output is very convoluted
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - misc: build readme, set github's site
 - pkm show: add repositories information
-- cmd: pkm install - support installation of wheel and sdist from path, also from project dir (w/editables)
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
 - bug: pkm new - cannot cancel creation - it just continues to the next question
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports

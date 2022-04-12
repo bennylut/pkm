@@ -173,12 +173,14 @@ class Project(Package):
 
     def install_with_dependencies(
             self, new_dependencies: Optional[List["Dependency"]] = None,
-            optional_group: Optional[str] = None):
+            optional_group: Optional[str] = None, update_existing: bool = False):
         """
         install the dependencies of this project to its assigned environments
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
         :param optional_group: if not None, installs the dependencies including the ones from the given group,
-                               also, mark the newly installed dependencies as optional and add them to that group
+           also, mark the newly installed dependencies as optional and add them to that group
+        :param update_existing: if True, will attempt to update the given `new_dependencies`,
+           or all the project dependencies if no `new_dependencies` are given
         """
 
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
@@ -188,17 +190,21 @@ class Project(Package):
 
         new_deps: Dict[str, "Dependency"] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
 
-        # save the new dependencies to the configuration:
+        # save the new dependencies to the configuration, use a wide version specifier if no such specifier is given:
         _update_dependencies(self.config, new_deps, optional_group)
 
+        if update_existing:
+            self.lock.unlock_packages(new_deps.keys()).save()
+
         repository = self.attached_repository
-        # self.attached_environment.force_remove(self.name)
         project_dependency = self.descriptor.to_dependency()
         if optional_group:
             project_dependency = project_dependency.with_extras([optional_group])
         self.update_at(self.attached_environment.installation_target)  # should probably submit the optionals
-        self.attached_environment.install(project_dependency, repository)
+        self.attached_environment.install(
+            project_dependency, repository, packages_to_update=list(new_deps.keys()) if update_existing else None)
 
+        # attempt to update pyproject to contain a more specific dependency version specifications
         new_deps_with_version = {}
         site_packages = self.attached_environment.site_packages
         for dep in new_deps.values():

@@ -209,7 +209,7 @@ def _link_shared(package: PackageDescriptor, shared: _SharedPackageArtifact, tar
         ct.touch(purelib_link.path)
 
         # now create all script entrypoints
-        shared_distinfo = DistInfo.load(shared.path / "dist-info")
+        shared_distinfo = DistInfo.load(shared.path / "dist-info", non_standard_name_ok=True)
         bin_dir = Path(target.scripts)
         for entrypoint in shared_distinfo.load_entrypoints_cfg().entrypoints:
             if entrypoint.is_script():
