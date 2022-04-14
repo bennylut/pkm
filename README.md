@@ -6,7 +6,7 @@
 ```console
 $ pip install pkm-cli
 ```
-The above command is safe to be used in your global python environment, read more about pkm installation [here]({{'/installation' | relative_url}}). 
+The above command is safe to be used in your global python environment. 
 
 ## what can I use it for?
 
