@@ -16,12 +16,12 @@ from pkm_cli.display.display import Display
 
 def _lookup_project_group(path: Path) -> Optional[ProjectGroup]:
     if (path / 'pyproject-group.toml').exists():
-        return ProjectGroup.load(Path.cwd())
+        return ProjectGroup.load(path)
 
 
 def _lookup_project(path: Path) -> Optional[Project]:
     if (path / 'pyproject.toml').exists():
-        return Project.load(Path.cwd())
+        return Project.load(path)
 
 
 def _lookup_env(path: Path) -> Optional[Environment]:

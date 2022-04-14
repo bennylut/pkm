@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
@@ -387,6 +388,25 @@ class ProjectDirectories:
     src_packages: List[Path]
     dist: Path
     etc_pkm: Path
+
+    def clean_dist(self, keep_versions: Optional[List[Version]] = None):
+        """
+        delete the build artifacts from dist
+        :param keep_versions: if given, all artifacts that relate to the versions in the given list will not be deleted
+        """
+
+        if not self.dist.exists():
+            return
+
+        keep_versions = set(str(p) for p in (keep_versions or []))
+
+        for file in self.dist.iterdir():
+            if file.is_dir():
+                if file.name in keep_versions:
+                    continue
+                shutil.rmtree(file)
+            else:
+                file.unlink()
 
     @classmethod
     def create(cls, pyproject: PyProjectConfiguration) -> "ProjectDirectories":

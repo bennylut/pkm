@@ -140,12 +140,15 @@ class Package(ABC):
         """
 
     @abstractmethod
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
+    def install_to(
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+            editable: bool = False):
         """
         installs this package into the given `env`
         :param target: the information about the target to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
+        :param editable: if True and able, the package will be installed in editable mode
         """
 
     def uninstall(self) -> bool:
@@ -158,18 +161,19 @@ class Package(ABC):
         """
         raise UnsupportedOperationException("uninstalling is not supported for non installed packages")
 
-    def update_at(self, target: "PackageInstallationTarget"):
+    def update_at(self, target: "PackageInstallationTarget", editable: bool = False):
         """
         attempt to update the package from a version installed at the given target to this version
         the update may attempt a full re-installation or a smarted "fast" delta-update like installation
         :param target: the target that contains the package to update
+        :param editable: if True, the package will be installed in editable mode
         """
         user_request = False
         if preinstalled := target.site_packages.installed_package(self.name):
             user_request = bool(preinstalled.user_request)
             preinstalled.uninstall()
 
-        self.install_to(target, self.descriptor.to_dependency() if user_request else None)
+        self.install_to(target, self.descriptor.to_dependency() if user_request else None, editable=editable)
 
     def __str__(self):
         return f"{self.name} {self.version}"

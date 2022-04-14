@@ -100,7 +100,9 @@ class AbstractPackage(Package):
         :return: the stored artifact
         """
 
-    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
+    def install_to(
+            self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
+            editable: bool = False):
         with PackageInstallMonitoredOp(self.descriptor):
             artifact = self.best_artifact_for(target.env)
             artifact_path = self._get_or_retrieve_artifact_path(artifact)

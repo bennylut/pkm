@@ -1,14 +1,39 @@
-from argparse import Action, FileType, Namespace, ArgumentParser
+from argparse import Action, FileType, Namespace, ArgumentParser, SUPPRESS
 from copy import copy
 from dataclasses import dataclass
 from typing import List, Type, Union, Optional, Any, TypeVar, Generic, Callable, Tuple, Iterable, Dict
 
+from pkm.utils.commons import IllegalStateException
 from pkm.utils.dicts import remove_none_values
-# from pkm.utils.pipes import pipe, p_map_not_none, p_for_each
 from pkm.utils.seqs import seq
 
 _T = TypeVar("_T")
 _CommandHandler = Callable[[Namespace], None]
+
+
+def with_extras(inner_action: str = "store") -> Type[Action]:  # support store and store_true
+    class _WithExtras(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            if inner_action == 'store':
+                setattr(namespace, self.dest, values)
+            else:
+                setattr(namespace, self.dest, True)
+
+            namespace._extras_pending = self.dest
+
+    return _WithExtras
+
+
+class ExtrasAppender(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not namespace._extras_pending:  # noqa
+            raise IllegalStateException(f"no receiver for extra '{values}'")
+
+        extras_list_name = f"{namespace._extras_pending}_extras"  # noqa
+        if not (extras_list := getattr(namespace, extras_list_name, None)):
+            setattr(namespace, extras_list_name, extras_list := [])
+
+        extras_list.extend(values)
 
 
 @dataclass
@@ -86,8 +111,24 @@ def create_args_parser(
     main = ArgumentParser(description=desc)
     parser = SubParsers(main)
 
-    seq(commands)\
-        .map_not_none(lambda it: getattr(it, "__command", None))\
-        .for_each(lambda it: command_customizer(parser.add_command(it), it))
+    def customize_command(parser: ArgumentParser, cmd: Command):
+        parser.add_argument('-+', action=ExtrasAppender, help=SUPPRESS, nargs=1)
+        command_customizer(parser, cmd)
 
+    seq(commands) \
+        .map_not_none(lambda it: getattr(it, "__command", None)) \
+        .for_each(lambda it: customize_command(parser.add_command(it), it))
+
+    # add special handling for extras
+    original_parse_args = main.parse_args
+
+    def parse_args(args: List[str]) -> Namespace:
+        args_with_modified_extras = [f"-{a}" if a.startswith("+") else a for a in args]
+
+        result = original_parse_args(args_with_modified_extras)
+        if hasattr(result, "_extras_pending"):
+            delattr(result, "_extras_pending")
+        return result
+
+    main.parse_args = parse_args
     return main

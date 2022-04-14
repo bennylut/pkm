@@ -1,6 +1,9 @@
+from pathlib import Path
 from typing import List
 
 from dataclasses import replace
+
+from pkm.utils.http.http_client import Url
 from pkm.utils.parsers import SimpleParser
 from pkm.api.versions.version import Version, NamedVersion, StandardVersion, UrlVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion
@@ -96,8 +99,12 @@ class VersionParser(SimpleParser):
         if self.match('@'):
             self.match_ws()
             url = self.until(lambda i, s: s[i].isspace())
+            if "://" not in url:
+                url = Path(url).resolve().as_uri()
+
             match = _VERSION_URL_RX.match(url)
-            return SpecificVersion(UrlVersion(match.group('repo'), match.group('url')))
+            parsed_url = Url.parse(match.group('url'))
+            return SpecificVersion(UrlVersion(match.group('url'), match.group('repo'), parsed_url.scheme))
 
         if self.match('==='):
             self.match_ws()

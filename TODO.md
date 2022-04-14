@@ -1,21 +1,25 @@
 ## RUNNING TASKS:
-- bug `pkm clean dist` should remove all but current version of dist
-- cmd: pkm install - support installation of wheel and sdist from path, also from project dir (w/editables)
+- misc: build readme, set github's site
+- documentation: document package update
 
 ## DONE IN THIS VERSION
-- pkm: update package installation / update all packages
-- bug: package downgrading in project fails
-- test: pkm check shared package update
+- qol: warn user when building a package that has local file installations
+- bug: `pkm build` inside a nested project directory did not find the project root 
+- bug `pkm clean dist` should remove all but current version of dist
+- enhancement: dependency parsing - parse filesystem urls 
+- support file based installation: `pkm install package @ path/to/package(project/wheel/sdist) `
+- test: check shared + container
+- cli: add extra paramenters support (+arg)
+- support editable file installation
 
 ## BACKLOG TASKS:
+- refactoring: consider splitting `project.install_with_dependencies` into two functions: add and install
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
-- `pkm clear lock` - allows to update all the project dependencies
 - feature: environment export
 - bug: app plugin install does not register newly created files in the container records
 - bug: generated pyc files are not getting signed 
 - shell: `pkm -v` print pkm version
-- test: check shared + container
 - enhancement: if pkm is installed on some environment we cannot choose a different global environment
 - replace dependency resolution progressbar with spinner?
 - enhancement: shared package installation - use to the new package installation target schema
@@ -45,40 +49,33 @@
 - repositories: pyvenv
 - cli: if building packages during dependency resolution, output is very convoluted
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
-- misc: build readme, set github's site
 - pkm show: add repositories information
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
 - bug: pkm new - cannot cancel creation - it just continues to the next question
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
 - cmd: pkm remove - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
-- documentation site: projects and project groups, self-contained applications
 - environment naming (for project for example..)
 - cli: publish keyring
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to
   request compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
 - cmd: pkm remove -f (force single)
-- shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir
-- shell aliases: l, ll
+- shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir,  l, ll
 - documentation: templates docs
 - site: sidebar responsive to phones
 - toml parser/writer need unit tests
 - toml - lists user style - check the pre-last delimiter and repeat it
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
-- handle project install with extras, usecase: test dependencies
-- content information (author and maintainer) name and email should be validated,
+- content information (author and maintainer) name and email should be validated before publishing,
     - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
     - email should be a valid email address
     - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
-- bug: leftover __pycache__ on site packages dir after uninstall
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - `pkm shell` support custom environment variables loading like in pipenv
 - improve api documentation
-- test pkm on windows, think how to test it on osx
-- support the `pkm build [installer] --fat` usecase (creates a standalone .py installer with embedded data), without
-  fat, dependencies will get downloaded
+- create installation script for pkm
 - find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
   source)
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know

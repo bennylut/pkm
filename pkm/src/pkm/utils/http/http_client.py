@@ -99,8 +99,8 @@ class Url:
             host = parts.netloc
             port = '80' if scheme == 'http' else '443'
 
-        if not scheme or not host:
-            raise ValueError("no schema or host in url")
+        # if not scheme or not host:
+        #     raise ValueError("no schema or host in url")
         return Url(scheme, host, int(port), parts.path, parts.query, parts.fragment)
 
 

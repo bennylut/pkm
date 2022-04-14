@@ -22,6 +22,9 @@ class Seq(Generic[_T], Iterator[_T]):
     def map(self, mapper: Callable[[_T], _U]) -> Seq[_U]:
         return Seq(mapper(it) for it in self._iter)
 
+    def flatmap(self, mapper: Callable[[_T], Iterable[_U]]) -> Seq[_U]:
+        return Seq((item for collection in self.map(mapper) for item in collection))
+
     def map_not_none(self, mapper: Callable[[_T], _U]) -> Seq[_U]:
         return Seq(m for it in self._iter if (m := mapper(it)) is not None)
 

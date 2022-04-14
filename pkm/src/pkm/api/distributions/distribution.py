@@ -38,17 +38,19 @@ class Distribution(Protocol):
         """
 
     @classmethod
-    def package_from(cls, distribution: Path) -> Package:
+    def package_from(cls, distribution: Path, desc: Optional[PackageDescriptor] = None) -> Package:
         """
         creates a package from the given distribution, assumes proper naming conventions for distribution file name
         :param distribution: the path to the distribution
+        :param desc: if given, will be used as the descriptor of the package, otherwise a descriptor will be guessed
+            from the file naming conventions
         :return: package that upon install will install the given distribution
         """
 
         from pkm.api.distributions.source_distribution import SourceDistribution
         from pkm.api.distributions.wheel_distribution import WheelDistribution
 
-        desc = PackageDescriptor.from_dist_name(distribution.name)
+        desc = desc or PackageDescriptor.from_dist_name(distribution.name)
 
         if distribution.name.endswith(".whl"):
             return _DistributionPackage(WheelDistribution(desc, distribution))

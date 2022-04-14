@@ -39,8 +39,13 @@ class Version(ABC):
 
 @dataclass(frozen=True)
 class UrlVersion(Version):
-    protocol: str
     url: str
+    _protocol: str
+    _schema: str
+
+    @property
+    def protocol(self) -> str:
+        return self._protocol or self._schema
 
     def is_pre_or_dev_release(self) -> bool:
         return False
@@ -55,8 +60,8 @@ class UrlVersion(Version):
         return isinstance(other, UrlVersion) and self.protocol == other.protocol and self.url == other.url
 
     def __str__(self):
-        if self.protocol:
-            return self.protocol + "+" + self.url
+        if self._protocol:
+            return self._protocol + "+" + self.url
         return self.url
 
     def __repr__(self):

@@ -11,7 +11,6 @@ The above command is safe to be used in your global python environment, read mor
 ## what can I use it for?
 
 - Install python applications and libraries (like <i cmd>pip</i> and <i cmd>pipx</i>)
-- Build and manage virtual environments (like <i cmd>venv</i>)
 - Manage your virtual environments
   - Build them (like <i cmd>venv</i>)
   - Enable package sharing between multiple environments

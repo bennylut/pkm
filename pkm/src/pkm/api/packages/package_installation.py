@@ -86,7 +86,7 @@ class PackageInstallationTarget:
 
     def install(
             self, dependencies: List[Dependency], repository: Optional[Repository] = None, user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, Dependency]] = None,
+            dependencies_override: Optional[Dict[str, Dependency]] = None, editable: bool = False,
             packages_to_update: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this target.
@@ -97,7 +97,7 @@ class PackageInstallationTarget:
 
         repository = repository or self.env.attached_repository
         self.prepare_installation(
-            dependencies, repository, user_requested, dependencies_override, packages_to_update).install()
+            dependencies, repository, user_requested, dependencies_override, packages_to_update, editable).install()
 
     def force_remove(self, package: str):
         """
@@ -111,7 +111,7 @@ class PackageInstallationTarget:
     def prepare_installation(
             self, dependencies: List[Dependency], repository: Repository,
             user_requested: bool = True, dependencies_override: Optional[Dict[str, Dependency]] = None,
-            packages_to_update: Optional[List[str]] = None
+            packages_to_update: Optional[List[str]] = None, editable: bool = False
     ) -> PreparedInstallation:
 
         """
@@ -126,6 +126,8 @@ class PackageInstallationTarget:
         :param dependencies_override: mapping from package name into dependency that should be "forcefully"
             used for this package
         :param packages_to_update: If given, the packages listed will be updated if required and already installed
+        :param editable: if True, the new dependencies will be installed in editable mode
+            (assuming they are installed from local source files)
         """
 
         self.reload()
@@ -136,6 +138,8 @@ class PackageInstallationTarget:
 
         new_deps = {d.package_name: d for d in dependencies}
         all_deps = {**pre_requested_deps, **new_deps}
+
+        editables = set(new_deps.keys()) if editable else set()
 
         try:
             # first we try the fast path: only adding packages without updating
@@ -156,22 +160,23 @@ class PackageInstallationTarget:
             installation = resolve_dependencies(
                 user_request.to_dependency(), self.env, installation_repo)
 
-        return PreparedInstallation(self, installation, new_deps if user_requested else {})
+        return PreparedInstallation(self, installation, new_deps if user_requested else {}, editables)
 
 
 class PreparedInstallation:
     def __init__(self, target: PackageInstallationTarget, packages: List[Package],
-                 user_requests: Dict[str, "Dependency"]):
+                 user_requests: Dict[str, "Dependency"], editables: Set[str]):
         self.default_target = target
         self.packages = packages
         self.user_requests = user_requests
+        self.editables = editables
 
     def selected_package(self, name: str) -> Optional[Package]:
         return first_or_none(it for it in self.packages if it.name == name)
 
     def install(self, target: Optional[PackageInstallationTarget] = None):
         target = target or self.default_target
-        _sync_package(target, self.packages)
+        _sync_package(target, self.packages, self.editables)
         target.reload()
 
         for package, dep in self.user_requests.items():
@@ -181,7 +186,7 @@ class PreparedInstallation:
                 installed_package.mark_user_requested(dep)
 
 
-def _sync_package(target: PackageInstallationTarget, packages: List[Package]):
+def _sync_package(target: PackageInstallationTarget, packages: List[Package], editables: Set[str]):
     preinstalled: Dict[str, InstalledPackage] = {
         PackageDescriptor.normalize_src_package_name(p.name).lower(): p
         for p in target.site_packages.installed_packages()}
@@ -199,9 +204,11 @@ def _sync_package(target: PackageInstallationTarget, packages: List[Package]):
             if preinstalled_package.version == package_to_install.version:
                 continue
 
-            promises.append(Promise.execute(pkm.threads, package_to_install.update_at, target))
+            promises.append(Promise.execute(
+                pkm.threads, package_to_install.update_at, target, editable=package_to_install.name in editables))
         else:
-            promises.append(Promise.execute(pkm.threads, package_to_install.install_to, target))
+            promises.append(Promise.execute(
+                pkm.threads, package_to_install.install_to, target, editable=package_to_install.name in editables))
 
     for package_to_remove in preinstalled.values():
         promises.append(Promise.execute(pkm.threads, package_to_remove.uninstall))

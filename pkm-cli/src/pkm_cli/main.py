@@ -62,6 +62,10 @@ def shell(args: Namespace):
 @command('pkm build')
 def build(args: Namespace):
     def on_project(project: Project):
+        if any((u := d.version_spec.specific_url()) and u.protocol == 'file'
+               for d in project.config.project.dependencies):
+            Display.print("[orange1]Warning[/] you are building a project that depends on packages located in your "
+                          "file system, [red]publishing this project will result in unusable package[/]")
         project.build()
 
     def on_project_group(project_group: ProjectGroup):
@@ -84,7 +88,7 @@ def vbump(args: Namespace):
 @command(
     'pkm install',
     Arg(["-o", "--optional"]), Arg(["-a", "--app"], action='store_true'), Arg(["-u", "--update"], action='store_true'),
-    Arg('dependencies', nargs=argparse.REMAINDER))
+    Arg(["-e", "--editable"]), Arg('dependencies', nargs=argparse.REMAINDER))
 def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.dependencies]
 
@@ -111,8 +115,8 @@ def install(args: Namespace):
                 app, plugins = dependencies[0], dependencies[1:]
                 plugins_to_update = [d.package_name for d in plugins] if args.update else None
                 env.app_containers \
-                    .install(app, update_existing=args.update and not plugins) \
-                    .installation_target.install(plugins, packages_to_update=plugins_to_update)
+                    .install(app, update_existing=args.update and not plugins, editable=args.editable) \
+                    .installation_target.install(plugins, packages_to_update=plugins_to_update, editable=args.editable)
             else:
                 env.install(
                     dependencies, packages_to_update=[d.package_name for d in dependencies] if args.update else None)
@@ -140,7 +144,7 @@ def remove(args: Namespace):
             if len(package_names) == 1:
                 container.uninstall()
             else:
-                container.uninstall_plugins(package_names[1:])
+                container.installation_target.uninstall(package_names[1:])
 
         else:
             env.uninstall(package_names)
@@ -211,11 +215,11 @@ def clean_shared(args: Namespace):
     Context.of(args).run(**locals())
 
 
-@command('pkm clean dist')
+@command('pkm clean dist', Arg(["--all", "-a"], action="store_true"))
 def clean_dist(args: Namespace):
     def on_project(project: Project):
-        if (dist := project.directories.dist).exists():
-            shutil.rmtree(dist)
+        keep_versions = [project.version] if not args.all else None
+        project.directories.clean_dist(keep_versions)
 
     Context.of(args).run(**locals())
 

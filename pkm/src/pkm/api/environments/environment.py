@@ -303,6 +303,10 @@ class Environment:
     def current(cls) -> Environment:
         return Environment.of_interpreter(Path(sys.executable))
 
+    @classmethod
+    def load(cls, path: Union[Path, str]) -> Environment:
+        return Environment(Path(path))
+
 
 def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:
     if isinstance(dependencies, str):
