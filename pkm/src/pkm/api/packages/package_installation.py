@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING
 
+from pkm.api.distributions.distinfo import RequestedPackageInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.repositories.repository import Repository, AbstractRepository
@@ -25,8 +26,8 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class PackageInstallationTarget:
-    env: "Environment"  # TODO: should probably have an "interpreter" representation that can be decoupled from the env
+class PackageInstallationTarget:  # TODO: maybe rename into package installation site?
+    env: "Environment"
     stdlib: str
     platstdlib: str
     platinclude: str
@@ -39,7 +40,7 @@ class PackageInstallationTarget:
     @cached_property
     def site_packages(self) -> "SitePackages":
         from pkm.api.packages.site_packages import SitePackages
-        return SitePackages(self.env, Path(self.purelib), Path(self.platlib), self.env.is_readonly)
+        return SitePackages(self.env, Path(self.purelib), Path(self.platlib))
 
     @cached_property
     def app_containers(self) -> "ContainerizedApplications":
@@ -65,7 +66,7 @@ class PackageInstallationTarget:
         self.reload()
 
         preinstalled_packages = list(self.site_packages.installed_packages())
-        requested_deps = {p.name: p.user_request for p in preinstalled_packages if p.user_request}
+        requested_deps = {p.name: p.user_request.requested_dependency for p in preinstalled_packages if p.user_request}
         for package_name in packages:
             requested_deps.pop(package_name, None)
 
@@ -73,13 +74,13 @@ class PackageInstallationTarget:
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
         installation = resolve_dependencies(user_request.to_dependency(), self.env, installation_repo)
-        _sync_package(self, installation)
+        _sync_package(self, installation, set())
 
         kept = {p.name for p in installation}
 
         for p in packages:
             if p in kept:
-                self.site_packages.installed_package(p).unmark_user_requested()
+                self.site_packages.installed_package(p).dist_info.unmark_as_user_requested()
 
         self.reload()
         return {p for p in packages if p not in kept}
@@ -134,12 +135,23 @@ class PackageInstallationTarget:
 
         packages_to_update = set(packages_to_update or [])
         preinstalled_packages = [p for p in self.site_packages.installed_packages() if p.name not in packages_to_update]
-        pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
+        pre_requested_deps: Dict[Package, Dependency] = {}
+        pre_requested_editables: Set[str] = set()
+
+        for p in preinstalled_packages:
+            if ur := p.user_request:
+                pre_requested_deps[p] = ur.requested_dependency
+                if ur.editable:
+                    pre_requested_editables.add(p.name)
 
         new_deps = {d.package_name: d for d in dependencies}
         all_deps = {**pre_requested_deps, **new_deps}
 
         editables = set(new_deps.keys()) if editable else set()
+        editables.update(pre_requested_editables)
+
+        run_slow_path = False
+        installation = None
 
         try:
             # first we try the fast path: only adding packages without updating
@@ -154,6 +166,10 @@ class PackageInstallationTarget:
                     installation.append(preinstalled)
 
         except UnsolvableProblemException:
+            # don't execute the slow path code here so that the stacktrace will be cleaner if exception will happen
+            run_slow_path = True
+
+        if run_slow_path:
             # if we cannot we try the slow path in which we allow preinstalled packages dependencies to be updated
             user_request = _UserRequestPackage(list(all_deps.values()))
             installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
@@ -183,7 +199,8 @@ class PreparedInstallation:
             if installed_package := target.site_packages.installed_package(package):
                 # note that the package may not get installed if the dependency
                 # is not required for our specific environment
-                installed_package.mark_user_requested(dep)
+                installed_package.dist_info.mark_as_user_requested(
+                    RequestedPackageInfo(dep, dep.package_name in self.editables))
 
 
 def _sync_package(target: PackageInstallationTarget, packages: List[Package], editables: Set[str]):
@@ -200,15 +217,17 @@ def _sync_package(target: PackageInstallationTarget, packages: List[Package], ed
     from pkm.api.pkm import pkm
 
     for norm_package_name, package_to_install in toinstall.items():
+        editable = package_to_install.name in editables
         if preinstalled_package := preinstalled.pop(norm_package_name, None):
-            if preinstalled_package.version == package_to_install.version:
+            preinstalled_editable = preinstalled_package.user_request.editable
+            if preinstalled_package.version == package_to_install.version and editable == preinstalled_editable:
                 continue
 
             promises.append(Promise.execute(
-                pkm.threads, package_to_install.update_at, target, editable=package_to_install.name in editables))
+                pkm.threads, package_to_install.update_at, target, editable=editable))
         else:
             promises.append(Promise.execute(
-                pkm.threads, package_to_install.install_to, target, editable=package_to_install.name in editables))
+                pkm.threads, package_to_install.install_to, target, editable=editable))
 
     for package_to_remove in preinstalled.values():
         promises.append(Promise.execute(pkm.threads, package_to_remove.uninstall))
@@ -231,7 +250,7 @@ class _UserRequestPackage(Package):
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
 
-    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None): pass
+    def install_to(self, *args, **kwargs): pass
 
     def to_dependency(self) -> "Dependency":
         return Dependency(self.name, SpecificVersion(self.version))

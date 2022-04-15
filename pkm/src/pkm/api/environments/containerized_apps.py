@@ -3,18 +3,18 @@ from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path
 from textwrap import dedent
-from typing import List, Union, Optional, ContextManager, Dict, TYPE_CHECKING
+from typing import List, Union, Optional, ContextManager, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo
+from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.site_packages import InstalledPackage
+from pkm.api.projects.project import Project
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmApplicationConfig, ProjectConfig, \
     BuildSystemConfig
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
-from pkm.api.repositories.repository import Repository
 from pkm.api.repositories.repository_loader import REPOSITORIES_CONFIGURATION_PATH
 from pkm.distributions.executables import Executables
 from pkm.pep517_builders.pkm_builders import build_wheel
@@ -22,7 +22,6 @@ from pkm.repositories.local_packages_repository import LOCAL_PACKAGES_REPOSITORY
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import temp_dir, mkdir, CopyTransaction, path_to
 from pkm.utils.hashes import HashSignature
-from pkm.api.projects.project import Project
 from pkm.utils.properties import cached_property
 
 _CONTAINERIZED_WRAPPER_SUFFIX = "_containerized"
@@ -138,7 +137,7 @@ class ContainerizedApplications:
                 packages_to_update=[d.package_name for d in app_config.dependencies])
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
-                .install_to(contained_target, app.descriptor.to_dependency())
+                .install_to(contained_target, RequestedPackageInfo(app.descriptor.to_dependency(), editable))
 
             contained_site.reload()
 

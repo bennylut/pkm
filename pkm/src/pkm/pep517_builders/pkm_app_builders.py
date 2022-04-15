@@ -7,7 +7,6 @@ from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.projects.project import Project
-from pkm.pep517_builders.pkm_builders import build_sdist as regular_build_dist, build_wheel as regular_build_wheel
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
 

@@ -87,9 +87,9 @@ class LocalInterpreterPackage(Package):
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
 
     def install_to(
-            self, target: Union[Environment, PackageInstallationTarget],
-            user_request: Optional["Dependency"] = None):
-        env_dir = target.env.path if isinstance(target, PackageInstallationTarget) else target.path
+            self, target: Union["PackageInstallationTarget", Environment], user_request: Optional["Dependency"] = None,
+            editable: bool = False):
+        env_dir = target.path if isinstance(target, Environment) else target.env.path
         EnvironmentBuilder.create(env_dir, self._interpreter.absolute())
 
 

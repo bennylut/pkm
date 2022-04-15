@@ -2,6 +2,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
+from pkm.api.distributions.distinfo import RequestedPackageInfo
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -21,12 +22,12 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None):
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[RequestedPackageInfo] = None):
         """
         installs this package into the given `env`
         :param target: information about the target to install this distribution into
         :param user_request: if this package was requested by the user,
-               supplying this field will mark the installation as user request
+               supplying this field will mark the installation as user request and save the given info
         """
 
     @abstractmethod
@@ -85,5 +86,7 @@ class _DistributionPackage(Package):
             return env.compatibility_tag_score(self._dist.compute_compatibility_tags()) is not None
         return True
 
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
-        self._dist.install_to(target, user_request)
+    def install_to(
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+            editable: bool = False):
+        self._dist.install_to(target, RequestedPackageInfo(user_request, editable))

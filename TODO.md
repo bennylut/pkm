@@ -1,18 +1,28 @@
 ## RUNNING TASKS:
-- misc: build readme, set github's site
-- documentation: document package update
+- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
+- repositories: conda
+  - it seems that it will be simple enough to implement
+    myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
+- `pkm install torch --repo download-torch +arch=cpu`, `pkm install torch --repo conda +channel=main`
+    - if such source is not defined will auto define it with the same type
+    - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
+    - for the conda, repository instance builder should support "url" based configuration
+    - cli managed configuration
+- refactoring: repositories should by itself be a project group
 
 ## DONE IN THIS VERSION
-- qol: warn user when building a package that has local file installations
-- bug: `pkm build` inside a nested project directory did not find the project root 
-- bug `pkm clean dist` should remove all but current version of dist
-- enhancement: dependency parsing - parse filesystem urls 
-- support file based installation: `pkm install package @ path/to/package(project/wheel/sdist) `
-- test: check shared + container
-- cli: add extra paramenters support (+arg)
-- support editable file installation
+- bug: upgrading package between different editable states does not trigger the actual installation
+- documentation: document package management
+- cmd: pkm remove -f (force single)
+- improve support for system environments:
+  - remove the readonly flag
+  - default to user site and allow the user to request the 'system' site
+
 
 ## BACKLOG TASKS:
+- test: check installation of editable packages inside shared packages zoo
+- cli: read about parents in argparse - may help improve code readability
+- misc: build readme, set github's site
 - refactoring: consider splitting `project.install_with_dependencies` into two functions: add and install
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
@@ -29,18 +39,7 @@
 - documentation: describe repositories,
     - describe repositories extensions + torch repository
     - describe inheritance mode
-- repositories: conda
-    - it seems that it will be simple enough to implement
-      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
 - package artifact hash validation: pypi, simple, torch
-- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
-- `pkm install torch --repo download-torch +arch=cpu`, `pkm install torch --repo conda +channel=main`
-    - if such source is not defined will auto define it with the same type
-    - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
-    - for the conda, repository instance builder should support "url" based configuration
-    - cli managed configuration
-- refactoring: repositories should by itself be a project group
-- check pkm installation in app mode on system environment + torch-repo in app mode
 - bug: when running in "build-sys" mode should not "implicitly install" cache files
     - also when running in this mode some basic monitoring should be made
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
@@ -60,7 +59,6 @@
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to
   request compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
-- cmd: pkm remove -f (force single)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir,  l, ll
 - documentation: templates docs
 - site: sidebar responsive to phones

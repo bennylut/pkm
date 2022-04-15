@@ -34,6 +34,7 @@ else:
 result = {
     'sysconfig': {
         'paths': sysconfig.get_paths(),
+        'paths_by_scheme': {s:sysconfig.get_paths(s) for s in sysconfig.get_scheme_names()},
         'vars': sysconfig.get_config_vars(),
         'platform': sysconfig.get_platform(),
         'is_python_build': sysconfig.is_python_build(True)
@@ -80,16 +81,29 @@ result = {
 print(json.dumps(result))
 """
 
+_USER_SCHEME_BY_PLATFORM = {
+    "Linux": "posix_user",
+    "Windows": "nt_user",
+    "Darwin": "osx_framework_user"
+}
+
 
 # noinspection PyRedundantParentheses
 class EnvironmentIntrospection(Configuration):
 
     @property
-    def paths(self):
+    def paths(self) -> Dict[str, str]:
         return self._data['sysconfig']['paths']
 
     def is_windows_env(self) -> bool:
         return self['sys']['platform'] == 'win32'
+
+    def user_paths(self) -> Optional[Dict[str, str]]:
+        scheme = _USER_SCHEME_BY_PLATFORM.get(self._data["platform"]["system"])
+        if not scheme:
+            return None
+
+        return self._data["sysconfig"]["paths_by_scheme"].get(scheme)
 
     def compute_markers(self) -> Dict[str, str]:
         """
@@ -158,24 +172,6 @@ class EnvironmentIntrospection(Configuration):
     @property
     def interpreter_version(self) -> List[int]:
         return self._data['sys']['version_info']
-
-    # def create_site_packages(self, env: "Environment", readonly: bool) -> SitePackages:
-    #     sysconfig_paths = self._data['sysconfig']['paths']
-    #
-    #     if self.is_windows_env:
-    #         def ucase(path: str) -> str:
-    #             return path.lower()
-    #     else:
-    #         def ucase(path: str) -> str:
-    #             return path
-    #
-    #     purelib = ucase(sysconfig_paths['purelib'])
-    #     platlib = ucase(sysconfig_paths['platlib'])
-    #
-    #     rest_sites = [upath for path in self._data['site']['packages'] if
-    #                   (upath := ucase(path)) != purelib and path != platlib]
-    #
-    #     return SitePackages(env, Path(purelib), Path(platlib), [Path(p) for p in rest_sites], readonly)
 
     def _compute_generic_abis(self) -> Iterator[str]:
         if abi := self._data['sysconfig']['vars'].get("SOABI"):

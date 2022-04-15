@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
-from pkm.api.distributions.distinfo import DistInfo
+from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -103,14 +103,15 @@ class Project(Package):
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
-            distribution.install_to(target, user_request)
+            distribution.install_to(target, RequestedPackageInfo(user_request, editable))
 
-    def update_at(self, target: "PackageInstallationTarget", editable: bool = True):
+    def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+                  editable: bool = False):
         # fast alternative for application to be installed without passing through wheels
         if self.is_containerized_application():
             target.app_containers.install(self, editable)
         else:
-            super(Project, self).update_at(target)
+            super(Project, self).update_at(target, user_request, editable)
 
     @cached_property
     def lock(self) -> PackagesLock:

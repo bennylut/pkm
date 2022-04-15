@@ -1,9 +1,9 @@
-from typing import List, Optional, Dict
+from typing import List, Dict
 from unittest import TestCase
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.packages.package import PackageDescriptor, Package, PackageInstallationTarget
+from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import Version
 
@@ -66,6 +66,4 @@ class DummyPackage(Package):
     def is_compatible_with(self, env: Environment):
         return True
 
-    def install_to(
-            self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
-        pass
+    def install_to(self, *args, **kwargs): pass

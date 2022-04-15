@@ -67,6 +67,11 @@ def build_wheel(project: Project, target_dir: Optional[Path] = None, only_meta: 
 
     target_dir = target_dir or (project.directories.dist / str(project.version))
 
+    if target_env is not None and \
+            not (req := project.config.project.requires_python).allows_version(target_env.interpreter_version):
+        raise ValueError(f"project: '{project.name}' source does not support interpreter version in environment "
+                         f"(requires: {req}, got {target_env.interpreter_version})")
+
     with _build_context(project) as bc:
         if only_meta:
             dist_info_path = target_dir / bc.dist_info_dir_name()

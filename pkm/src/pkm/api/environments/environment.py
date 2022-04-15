@@ -11,6 +11,7 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping, TYPE_CHECKING
 
+from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -18,13 +19,13 @@ from pkm.api.packages.site_packages import SitePackages
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
-from pkm.utils.commons import unone
+from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
+from pkm.utils.files import is_root_path
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.types import SupportsLessThanEq
-from pkm.api.dependencies.dependency import Dependency
 
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
@@ -37,11 +38,11 @@ _T = TypeVar("_T")
 
 class Environment:
 
-    def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, readonly: bool = False,
-                 zoo: Optional["EnvironmentsZoo"] = None):
+    def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, *,
+                 use_user_site: bool = False, zoo: Optional["EnvironmentsZoo"] = None):
         self._env_path = env_path
         self._interpreter_path = interpreter_path
-        self._readonly = readonly
+        self._use_user_site = use_user_site
 
         if zoo:
             self.zoo = zoo  # noqa
@@ -70,7 +71,7 @@ class Environment:
 
     @cached_property
     def _introspection(self) -> EnvironmentIntrospection:
-        if self._readonly:
+        if is_root_path(self._env_path):
             return EnvironmentIntrospection.compute(self.interpreter_path)
         return EnvironmentIntrospection.load_or_compute(
             self._env_path / 'etc/pkm/env_introspection.json', self.interpreter_path, True)
@@ -79,18 +80,19 @@ class Environment:
     def name(self) -> str:
         return self.path.name
 
-    @property
-    def is_readonly(self) -> bool:
-        return self._readonly
-
     @cached_property
     def installation_target(self) -> PackageInstallationTarget:
-        paths = self._introspection.paths
-        return PackageInstallationTarget(self, **{
+        paths = self._introspection.user_paths() if self._use_user_site else self._introspection.paths
+        if not paths:
+            raise NoSuchElementException("could not find user site configuration matching to the current os")
+
+        result = PackageInstallationTarget(self, **{
             field.name: paths.get(field.name) or ""
             for field in dataclasses.fields(PackageInstallationTarget)
             if field.name != 'env'
         })
+
+        return result
 
     def __repr__(self):
         return f"Environment({self.path})"
@@ -238,7 +240,7 @@ class Environment:
 
     def install(
             self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None, user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, List[Dependency]]] = None,
+            dependencies_override: Optional[Dict[str, List[Dependency]]] = None, editable: bool = False,
             packages_to_update: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this environment.
@@ -246,7 +248,8 @@ class Environment:
         """
 
         self.installation_target.install(
-            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, packages_to_update)
+            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, editable,
+            packages_to_update)
 
     def force_remove(self, package: str):
         """
@@ -275,7 +278,6 @@ class Environment:
         """
         :return: all entrypoints in this environment grouped by their defined group
         """
-
         groups: Dict[str, List[EntryPoint]] = defaultdict(list)
 
         for package in self.site_packages.installed_packages():
@@ -293,15 +295,32 @@ class Environment:
         return (path / "pyvenv.cfg").exists() and _find_interpreter(path) is not None
 
     @classmethod
-    def of_interpreter(cls, interpreter: Path) -> Environment:
+    def of_interpreter(cls, interpreter: Path, site: str = "user") -> Environment:
+        """
+        load an environment using the given interpreter
+        :param interpreter: the interpreter to use
+        :param site: control the installation site of the returned environment - acceptable values are
+            'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option
+            just use the regular site, you can read about the 'user' site in documentation of
+            `site.getusersitepackages()`
+        :return: the loaded environment
+        """
         if (interpreter.parent.parent / "pyvenv.cfg").exists():
             return Environment(interpreter.parent.parent, interpreter)
         else:  # this is a system environment
-            return Environment(Path("/"), interpreter, readonly=True)
+            return Environment(Path("/"), interpreter, use_user_site=site == 'user')
 
     @classmethod
-    def current(cls) -> Environment:
-        return Environment.of_interpreter(Path(sys.executable))
+    def current(cls, site: str = "user") -> Environment:
+        """
+        load the environment used by the currently executed interpreter
+        :param site: control the installation site of the returned environment - acceptable values are
+            'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option
+            just use the regular site, you can read about the 'user' site in documentation of
+            `site.getusersitepackages()`
+        :return: the loaded environment
+        """
+        return Environment.of_interpreter(Path(sys.executable), site)
 
     @classmethod
     def load(cls, path: Union[Path, str]) -> Environment:
@@ -328,7 +347,7 @@ def _find_interpreter(env_root: Path) -> Optional[Path]:
 
 @dataclass
 class OperatingPlatform:
-    os: str  # 'Linux', 'Darwin', 'Java', 'Windows' - the value returned by platform.system() in lowercase
+    os: str  # 'linux', 'darwin', 'java', 'windows' - the value returned by platform.system() in lowercase
     os_bits: int  # 32 or 64
     machine: str  # the value returned by platform.machine() in lowercase
     python_version: Version

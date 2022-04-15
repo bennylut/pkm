@@ -1,15 +1,14 @@
 import shutil
-import warnings
 from pathlib import Path
 from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
 
-from pkm.api.distributions.distinfo import DistInfo
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import SpecificVersion
 from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.properties import cached_property, clear_cached_properties
-from pkm.api.dependencies.dependency import Dependency
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -17,11 +16,10 @@ if TYPE_CHECKING:
 
 
 class SitePackages:
-    def __init__(self, env: "Environment", purelib: Path, platlib: Path, is_read_only: bool):
+    def __init__(self, env: "Environment", purelib: Path, platlib: Path):
 
         self._purelib = purelib
         self._platlib = platlib
-        self._is_read_only = is_read_only
         self.env = env
 
     def all_sites(self) -> Iterator[Path]:
@@ -46,16 +44,16 @@ class SitePackages:
     @cached_property
     def _name_to_packages(self) -> Dict[str, "InstalledPackage"]:
         result: Dict[str, InstalledPackage] = {}
-        self._scan_packages(self._purelib, result, self._is_read_only)
-        self._scan_packages(self._platlib, result, self._is_read_only)
+        self._scan_packages(self._purelib, result)
+        self._scan_packages(self._platlib, result)
         return result
 
-    def _scan_packages(self, site: Path, result: Dict[str, "InstalledPackage"], readonly: bool):
+    def _scan_packages(self, site: Path, result: Dict[str, "InstalledPackage"]):
         if not site.exists():
             return
 
         for di in DistInfo.scan(site):
-            result[di.package_name] = InstalledPackage(di, self, readonly)
+            result[di.package_name] = InstalledPackage(di, self)
 
     def installed_packages(self) -> Iterable["InstalledPackage"]:
         return self._name_to_packages.values()
@@ -67,28 +65,19 @@ class SitePackages:
         clear_cached_properties(self)
 
 
-def _read_user_request(dist_info: Path, metadata: PackageMetadata) -> Optional[Dependency]:
-    requested_file = dist_info / "REQUESTED"
-    if not requested_file.exists():
-        return None
-
-    requested_data = requested_file.read_text().strip()
-    try:
-        if requested_data:
-            return Dependency.parse(requested_data)
-    except ValueError:
-        pass
-
-    return Dependency(metadata.package_name, SpecificVersion(metadata.package_version))
+def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Optional[RequestedPackageInfo]:
+    if stored_request := dist_info.load_user_requested_info():
+        return stored_request
+    elif dist_info.is_user_requested():
+        return RequestedPackageInfo(Dependency(metadata.package_name, SpecificVersion(metadata.package_version)), False)
 
 
 class InstalledPackage(Package):
 
-    def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None, readonly: bool = False):
+    def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None):
 
         self._dist_info = dist_info
         self.site = site
-        self.readonly = readonly
 
     @cached_property
     def published_metadata(self) -> Optional["PackageMetadata"]:
@@ -107,34 +96,13 @@ class InstalledPackage(Package):
         return PackageDescriptor(meta.package_name, meta.package_version)
 
     @cached_property
-    def user_request(self) -> Optional[Dependency]:
+    def user_request(self) -> Optional[RequestedPackageInfo]:
         """
-        :return: the dependency that was requested by the user
+        :return: information about the dependency that was requested by the user
                  if this package was directly requested by the user or its project
                  otherwise None
         """
-        return _read_user_request(self._dist_info.path, self.published_metadata)
-
-    def unmark_user_requested(self) -> bool:
-        """
-        remove the "user request" mark from a package
-        :return: True if the mark removed, False if the package is readonly
-        """
-
-        if self.readonly:
-            return False
-
-        self.dist_info.unmark_as_user_requested()
-        del self.user_request  # noqa
-        return True
-
-    def mark_user_requested(self, request: Dependency) -> bool:
-        if self.readonly:
-            return False
-
-        self.dist_info.mark_as_user_requested(request)
-        del self.user_request  # noqa
-        return True
+        return _read_user_request(self._dist_info, self.published_metadata)
 
     def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
         return self.published_metadata.dependencies
@@ -142,7 +110,9 @@ class InstalledPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self.published_metadata.required_python_spec.allows_version(env.interpreter_version)
 
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None):
+    def install_to(
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+            editable: bool = False):
         if target.site_packages != self.site:
             raise NotImplemented()  # maybe re-mark user request?
 
@@ -153,11 +123,10 @@ class InstalledPackage(Package):
 
         return is_relative_to(self.dist_info.path, self.site.purelib_path)
 
-    def uninstall(self) -> bool:
-        if self.readonly:
-            warnings.warn("could not uninstall, package is readonly")
-            return False
-
+    def uninstall(self):
+        """
+        uninstall this package from its site packages
+        """
         parents_to_check = set()
         for installed_file in self._dist_info.installed_files():
             installed_file.unlink(missing_ok=True)
@@ -182,5 +151,3 @@ class InstalledPackage(Package):
 
         if self.site:
             self.site.reload()
-
-        return True

@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from io import UnsupportedOperation
@@ -5,6 +6,7 @@ from pathlib import Path
 from typing import Optional, Any, Dict, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import RequestedPackageInfo
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -103,6 +105,10 @@ class AbstractPackage(Package):
     def install_to(
             self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
             editable: bool = False):
+
+        if editable:
+            warnings.warn("attempted to install non-source package as editable, it will be installed regularly")
+
         with PackageInstallMonitoredOp(self.descriptor):
             artifact = self.best_artifact_for(target.env)
             artifact_path = self._get_or_retrieve_artifact_path(artifact)
@@ -110,6 +116,7 @@ class AbstractPackage(Package):
                 if not hashsig.validate_against(artifact_path):
                     raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
+            user_request = RequestedPackageInfo(user_request, False)
             if artifact.is_wheel():
                 WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request)
             else:

@@ -61,10 +61,11 @@ class _ContextualCommand:
 
 
 class Context:
-    def __init__(self, path: Path, lookup: bool, use_global: bool):
+    def __init__(self, path: Path, lookup: bool, use_global: bool, site: Optional[str]):
         self._path = path
         self._lookup = lookup
         self._use_global = use_global
+        self._site = site
 
     # noinspection PyUnusedLocal
     def run(self,
@@ -77,7 +78,7 @@ class Context:
             **junk):
 
         if self._use_global:
-            env = Environment.current()
+            env = Environment.current(site=self._site or 'user')
             Display.print(f"using global virtual-env context: {env.path}")
             on_environment(env)
             return
@@ -106,8 +107,8 @@ class Context:
     def of(cls, args: Namespace):
         cwd = Path.cwd()
         if context := args.context:
-            return cls(Path(context), False, False)
+            return cls(Path(context), False, False, None)
         elif args.global_context:
-            return cls(cwd, False, True)
+            return cls(cwd, False, True, getattr(args, 'site', None))
         else:
-            return cls(cwd, True, False)
+            return cls(cwd, True, False, None)

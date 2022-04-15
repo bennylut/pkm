@@ -1,6 +1,5 @@
 import argparse
 import os
-import shutil
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -9,11 +8,12 @@ from typing import List, Optional
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repository import Authentication
-from pkm.utils.commons import UnsupportedOperationException, take_if
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
@@ -63,7 +63,7 @@ def shell(args: Namespace):
 def build(args: Namespace):
     def on_project(project: Project):
         if any((u := d.version_spec.specific_url()) and u.protocol == 'file'
-               for d in project.config.project.dependencies):
+               for d in (project.config.project.dependencies or [])):
             Display.print("[orange1]Warning[/] you are building a project that depends on packages located in your "
                           "file system, [red]publishing this project will result in unusable package[/]")
         project.build()
@@ -87,10 +87,19 @@ def vbump(args: Namespace):
 
 @command(
     'pkm install',
-    Arg(["-o", "--optional"]), Arg(["-a", "--app"], action='store_true'), Arg(["-u", "--update"], action='store_true'),
-    Arg(["-e", "--editable"]), Arg('dependencies', nargs=argparse.REMAINDER))
+    Arg(["-o", "--optional"], help="optional group to use (only for projects)"),
+    Arg(["-a", "--app"], action='store_true', help="install package in containerized application mode"),
+    Arg(["-u", "--update"], action='store_true', help="update the given packages if already installed"),
+    Arg(["-e", "--editable"], action="store_true", help="install the given packages in editable mode"),
+    Arg(['-s', '--site'], required=False, choices=['user', 'system'],
+        help="applicable for global-context, which site to use - default to 'user'"),
+    Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
 def install(args: Namespace):
-    dependencies = [Dependency.parse(it) for it in args.dependencies]
+    """
+    install packages under the current context
+    """
+
+    dependencies = [Dependency.parse(it) for it in args.packages]
 
     def on_project(project: Project):
         if args.app:
@@ -124,19 +133,37 @@ def install(args: Namespace):
     Context.of(args).run(**locals())
 
 
-@command('pkm remove', Arg(["-a", "--app"], action='store_true'), Arg('package_names', nargs=argparse.REMAINDER))
+@command('pkm remove', Arg(["-a", "--app"], action='store_true', help="remove containerized packages"),
+         Arg(["-f", "--force"], action="store_true",
+             help="remove the requested packages even if they are dependant of other packages, "
+                  "will not remove any other packages or update pyproject"),
+         Arg('package_names', nargs=argparse.REMAINDER, help="the packages to remove"))
 def remove(args: Namespace):
+    """
+    remove packages from the current context
+    """
+
     if not (package_names := args.package_names):
         raise ValueError("no package names are provided to be removed")
 
     app_install = bool(args.app)
+
+    def _remove(target: PackageInstallationTarget, packages: List[str] = package_names):
+        if args.force:
+            for package in packages:
+                target.force_remove(package)
+        else:
+            target.uninstall(packages)
 
     def on_project(project: Project):
         if app_install:
             raise UnsupportedOperationException("application install/remove as project dependency is not supported")
 
         Display.print(f"Removing packages from project: {project.path}")
-        project.remove_dependencies(package_names)
+        if args.force:
+            _remove(project.attached_environment.installation_target)
+        else:
+            project.remove_dependencies(package_names)
 
     def on_environment(env: Environment):
         if app_install:
@@ -144,10 +171,9 @@ def remove(args: Namespace):
             if len(package_names) == 1:
                 container.uninstall()
             else:
-                container.installation_target.uninstall(package_names[1:])
-
+                _remove(container.installation_target, package_names[1:])
         else:
-            env.uninstall(package_names)
+            _remove(env.installation_target, package_names)
 
     Context.of(args).run(**locals())
 
@@ -228,9 +254,9 @@ def main(args: Optional[List[str]] = None):
     args = args or sys.argv[1:]
 
     def customize_command(cmd: ArgumentParser, _: Command):
-        cmd.add_argument('-v', '--verbose', action='store_true')
-        cmd.add_argument('-c', '--context')
-        cmd.add_argument('-g', '--global-context', action='store_true')
+        cmd.add_argument('-v', '--verbose', action='store_true', help="run with verbose output")
+        cmd.add_argument('-c', '--context', help="path to the context to run this command under")
+        cmd.add_argument('-g', '--global-context', action='store_true', help="use the global environment context")
 
     pkm_parser = create_args_parser(
         "pkm - python package management for busy developers", globals().values(), customize_command)

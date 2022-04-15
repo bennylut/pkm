@@ -90,7 +90,7 @@ class SubParsers:
 
         parser = sp._subparsers_holder.add_parser(path[-1])
         if cmd.help:
-            parser.epilog = cmd.help
+            parser.description = cmd.help
 
         for arg in cmd.args:
             d = remove_none_values(copy(arg.__dict__))
@@ -111,9 +111,9 @@ def create_args_parser(
     main = ArgumentParser(description=desc)
     parser = SubParsers(main)
 
-    def customize_command(parser: ArgumentParser, cmd: Command):
-        parser.add_argument('-+', action=ExtrasAppender, help=SUPPRESS, nargs=1)
-        command_customizer(parser, cmd)
+    def customize_command(cmd_parser: ArgumentParser, cmd: Command):
+        cmd_parser.add_argument('-+', action=ExtrasAppender, help=SUPPRESS, nargs=1)
+        command_customizer(cmd_parser, cmd)
 
     seq(commands) \
         .map_not_none(lambda it: getattr(it, "__command", None)) \

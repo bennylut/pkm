@@ -120,5 +120,7 @@ class _GitPackageWrapper(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._project.is_compatible_with(env)
 
-    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
-        return self._project.install_to(target, user_request, editable=False)
+    def install_to(
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+            editable: bool = False):
+        return self._project.install_to(target, user_request, editable=editable)

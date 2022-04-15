@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
 
+from pkm.api.distributions.distinfo import RequestedPackageInfo
 from pkm.api.distributions.distribution import Distribution
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -27,6 +27,6 @@ class SourceDistribution(Distribution):
         return pkm.source_build_cache.get_or_build_meta(env, self)
 
     def install_to(
-            self, target: PackageInstallationTarget, user_request: Optional[Dependency] = None):
+            self, target: PackageInstallationTarget, user_request: Optional[RequestedPackageInfo] = None):
         WheelDistribution(self.owner_package, pkm.source_build_cache.get_or_build_wheel(target, self)) \
             .install_to(target, user_request)

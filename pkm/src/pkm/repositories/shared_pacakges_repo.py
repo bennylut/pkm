@@ -115,11 +115,13 @@ class _SharedPackage(Package):
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._package.is_compatible_with(env)
 
-    def install_to(self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None):
+    def install_to(
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+            editable: bool = False):
         if shared := self._shared_artifact_for(target.env):
             _link_shared(self.descriptor, shared, target)
         else:
-            self._package.install_to(target)
+            self._package.install_to(target, user_request, editable)
             if shared := _move_to_shared(self._package.descriptor, target, self._shared_path):
                 _link_shared(self.descriptor, shared, target)
 

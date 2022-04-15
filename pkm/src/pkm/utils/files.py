@@ -70,6 +70,14 @@ def path_to(source: Path, destination: Path) -> Path:
     return Path((f'..{os.sep}' * back) + str(destination.relative_to(p)))
 
 
+def is_root_path(path: Path) -> bool:
+    """
+    :param path: the path to check
+    :return: True if the given `path` is a file-system root, False otherwise.
+    """
+    return path == path.parent
+
+
 @contextmanager
 def temp_dir() -> ContextManager[Path]:
     """

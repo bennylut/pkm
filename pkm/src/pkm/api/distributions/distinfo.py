@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import csv
+import json
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING
+from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -30,52 +31,121 @@ class DistInfo:
 
     @cached_property
     def package_name(self):
+        """
+        :return: the package name as can be computed from the dist-info file name. note that if the loaded dist-info
+         path has non-standard, the return value of this method is undetermined
+        """
         return self.path.name.split("-")[0]
 
     def load_wheel_cfg(self) -> "WheelFileConfiguration":
+        """
+        loads and return the WHEEL configuration file
+        :return: the loaded configuration file
+        """
         return WheelFileConfiguration.load(self.wheel_path())
 
     def wheel_path(self) -> Path:
+        """
+        :return: the path to the WHEEL configuration file
+        """
         return self.path / "WHEEL"
 
     def is_app_container(self) -> bool:
+        """
+        :return: True if this package dist-info is marked as an app-container
+        """
         return self.app_container_path().exists()
 
-    def is_user_requested(self) -> bool:
-        return self.user_requested_path().exists()
-
     def load_entrypoints_cfg(self) -> "EntrypointsConfiguration":
+        """
+        load and return the entry_points.txt configurate file
+        :return: the loaded configuration file
+        """
         return EntrypointsConfiguration.load(self.path / "entry_points.txt")
 
     def load_metadata_cfg(self) -> "PackageMetadata":
+        """
+        load and return the METADATA configuration file
+        :return: the loaded configuration file
+        """
         return PackageMetadata.load(self.metadata_path())
 
     def metadata_path(self) -> Path:
+        """
+        :return: the path to the METADATA configuration file
+        """
         return self.path / "METADATA"
 
     def load_record_cfg(self) -> "RecordsFileConfiguration":
+        """
+        load and return the RECORD configuration file
+        :return: the loaded configuration file
+        """
         return RecordsFileConfiguration.load(self.record_path())
 
     def record_path(self) -> Path:
+        """
+        :return: the path to the RECORD configuration file
+        """
         return self.path / "RECORD"
 
     def license_path(self) -> Path:
+        """
+        :return: the path to the LICENSE file
+        """
         return self.path / "LICENSE"
 
     def app_container_path(self) -> Path:
+        """
+        :return: the path to the APP_CONTAINER marker file
+        """
         return self.path / "APP_CONTAINER"
 
     def user_requested_path(self) -> Path:
+        """
+        :return: the path to the REQUESTED marker file
+        """
         return self.path / "REQUESTED"
 
-    def mark_as_user_requested(self, dependency: Dependency):
-        self.user_requested_path().write_text(str(dependency))
+    def mark_as_user_requested(self, info: RequestedPackageInfo):
+        """
+        marks the given package as a user requested one, pkm will not consider it as an orphan package if no other
+        package depends on it
+        :param info: information about the user request
+        """
+        self.user_requested_path().write_text(json.dumps(info.to_config()))
 
     def unmark_as_user_requested(self):
+        """
+        remove the "user request" mark from a package, pkm will consider it as an orphan package if no other
+        package depends on it
+        """
         self.user_requested_path().unlink(missing_ok=True)
+
+    def is_user_requested(self) -> bool:
+        """
+        :return: True if this package dist-info is marked as user-requested
+        """
+        return self.user_requested_path().exists()
+
+    def load_user_requested_info(self) -> Optional[RequestedPackageInfo]:
+        try:
+            return RequestedPackageInfo.from_config(json.loads(self.user_requested_path().read_text()))
+        except:  # noqa
+            return None
 
     @classmethod
     def load(cls, path: Path, non_standard_name_ok: bool = False) -> "DistInfo":
+        """
+        loads the given `path` as a distinfo
+        :param path: the path to load, must be a directory
+        :param non_standard_name_ok: if False and the name of the given path is not standard will raise a ValueError
+        :return: the loaded distinfo
+        """
+
+        if path.exists() and not path.is_dir():
+            raise ValueError(f"the given path is not a directory: {path}")
+
         if path.suffix != '.dist-info' and not non_standard_name_ok:
             raise ValueError(f"{str(path)} is not a properly named dist-info directory")
 
@@ -83,6 +153,11 @@ class DistInfo:
 
     @classmethod
     def scan(cls, path: Path) -> Iterator[DistInfo]:
+        """
+        scans a path for all its standard-named dist-info children, load and yield them.
+        :param path: the path to scan
+        :return: iterator over all the found dist-info children
+        """
         for file in path.iterdir():
             if file.suffix == ".dist-info":
                 yield DistInfo.load(file)
@@ -106,6 +181,31 @@ class DistInfo:
             yield file
 
         yield self.record_path()
+
+
+@dataclass(frozen=True, eq=True)
+class RequestedPackageInfo:
+    requested_dependency: Optional[Dependency] = None
+    editable: bool = False
+
+    def __str__(self):
+        edstr = " (editable)" if self.editable else ""
+        if self.requested_dependency:
+            return f"{self.requested_dependency}{edstr}"
+        return "*"
+
+    def to_config(self) -> Dict[str, Any]:
+        return {
+            'requested_dependency': str(self.requested_dependency),
+            'editable': self.editable
+        }
+
+    @classmethod
+    def from_config(cls, config: Dict[str, Any]) -> RequestedPackageInfo:
+        return RequestedPackageInfo(
+            config.get('requested_dependency'),
+            config.get('editable', False)
+        )
 
 
 class EntrypointsConfiguration(IniFileConfiguration):
