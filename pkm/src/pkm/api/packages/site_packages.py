@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
+from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import SpecificVersion
@@ -48,28 +48,32 @@ class SitePackages:
         self._scan_packages(self._platlib, result)
         return result
 
+    @staticmethod
+    def normalize_package_name(package_name: str) -> str:
+        return PackageDescriptor.normalize_src_package_name(package_name).lower()
+
     def _scan_packages(self, site: Path, result: Dict[str, "InstalledPackage"]):
         if not site.exists():
             return
 
         for di in DistInfo.scan(site):
-            result[di.package_name] = InstalledPackage(di, self)
+            result[self.normalize_package_name(di.package_name)] = InstalledPackage(di, self)
 
     def installed_packages(self) -> Iterable["InstalledPackage"]:
         return self._name_to_packages.values()
 
     def installed_package(self, package_name: str) -> Optional["InstalledPackage"]:
-        return self._name_to_packages.get(PackageDescriptor.normalize_src_package_name(package_name))
+        return self._name_to_packages.get(self.normalize_package_name(package_name))
 
     def reload(self):
         clear_cached_properties(self)
 
 
-def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Optional[RequestedPackageInfo]:
+def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Optional[Dependency]:
     if stored_request := dist_info.load_user_requested_info():
         return stored_request
     elif dist_info.is_user_requested():
-        return RequestedPackageInfo(Dependency(metadata.package_name, SpecificVersion(metadata.package_version)), False)
+        return Dependency(metadata.package_name, SpecificVersion(metadata.package_version))
 
 
 class InstalledPackage(Package):
@@ -96,16 +100,22 @@ class InstalledPackage(Package):
         return PackageDescriptor(meta.package_name, meta.package_version)
 
     @cached_property
-    def user_request(self) -> Optional[RequestedPackageInfo]:
+    def user_request(self) -> Optional[Dependency]:
         """
-        :return: information about the dependency that was requested by the user
+        :return: the dependency that was requested by the user
                  if this package was directly requested by the user or its project
                  otherwise None
         """
         return _read_user_request(self._dist_info, self.published_metadata)
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self.published_metadata.dependencies
+    @cached_property
+    def installation_mode_info(self) -> InstallationModeInfo:
+        return self._dist_info.load_installation_mode_info() or InstallationModeInfo()
+
+    def dependencies(
+            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+        all_deps = self.published_metadata.dependencies
+        return [d for d in all_deps if d.is_applicable_for(environment, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self.published_metadata.required_python_spec.allows_version(env.interpreter_version)

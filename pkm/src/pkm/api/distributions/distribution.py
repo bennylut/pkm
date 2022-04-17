@@ -2,7 +2,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
-from pkm.api.distributions.distinfo import RequestedPackageInfo
+from pkm.api.distributions.distinfo import InstallationModeInfo
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -22,12 +22,14 @@ class Distribution(Protocol):
         """
 
     @abstractmethod
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[RequestedPackageInfo] = None):
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None,
+                   installation_mode: Optional[InstallationModeInfo] = None):
         """
         installs this package into the given `env`
         :param target: information about the target to install this distribution into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request and save the given info
+        :param installation_mode: information about the installation mode to save while installing
         """
 
     @abstractmethod
@@ -76,8 +78,10 @@ class _DistributionPackage(Package):
             self._env_hash_to_metadata[env_hash] = meta
         return meta
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self._metadata(environment).dependencies
+    def dependencies(
+            self, environment: "Environment",
+            extras: Optional[List[str]] = None) -> List["Dependency"]:
+        return [d for d in self.published_metadata.dependencies if d.is_applicable_for(environment, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         from pkm.api.distributions.wheel_distribution import WheelDistribution
@@ -89,4 +93,4 @@ class _DistributionPackage(Package):
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
             editable: bool = False):
-        self._dist.install_to(target, RequestedPackageInfo(user_request, editable))
+        self._dist.install_to(target, user_request, InstallationModeInfo(editable=editable))

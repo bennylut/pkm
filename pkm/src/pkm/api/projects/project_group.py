@@ -144,7 +144,7 @@ class ProjectGroup:
         # with monitor.on_install_all(self):
         for project in self.children:
             if isinstance(project, Project):
-                project.install_with_dependencies()
+                project.dev_install()
             else:
                 project.install_all()
 

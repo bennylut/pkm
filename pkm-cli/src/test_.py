@@ -1,4 +1,12 @@
-from pkm.api.environments.environment import Environment
+foo_call = None
 
-env = Environment.load("/home/bennyl/projects/pkm-new/workspace/test-env")
-env.install("pkm-cli @file+file:///home/bennyl/projects/pkm-new/pkm-cli")
+
+def foo(store: bool, x, y, z):
+    global foo_call
+    if store:
+        foo_call = locals()
+
+
+foo(True, 1, 2, 3)
+foo(False, 4, 5, 6)
+print(foo_call)

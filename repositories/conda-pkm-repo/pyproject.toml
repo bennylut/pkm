@@ -1,0 +1,12 @@
+[project]
+name = "conda-pkm-repo"
+version = "0.1.0"
+description = "pkm repository plugin for conda packages"
+readme = "README.md"
+requires-python= ">=3.8, <4.0"
+authors = [{name="bennyl"}]
+dependencies = [ "pkm >=0.4.40, <1"]
+
+[build-system]
+requires=["pkm"]
+build-backend = "pkm.api.buildsys"

@@ -1,8 +1,8 @@
 ## RUNNING TASKS:
 - pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
 - repositories: conda
-  - it seems that it will be simple enough to implement
-    myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
+    - it seems that it will be simple enough to implement
+      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
 - `pkm install torch --repo download-torch +arch=cpu`, `pkm install torch --repo conda +channel=main`
     - if such source is not defined will auto define it with the same type
     - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
@@ -11,24 +11,22 @@
 - refactoring: repositories should by itself be a project group
 
 ## DONE IN THIS VERSION
-- bug: upgrading package between different editable states does not trigger the actual installation
-- documentation: document package management
-- cmd: pkm remove -f (force single)
-- improve support for system environments:
-  - remove the readonly flag
-  - default to user site and allow the user to request the 'system' site
-
+- misc: build readme, set github's site
+- enhancement: `pkm show` for project, show its group
+- bug: dependency from project group is not installed in editable mode by default
 
 ## BACKLOG TASKS:
+- simplification: remove the coerced dependnecies and package names support in env install/remove 
+- refactoring: consider providing the install method with 'installation request' class that contains both the dependency
+  and all other flags like editable, user request, update, etc.
+- enhancement: delegation should also support abstract properties
 - test: check installation of editable packages inside shared packages zoo
 - cli: read about parents in argparse - may help improve code readability
-- misc: build readme, set github's site
-- refactoring: consider splitting `project.install_with_dependencies` into two functions: add and install
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
 - feature: environment export
 - bug: app plugin install does not register newly created files in the container records
-- bug: generated pyc files are not getting signed 
+- bug: generated pyc files are not getting signed
 - shell: `pkm -v` print pkm version
 - enhancement: if pkm is installed on some environment we cannot choose a different global environment
 - replace dependency resolution progressbar with spinner?
@@ -59,7 +57,7 @@
 - optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to
   request compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
-- shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir,  l, ll
+- shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir, l, ll
 - documentation: templates docs
 - site: sidebar responsive to phones
 - toml parser/writer need unit tests

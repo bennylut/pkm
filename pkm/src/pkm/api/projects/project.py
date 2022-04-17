@@ -5,10 +5,10 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
-from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
+from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.package_installation import PackageInstallationTarget
+from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import pkm
@@ -84,13 +84,17 @@ class Project(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._descriptor
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+    def dependencies(
+            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+
         prj = self.config.project
 
         if prj.is_dynamic('dependencies') or prj.is_dynamic('optional-dependencies'):
-            return self.computed_metadata.dependencies
+            all_deps = self.computed_metadata.dependencies
+        else:
+            all_deps = self._pyproject.project.all_dependencies
 
-        return self._pyproject.project.all_dependencies
+        return [d for d in all_deps if d.is_applicable_for(environment, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
@@ -103,10 +107,11 @@ class Project(Package):
         with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
             wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
-            distribution.install_to(target, RequestedPackageInfo(user_request, editable))
+            distribution.install_to(
+                target, user_request, InstallationModeInfo(self.is_containerized_application(), editable))
 
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                  editable: bool = False):
+                  editable: bool = True):
         # fast alternative for application to be installed without passing through wheels
         if self.is_containerized_application():
             target.app_containers.install(self, editable)
@@ -173,16 +178,17 @@ class Project(Package):
         self.lock.update_lock(self.attached_environment)
         self.lock.save()
 
-    def install_with_dependencies(
+    def dev_install(
             self, new_dependencies: Optional[List["Dependency"]] = None,
-            optional_group: Optional[str] = None, update_existing: bool = False):
+            optional_group: Optional[str] = None, update: bool = False, editable: bool = True):
         """
         install the dependencies of this project to its assigned environments
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
         :param optional_group: if not None, installs the dependencies including the ones from the given group,
            also, mark the newly installed dependencies as optional and add them to that group
-        :param update_existing: if True, will attempt to update the given `new_dependencies`,
+        :param update: if True, will attempt to update the given `new_dependencies`,
            or all the project dependencies if no `new_dependencies` are given
+        :param editable: if True, the new dependencies will be installed in editable mode
         """
 
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
@@ -195,39 +201,54 @@ class Project(Package):
         # save the new dependencies to the configuration, use a wide version specifier if no such specifier is given:
         _update_dependencies(self.config, new_deps, optional_group)
 
-        if update_existing:
+        if update:
             self.lock.unlock_packages(new_deps.keys()).save()
 
         repository = self.attached_repository
         project_dependency = self.descriptor.to_dependency()
         if optional_group:
             project_dependency = project_dependency.with_extras([optional_group])
-        self.update_at(self.attached_environment.installation_target)  # should probably submit the optionals
-        self.attached_environment.install(
-            project_dependency, repository, packages_to_update=list(new_deps.keys()) if update_existing else None)
+        self.update_at(
+            self.attached_environment.installation_target, editable=True)  # should probably submit the optionals
 
-        # attempt to update pyproject to contain a more specific dependency version specifications
+        new_deps_names = list(new_deps.keys())
+
+        target = self.attached_environment.installation_target
+        installation = target.plan_installation(
+            [project_dependency], repository, updates=new_deps_names if update else None)
+
+        all_deps_names = set(d.package_name for d in self.config.project.all_dependencies)
+        editables = installation.editables = {}
         new_deps_with_version = {}
-        site_packages = self.attached_environment.site_packages
-        for dep in new_deps.values():
-            if not dep.version_spec.is_any():
-                spec = dep.version_spec
-            else:
-                installed_package = site_packages.installed_package(dep.package_name)
-                assert installed_package, \
-                    f"package: {dep.package_name} could not be found in site packages after installation"
 
-                installed_version = installed_package.version
-                if isinstance(installed_version, StandardVersion):
-                    spec = VersionRange(
-                        installed_version,
-                        replace(installed_version, release=(installed_version.release[0] + 1,)),
-                        True, False)
-                else:
-                    spec = SpecificVersion(installed_version)
+        for package, operation in installation.compute_operations_for_target(target).items():
+            if package.name in all_deps_names:
+                newly_requested = package.name in new_deps
 
-            new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
+                # select editable mode for new install
+                if operation == PackageOperation.INSTALL:
+                    editables[package.name] = editable if newly_requested else True
+                elif operation != PackageOperation.REMOVE and newly_requested:
+                    editables[package.name] = editable
 
+                # update pyproject dependency specification
+                if newly_requested:
+                    dep = new_deps[package.name]
+                    if not dep.version_spec.is_any():
+                        spec = dep.version_spec
+                    else:
+                        installed_version = package.version
+                        if isinstance(installed_version, StandardVersion):
+                            spec = VersionRange(
+                                installed_version,
+                                replace(installed_version, release=(installed_version.release[0] + 1,)),
+                                True, False)
+                        else:
+                            spec = SpecificVersion(installed_version)
+
+                    new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
+
+        installation.execute()
         _update_dependencies(self.config, new_deps_with_version, optional_group)
         self.lock.update_lock(self.attached_environment)
         self.lock.save()

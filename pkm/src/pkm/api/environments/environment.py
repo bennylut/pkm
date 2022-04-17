@@ -240,16 +240,16 @@ class Environment:
 
     def install(
             self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None, user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, List[Dependency]]] = None, editable: bool = False,
-            packages_to_update: Optional[List[str]] = None):
+            dependencies_override: Optional[Dict[str, List[Dependency]]] = None,
+            editables: Optional[Dict[str, bool]] = None, updates: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this environment.
         see: `prepare_installation` for more information about this method arguments
         """
 
         self.installation_target.install(
-            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, editable,
-            packages_to_update)
+            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, editables,
+            updates)
 
     def force_remove(self, package: str):
         """
@@ -306,9 +306,9 @@ class Environment:
         :return: the loaded environment
         """
         if (interpreter.parent.parent / "pyvenv.cfg").exists():
-            return Environment(interpreter.parent.parent, interpreter)
+            return cls(interpreter.parent.parent, interpreter)
         else:  # this is a system environment
-            return Environment(Path("/"), interpreter, use_user_site=site == 'user')
+            return cls(Path("/"), interpreter, use_user_site=site == 'user')
 
     @classmethod
     def current(cls, site: str = "user") -> Environment:
@@ -320,11 +320,11 @@ class Environment:
             `site.getusersitepackages()`
         :return: the loaded environment
         """
-        return Environment.of_interpreter(Path(sys.executable), site)
+        return cls.of_interpreter(Path(sys.executable), site)
 
     @classmethod
     def load(cls, path: Union[Path, str]) -> Environment:
-        return Environment(Path(path))
+        return cls(Path(path))
 
 
 def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:

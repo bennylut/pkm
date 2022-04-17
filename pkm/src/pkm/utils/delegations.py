@@ -46,6 +46,7 @@ def delegate_all(*reqs: Tuple[Type[_T], str]) -> Callable[[Type[_U]], Type[Union
         abstract_methods = []
         for method in cls.__dict__[_ABSTRACT_METHODS_KEY]:
             if attr_m := method_to_attr.get(method):
+
                 def _create(attr, method): # noqa
                     def do_delegation(self, *args, **kwargs):
                         return getattr(getattr(self, attr), method)(*args, **kwargs)

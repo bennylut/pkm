@@ -6,7 +6,8 @@ from tempfile import TemporaryDirectory
 from typing import Optional, TYPE_CHECKING
 from zipfile import ZipFile
 
-from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -75,7 +76,8 @@ class WheelDistribution(Distribution):
         req_interpreter = 'py' + ''.join(str(it) for it in min_interpreter.release[:2])
         return f"{project.descriptor.expected_src_package_name}-{project.version}-{req_interpreter}-none-any.whl"
 
-    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[RequestedPackageInfo] = None):
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None,
+                   installation_mode: Optional[InstallationModeInfo] = None):
         """
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
@@ -157,6 +159,8 @@ class WheelDistribution(Distribution):
                 (new_dist_info.path / "INSTALLER").write_text(f"pkm\n{self._wheel.name}")
                 if user_request:
                     new_dist_info.mark_as_user_requested(user_request)
+                if installation_mode:
+                    new_dist_info.save_installation_mode_info(installation_mode)
 
                 # and finally, compile py to pyc
                 with warnings.catch_warnings():

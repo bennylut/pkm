@@ -90,7 +90,8 @@ def vbump(args: Namespace):
     Arg(["-o", "--optional"], help="optional group to use (only for projects)"),
     Arg(["-a", "--app"], action='store_true', help="install package in containerized application mode"),
     Arg(["-u", "--update"], action='store_true', help="update the given packages if already installed"),
-    Arg(["-e", "--editable"], action="store_true", help="install the given packages in editable mode"),
+    Arg(["-m", "--mode"], required=False, default='editable', choices=['editable', 'copy'],
+        help="choose the installation mode for the requested packages."),
     Arg(['-s', '--site'], required=False, choices=['user', 'system'],
         help="applicable for global-context, which site to use - default to 'user'"),
     Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
@@ -100,13 +101,13 @@ def install(args: Namespace):
     """
 
     dependencies = [Dependency.parse(it) for it in args.packages]
+    editable = args.mode == 'editable'
 
     def on_project(project: Project):
         if args.app:
             raise UnsupportedOperationException("application install as project dependency is not supported")
 
-        Display.print(f"Adding dependencies into project: {project.path}")
-        project.install_with_dependencies(dependencies, optional_group=args.optional, update_existing=args.update)
+        project.dev_install(dependencies, optional_group=args.optional, update=args.update, editable=editable)
 
     def on_project_group(project_group: ProjectGroup):
         if dependencies or args.app or args.update:
@@ -116,19 +117,21 @@ def install(args: Namespace):
         project_group.install_all()
 
     def on_environment(env: Environment):
+        package_names = [d.package_name for d in dependencies]
         if args.optional:
             raise UnsupportedOperationException("optional dependencies are only supported inside projects")
 
         if dependencies:
             if args.app:
                 app, plugins = dependencies[0], dependencies[1:]
-                plugins_to_update = [d.package_name for d in plugins] if args.update else None
                 env.app_containers \
-                    .install(app, update_existing=args.update and not plugins, editable=args.editable) \
-                    .installation_target.install(plugins, packages_to_update=plugins_to_update, editable=args.editable)
+                    .install(app, update=args.update and not plugins, editable=editable) \
+                    .installation_target.install(plugins, updates=package_names[1:] if args.update else None,
+                                                 editables={p: editable for p in package_names[1:]})
             else:
                 env.install(
-                    dependencies, packages_to_update=[d.package_name for d in dependencies] if args.update else None)
+                    dependencies, updates=package_names if args.update else None,
+                    editables={p: editable for p in package_names})
 
     Context.of(args).run(**locals())
 
@@ -159,7 +162,6 @@ def remove(args: Namespace):
         if app_install:
             raise UnsupportedOperationException("application install/remove as project dependency is not supported")
 
-        Display.print(f"Removing packages from project: {project.path}")
         if args.force:
             _remove(project.attached_environment.installation_target)
         else:
@@ -167,11 +169,11 @@ def remove(args: Namespace):
 
     def on_environment(env: Environment):
         if app_install:
-            container = env.installation_target.app_containers.container_of(package_names[0])
-            if len(package_names) == 1:
-                container.uninstall()
-            else:
-                _remove(container.installation_target, package_names[1:])
+            if container := env.installation_target.app_containers.container_of(package_names[0]):
+                if len(package_names) == 1:
+                    container.uninstall()
+                else:
+                    _remove(container.installation_target, package_names[1:])
         else:
             _remove(env.installation_target, package_names)
 

@@ -114,23 +114,16 @@ class Package(ABC):
         return self.descriptor.version
 
     @abstractmethod
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        """
-        :param environment: the environment that the dependencies should be calculated against
-        :return: a list of all the package dependencies (for any environment and extras)
-        """
-
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+            self, environment: "Environment",
+            extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
-        :param environment: the environment that the dependencies should be calculated against
-        :param extras: the extras to include in the dependencies calculation
+        :param environment: the environment that the dependencies should be calculated against,
+            otherwise all dependencies will be returned
+        :param extras: the extras to include in the dependencies' calculation
         :return: the list of dependencies this package has in order to be installed into the given
         [environment] with the given [extras]
         """
-
-        return [d for d in self._all_dependencies(environment)
-                if d.is_applicable_for(environment, extras)]
 
     @abstractmethod
     def is_compatible_with(self, env: "Environment") -> bool:
@@ -142,7 +135,7 @@ class Package(ABC):
     @abstractmethod
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = False):
+            editable: bool = True):
         """
         installs this package into the given `env`
         :param target: the information about the target to install this package into
@@ -163,17 +156,17 @@ class Package(ABC):
 
     # TODO: move implementation to AbstractPackage
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                  editable: bool = False):
+                  editable: bool = True):
         """
         attempt to update the package from a version installed at the given target to this version
         the update may attempt a full re-installation or a smarted "fast" delta-update like installation
         :param target: the target that contains the package to update
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param editable: if True, the package will be installed in editable mode
+        :param editable: if True, the package will be installed in editable mode, otherwise in standard copy mode
         """
         if preinstalled := target.site_packages.installed_package(self.name):
-            user_request = user_request or preinstalled.user_request.requested_dependency
+            user_request = user_request or preinstalled.user_request
             preinstalled.uninstall()
 
         self.install_to(target, user_request, editable=editable)

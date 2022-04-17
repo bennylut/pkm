@@ -1,12 +1,17 @@
 import os
 from abc import abstractmethod
 from contextlib import contextmanager
+from rich.theme import Theme
 from threading import RLock, Thread, Condition
 from typing import Optional, Protocol, TypeVar, ContextManager, List
 
 from rich.console import ConsoleRenderable, Console, ConsoleOptions, RenderResult
 from rich.live import Live
 from time import sleep
+
+_PKM_THEME = Theme({
+    'h1': "green_yellow"
+})
 
 
 class InformationUnit(Protocol):
@@ -70,7 +75,7 @@ class _LiveOutput(ConsoleRenderable):
 class _Display:
 
     def __init__(self, dumb: Optional[bool] = None):
-        self._console = Console()
+        self._console = Console(theme=_PKM_THEME)
         self._dumb = self._console.is_dumb_terminal if dumb is None else dumb
         self._live_output = None if self._dumb else _LiveOutput(self._console)
         self.verbose = False

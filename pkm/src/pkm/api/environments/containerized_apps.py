@@ -6,7 +6,7 @@ from textwrap import dedent
 from typing import List, Union, Optional, ContextManager, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, RequestedPackageInfo
+from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -134,10 +134,11 @@ class ContainerizedApplications:
             contained_target.install(
                 app_config.dependencies, dependencies_override=app_config.dependency_overwrites,
                 repository=app.attached_repository,
-                packages_to_update=[d.package_name for d in app_config.dependencies])
+                editables={d.package_name: editable for d in app_config.dependencies},
+                updates=[d.package_name for d in app_config.dependencies])
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
-                .install_to(contained_target, RequestedPackageInfo(app.descriptor.to_dependency(), editable))
+                .install_to(contained_target, app.descriptor.to_dependency(), InstallationModeInfo(editable=editable))
 
             contained_site.reload()
 
@@ -181,7 +182,8 @@ class ContainerizedApplications:
             app_entrypoints.entrypoints = entrypoints
             app_entrypoints.save()
 
-            ct.touch(dist_info.app_container_path(), True)  # mark as containerized
+            dist_info.save_installation_mode_info(InstallationModeInfo(containerized=True, editable=False))
+            ct.touch(dist_info.installation_info_path())
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
 
             records = dist_info.load_record_cfg()
@@ -214,10 +216,18 @@ class ContainerizedApplications:
         return self.install(app, editable, True)
 
     def install(
-            self, app: Union[Dependency, Project], editable: bool = True, update_existing: bool = False
+            self, app: Union[Dependency, Project], editable: bool = True, update: bool = False
     ) -> ContainerizedApplication:
+        """
+        installs the given app in its own containerized environment
+        :param app: the app to install, if not referring to a containerized project will create containerized wrapper
+        :param editable: if true, the installation of `app` inside the container will be in editable mode
+        :param update: if true, will force re-installation,
+            even if the same version is already installed in the relevant site
+        :return: containerized application controller class for the performed installation
+        """
 
-        if not update_existing:
+        if not update:
             return self._get_or_install(app, editable)
 
         if isinstance(app, Project) and app.is_containerized_application():

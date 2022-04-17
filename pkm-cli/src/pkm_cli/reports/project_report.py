@@ -14,7 +14,7 @@ class ProjectReport(Report):
         line = "-" * 80
         Display.print(line)
 
-        Display.print("Project Basic Info")
+        Display.print("[h1]Project Basic Info[/]")
         Display.print(line)
         Display.print(f"Name: {self._project.name}")
         Display.print(f"Version: {self._project.version}")
@@ -22,24 +22,29 @@ class ProjectReport(Report):
         Display.print(f"Requires Python: {self._project.config.project.requires_python}")
         Display.print(line)
 
-        Display.print("Attached Virtual Environment")
+        if self._project.group:
+            Display.print("[h1]Project Group[/]")
+            Display.print(line)
+            Display.print(f"Path: {self._project.group.path}")
+            Display.print(line)
+
+        Display.print("[h1]Attached Virtual Environment[/]")
         Display.print(line)
         Display.print(f"Path: {env.path}")
         Display.print(f"Interpreter Version: {env.interpreter_version}")
         Display.print(line)
 
-        Display.print("Dependencies")
-        Display.print(line)
-        for dependency in self._project.config.project.dependencies:
-            Display.print(
-                f"- {dependency} | "
-                f"Installed: {env.site_packages.installed_package(dependency.package_name).version}")
-        Display.print(line)
+        if dependencies := self._project.config.project.dependencies:
+            Display.print("[h1]Dependencies[/]")
+            Display.print(line)
+            for dependency in dependencies:
+                Display.print(
+                    f"- {dependency} | "
+                    f"Installed: {env.site_packages.installed_package(dependency.package_name).version}")
+            Display.print(line)
 
-        Display.print("Lock (for attached env signature)")
+        Display.print("[h1]Lock[/] (for attached env signature)")
         Display.print(line)
         for locked_package in self._project.lock.env_specific_locks(env):
             Display.print(f"- {locked_package.name} {locked_package.version}")
         Display.print(line)
-
-

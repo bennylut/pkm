@@ -114,8 +114,10 @@ class _GitPackageWrapper(Package):
     def descriptor(self) -> PackageDescriptor:
         return self._project.descriptor
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return self._project.dependencies(environment)
+    def dependencies(
+            self, environment: "Environment",
+            extras: Optional[List[str]] = None) -> List["Dependency"]:
+        return self._project.dependencies(environment, extras)
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._project.is_compatible_with(env)

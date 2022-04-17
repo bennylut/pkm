@@ -68,6 +68,9 @@ class LocalInterpreterPackage(Package):
         self._desc = desc
         self._extras = extras
 
+    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+        return []
+
     def with_extras(self, extras: Set[str]) -> "LocalInterpreterPackage":
         if self._extras == extras:
             return self
@@ -76,9 +79,6 @@ class LocalInterpreterPackage(Package):
     @property
     def descriptor(self) -> PackageDescriptor:
         return self._desc
-
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return []
 
     def is_compatible_with(self, env: Environment):
         return not env.path.exists() or next(env.path.iterdir(), None) is None

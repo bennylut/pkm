@@ -84,7 +84,7 @@ class PypiPackage(AbstractPackage):
 
         return resource.data
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
+    def _unfiltered_dependencies(self, environment: Environment) -> List["Dependency"]:
         json: Dict[str, Any] = self._repo._http \
             .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json',
                             resource_name=f"metadata for {self.name} {self.version}") \
@@ -92,7 +92,7 @@ class PypiPackage(AbstractPackage):
 
         requires_dist = json['info'].get('requires_dist')
         if requires_dist is None:
-            return super(PypiPackage, self)._all_dependencies(environment)
+            return super(PypiPackage, self)._unfiltered_dependencies(environment)
 
         return [Dependency.parse(dstr) for dstr in requires_dist]
 

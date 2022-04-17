@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from unittest import TestCase
 
 from pkm.api.dependencies.dependency import Dependency
@@ -53,11 +53,13 @@ class DummyRepository(AbstractRepository):
 
 class DummyPackage(Package):
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        return []
-
     def __init__(self, name: str, version: str):
         self._desc = PackageDescriptor(name, Version.parse(version))
+
+    def dependencies(
+            self, environment: "Environment",
+            extras: Optional[List[str]] = None) -> List["Dependency"]:
+        return []
 
     @property
     def descriptor(self) -> PackageDescriptor:

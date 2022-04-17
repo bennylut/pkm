@@ -54,7 +54,8 @@ class DistInfo:
         """
         :return: True if this package dist-info is marked as an app-container
         """
-        return self.app_container_path().exists()
+        mode_info = self.load_installation_mode_info()
+        return mode_info and mode_info.containerized
 
     def load_entrypoints_cfg(self) -> "EntrypointsConfiguration":
         """
@@ -62,6 +63,14 @@ class DistInfo:
         :return: the loaded configuration file
         """
         return EntrypointsConfiguration.load(self.path / "entry_points.txt")
+
+    def load_installation_mode_info(self) -> Optional[InstallationModeInfo]:
+        if self.installation_info_path().exists():
+            return InstallationModeInfo.from_config(json.loads(self.installation_info_path().read_text()))
+        return None
+
+    def save_installation_mode_info(self, installation_mode: InstallationModeInfo):
+        self.installation_info_path().write_text(json.dumps(installation_mode.to_config()))
 
     def load_metadata_cfg(self) -> "PackageMetadata":
         """
@@ -95,11 +104,11 @@ class DistInfo:
         """
         return self.path / "LICENSE"
 
-    def app_container_path(self) -> Path:
+    def installation_info_path(self) -> Path:
         """
-        :return: the path to the APP_CONTAINER marker file
+        :return: the path to the pkm's added INSTALLATION_MODE file
         """
-        return self.path / "APP_CONTAINER"
+        return self.path / "INSTALLATION_MODE"
 
     def user_requested_path(self) -> Path:
         """
@@ -107,13 +116,13 @@ class DistInfo:
         """
         return self.path / "REQUESTED"
 
-    def mark_as_user_requested(self, info: RequestedPackageInfo):
+    def mark_as_user_requested(self, info: Dependency):
         """
         marks the given package as a user requested one, pkm will not consider it as an orphan package if no other
         package depends on it
         :param info: information about the user request
         """
-        self.user_requested_path().write_text(json.dumps(info.to_config()))
+        self.user_requested_path().write_text(str(info))
 
     def unmark_as_user_requested(self):
         """
@@ -128,9 +137,9 @@ class DistInfo:
         """
         return self.user_requested_path().exists()
 
-    def load_user_requested_info(self) -> Optional[RequestedPackageInfo]:
+    def load_user_requested_info(self) -> Optional[Dependency]:
         try:
-            return RequestedPackageInfo.from_config(json.loads(self.user_requested_path().read_text()))
+            return Dependency.parse(self.user_requested_path().read_text().strip())
         except:  # noqa
             return None
 
@@ -184,28 +193,16 @@ class DistInfo:
 
 
 @dataclass(frozen=True, eq=True)
-class RequestedPackageInfo:
-    requested_dependency: Optional[Dependency] = None
+class InstallationModeInfo:
+    containerized: bool = False
     editable: bool = False
 
-    def __str__(self):
-        edstr = " (editable)" if self.editable else ""
-        if self.requested_dependency:
-            return f"{self.requested_dependency}{edstr}"
-        return "*"
-
     def to_config(self) -> Dict[str, Any]:
-        return {
-            'requested_dependency': str(self.requested_dependency),
-            'editable': self.editable
-        }
+        return {**self.__dict__}
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> RequestedPackageInfo:
-        return RequestedPackageInfo(
-            config.get('requested_dependency'),
-            config.get('editable', False)
-        )
+    def from_config(cls, config: Dict[str, Any]) -> InstallationModeInfo:
+        return InstallationModeInfo(**config)
 
 
 class EntrypointsConfiguration(IniFileConfiguration):

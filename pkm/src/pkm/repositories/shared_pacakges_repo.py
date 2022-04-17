@@ -106,11 +106,16 @@ class _SharedPackage(Package):
         except ValueError:
             return None
 
-    def _all_dependencies(self, environment: "Environment") -> List["Dependency"]:
-        if artifact := self._shared_artifact_for(environment):
-            return artifact.metadata.dependencies
+    def dependencies(
+            self, environment: "Environment",
+            extras: Optional[List[str]] = None) -> List["Dependency"]:
 
-        return self._package.dependencies(environment)
+        if artifact := self._shared_artifact_for(environment):
+            deps = artifact.metadata.dependencies
+        else:
+            deps = self._package.dependencies(environment)
+
+        return [d for d in deps if d.is_applicable_for(environment, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._package.is_compatible_with(env)
