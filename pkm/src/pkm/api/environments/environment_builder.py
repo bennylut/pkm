@@ -23,7 +23,7 @@ class EnvironmentBuilder:
     def create_matching(env_path: Path, interpreter: Dependency) -> Environment:
         result = Environment(env_path)
 
-        python_versions = pkm.repositories.installed_pythons.match(interpreter)
+        python_versions = pkm.repositories.installed_pythons.match(interpreter, result)
         if not python_versions:
             raise NoSuchElementException("could not find installed python interpreter "
                                          f"that match the given dependency: {interpreter}")

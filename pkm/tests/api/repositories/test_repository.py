@@ -15,17 +15,22 @@ class TestRepository(TestCase):
             'y': ['1.1a', '1.1.7a']
         })
 
-        assert_match(repo.match('x ==1.2a'), '1.2a')
-        assert_match(repo.match('x ==1.2'), '1.2')
-        assert_match(repo.match('x >=1.2'), '1.2')
-        assert_match(repo.match('x <1.3'), '1.2')
-        assert_match(repo.match('x *'), '1.2')
-        assert_match(repo.match('x < 1.3a'), '1.2a', '1.2')
+        ecurrent = Environment.current()
 
-        assert_match(repo.match('y *'), '1.1a', '1.1.7a')
-        assert_match(repo.match('y < 1.1'), '1.1a')
-        assert_match(repo.match('y > 1'), '1.1a', '1.1.7a')
-        assert_match(repo.match('y == 1.1'))
+        def match(dep: str):
+            return repo.match(dep, ecurrent)
+
+        assert_match(match('x ==1.2a'), '1.2a')
+        assert_match(match('x ==1.2'), '1.2')
+        assert_match(match('x >=1.2'), '1.2')
+        assert_match(match('x <1.3'), '1.2')
+        assert_match(match('x *'), '1.2')
+        assert_match(match('x < 1.3a'), '1.2a', '1.2')
+
+        assert_match(match('y *'), '1.1a', '1.1.7a')
+        assert_match(match('y < 1.1'), '1.1a')
+        assert_match(match('y > 1'), '1.1a', '1.1.7a')
+        assert_match(match('y == 1.1'))
 
 
 def assert_match(packages: List[Package], *expected_versions: str):
@@ -38,7 +43,7 @@ def assert_match(packages: List[Package], *expected_versions: str):
 
 class DummyRepository(AbstractRepository):
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         packages: List[Package] = self._packages[dependency.package_name] or []
         return [p for p in packages if dependency.version_spec.allows_version(p.version)]

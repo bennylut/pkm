@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
+from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.properties import cached_property, clear_cached_properties
 
@@ -73,7 +73,7 @@ def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Option
     if stored_request := dist_info.load_user_requested_info():
         return stored_request
     elif dist_info.is_user_requested():
-        return Dependency(metadata.package_name, SpecificVersion(metadata.package_version))
+        return Dependency(metadata.package_name, VersionMatch(metadata.package_version))
 
 
 class InstalledPackage(Package):
@@ -109,8 +109,8 @@ class InstalledPackage(Package):
         return _read_user_request(self._dist_info, self.published_metadata)
 
     @cached_property
-    def installation_mode_info(self) -> InstallationModeInfo:
-        return self._dist_info.load_installation_mode_info() or InstallationModeInfo()
+    def installation_info(self) -> PackageInstallationInfo:
+        return self._dist_info.load_installation_info() or PackageInstallationInfo()
 
     def dependencies(
             self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:

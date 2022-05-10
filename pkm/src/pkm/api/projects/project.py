@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
-from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
+from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
@@ -18,7 +18,7 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Pkm
     PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
 from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
-from pkm.api.versions.version_specifiers import VersionRange, SpecificVersion
+from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
@@ -108,7 +108,7 @@ class Project(Package):
             wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(
-                target, user_request, InstallationModeInfo(self.is_containerized_application(), editable))
+                target, user_request, PackageInstallationInfo(self.is_containerized_application(), editable))
 
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
                   editable: bool = True):
@@ -234,17 +234,17 @@ class Project(Package):
                 # update pyproject dependency specification
                 if newly_requested:
                     dep = new_deps[package.name]
-                    if not dep.version_spec.is_any():
+                    if dep.version_spec is not AllowAllVersions:
                         spec = dep.version_spec
                     else:
                         installed_version = package.version
                         if isinstance(installed_version, StandardVersion):
-                            spec = VersionRange(
+                            spec = StandardVersionRange(
                                 installed_version,
                                 replace(installed_version, release=(installed_version.release[0] + 1,)),
                                 True, False)
                         else:
-                            spec = SpecificVersion(installed_version)
+                            spec = VersionMatch(installed_version)
 
                     new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
 

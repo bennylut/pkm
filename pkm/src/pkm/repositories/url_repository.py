@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List
+from typing import List, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
 from pkm.api.pkm import pkm
@@ -14,8 +15,11 @@ class UrlRepository(AbstractRepository):
     def __init__(self):
         super().__init__('url')
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        if not (vurl := dependency.version_spec.specific_url()):
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return 'url', 'http', 'https'
+
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
+        if not (vurl := dependency.required_url()):
             return []
 
         return [UrlPackage(PackageDescriptor(dependency.package_name, vurl), vurl.url)]

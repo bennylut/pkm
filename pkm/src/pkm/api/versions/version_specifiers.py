@@ -1,294 +1,523 @@
 from __future__ import annotations
 
 from abc import abstractmethod, ABC
-from dataclasses import dataclass, replace
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from pkm.api.versions.version import Version, StandardVersion, UrlVersion
-from pkm.utils.iterators import distinct
-from pkm.utils.sequences import subiter
+from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.iterators import first_or_raise
+from pkm.utils.seqs import seq
 
 
 class VersionSpecifier(ABC):
-    """
-    represents a version specifier (e.g., >=1.0.1)
-    supported operators are: 
-    comparison: >,>=,<,<=
-    equality: ==, ===, !==, !===, ~=
-    url matching: @ 
-    """
 
-    def specific_url(self) -> Optional[UrlVersion]:
-        """
-        :return: if the version specifier is a url matching specifier, returns its version, otherwise returns None  
-        """
-        return None
+    def allows_all(self, other: VersionSpecifier) -> bool:
+        return self.intersect_with(other) == other
 
-    def allows_all(self, other: "VersionSpecifier") -> bool:
-        """
-        :param other: 
-        :return: True if this specifier allows all the versions that are allowed by `other`
-        """
-        return self.intersect(other) == other
-
-    def allows_any(self, other: "VersionSpecifier") -> bool:
-        """
-        :param other: 
-        :return: True if this specifier allows at least one of the versions that are allowed by `other` 
-        """
-        return not self.intersect(other).is_none()
-
-    def allows_version(self, version: "Version"):
-        """
-        :param version: the version to check 
-        :return: True if the given `version` is allowed by this version specifier, False otherwise
-        """
-        return any(segment.allows_version(version) for segment in self._segments())
+    def allows_any(self, other: VersionSpecifier) -> bool:
+        return self.intersect_with(other) is not RestrictAllVersions
 
     def allows_pre_or_dev_releases(self) -> bool:
-        """
-        :return: True if this specifier accepts version that are pre or dev releases, False otherwise 
-        """
-        return any(segment.allows_pre_or_dev_releases() for segment in self._segments())
-
-    def intersect(self, other: "VersionSpecifier") -> "VersionSpecifier":
-        """
-        :param other: 
-        :return: a new version specifier that accepts only versions 
-                 that are accepted by both self and `other` 
-        """
-        return _intersect(self, other)
-
-    def union(self, other: "VersionSpecifier") -> "VersionSpecifier":
-        """
-        :param other: 
-        :return: a new version specifier that accepts any versions that are accepted
-                 by either self or `other` 
-        """
-        result = _unite([*self._segments(), *other._segments()])
-        return result
-
-    def is_none(self):
-        """
-        :return: True if this version specifier does not accept any version, False otherwise 
-        """
-        return self.min == self.max and self.includes_min == self.includes_max == False  # noqa
-
-    def is_any(self):
-        """
-        :return: True if this version specifier accepts all versions, False otherwise
-        """
-        return (self.min is self.max is None) and self.includes_min == self.includes_max == True  # noqa
-
-    def _segments(self) -> List["VersionSpecifier"]:
-        return [self]
-
-    def difference(self, other: "VersionSpecifier") -> "VersionSpecifier":
-        """
-        :param other: 
-        :return: a new version specifier that accepts any versions that are accepted
-                 by self but not by `other` 
-        """
-        return self.intersect(other.inverse())
-
-    def __lt__(self, other: "VersionSpecifier") -> bool:
-        smin, omin = self.min, other.min  # noqa
-
-        if smin == omin:
-            if self.includes_min == other.includes_min:
-                smax, omax = self.max, other.max
-
-                if smax == omax:
-                    if self.includes_max == other.includes_max:
-                        return str(self) < str(other)
-                    return other.includes_max
-                # return Version.less(smax, omax)
-                return omax is None or (smax is not None and smax < omax)
-            return self.includes_min
-
-        return smin is None or (omin is not None and smin < omin)
-
-    def __le__(self, other: "VersionSpecifier"):
-        return other == self or self < other
-
-    @property
-    def min(self) -> Optional["Version"]:
-        """
-        :return: the minimal version that is accepted by this specifier (may-be exclusive)
-        """
-        return self._segments()[0].min
-
-    @property
-    def max(self) -> Optional["Version"]:
-        """
-        :return: the maximal version that is accepted by this specifier (may-be exclusive)
-        """
-        return self._segments()[-1].max
-
-    @property
-    def includes_min(self) -> bool:
-        """
-        :return: True if the value returned by `self.min` is inclusive
-        """
-        return self._segments()[0].includes_min
-
-    @property
-    def includes_max(self) -> bool:
-        """
-        :return: True if the value returned by `self.max` is inclusive
-        """
-        return self._segments()[1].includes_max
+        return False
 
     @abstractmethod
-    def inverse(self) -> "VersionSpecifier":
-        """
-        :return: a new version specifier that accepts any version that was not accepted by this specifier
-        """
-
-    @abstractmethod
-    def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
+    def allows_version(self, version: Version) -> bool:
         ...
 
-    def __repr__(self):
-        return str(self)
+    @abstractmethod
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        ...
+
+    @abstractmethod
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        ...
+
+    @abstractmethod
+    def inverse(self) -> VersionSpecifier:
+        ...
+
+    def difference_from(self, other: VersionSpecifier) -> VersionSpecifier:
+        return self.intersect_with(other.inverse())
+
+    @abstractmethod
+    def __str__(self) -> str:
+        ...
+
+    @abstractmethod
+    def __lt__(self, other: VersionSpecifier) -> VersionSpecifier:
+        ...
+
+    @abstractmethod
+    def __eq__(self, other: VersionSpecifier) -> bool:
+        ...
+
+    def __le__(self, other: VersionSpecifier):
+        return self == other or self < other
+
+    def __gt__(self, other: VersionSpecifier):
+        return other < self
+
+    def __ge__(self, other):
+        return other <= self
 
     @classmethod
-    def parse(cls, txt: str) -> "VersionSpecifier":
+    def parse(cls, txt: str) -> VersionSpecifier:
         from pkm.api.versions.version_parser import parse_specifier
         return parse_specifier(txt)
 
+    @classmethod
+    def create_range(
+            cls, min_: Optional[StandardVersion] = None, max_: Optional[StandardVersion] = None,
+            includes_min: bool = False, includes_max: bool = False) -> VersionSpecifier:
 
-@dataclass(frozen=True)
-class SpecificVersion(VersionSpecifier):
-    version: Version
+        eq = min_ == max_
+        assert not (eq and includes_min != includes_max), \
+            "min == max  but includes_min != includes_max "
 
-    def specific_url(self) -> Optional[UrlVersion]:
-        if isinstance(self.version, UrlVersion):
-            return self.version
-        return None
+        if min_ is None and max_ is None:
+            return AllowAllVersions
 
-    def allows_version(self, version: "Version"):
-        if self.version.is_local():
-            return version == self.version
-        else:
-            return version.without_local() == self.version
+        if eq:
+            if not includes_min or not includes_max:
+                return RestrictAllVersions
+
+            return VersionMatch(min_, includes_min)
+
+        return StandardVersionRange(min_, max_, includes_min, includes_max)
+
+
+class _RestrictAll(VersionSpecifier):
+
+    def inverse(self) -> VersionSpecifier:
+        return AllowAllVersions
+
+    def __lt__(self, other):
+        return False
+
+    def __eq__(self, other):
+        return other is RestrictAllVersions
+
+    def allows_version(self, other: Version) -> bool:
+        return False
+
+    def allows_any(self, other: VersionSpecifier) -> bool:
+        return False
+
+    def allows_all(self, other: VersionSpecifier) -> bool:
+        return False
 
     def __str__(self):
-        if isinstance(self.version, StandardVersion):
-            return f'=={self.version}'
-        elif isinstance(self.version, UrlVersion):
-            return f'@{self.version}'
-        return f"==={self.version}"
+        return "<none>"
 
-    def __repr__(self):
-        return str(self)
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        return other
+
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        return self
+
+
+RestrictAllVersions = _RestrictAll()
+
+
+class _AllowAll(VersionSpecifier):
+
+    def inverse(self) -> VersionSpecifier:
+        return RestrictAllVersions
+
+    def __lt__(self, other):
+        return other is not AllowAllVersions
+
+    def __eq__(self, other):
+        return other is AllowAllVersions
+
+    def allows_all(self, other: VersionSpecifier) -> bool:
+        if other is RestrictAllVersions:
+            return other.allows_all(self)
+
+        return True
+
+    def allows_any(self, other: VersionSpecifier) -> bool:
+        if other is RestrictAllVersions:
+            return other.allows_any(self)
+
+        return True
+
+    def allows_version(self, other: Version) -> bool:
+        return True
+
+    def __str__(self):
+        return "*"
+
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        return self
+
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        return other
+
+
+AllowAllVersions = _AllowAll()
+
+
+class VersionsUnion(VersionSpecifier):
+
+    def __init__(self, segments: List[VersionSpecifier]):
+        self.segments = segments
+        self.segments.sort()
+
+        assert len(segments) > 1
 
     def allows_pre_or_dev_releases(self) -> bool:
-        return self.version.is_pre_or_dev_release()
+        return any(it.allows_pre_or_dev_releases() for it in self.segments)
 
-    def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
-        if other == self:
-            return other
-        if isinstance(other, SpecificVersion):
-            return None
-        if isinstance(other, VersionRange):
-            if other.min == self.version:
-                return replace(other, includes_min=True)
-            elif other.max == self.version:
-                return replace(other, includes_max=True)
-            elif (other.min is None or other.min < self.version) and (other.max is None or self.version < other.max):
+    def inverse(self) -> VersionSpecifier:
+        result = AllowAllVersions
+        for segment in self.segments:
+            result = result.intersect_with(segment.inverse())
+        return result
+
+    def allows_version(self, version: Version) -> bool:
+        return any(s.allows_version(version) for s in self.segments)
+
+    def __lt__(self, other: VersionSpecifier):
+        return self.segments[0] < other
+
+    def __eq__(self, other: VersionSpecifier):
+        return isinstance(other, VersionsUnion) and self.segments == other.segments
+
+    def __str__(self):
+
+        segs = self.segments
+        if len(segs) == 2:
+            s1, s2 = segs
+            if isinstance(s1, StandardVersionRange) and isinstance(s2, StandardVersionRange):
+                if not s1.min and not s2.max and s1.max == s2.min:
+                    return f"!={s1.max}"
+        return seq(segs).str_join('; ')
+
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_AllowAll, _RestrictAll)):
+            return other.union_with(self)
+
+        new_segments = [*self.segments]
+        other_segments = other.segments if isinstance(other, VersionsUnion) else [other]
+
+        while other_segments:
+            os = other_segments.pop()
+            for i, es in enumerate(new_segments):
+                us = os.union_with(es)
+                if us is AllowAllVersions:
+                    return AllowAllVersions
+                if us is RestrictAllVersions:
+                    break
+                if not isinstance(us, VersionsUnion):
+                    other_segments.append(us)
+                    del new_segments[i]
+                    break
+            else:
+                new_segments.append(os)
+
+        return VersionsUnion(new_segments)
+
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_AllowAll, _RestrictAll)):
+            return other.intersect_with(self)
+
+        result = RestrictAllVersions
+        for segment in self.segments:
+            result = result.union_with(segment.intersect_with(other))
+        return result
+
+
+class HetroVersionIntersection(VersionSpecifier):
+    def __init__(self, blacklist: Set[Version], standard_spec: VersionSpecifier):
+        assert len(blacklist) > 0, "blacklist must be larger than 0"
+        assert standard_spec is not RestrictAllVersions
+        # assert all(not isinstance(it, StandardVersion) for it in blacklist)
+
+        self.blacklist = blacklist
+        self.standard_spec = standard_spec
+
+    def allows_pre_or_dev_releases(self) -> bool:
+        return self.standard_spec.allows_pre_or_dev_releases() \
+               or any(it.is_pre_or_dev_release() for it in self.blacklist)
+
+    def allows_version(self, version: Version) -> bool:
+        if version in self.blacklist:
+            return False
+
+        return not isinstance(version, StandardVersion) or self.standard_spec.allows_version(version)
+
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion)):
+            return other.union_with(self)
+
+        if isinstance(other, HetroVersionIntersection):
+            standard_spec = self.standard_spec.union_with(other.standard_spec)
+            if len(other.blacklist.union(self.blacklist)) != len(self.blacklist):
+                return standard_spec
+
+            return HetroVersionIntersection.create(
+                self.blacklist if len(self.blacklist) < len(other.blacklist) else other.blacklist, standard_spec)
+
+        if isinstance(other, VersionMatch):
+            if isinstance(other.version, StandardVersion) and other.allow:
+                return HetroVersionIntersection.create(self.blacklist, self.standard_spec.union_with(other))
+
+            blacklist = set(self.blacklist)
+            if other.allow:
+                blacklist.remove(other.version)
+            else:
+                blacklist.add(other.version)
+
+            return HetroVersionIntersection.create(blacklist, self.standard_spec)
+
+        if isinstance(other, StandardVersionRange):
+            return HetroVersionIntersection.create(self.blacklist, self.standard_spec.union_with(other))
+
+        raise UnsupportedOperationException()
+
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion)):
+            return other.intersect_with(self)
+
+        if isinstance(other, HetroVersionIntersection):
+            return HetroVersionIntersection.create(  # yes - union the blacklists
+                self.blacklist.union(other.blacklist), self.standard_spec.intersect_with(other.standard_spec))
+
+        if isinstance(other, VersionMatch):
+            if isinstance(other.version, StandardVersion) and other.allow:
+                if self.standard_spec.allows_version(other.version) and other.version not in self.blacklist:
+                    return other
+                return RestrictAllVersions
+
+            if other.allow:
+                if other.version in self.blacklist:
+                    return RestrictAllVersions
                 return other
-            return None
 
-        assert False, f'merging only support non union versions, attempting to merge: {self} with {other}'
-        return None  # noqa
+            return HetroVersionIntersection.create({*self.blacklist, other.version}, self.standard_spec)
 
-    def inverse(self) -> "VersionSpecifier":
-        return VersionUnion([
-            VersionRange(max=self.version, includes_max=False),
-            VersionRange(min=self.version, includes_min=False)
-        ])
+        if isinstance(other, StandardVersionRange):
+            return HetroVersionIntersection.create(self.blacklist, self.standard_spec.intersect_with(other))
 
-    @property
-    def min(self) -> Optional["Version"]:
-        return self.version
+        raise UnsupportedOperationException()
 
-    @property
-    def max(self) -> Optional["Version"]:
-        return self.version
+    def inverse(self) -> VersionSpecifier:
+        return VersionsUnion([*(VersionMatch(it) for it in self.blacklist), self.standard_spec.inverse()])
 
-    @property
-    def includes_min(self) -> bool:
-        return True
+    def __str__(self) -> str:
+        result = ", ".join(f"!={it}" for it in self.blacklist)
+        if self.standard_spec is not AllowAllVersions:
+            result += f", {self.standard_spec}"
+        return result
 
-    @property
-    def includes_max(self) -> bool:
-        return True
+    def __lt__(self, other: VersionSpecifier) -> bool:
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion)):
+            return not self >= other
 
-    def __lt__(self, other: "VersionSpecifier"):
-        if not isinstance(other, SpecificVersion):
-            return super().__lt__(other)
+        if isinstance(other, HetroVersionIntersection):
+            if self.blacklist == other.blacklist:
+                return self.standard_spec < other.standard_spec
+            return sorted(self.blacklist) < sorted(other.blacklist)
 
-        return self.version < other.version
+        if isinstance(other, VersionMatch):
+            if isinstance(other.version, StandardVersion):
+                return self.standard_spec < other
+            return other.allow or sorted(self.blacklist) < [other.version]
+
+        if isinstance(other, StandardVersionRange):
+            return self.standard_spec < other
+
+        raise UnsupportedOperationException()
+
+    def __eq__(self, other: VersionSpecifier) -> bool:
+        return isinstance(other, HetroVersionIntersection) \
+               and self.blacklist == other.blacklist and self.standard_spec == other.standard_spec
+
+    @classmethod
+    def create(cls, blacklist: Set[Version], standard_spec: VersionSpecifier) -> VersionSpecifier:
+        blacklist = {it for it in blacklist if not isinstance(it, StandardVersion) or standard_spec.allows_version(it)}
+
+        if standard_spec is RestrictAllVersions:
+            return RestrictAllVersions
+        if len(blacklist) == 0:
+            return standard_spec
+        if len(blacklist) == 1 and standard_spec is AllowAllVersions:
+            return VersionMatch(first_or_raise(blacklist), False)
+
+        return HetroVersionIntersection(blacklist, standard_spec)
 
 
-@dataclass(unsafe_hash=True, repr=False)
-class VersionRange(VersionSpecifier):
-    min: Optional[Version] = None
-    max: Optional[Version] = None
-    includes_min: bool = None
-    includes_max: bool = None
+class VersionMatch(VersionSpecifier):
 
-    def __post_init__(self):
-        assert self.min is None or self.max is None or self.min <= self.max, f'min > max :: {self.min} > {self.max}'
-
-        self.includes_max = self.includes_max if self.includes_max is not None else self.max is None
-        self.includes_min = self.includes_min if self.includes_min is not None else self.min is None
+    def __init__(self, version: Version, allow: bool = True):
+        self.version = version
+        self.allow = allow
 
     def allows_pre_or_dev_releases(self) -> bool:
-        max_ = self.max
-        return max_ is not None and max_.is_pre_or_dev_release()
+        return self.allow and self.version.is_pre_or_dev_release()
 
-    # note that pep440 pre-release filtering rules should be implemented in the repository and not here
-    def allows_version(self, version: "Version"):
+    def inverse(self) -> VersionSpecifier:
+        return VersionMatch(self.version, not self.allow)
 
-        if self.is_any():
-            return not version.is_post_release()
-        if self.is_none():
-            return False
+    def __lt__(self, other: VersionSpecifier):
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion, HetroVersionIntersection)):
+            return not self >= other
 
-        min_, max_ = self.min, self.max
-        if (min_ is not None and self.includes_min and min_ == version) \
-                or (max_ is not None and self.includes_max and max_ == version):
-            return True
+        if isinstance(other, VersionMatch):
+            if self == other:
+                return False
+            if self.allow:
+                return not other.allow
+            return other.allow and self.version < other.version
 
-        if version.is_post_release() and (min_ is None or not min_.is_post_release()):
-            return False
+        if isinstance(other, StandardVersionRange):
+            if isinstance(self.version, StandardVersion):
+                if self.allow:
+                    return other.min and self.version < other.min
+                return bool(other.min)
 
-        return (min_ is None or min_ < version) and (max_ is None or version < max_)
+            return True  # uid versions comes before any standard ones
 
-    def inverse(self) -> "VersionSpecifier":
-        new_segments: List["VersionSpecifier"] = []
+        raise NotImplemented()
 
-        if self.is_any():
-            return NoVersion
-        if self.is_none():
-            return AnyVersion
+    def __eq__(self, other: VersionSpecifier) -> bool:
+        return isinstance(other, VersionMatch) \
+               and self.allow == other.allow and self.version == other.version
 
-        if self.min is not None:
-            new_segments.append(VersionRange(max=self.min, includes_max=not self.includes_min))
-        if self.max is not None:
-            new_segments.append(VersionRange(min=self.max, includes_min=not self.includes_max))
+    def allows_version(self, version: Version) -> bool:
+        if not self.version.is_local():
+            version = version.without_local()
 
-        return _unite(new_segments)
+        if self.allow:
+            return self.version == version
+        return self.version != version
 
     def __str__(self):
+        v, a = self.version, self.allow
 
-        if self.is_any():
-            return ''
-        elif self.is_none():
-            return '<none>'
+        if isinstance(v, UrlVersion):
+            return f'@{v}' if a else f'!@{v}'
+        elif isinstance(v, StandardVersion):
+            return f'=={v}' if a else f'!={v}'
+        return f'==={v}' if a else f'!=={v}'
 
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, HetroVersionIntersection, VersionsUnion)):
+            return other.union_with(self)
+
+        if isinstance(other, VersionMatch):
+            if self == other:
+                return self
+
+            if self.version == other.version:
+                if self.allow != other.allow:
+                    return AllowAllVersions
+
+        if isinstance(other, StandardVersionRange):
+            if other.allows_version(self.version):
+                return other if self.allow else AllowAllVersions
+
+            if not self.allow:
+                return self
+
+            if not other.includes_min and self.version == other.min:
+                return StandardVersionRange(other.min, other.max, True, other.includes_max)
+            if not other.includes_max and self.version == other.max:
+                return StandardVersionRange(other.min, other.max, other.includes_min, True)
+
+        return VersionsUnion([self, other])
+
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, HetroVersionIntersection, VersionsUnion)):
+            return other.intersect_with(self)
+
+        if isinstance(other, VersionMatch):
+            if self == other:
+                return self
+
+            my_ver, ot_ver = self.version, other.version
+            if my_ver.is_local() != ot_ver.is_local():
+                my_ver, ot_ver = my_ver.without_local(), ot_ver.without_local()
+
+            if self.allow and other.allow:
+                if my_ver == ot_ver:
+                    return self if self.version.is_local() else other
+                return RestrictAllVersions
+            if self.allow or other.allow:
+                if my_ver == ot_ver:
+                    return RestrictAllVersions
+                return self if self.allow else other
+            return HetroVersionIntersection({self.version, other.version}, AllowAllVersions)
+
+        if isinstance(other, StandardVersionRange) and isinstance(self.version, StandardVersion):
+            if other.allows_version(self.version):
+                if self.allow:
+                    return self
+                return HetroVersionIntersection({self.version}, other)
+
+        return RestrictAllVersions if self.allow else other
+
+
+class StandardVersionRange(VersionSpecifier):
+
+    def __init__(self, min_: Optional[StandardVersion], max_: Optional[StandardVersion],
+                 includes_min: bool, includes_max: bool):
+
+        self.min = min_
+        self.max = max_
+        self.includes_min = includes_min
+        self.includes_max = includes_max
+
+        assert min_ or max_, "either min or max should be provided"
+        assert not includes_min or min_, "cannot include min if min is not provided"
+        assert not includes_max or max_, "cannot include max if max is not provided"
+        assert not min_ or not max_ or min_ < max_, f"min ({min_}) must be < max ({max_}) "
+
+    def allows_pre_or_dev_releases(self) -> bool:
+        return (self.min and self.min.is_pre_or_dev_release()) or (self.max and self.max.is_pre_or_dev_release())
+
+    def inverse(self) -> VersionSpecifier:
+        parts = []
+        if self.min:
+            parts.append(VersionSpecifier.create_range(None, self.min, False, self.min and not self.includes_min))
+        if self.max:
+            parts.append(VersionSpecifier.create_range(self.max, None, self.max and not self.includes_max, False))
+
+        if len(parts) == 1:
+            return parts[0]
+        return parts[0].union_with(parts[1])
+
+    def __lt__(self, other):
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion, HetroVersionIntersection, VersionMatch)):
+            return not self >= other
+
+        if isinstance(other, StandardVersionRange):
+            if self == other:
+                return False
+
+            if self.min and other.min:
+                if self.min != other.min:
+                    return self.min < other.min
+                elif self.includes_min != other.includes_min:
+                    return other.includes_min
+            elif self.min or other.min:
+                return bool(other.min)
+
+            if self.max and other.max:
+                if self.max != other.max:
+                    return self.max < other.max
+                return other.includes_max
+
+            return bool(self.max)
+
+        raise NotImplemented()
+
+    def __eq__(self, other):
+        return isinstance(other, StandardVersionRange) and self.includes_min == other.includes_min \
+               and self.includes_max == other.includes_max and self.min == other.min and self.max == other.max
+
+    def __str__(self):
         res = ''
         if self.min is not None:
             res += '>'
@@ -306,151 +535,66 @@ class VersionRange(VersionSpecifier):
 
         return res
 
-    def _try_merge(self, other: VersionSpecifier) -> Optional[VersionSpecifier]:
-        if isinstance(other, SpecificVersion):
-            return other._try_merge(self)  # noqa
+    def _union_with(self, other: StandardVersionRange) -> VersionSpecifier:
+        if other < self:
+            return other._union_with(self)
 
-        min1, min2 = self.min, other.min
-        if min2 is not None and (min1 is None or min1 < min2):
-            sprv, snxt = self, other
-        else:
-            sprv, snxt = other, self
+        imin, imax = self.includes_min, other.includes_max
+        if not other.min or not self.max or other.min < self.max:
+            if self.min == other.min:
+                imin = self.includes_min or other.includes_min
+            if self.max == other.max:
+                imax = self.includes_max or other.includes_max
+        elif (not self.includes_max and not other.includes_min) or other.min != self.max:
+            return VersionsUnion([self, other])
 
-        if snxt.min is None or sprv.max is None or snxt.min < sprv.max or \
-                (snxt.min == sprv.max and (sprv.includes_max or snxt.includes_min)):
-            return VersionRange(min=sprv.min, max=snxt.max, includes_min=sprv.includes_min,
-                                includes_max=snxt.includes_max)
+        return VersionSpecifier.create_range(self.min, other.max, imin, imax)
 
-        return None
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion, HetroVersionIntersection, VersionMatch)):
+            return other.union_with(self)
 
+        if isinstance(other, StandardVersionRange):
+            if self == other:
+                return self
+            return self._union_with(other)
 
-class VersionUnion(VersionSpecifier):
-    def __init__(self, constraints: List[VersionSpecifier]):
-        self.unions: List[VersionSpecifier] = constraints  # assumed to be ordered..
+        raise NotImplemented()
 
-    def inverse(self) -> "VersionSpecifier":
-        result = self.unions[0].inverse()
-        for c in subiter(self.unions, 1):
-            if result.is_none():
-                return result
+    def _intersect_with(self, other: StandardVersionRange) -> VersionSpecifier:
+        if other < self:
+            return other._intersect_with(self)
 
-            result = result.intersect(c.inverse())
-        return result
+        if not other.min or not self.max or other.min < self.max:
+            imin, imax = other.includes_min, self.includes_max
+            if self.min == other.min:
+                imin = self.includes_min and other.includes_min
+            if self.max == other.max:
+                imax = self.includes_max and other.includes_max
+            return VersionSpecifier.create_range(other.min, self.max, imin, imax)
+        if self.includes_max and other.includes_min and self.max == other.min:
+            return VersionMatch(self.max, True)
 
-    def _try_merge(self, other: "VersionSpecifier") -> Optional["VersionSpecifier"]:
-        assert False, 'merging only support non union versions'
-        return None  # noqa
+        return RestrictAllVersions
 
-    def __str__(self):
-        if len(self.unions) == 2:
-            a, b = self.unions
-            if a.min is None and b.max is None and a.max == b.min and (a.includes_max is b.includes_min is False):
-                return f"!={a.max}"
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier:
+        if isinstance(other, (_RestrictAll, _AllowAll, VersionsUnion, HetroVersionIntersection, VersionMatch)):
+            return other.intersect_with(self)
 
-        return '; '.join(str(it) for it in self.unions)
+        if isinstance(other, StandardVersionRange):
+            if self == other:
+                return self
 
-    def _segments(self) -> List["VersionSpecifier"]:
-        return self.unions
+            return self._intersect_with(other)
+        raise NotImplemented()
 
+    def allows_version(self, version: Version) -> bool:
+        min_, max_ = self.min, self.max
+        if (min_ is not None and self.includes_min and min_ == version) \
+                or (max_ is not None and self.includes_max and max_ == version):
+            return True
 
-NoVersion = VersionRange(includes_min=False, includes_max=False)
-AnyVersion = VersionRange(includes_min=True, includes_max=True)
+        if version.is_post_release() and (min_ is None or not min_.is_post_release()):
+            return False
 
-
-# UTILS
-
-def _unite(segments: List["VersionSpecifier"]) -> "VersionSpecifier":
-    if not segments:
-        return NoVersion
-
-    segments = sorted(segments)
-    new_segments: List[VersionSpecifier] = []
-
-    last: VersionSpecifier = segments[0]
-    for segment in subiter(segments, 1):
-        joined = last._try_merge(segment)  # noqa
-        if joined:
-            last = joined
-        else:
-            new_segments.append(last)
-            last = segment
-    new_segments.append(last)
-
-    new_segments = list(distinct(new_segments))
-
-    if not new_segments:
-        return NoVersion
-    elif len(new_segments) == 1:
-        return new_segments[0]
-
-    return VersionUnion(new_segments)
-
-
-def _intersect(a: VersionSpecifier, b: VersionSpecifier) -> "VersionSpecifier":
-    swap = False
-
-    if isinstance(a, VersionUnion) or (swap := isinstance(b, VersionUnion)):
-        if swap: a, b = b, a  # noqa
-
-        b_segments = [b]
-        if isinstance(b, VersionUnion):
-            b_segments = b.unions
-
-        return _unite([
-            intersection
-            for it in a.unions
-            for segment in b_segments
-            if not (intersection := _intersect(it, segment)).is_none()])
-
-    if isinstance(a, SpecificVersion) or (swap := isinstance(b, SpecificVersion)):
-        if swap: a, b = b, a  # noqa
-
-        if isinstance(b, SpecificVersion):
-            if a.version == b.version:
-                return a
-            elif (a.version.is_local() or (swap := b.version.is_local())) \
-                    and a.version.without_local() == b.version.without_local():
-                return b if swap else a
-
-            return NoVersion
-
-        if isinstance(b, VersionRange):
-            if b.is_any() or b.allows_version(a.version.without_local()):
-                return a
-            return NoVersion
-
-        raise ValueError(f"unexpected version specifier type: {b}")
-
-    # both a and b are version ranges
-    if a.is_none() or (swap := b.is_none()):
-        return b if swap else a
-    if a.is_any() or (swap := b.is_any()):
-        return a if swap else b
-
-    min1, min2 = a.min, b.min
-    selected_min = min1
-    if min1 == min2:
-        includes_min = a.includes_min and b.includes_min
-    else:
-        includes_min = a.includes_min
-        if min1 is None or (min2 is not None and min2 > min1):
-            selected_min = min2
-            includes_min = b.includes_min
-
-    max1, max2 = a.max, b.max
-    selected_max = max1
-    if max1 == max2:
-        includes_max = a.includes_max and b.includes_max
-    else:
-        includes_max = a.includes_max
-        if max1 is None or (max2 is not None and max2 < max1):
-            selected_max = max2
-            includes_max = b.includes_max
-
-    if includes_max and includes_min and selected_max == selected_min:
-        return SpecificVersion(selected_min)
-    elif selected_min is None or selected_max is None or selected_min < selected_max:
-        return VersionRange(
-            min=selected_min, max=selected_max, includes_min=includes_min, includes_max=includes_max)
-
-    return NoVersion
+        return (min_ is None or min_ < version) and (max_ is None or version < max_)

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.commons import UnsupportedOperationException
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class PackageDescriptor:
 
     def to_dependency(self) -> "Dependency":
         from pkm.api.dependencies.dependency import Dependency
-        return Dependency(self.name, SpecificVersion(self.version))
+        return Dependency(self.name, VersionMatch(self.version))
 
     def write(self) -> Dict[str, Any]:
         return {
@@ -70,7 +70,7 @@ class PackageDescriptor:
         :param package_name: the package name to normalize
         :return: the normalized name
         """
-        if not (result := re.sub("[^A-Z0-9._]+", '-', package_name, flags=re.IGNORECASE).strip('-')):
+        if not (result := re.sub("[^A-Z\\d._]+", '-', package_name, flags=re.IGNORECASE).strip('-')):
             raise ValueError(f"empty name after normalization (un-normalized name: '{package_name}')")
         return result
 

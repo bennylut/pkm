@@ -1,4 +1,5 @@
 ## RUNNING TASKS:
+
 - pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
 - repositories: conda
     - it seems that it will be simple enough to implement
@@ -9,14 +10,20 @@
     - for the conda, repository instance builder should support "url" based configuration
     - cli managed configuration
 - refactoring: repositories should by itself be a project group
+- refactoring: rename version specifiers according to pep440
 
 ## DONE IN THIS VERSION
-- misc: build readme, set github's site
-- enhancement: `pkm show` for project, show its group
-- bug: dependency from project group is not installed in editable mode by default
+- versions algebra full rewrite - faster, simpler to read and support hetrogenious versions intersection
+- refactoring: repository should get the required environment in match
+- refactoring: repository should filter pre-releases based on rules - no need for flags..
 
 ## BACKLOG TASKS:
-- simplification: remove the coerced dependnecies and package names support in env install/remove 
+
+- cli consider moving install and remove into a "save" paradigm instead of '-o' use `-s` or `-S where`
+- clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
+  metadata (as defined in PEP 459).
+- qof: ability to specify max cache size
+- simplification: remove the coerced dependnecies and package names support in env install/remove
 - refactoring: consider providing the install method with 'installation request' class that contains both the dependency
   and all other flags like editable, user request, update, etc.
 - enhancement: delegation should also support abstract properties

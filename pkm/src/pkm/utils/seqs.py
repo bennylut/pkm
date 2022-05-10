@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable
+from functools import reduce
+from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
@@ -31,14 +32,38 @@ class Seq(Generic[_T], Iterator[_T]):
     def filter(self, accept: Callable[[_T], bool]) -> Seq[_T]:
         return Seq(it for it in self._iter if accept(it))
 
-    def chain(self, other: Iterator[_T]):
+    def chain(self, other: Iterator[_T]) -> Seq[_T]:
         return Seq(itertools.chain(self._iter, other))
+
+    def reduce(self, reducer: Callable[[_U, _T], _U], init: _U) -> _U:
+        return reduce(reducer, self._iter, init)
 
     def first_or(self, default: _T) -> _T:
         try:
             return next(self._iter)
         except StopIteration:
             return default
+
+    def unique(self, key: Callable[[_T], Hashable] = lambda it: it) -> Seq[_T]:
+        def yield_uniques():
+            tracked = set()
+            for it in self._iter:
+                k = key(it)
+                if k not in tracked:
+                    tracked.add(k)
+                    yield it
+
+        return Seq(iter(yield_uniques()))
+
+    def without_first(self, item: _T) -> Seq[_T]:
+        def yield_without_first():
+            for it in self._iter:
+                if it == item:
+                    yield from self._iter
+                    break
+                yield it
+
+        return Seq(iter(yield_without_first()))
 
     def first_or_none(self) -> Optional[_T]:
         return self.first_or(None)
@@ -63,3 +88,6 @@ class Seq(Generic[_T], Iterator[_T]):
             into = list(self._iter)
 
         return into
+
+    def str_join(self, sep: str) -> str:
+        return sep.join(str(it) for it in self._iter)

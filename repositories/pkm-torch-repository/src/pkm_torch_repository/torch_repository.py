@@ -1,6 +1,7 @@
 from typing import List, cast, Any, Tuple, Optional
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
@@ -26,8 +27,8 @@ class TorchRepository(AbstractRepository):
 
         self._allow_cpu = allow_cpu
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        all_packages = self._simple_repo.match(dependency, False)
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
+        all_packages = self._simple_repo.match(dependency, env)
         matches = []
 
         for package in all_packages:

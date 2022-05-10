@@ -4,6 +4,7 @@ from typing import List, Dict, Optional, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distribution import Distribution
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
@@ -19,7 +20,7 @@ class PackagesDictRepository(AbstractRepository):
         super().__init__(name)
         self._packages = packages
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         all_packages = self._packages.get(dependency.package_name) or []
         return [p for p in all_packages if dependency.version_spec.allows_version(p.version)]
 

@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, Mapping, List, Tuple, Union, MutableMapp
 
 from pkm.utils.parsers import SimpleParser
 
-_KEY_RX = re.compile(r'[a-zA-Z0-9\-_]+')
+_KEY_RX = re.compile(r'[a-zA-Z\d\-_]+')
 KEY_T = Tuple
 DUMPS_T = Callable[[Dict[str, Any]], str]
 

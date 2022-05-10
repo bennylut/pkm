@@ -1,22 +1,22 @@
+from dataclasses import replace
 from pathlib import Path
 from typing import List
 
-from dataclasses import replace
-
-from pkm.utils.http.http_client import Url
-from pkm.utils.parsers import SimpleParser
 from pkm.api.versions.version import Version, NamedVersion, StandardVersion, UrlVersion
-from pkm.api.versions.version_specifiers import VersionSpecifier, VersionRange, SpecificVersion, AnyVersion
-import re
-
-_VERSION_URL_RX = re.compile(r"((?P<repo>\w+)\+)?(?P<url>.*)")
+from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions, VersionMatch
+from pkm.utils.parsers import SimpleParser
 
 
 def parse_version(version_str: str) -> Version:
     try:
-        return VersionParser(version_str.lower()).read_version()
+        lowered_vstr = version_str.lower()
+        if '://' in lowered_vstr:
+            return UrlVersion.parse(lowered_vstr)
+
+        return VersionParser(lowered_vstr).read_version()
     except ValueError:
-        return NamedVersion(version_str)
+        ...
+    return NamedVersion(version_str)
 
 
 def parse_specifier(specifier_str: str) -> VersionSpecifier:
@@ -94,7 +94,7 @@ class VersionParser(SimpleParser):
         self.match_ws()
 
         if self.match('*'):
-            return AnyVersion
+            return AllowAllVersions
 
         if self.match('@'):
             self.match_ws()
@@ -102,27 +102,25 @@ class VersionParser(SimpleParser):
             if "://" not in url:
                 url = Path(url).resolve().as_uri()
 
-            match = _VERSION_URL_RX.match(url)
-            parsed_url = Url.parse(match.group('url'))
-            return SpecificVersion(UrlVersion(match.group('url'), match.group('repo'), parsed_url.scheme))
+            return VersionMatch(UrlVersion.parse(url))
 
         if self.match('==='):
             self.match_ws()
             version_str = self.until(lambda i, t: t[i].isspace() or t[i] == ',')
-            return SpecificVersion(NamedVersion(version_str))
+            return VersionMatch(NamedVersion(version_str))
 
         exclusion_inclusion = self.match_any('==', '!=')
         if exclusion_inclusion:
             self.match_ws()
             version = self.read_version()
             if self.match('.*'):
-                result = VersionRange(
-                    min=version, includes_min=True,
-                    max=replace(version, release=version.release[:-1] + (version.release[-1] + 1,),
-                                pre_release=None, post_release=None, dev_release=None, local_label=None),
-                    includes_max=False)
+                result = VersionSpecifier.create_range(
+                    version, replace(version, release=version.release[:-1] + (version.release[-1] + 1,)), True, False)
             else:
-                result = SpecificVersion(version)
+                if isinstance(version, StandardVersion):
+                    result = VersionSpecifier.create_range(version, version, True, True)
+                else:
+                    result = VersionMatch(version)
 
             if exclusion_inclusion == '!=':
                 return result.inverse()
@@ -135,11 +133,11 @@ class VersionParser(SimpleParser):
             if len(version.release) == 1:
                 raise ValueError(f"Illegal version specifier, ~= {version}")
 
-            return VersionRange(
-                min=version, includes_min=True,
-                max=replace(version, release=version.release[:-2] + (version.release[-2] + 1, 0),
-                            pre_release=None, post_release=None, dev_release=None, local_label=None),
-                includes_max=False)
+            return VersionSpecifier.create_range(
+                version, replace(
+                    version, release=version.release[:-2] + (version.release[-2] + 1, 0), pre_release=None,
+                    post_release=None, dev_release=None, local_label=None),
+                True, False)
 
         comparison = self.match_any('>=', '>', '<=', '<')
         if comparison:
@@ -154,7 +152,7 @@ class VersionParser(SimpleParser):
 
             self.match(".*")  # version spec can end (un-needed-ly for comparison operators other than ==/!=) with .*
 
-            return VersionRange(min=min, max=max, includes_min=imin, includes_max=imax)
+            return VersionSpecifier.create_range(min, max, imin, imax)
 
         self.raise_err('unknown operator')
 
@@ -162,9 +160,9 @@ class VersionParser(SimpleParser):
         self.match_ws()
         paren = self.match('(')
 
-        specifier = AnyVersion
+        specifier = AllowAllVersions
         while self.is_not_empty():
-            specifier = specifier.intersect(self._read_single_specifier())
+            specifier = specifier.intersect_with(self._read_single_specifier())
             self.match_ws()
             if not self.match(',') and self.is_not_empty():
                 if not paren or self.match(')'):

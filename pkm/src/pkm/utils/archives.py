@@ -15,5 +15,8 @@ def extract_archive(archive_path: Path, target_directory: Path):
     elif archive_path.name.endswith('.tar.gz'):
         with tarfile.open(archive_path) as tar:
             tar.extractall(target_directory)
+    elif archive_path.name.endswith(".tar.bz2"):
+        with tarfile.open(archive_path, 'r:bz2') as tar:
+            tar.extractall(target_directory)
     else:
         raise UnsupportedOperation(f"does not support archive {archive_path.name}")

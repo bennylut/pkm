@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions
 
 
 class TestDependency(TestCase):
@@ -21,27 +21,27 @@ class TestDependency(TestCase):
                       env_marker="python_version=='2.7'")
 
         assert_parsed("name[quux, strange];python_version<'2.7' and platform_version=='2'",
-                      package_name="name", extras=["quux", "strange"], version_spec=AnyVersion,
+                      package_name="name", extras=["quux", "strange"], version_spec=AllowAllVersions,
                       env_marker="python_version<'2.7' and platform_version=='2'")
 
         assert_parsed("name; os_name=='a' or os_name=='b'",
-                      package_name="name", version_spec=AnyVersion,
+                      package_name="name", version_spec=AllowAllVersions,
                       env_marker="os_name=='a' or os_name=='b'")
 
         assert_parsed("name; os_name=='a' and os_name=='b' or os_name=='c'",
-                      package_name="name", version_spec=AnyVersion,
+                      package_name="name", version_spec=AllowAllVersions,
                       env_marker="os_name=='a' and os_name=='b' or os_name=='c'")
 
         assert_parsed("name; os_name=='a' and (os_name=='b' or os_name=='c')",
-                      package_name="name", version_spec=AnyVersion,
+                      package_name="name", version_spec=AllowAllVersions,
                       env_marker="os_name=='a' and (os_name=='b' or os_name=='c')")
 
         assert_parsed("name; os_name=='a' or os_name=='b' and os_name=='c'",
-                      package_name="name", version_spec=AnyVersion,
+                      package_name="name", version_spec=AllowAllVersions,
                       env_marker="os_name=='a' or os_name=='b' and os_name=='c'")
 
         assert_parsed("name; (os_name=='a' or os_name=='b') and os_name=='c'",
-                      package_name="name", version_spec=AnyVersion,
+                      package_name="name", version_spec=AllowAllVersions,
                       env_marker="(os_name=='a' or os_name=='b') and os_name=='c'")
 
         assert_parsed('pyOpenSSL>=0.14; python_version<="2.7" and extra == \'secure\'',
@@ -63,7 +63,7 @@ def assert_dependency(d: Dependency, **kwargs):
         if key == 'env_marker':
             assert str(d.env_marker) == value, f"expecting env-marker to be {value} but it was {d.env_marker}"
         elif key == 'url':
-            assert (url := d.version_spec.specific_url()), f"expecting url dependency but got non-url one"
+            assert (url := d.required_url()), f"expecting url dependency but got non-url one"
             assert str(url) == value, f"expecting url dependency to have the url: " \
                                       f"{value} but it was {url}"
         else:

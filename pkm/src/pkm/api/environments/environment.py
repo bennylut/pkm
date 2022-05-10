@@ -357,5 +357,8 @@ class OperatingPlatform:
     def has_windows_os(self) -> bool:
         return self.os == 'Windows'
 
+    def has_x86_cpu(self) -> bool:
+        return self.machine in ("i386", "amd64", "x86", "x86_64")
+
     def has_arm_cpu(self) -> bool:
         return 'armv71' in self.machine or 'aarch64' in self.machine

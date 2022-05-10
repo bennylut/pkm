@@ -6,7 +6,7 @@ from typing import List, TYPE_CHECKING, Optional
 from pkm.api.dependencies.dependency import Dependency
 
 from pkm.api.versions.version import StandardVersion, Version
-from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions
 from pkm.config.configuration import FileConfiguration, computed_based_on
 from pkm.utils.dicts import get_or_put, remove_none_values
 
@@ -59,7 +59,7 @@ class PackageMetadata(FileConfiguration):
     def required_python_spec(self) -> VersionSpecifier:
         if version_str := self["Requires-Python"]:
             return VersionSpecifier.parse(version_str)
-        return AnyVersion
+        return AllowAllVersions
 
     def generate_content(self) -> str:
         msg = EmailMessage()

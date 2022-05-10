@@ -1,7 +1,1 @@
-[[lock]]
-env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
-package = {name = "pkm", version = "0.4.40"}
-
-[[lock]]
-env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
-package = {name = "conda-pkm-repo", version = "0.1.0"}
+lock = []

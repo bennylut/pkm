@@ -2,7 +2,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Protocol, Optional, TYPE_CHECKING, List, Dict
 
-from pkm.api.distributions.distinfo import InstallationModeInfo
+from pkm.api.distributions.distinfo import PackageInstallationInfo
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -23,7 +23,7 @@ class Distribution(Protocol):
 
     @abstractmethod
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None,
-                   installation_mode: Optional[InstallationModeInfo] = None):
+                   installation_mode: Optional[PackageInstallationInfo] = None):
         """
         installs this package into the given `env`
         :param target: information about the target to install this distribution into
@@ -93,4 +93,4 @@ class _DistributionPackage(Package):
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
             editable: bool = False):
-        self._dist.install_to(target, user_request, InstallationModeInfo(editable=editable))
+        self._dist.install_to(target, user_request, PackageInstallationInfo(editable=editable))

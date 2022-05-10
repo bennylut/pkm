@@ -12,8 +12,8 @@ from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.repositories.repository import Repository, AbstractRepository
-from pkm.api.versions.version import NamedVersion
-from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.api.versions.version import StandardVersion
+from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.delegations import delegate
@@ -209,7 +209,7 @@ class InstallationPlan:
         for norm_package_name, package_to_install in toinstall.items():
 
             if preinstalled_package := preinstalled.pop(norm_package_name, None):
-                prev_install_editable = preinstalled_package.installation_mode_info.editable
+                prev_install_editable = preinstalled_package.installation_info.editable
                 editable = editables.get(norm_package_name, prev_install_editable)
                 if preinstalled_package.version == package_to_install.version and editable == prev_install_editable:
                     operations[package_to_install] = PackageOperation.SKIP
@@ -246,7 +246,7 @@ class InstallationPlan:
                     pkm.threads, package.install_to, target, editable=bool(editable)))
             elif operation == PackageOperation.UPDATE:
                 if editable is None:
-                    editable = site.installed_package(package.name).installation_mode_info.editable
+                    editable = site.installed_package(package.name).installation_info.editable
                 promises.append(Promise.execute(
                     pkm.threads, package.update_at, target, editable=editable))
             elif operation == PackageOperation.REMOVE:
@@ -260,7 +260,7 @@ class InstallationPlan:
 
 class _UserRequestPackage(Package):
     def __init__(self, request: List["Dependency"]):
-        self._desc = PackageDescriptor("installation request", NamedVersion(""))
+        self._desc = PackageDescriptor("installation request", StandardVersion(release=(0,)))
         self._request = request
 
     @property
@@ -276,7 +276,7 @@ class _UserRequestPackage(Package):
     def install_to(self, *args, **kwargs): pass
 
     def to_dependency(self) -> "Dependency":
-        return Dependency(self.name, SpecificVersion(self.version))
+        return Dependency(self.name, VersionMatch(self.version))
 
 
 class _RemovalRepository(AbstractRepository):
@@ -290,7 +290,7 @@ class _RemovalRepository(AbstractRepository):
 
         self._user_request = user_request
 
-    def _do_match(self, dependency: "Dependency") -> List[Package]:
+    def _do_match(self, dependency: "Dependency", env: Environment) -> List[Package]:
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
@@ -309,7 +309,7 @@ class _InstallationRepository(Repository, ABC):
         self._limit_to_installed = limit_to_installed
         self._repo = repo
 
-    def match(self, dependency: Union["Dependency", str], check_prereleases: bool = True) -> List[Package]:
+    def match(self, dependency: Union["Dependency", str], env: Environment) -> List[Package]:
         if isinstance(dependency, str):
             dependency = Dependency.parse(dependency)
 
@@ -322,7 +322,7 @@ class _InstallationRepository(Repository, ABC):
             if self._limit_to_installed:
                 return [installed]
 
-        packages = self._repo.match(dependency, check_prereleases)
+        packages = self._repo.match(dependency, env)
         if installed:
             packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
 
@@ -345,7 +345,7 @@ class _UpdatableInstalledPackage(Package, ABC):
 
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
                   editable: bool = True):
-        new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency()))
+        new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency(), target.env))
         user_request = self._installed.user_request if user_request is None else user_request
         self._installed.uninstall()
         new_ver.install_to(target, user_request=user_request, editable=editable)

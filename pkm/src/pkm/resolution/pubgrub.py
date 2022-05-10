@@ -4,9 +4,9 @@ from dataclasses import dataclass, replace
 from itertools import chain
 from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any, TypeVar, Protocol, Generic
 
-from pkm.api.versions.version import Version, UrlVersion
-from pkm.api.versions.version_specifiers import VersionSpecifier, VersionUnion, VersionRange, SpecificVersion, \
-    AnyVersion
+from pkm.api.versions.version import Version, StandardVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, VersionMatch, AllowAllVersions, \
+    RestrictAllVersions, StandardVersionRange
 from pkm.resolution.resolution_monitor import DependencyResolutionIterationEvent, \
     DependencyResolutionConclusionEvent, DependencyResolutionMonitoredOp
 from pkm.utils.commons import NoSuchElementException
@@ -15,17 +15,13 @@ from pkm.utils.sequences import argmax
 
 
 class PKG(Protocol):
-    def __hash__(self):
-        ...
+    def __hash__(self): ...
 
-    def __eq__(self, other):
-        ...
+    def __eq__(self, other): ...
 
-    def __str__(self):
-        ...
+    def __str__(self): ...
 
-    def __lt__(self, other):
-        ...
+    def __lt__(self, other): ...
 
 
 PKG_T = TypeVar('PKG_T', bound=PKG)
@@ -56,11 +52,11 @@ class Term:
 
     def intersect(self, other: "Term") -> "Term":
         assert self.package == other.package, 'cannot intesect terms of different packages'
-        return Term(self.package, self.constraint.intersect(other.constraint))
+        return Term(self.package, self.constraint.intersect_with(other.constraint))
 
     def satisfies(self, constraint: VersionSpecifier) -> bool:
         """self ⊆ term"""
-        return (self.optional and constraint.is_none()) or constraint.allows_all(self.constraint)
+        return (self.optional and constraint is RestrictAllVersions) or constraint.allows_all(self.constraint)
 
     @classmethod
     def join(cls, package: PKG, terms: Iterable["Term"]) -> "Term":
@@ -78,7 +74,7 @@ class Term:
         constraint = first_term.constraint
 
         while next_term is not None:
-            constraint = constraint.intersect(next_term.constraint)
+            constraint = constraint.intersect_with(next_term.constraint)
             next_term = next(terms_iter, None)
 
         return cls(package, constraint)
@@ -180,7 +176,7 @@ class PartialSolution:
 
         accumulated_constraint = assignment_value.constraint
         if package_assignments:
-            accumulated_constraint = package_assignments[-1].accumulated.intersect(accumulated_constraint)
+            accumulated_constraint = package_assignments[-1].accumulated.intersect_with(accumulated_constraint)
 
         dlevel = self._decision_level
 
@@ -201,14 +197,14 @@ class PartialSolution:
             self._decisions[assignment.term.package] = assignment
             # print(f'entering decision level: {self._decision_level}')
         else:
-            ...
             # print(f"derrived: {assignment}")
+            ...
 
     def __repr__(self):
         return f"PartialSolution({self._assignments_by_order})"
 
     def decisions(self) -> Dict[PKG, Version]:
-        return {package: cast(SpecificVersion, ass.term.constraint).version for package, ass in self._decisions.items()}
+        return {package: cast(VersionMatch, ass.term.constraint).version for package, ass in self._decisions.items()}
 
 
 @dataclass
@@ -253,7 +249,7 @@ class Incompatibility:
 
             if package_assignments:
                 acc = package_assignments[-1].accumulated
-                if acc.is_none() and not term.optional:
+                if acc is RestrictAllVersions and not term.optional:
                     return IncompatibilitySatisfaction(self)
 
                 if term.constraint.allows_all(acc):
@@ -290,7 +286,7 @@ class Incompatibility:
                         break
 
                     if term.constraint.allows_all(
-                            assignment.accumulated.intersect(satisfier.term.constraint)):
+                            assignment.accumulated.intersect_with(satisfier.term.constraint)):
                         satisfiers.append(assignment)
                         break
 
@@ -315,11 +311,11 @@ class Incompatibility:
 
         terms = self.terms
         if len(terms) == 1:
-            if terms[0].constraint.is_any():
+            if terms[0].constraint is AllowAllVersions:
                 return f"{terms[0].package} cannot be resolved"
             return f"{terms[0].package} must be {terms[0].constraint.inverse()}"
         elif len(terms) == 2:
-            sterms = sorted(terms, key=lambda x: bool(isinstance(x.constraint, VersionUnion)))
+            sterms = sorted(terms, key=lambda x: bool(isinstance(x.constraint, VersionMatch) and x.constraint.allow))
             return f"{sterms[0]} requires that {sterms[1].negate()}"
 
         return f"{terms}"
@@ -425,13 +421,13 @@ class Incompatibility:
 @dataclass
 class _PackageVersion:
     term: Term
-    generalized_constraint: VersionSpecifier = AnyVersion
+    generalized_constraint: VersionSpecifier = AllowAllVersions
     dependencies: Optional[Dict[PKG, "PackageDependency"]] = None
     next: Optional["_PackageVersion"] = None
 
     @property
     def version(self) -> Version:
-        return cast(SpecificVersion, self.term.constraint).version
+        return cast(VersionMatch, self.term.constraint).version
 
     def compute_incompatibilities(self) -> List[Incompatibility]:
         result: List[Incompatibility] = []
@@ -454,8 +450,11 @@ class _PackageVersion:
                 incompatibility = last_requiring.dependencies[dependency.term.package].incompatibility
                 if incompatibility:
                     result.append(incompatibility)
-                    incompatibility.update_dependency(Term(self.term.package, VersionRange(
-                        min=self.generalized_constraint.min, max=last_requiring.generalized_constraint.max)))
+                    gmin, gmax = None, None
+                    if isinstance(self.generalized_constraint, StandardVersionRange):
+                        gmin, gmax = self.generalized_constraint.min, self.generalized_constraint.max
+                    incompatibility.update_dependency(
+                        Term(self.term.package, VersionSpecifier.create_range(gmin, gmax)))
                     continue
 
             nt = Term(self.term.package, self.generalized_constraint)
@@ -489,11 +488,21 @@ class Problem(ABC):
         """
 
     @abstractmethod
-    def get_versions(self, package: PKG) -> List[Version]:
+    def get_versions(self, package: PKG) -> List[StandardVersion]:
         """
-        get the available version of the given package in importance order (first is more important than last)
+        get the available (standard) versions of the given package in importance order
+         (first is more important than last)
         :param package: the package name to look for version in
         :return: versions of the package ordered by importance
+        """
+
+    @abstractmethod
+    def has_version(self, package: PKG, version: Version) -> bool:
+        """
+        checks for the existence of the given `version`
+        :param package: the package to check
+        :param version: the version to check
+        :return: True if the given package and version pair could be found, False otherwise
         """
 
 
@@ -569,7 +578,6 @@ class Solver(Generic[PKG_T]):
                 elif satisfaction.is_almost_full():
                     term = satisfaction.undecided_term
                     # print(f"incompatibility {incompatibility} is almost full, undecided_term is {term}")
-
                     self._solution.assign(term.negate(), incompatibility)
                     changed.add(term.package)
 
@@ -612,7 +620,7 @@ class Solver(Generic[PKG_T]):
             if not term.optional and (not satisfier.term.satisfies(term.constraint) or not prior_cause_terms):
                 prior_cause_terms.append(
                     Term(satisfier.term.package,
-                         satisfier.term.constraint.difference(term.constraint).inverse(),
+                         satisfier.term.constraint.difference_from(term.constraint).inverse(),
                          False)
                 )
 
@@ -628,7 +636,7 @@ class Solver(Generic[PKG_T]):
         versions = self._package_versions.get(package)
         if not versions:
             versions = self._package_versions[package] = [
-                _PackageVersion(Term(package, SpecificVersion(ver)))
+                _PackageVersion(Term(package, VersionMatch(ver)))
                 for ver in self._problem.get_versions(package)]
 
             sorted_versions = sorted(versions, key=lambda v: v.version)
@@ -637,16 +645,16 @@ class Solver(Generic[PKG_T]):
                 sorted_versions[i].next = sorted_versions[i + 1]
 
             if len(sorted_versions) == 1:
-                sorted_versions[0].generalized_constraint = AnyVersion
+                sorted_versions[0].generalized_constraint = AllowAllVersions
             elif sorted_versions:
                 for i in range(1, len(versions) - 1):
-                    sorted_versions[i].generalized_constraint = VersionRange(
-                        min=sorted_versions[i - 1].version,
-                        max=sorted_versions[i + 1].version)
-                sorted_versions[0].generalized_constraint = VersionRange(
-                    max=sorted_versions[1].version)
-                sorted_versions[-1].generalized_constraint = VersionRange(
-                    min=sorted_versions[-1].version,
+                    sorted_versions[i].generalized_constraint = VersionSpecifier.create_range(
+                        min_=cast(StandardVersion, sorted_versions[i - 1].version),
+                        max_=cast(StandardVersion, sorted_versions[i + 1].version))
+                sorted_versions[0].generalized_constraint = VersionSpecifier.create_range(
+                    max_=cast(StandardVersion, sorted_versions[1].version))
+                sorted_versions[-1].generalized_constraint = VersionSpecifier.create_range(
+                    min_=cast(StandardVersion, sorted_versions[-1].version),
                     includes_min=True)
 
         return versions
@@ -665,8 +673,8 @@ class Solver(Generic[PKG_T]):
             if len(dependency_assignments) > 1 and dependency_assignments[-1].is_decision():
                 actual_limitation = dependency_assignments[-2].accumulated
                 if actual_limitation.allows_any(dependency.constraint):
-                    # print(f"{package} is conflicting with {dependency.package}, it requires that "
-                    #      f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
+                    # print(f"{package} is conflicting with {dependency.package}, it requires that ", end='')
+                    # print(f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
                     dlevel = dependency_assignments[-1].decision_level - 1
                     minor_adjustment_dlevel = dlevel if minor_adjustment_dlevel == -1 \
                         else min(dlevel, minor_adjustment_dlevel)
@@ -694,10 +702,14 @@ class Solver(Generic[PKG_T]):
         for package in undecided_packages:
             acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
 
-            if isinstance(acc_assignment, SpecificVersion) and isinstance(acc_assignment.version, UrlVersion):
-                vspec = SpecificVersion(acc_assignment.version)
-                package_matching_versions[package] = [
-                    _PackageVersion(Term(package, vspec), vspec)]
+            if isinstance(acc_assignment, VersionMatch) and acc_assignment.allow and \
+                    not isinstance(acc_assignment.version, StandardVersion):
+
+                if self._problem.has_version(package, acc_assignment.version):
+                    package_matching_versions[package] = [
+                        _PackageVersion(Term(package, acc_assignment), acc_assignment)]
+                else:
+                    package_matching_versions[package] = []
             else:
                 versions = self.package_versions(package)
                 package_matching_versions[package] = [pver for pver in versions if
@@ -706,8 +718,8 @@ class Solver(Generic[PKG_T]):
         package = min(undecided_packages,
                       key=lambda pack: (-self._package_trouble_level[pack], len(package_matching_versions[pack])))
 
-        # print(f"choosing to try and assign {package} with constraint: "
-        #      f"{self._solution.assignments_by_package[package][-1].accumulated}")
+        # print(f"choosing to try and assign {package} with constraint: ", end='')
+        # print(f"{self._solution.assignments_by_package[package][-1].accumulated}")
         versions = list(package_matching_versions[package])  # defensive copy because we might change it
 
         while True:
@@ -715,7 +727,7 @@ class Solver(Generic[PKG_T]):
                 acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
 
                 if ic := self._package_availability_incompatibilities.get(package):
-                    ic.update_inavailability(ic.terms[0].constraint.union(acc_assignment))
+                    ic.update_inavailability(ic.terms[0].constraint.union_with(acc_assignment))
                 else:
                     # print(f"could not find version that match {acc_assignment}")
                     ic = Incompatibility.create(
@@ -737,13 +749,13 @@ class Solver(Generic[PKG_T]):
                 except MalformedPackageException:
                     import traceback
                     traceback.print_exc()
-                    # print(f"version: {version} discovered to be malformed")
+                    print(f"version: {version} discovered to be malformed")
                     continue  # retry with another version
             break
 
         incompatibilities = self._add_dependency_incompatibilities(version)
 
-        assignment: Assignment = self._solution.make_assignment(Term(package, SpecificVersion(version.version)), None)
+        assignment: Assignment = self._solution.make_assignment(Term(package, VersionMatch(version.version)), None)
         assignments = self._solution.assignments_by_package
         assignments[package].append(assignment)
         # print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")

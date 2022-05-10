@@ -54,7 +54,7 @@ class DistInfo:
         """
         :return: True if this package dist-info is marked as an app-container
         """
-        mode_info = self.load_installation_mode_info()
+        mode_info = self.load_installation_info()
         return mode_info and mode_info.containerized
 
     def load_entrypoints_cfg(self) -> "EntrypointsConfiguration":
@@ -64,12 +64,12 @@ class DistInfo:
         """
         return EntrypointsConfiguration.load(self.path / "entry_points.txt")
 
-    def load_installation_mode_info(self) -> Optional[InstallationModeInfo]:
+    def load_installation_info(self) -> Optional[PackageInstallationInfo]:
         if self.installation_info_path().exists():
-            return InstallationModeInfo.from_config(json.loads(self.installation_info_path().read_text()))
+            return PackageInstallationInfo.from_config(json.loads(self.installation_info_path().read_text()))
         return None
 
-    def save_installation_mode_info(self, installation_mode: InstallationModeInfo):
+    def save_installation_info(self, installation_mode: PackageInstallationInfo):
         self.installation_info_path().write_text(json.dumps(installation_mode.to_config()))
 
     def load_metadata_cfg(self) -> "PackageMetadata":
@@ -193,16 +193,17 @@ class DistInfo:
 
 
 @dataclass(frozen=True, eq=True)
-class InstallationModeInfo:
+class PackageInstallationInfo:
     containerized: bool = False
     editable: bool = False
+    compatibility_tag: str = ""
 
     def to_config(self) -> Dict[str, Any]:
         return {**self.__dict__}
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> InstallationModeInfo:
-        return InstallationModeInfo(**config)
+    def from_config(cls, config: Dict[str, Any]) -> PackageInstallationInfo:
+        return PackageInstallationInfo(**config)
 
 
 class EntrypointsConfiguration(IniFileConfiguration):

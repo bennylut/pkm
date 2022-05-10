@@ -19,12 +19,16 @@ class PackageReport(Report):
         line = "-" * 80
         Display.print(line)
 
-        repository: Repository = pkm.repositories.pypi
+        repository: Repository = pkm.repositories.main
+        env: Environment = Environment.current()
 
         if isinstance(self._context, Project):
             repository = self._context.attached_repository
+            env = self._context.attached_environment
+        elif isinstance(self._context, Environment):
+            env = self._context
 
-        match = repository.match(self._dependency)
+        match = repository.match(self._dependency, env)
 
         if not match:
             Display.print(f"No package matched for {self._dependency}")

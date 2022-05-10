@@ -2,12 +2,11 @@ import shutil
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Set, Iterator
+from typing import List, Optional, Set, Iterator, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration
 from pkm.api.distributions.pth_link import PthLink
-from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -55,9 +54,9 @@ class SharedPackagesRepository(AbstractRepository):
             if is_empty_directory(package_dir):
                 package_dir.rmdir()
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         packages_dir = self._workspace / dependency.package_name
-        packages = self._base_repo.match(dependency, False)
+        packages = self._base_repo.match(dependency, env)
         return [
             _SharedPackage(p, packages_dir / str(p.version))
             for p in packages
@@ -69,6 +68,12 @@ class SharedPackagesRepository(AbstractRepository):
 
         packages.sort(key=key)
         return packages
+
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return self._base_repo.accepted_url_protocols()
+
+    def accept_non_url_packages(self) -> bool:
+        return self._base_repo.accept_non_url_packages()
 
 
 @dataclass
@@ -100,7 +105,7 @@ class _SharedPackage(Package):
         try:
             return max(
                 ((a, s) for a in self._artifacts
-                 if (s := env.compatibility_tag_score(a.compatibility_tags)) is not None),
+                 if (s := env.compatibility_tag_score(a.compatibility_tag)) is not None),
                 key=lambda it: it[1]
             )[0]
         except ValueError:
@@ -162,12 +167,12 @@ def _move_to_shared(package: PackageDescriptor,
 
     dist_info = DistInfo.load(dist_info_path)
 
-    archive = (dist_info.path / "INSTALLER").read_text().splitlines(keepends=False)
-    if len(archive) >= 2 and archive[1].endswith(".whl"):
-        compatibility_tags = WheelDistribution.compute_compatibility_tags_of(Path(archive[1]))
+    iinfo = dist_info.load_installation_info()
+    if iinfo.compatibility_tag:
+        compatibility_tags = iinfo.compatibility_tag
         shared_target = shared_path / compatibility_tags
     else:
-        return None
+        return None  # TODO should probably notify the user that sharing is impossible for this package
 
     records = list(dist_info.installed_files())
 

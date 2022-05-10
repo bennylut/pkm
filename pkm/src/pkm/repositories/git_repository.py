@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import List, Optional, cast, TYPE_CHECKING
+from typing import List, Optional, cast, TYPE_CHECKING, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -70,9 +70,12 @@ class GitRepository(AbstractRepository):
     def _git_client(self) -> _Git:
         return _Git()
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return 'git',
 
-        if not (version := dependency.version_spec.specific_url()) or version.protocol != 'git':
+    def _do_match(self, dependency: Dependency, env: "Environment") -> List[Package]:
+
+        if not (version := dependency.required_url()) or version.protocol != 'git':
             return []
 
         parts = version.url.split("@")

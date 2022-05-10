@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Any, Dict, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import InstallationModeInfo
+from pkm.api.distributions.distinfo import PackageInstallationInfo
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -27,7 +27,7 @@ class PackageArtifact:
     other_info: Dict[str, Any] = field(default_factory=dict)
     hash_sig: Optional[HashSignature] = None
 
-    def is_wheel(self):
+    def is_binary(self):
         return self.file_name.endswith(".whl")
 
 
@@ -66,7 +66,7 @@ class AbstractPackage(Package):
             requires_python = artifact.requires_python
 
             file_name: str = artifact.file_name
-            is_binary = artifact.is_wheel()
+            is_binary = artifact.is_binary()
 
             if requires_python:
                 try:
@@ -79,7 +79,7 @@ class AbstractPackage(Package):
                     continue
 
             if is_binary:
-                ctag = WheelDistribution.compute_compatibility_tags_of(Path(file_name))
+                ctag = WheelDistribution.extract_compatibility_tags_of(Path(file_name))
                 if (score := env.compatibility_tag_score(ctag)) is not None:
                     if best_binary_dist_score is None or best_binary_dist_score < score:
                         best_binary_dist = artifact
@@ -112,8 +112,8 @@ class AbstractPackage(Package):
                 if not hashsig.validate_against(artifact_path):
                     raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
-            installation_mode = InstallationModeInfo(False, editable)
-            if artifact.is_wheel():
+            installation_mode = PackageInstallationInfo(False, editable)
+            if artifact.is_binary():
                 WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
             else:
                 SourceDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)

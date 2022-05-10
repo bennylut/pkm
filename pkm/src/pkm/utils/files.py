@@ -200,6 +200,13 @@ class CopyTransaction:
         """
         return iter(self._copied_files)
 
+    def touch_all(self, paths: List[Path]):
+        """
+        mark the given `paths` as copied in this transaction
+        :param paths: list of path to mark
+        """
+        self._copied_files.update(paths)
+
     def touch(self, path: Path, fs_touch: bool = False):
         """
         mark the given `path` as copied in this transaction

@@ -1,5 +1,6 @@
 from typing import TypeVar, Iterable, Callable, Dict, List, Optional, Tuple, Iterator
 
+from pkm.utils.commons import NoSuchElementException
 from pkm.utils.types import SupportHashCode
 
 _T = TypeVar("_T")
@@ -128,3 +129,22 @@ def first_or_none(it: Iterable[_T]) -> Optional[_T]:
     :return: the first value in `it` or None if `it` is empty
     """
     return first(it, None)
+
+
+def first_or_raise(it: Iterable[_T]) -> Optional[_T]:
+    """
+    same as calling `first(it)` but throws exception in case where `it` has no elements
+    :param it: the iterator to run over
+    :return: the first value in `it`
+    """
+    if (result := first(it, _SENTINAL)) is _SENTINAL:
+        raise NoSuchElementException()
+    return result
+
+
+def strs(it: Iterable[_T]) -> Iterator[str]:
+    """
+    :param it: the iterable to extract items from
+    :return: iterable yielding `str(item)` for each item in `iter`
+    """
+    return (str(it) for it in it)

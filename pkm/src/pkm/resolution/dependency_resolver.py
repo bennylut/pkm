@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import List, Dict, Optional, TYPE_CHECKING
+from typing import List, Dict, Optional, TYPE_CHECKING, cast
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.versions.version import Version, UrlVersion
-from pkm.api.versions.version_specifiers import SpecificVersion
+from pkm.api.versions.version import Version, UrlVersion, StandardVersion
+from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.pep517_builders.external_builders import BuildError
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
@@ -64,20 +64,21 @@ class _PkmPackageInstallationProblem(Problem):
 
     def _prefetch(self, package: _Pkg) -> Promise[List[Package]]:
         return get_or_put(self._prefetched_packages, package,
-                          lambda: Promise.execute(self._threads, self._repo.list, package.name))
+                          lambda: Promise.execute(self._threads, self._repo.list, package.name, self._env))
 
     def get_dependencies(self, package: _Pkg, version: Version) -> List[Term]:
         descriptor = PackageDescriptor(package.name, version)
 
         try:
             if isinstance(version, UrlVersion) and descriptor not in self.opened_packages:
-                self.opened_packages[descriptor] = single_or_raise(self._repo.match(f"{package} @ {version}"))
+                self.opened_packages[descriptor] = single_or_raise(
+                    self._repo.match(f"{package} @ {version}", self._env))
 
             dependencies = self.opened_packages[descriptor] \
                 .dependencies(self._env, package.extras)
 
             for d in dependencies:
-                if not d.version_spec.specific_url():
+                if not d.required_url():
                     self._prefetch(_Pkg.of(d))
 
         except (ValueError, IOError, BuildError) as e:
@@ -86,7 +87,7 @@ class _PkmPackageInstallationProblem(Problem):
         result: List[Term] = []
 
         if package.extras:  # add the package itself together with its extras
-            result.append(Term(replace(package, extras=None), SpecificVersion(version)))
+            result.append(Term(replace(package, extras=None), VersionMatch(version)))
 
         for d in dependencies:
             if d.is_applicable_for(self._env, package.extras):
@@ -97,14 +98,17 @@ class _PkmPackageInstallationProblem(Problem):
 
         return result
 
-    def get_versions(self, package: _Pkg) -> List[Version]:
+    def get_versions(self, package: _Pkg) -> List[StandardVersion]:
         all_packages = self._prefetch(package).result()
         packages = [p for p in all_packages if p.is_compatible_with(self._env)]
 
         for package in packages:
             self.opened_packages[replace(package.descriptor, name=package.descriptor.name.lower())] = package
 
-        return [p.version for p in packages]
+        return cast(List[StandardVersion], [p.version for p in packages if isinstance(p.version, StandardVersion)])
+
+    def has_version(self, package: _Pkg, version: Version) -> bool:
+        return bool(self._repo.match(Dependency(package.name, VersionMatch(version), package.extras), self._env))
 
 
 @dataclass(frozen=True, eq=True)

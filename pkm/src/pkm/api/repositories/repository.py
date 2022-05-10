@@ -2,13 +2,16 @@ from abc import abstractmethod, ABC
 from base64 import b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Any, Protocol
+from typing import List, Union, Optional, Tuple, Any, Protocol, Iterable, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.versions.version_specifiers import AnyVersion
+from pkm.api.versions.version_specifiers import AllowAllVersions
 from pkm.utils.iterators import partition
+
+if TYPE_CHECKING:
+    from pkm.api.environments.environment import Environment
 
 
 class Repository(Protocol):
@@ -19,23 +22,20 @@ class Repository(Protocol):
         ...
 
     @abstractmethod
-    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
+    def match(self, dependency: Union[Dependency, str], env: "Environment") -> List[Package]:
         """
         :param dependency: the dependency to match (or a pep508 string representing it)
-        :param check_prereleases: whether or not to check pre-releases according to pep440 rules.
-              if True, will only output pre-releases if the dependency version specifier is a
-              pre-release or all the versions matching the dependency are pre-releases.
-              Otherwise, will output all pre-releases matching the dependency
-
+        :param env: the environment that the returned packages should be compatible with
         :return: list of all the packages in this repository that match the given `dependency`
         """
 
-    def list(self, package_name: str) -> List[Package]:
+    def list(self, package_name: str, env: "Environment") -> List[Package]:
         """
-        :param package_name: the package to match 
+        :param package_name: the package to match
+        :param env: the environment that the returned packages should be compatible with
         :return: list of all the packages that match the given `package_name`
         """
-        return self.match(Dependency(package_name, AnyVersion))
+        return self.match(Dependency(package_name, AllowAllVersions), env)
 
     @property
     @abstractmethod
@@ -43,6 +43,20 @@ class Repository(Protocol):
         """
         :return: if this repository is 'publishable' returns its publisher
         """
+
+    # noinspection PyMethodMayBeStatic
+    def accepted_url_protocols(self) -> Iterable[str]:
+        """
+        :return: sequence of url-dependency protocols that this repository can handle
+        """
+        return ()
+
+    # noinspection PyMethodMayBeStatic
+    def accept_non_url_packages(self) -> bool:
+        """
+        :return: True if this repository should be used for non url packages
+        """
+        return True
 
 
 # noinspection PyMethodMayBeStatic
@@ -55,12 +69,12 @@ class AbstractRepository(Repository, ABC):
     def name(self) -> str:
         return self._name
 
-    def match(self, dependency: Union[Dependency, str], check_prereleases: bool = True) -> List[Package]:
+    def match(self, dependency: Union[Dependency, str], env: "Environment") -> List[Package]:
         if isinstance(dependency, str):
             dependency = Dependency.parse(dependency)
 
-        matched = self._do_match(dependency)
-        filtered = self._filter_prereleases(matched, dependency) if check_prereleases else matched
+        matched = [d for d in self._do_match(dependency, env) if d.is_compatible_with(env)]
+        filtered = self._filter_prereleases(matched, dependency)
         return self._sort_by_priority(dependency, filtered)
 
     @property
@@ -84,15 +98,14 @@ class AbstractRepository(Repository, ABC):
         return packages
 
     @abstractmethod
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: "Environment") -> List[Package]:
         """
         IMPLEMENTATION NOTICE:
-            1. do not try to filter pre-releases,
-               it is handled for you in the `match` method that call this one.
-            2. the matching should only be done against the package name and the version spec
-               since the environment markers should not be considered in the level of the repository
+            you don't have to filter pre-releases or packages based on the given environment
+            it is handled for you in the `match` method that call this one.
 
         :param dependency: the dependency to match
+        :param env: the environment that the returned packages should be applicable with
         :return: list of all the packages in this repository that match the given `dependency` version spec
         """
 

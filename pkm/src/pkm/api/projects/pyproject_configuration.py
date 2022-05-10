@@ -9,7 +9,7 @@ from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, StandardVersionRange, AllowAllVersions
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.resolution.pubgrub import MalformedPackageException
 from pkm.utils.commons import unone
@@ -141,7 +141,7 @@ class ProjectConfig:
     # The actual text or Path to a text file containing the full description of this project.
     readme: Union[Path, str, None]
     # The Python version requirements of the project.
-    requires_python: Optional[VersionSpecifier]
+    requires_python: Optional[Union[StandardVersionRange, AllowAllVersions]]
     # The project licence identifier or path to the actual licence file
     license: Union[str, Path, None]
     # The people or organizations considered to be the "authors" of the project.
@@ -296,7 +296,7 @@ class ProjectConfig:
                 readme = str(readme_entry)
 
         requires_python = VersionSpecifier.parse(config['requires-python']) \
-            if 'requires-python' in config else AnyVersion
+            if 'requires-python' in config else AllowAllVersions
 
         license_ = None
         if license_table := config.get('license'):

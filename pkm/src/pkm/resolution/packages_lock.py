@@ -148,8 +148,14 @@ class LockPrioritizingRepository(AbstractRepository):
         self._lock = lock
         self._env = env
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        return self._base_repo.match(dependency, False)
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
+        return self._base_repo.match(dependency, env)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         return self._lock.sort_packages_by_lock_preference(self._env, packages)
+
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return self._base_repo.accepted_url_protocols()
+
+    def accept_non_url_packages(self) -> bool:
+        return self._base_repo.accept_non_url_packages()

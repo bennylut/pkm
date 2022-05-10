@@ -1,12 +1,4 @@
-foo_call = None
+from pkm.api.environments.environment import Environment
 
-
-def foo(store: bool, x, y, z):
-    global foo_call
-    if store:
-        foo_call = locals()
-
-
-foo(True, 1, 2, 3)
-foo(False, 4, 5, 6)
-print(foo_call)
+env = Environment.load("/home/bennyl/projects/pkm-new/workspace/test-env")
+env.install("allennlp")

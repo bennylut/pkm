@@ -62,7 +62,7 @@ def shell(args: Namespace):
 @command('pkm build')
 def build(args: Namespace):
     def on_project(project: Project):
-        if any((u := d.version_spec.specific_url()) and u.protocol == 'file'
+        if any((u := d.required_url()) and u.protocol == 'file'
                for d in (project.config.project.dependencies or [])):
             Display.print("[orange1]Warning[/] you are building a project that depends on packages located in your "
                           "file system, [red]publishing this project will result in unusable package[/]")

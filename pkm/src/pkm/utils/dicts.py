@@ -76,7 +76,7 @@ def without_keys(d: Mapping[_K, _V], *keys: _K) -> Dict[_K, _V]:
     return {k: v for k, v in d.items() if k not in remove_set}
 
 
-def remove_none_values(d: "_M[_K, _V]") -> "_M[_K, _V]":
+def remove_none_values(d: _M) -> _M:
     """
     remove from `d` all items with value equals to None and return back `d`
     :param d: the dict to remove from
@@ -86,8 +86,8 @@ def remove_none_values(d: "_M[_K, _V]") -> "_M[_K, _V]":
 
 
 def remove_by_value(
-        d: "_M[_K, _V]", value: Optional[_V] = None,
-        match: Optional[Callable[[_V], bool]] = None) -> "_M[_K, _V]":
+        d: _M, value: Optional[_V] = None,
+        match: Optional[Callable[[_V], bool]] = None) -> _M:
     """
     remove items from [d] if they either match the given [match] function
     or if no [match] function given, if they are equals to the given [value]
@@ -109,7 +109,7 @@ def remove_by_value(
     return d
 
 
-def udict_hash(d: "_IM[_K, _V]", key_hash: Callable[[_K], int] = hash, value_hash: Callable[[_V], int] = hash):
+def udict_hash(d: _IM, key_hash: Callable[[_K], int] = hash, value_hash: Callable[[_V], int] = hash):
     """
     unordered dict hash - computes a hash value for the given dict, the hash will be the same for all dicts with
     the same elements without considering their insertion order

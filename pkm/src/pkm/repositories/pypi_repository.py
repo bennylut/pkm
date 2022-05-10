@@ -29,7 +29,7 @@ class PyPiRepository(AbstractRepository):
     def publisher(self) -> Optional["RepositoryPublisher"]:
         return PyPiPublisher(self._http)
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         try:
             json: Dict[str, Any] = self._http \

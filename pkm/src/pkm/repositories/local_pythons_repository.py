@@ -24,8 +24,8 @@ class InstalledPythonsRepository(AbstractRepository):
     def __init__(self):
         super().__init__('local-pythons')
 
-    def list(self, package_name: str = 'python') -> List[Package]:
-        return super().list(package_name)
+    def list(self, package_name: str = 'python', env: Environment = None) -> List[Package]:
+        return super().list(package_name, env)
 
     @cached_property
     def _interpreters(self) -> List["LocalInterpreterPackage"]:
@@ -51,7 +51,7 @@ class InstalledPythonsRepository(AbstractRepository):
 
         return sorted(result, key=lambda p: p.version, reverse=True)
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         extras = set(dependency.extras) if dependency.extras is not None else _DEFAULT_PKG_EXTRAS
 
@@ -81,7 +81,7 @@ class LocalInterpreterPackage(Package):
         return self._desc
 
     def is_compatible_with(self, env: Environment):
-        return not env.path.exists() or next(env.path.iterdir(), None) is None
+        return True
 
     def to_environment(self) -> Environment:
         return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
@@ -94,7 +94,7 @@ class LocalInterpreterPackage(Package):
 
 
 _OS = platform.system()
-_PYTHON_EXEC_RX = re.compile(r"python-?[0-9.]*(.exe)?")
+_PYTHON_EXEC_RX = re.compile(r"python-?[\d.]*(.exe)?")
 
 
 def _interpreters_in_path() -> Set[Path]:

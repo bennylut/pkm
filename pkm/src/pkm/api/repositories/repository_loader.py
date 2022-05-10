@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from collections import defaultdict
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Iterable
 
@@ -16,7 +17,6 @@ from pkm.api.repositories.repository import Repository, RepositoryBuilder, Abstr
 from pkm.repositories.file_repository import FileRepository
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.resolution.packages_lock import LockPrioritizingRepository
-from pkm.utils.commons import NoSuchElementException
 from pkm.utils.dicts import put_if_absent
 from pkm.utils.http.http_client import HttpClient
 
@@ -36,16 +36,10 @@ class RepositoryLoader:
 
         # base repositories
         self.pypi = PyPiRepository(http)
-        self._cached_instances: Dict[RepositoryInstanceConfig, Repository] = {}  # noqa
+        base = _CompositeRepository('base', [
+            self.pypi, GitRepository(workspace / 'git'), UrlRepository(), FileRepository()], {})
 
-        self._url_repos = {
-            r.name: r for r in (
-                GitRepository(workspace / 'git'),
-                UrlRepository(),
-                FileRepository()
-            )
-        }
-        self._url_repos['http'] = self._url_repos['https'] = self._url_repos['url']
+        self._cached_instances: Dict[RepositoryInstanceConfig, Repository] = {}  # noqa
 
         # common builders
         self._builders = {
@@ -66,15 +60,12 @@ class RepositoryLoader:
                 warnings.warn(f"malformed repository entrypoint: {epoint}")
                 traceback.print_exc()
 
-        self._main = self._compose('main', main_cfg, self.pypi)
+        self._main = self._compose('main', main_cfg, base)
         self.workspace = workspace
 
     @property
     def main(self) -> Repository:
-        return self._with_url_support(self._main)
-
-    def _with_url_support(self, repo: Repository) -> Repository:
-        return _UrlSupportedRepository(self._url_repos, repo)
+        return self._main
 
     def load_for_env_zoo(self, zoo: EnvironmentsZoo) -> Repository:
         config = zoo.path / REPOSITORIES_CONFIGURATION_PATH
@@ -85,7 +76,7 @@ class RepositoryLoader:
         if zoo.config.package_sharing.enabled:
             repo = SharedPackagesRepository(zoo.path / ".zoo/shared", repo)
 
-        return self._with_url_support(repo)
+        return repo
 
     def load_for_env(self, env: Environment) -> Repository:
         repo = self._main
@@ -96,7 +87,7 @@ class RepositoryLoader:
         if config.exists():
             repo = self._compose("env-configured-repository", config, repo)
 
-        return self._with_url_support(repo)
+        return repo
 
     def load_for_project(self, project: Project) -> Repository:
         repo = project.attached_environment.attached_repository
@@ -114,10 +105,10 @@ class RepositoryLoader:
             "lock-prioritizing-repository", repo, project.lock,
             project.attached_environment)
 
-        return self._with_url_support(repo)
+        return repo
 
     def load_for_project_group(self, group: ProjectGroup) -> Repository:
-        return self._with_url_support(self._load_for_project_group(group, None))
+        return self._load_for_project_group(group, None)
 
     def _load_for_project_group(self, group: ProjectGroup, base_repo: Optional[Repository] = None) -> Repository:
         repo = base_repo or self._main
@@ -169,48 +160,45 @@ class RepositoryLoader:
         return cached
 
 
-class _UrlSupportedRepository(AbstractRepository):
-    def __init__(self, url_handlers: Dict[str, Repository], repo: Repository):
-        super().__init__("url-supported-repo")
-        self._url_handlers = url_handlers
-        self._base_repo = repo
-
-    def _do_match(self, dependency: Dependency) -> List[Package]:
-        if url := dependency.version_spec.specific_url():
-
-            if protocol := url.protocol:
-                if repo := self._url_handlers.get(url.protocol):
-                    return repo.match(dependency, False)
-                raise NoSuchElementException(f"could not find repository to handle url with protocol: {protocol}")
-            return self._url_handlers['url'].match(dependency, False)
-
-        return self._base_repo.match(dependency, False)
-
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return packages
-
-
 class _CompositeRepository(AbstractRepository):
     def __init__(
             self, name: str, package_search_list: List[Repository],
             package_associated_repos: Dict[str, Repository]):
         super().__init__(name)
 
-        self._package_search_list = package_search_list
+        self._url_handlers: Dict[str, List[Repository]] = defaultdict(list)
+        self._package_search_list = []
+
+        for repo in package_search_list:
+            if repo.accept_non_url_packages():
+                self._package_search_list.append(repo)
+            for protocol in repo.accepted_url_protocols():
+                self._url_handlers[protocol].append(repo)
+
         self._package_associated_repos = package_associated_repos
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
+
+        if url := dependency.required_url():
+            for repo in self._url_handlers[url.protocol]:
+                if match := repo.match(dependency, env):
+                    return match
+            raise []
+
         if repo := self._package_associated_repos.get(dependency.package_name):
-            return repo.match(dependency, False)
+            return repo.match(dependency, env)
 
         for repo in self._package_search_list:
-            if result := repo.match(dependency, False):
+            if result := repo.match(dependency, env):
                 return result
 
         return []
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         return packages
+
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return self._url_handlers.keys()
 
 
 class _ProjectsRepository(AbstractRepository):
@@ -219,11 +207,11 @@ class _ProjectsRepository(AbstractRepository):
         self._packages = projects
         self._base_repo = base_repo
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         if (package_and_path := self._packages.get(dependency.package_name)) and \
                 dependency.version_spec.allows_version(package_and_path[0].version):
             return [Project.load(package_and_path[1])]
-        return self._base_repo.match(dependency, False)
+        return self._base_repo.match(dependency, env)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
         return packages
@@ -231,3 +219,9 @@ class _ProjectsRepository(AbstractRepository):
     @classmethod
     def create(cls, name: str, projects: Iterable[Project], base: Repository) -> _ProjectsRepository:
         return _ProjectsRepository(name, {p.name: (p.descriptor, p.path) for p in projects}, base)
+
+    def accept_non_url_packages(self) -> bool:
+        return self._base_repo.accept_non_url_packages()
+
+    def accepted_url_protocols(self) -> Iterable[str]:
+        return self._base_repo.accepted_url_protocols()

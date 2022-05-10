@@ -1,8 +1,13 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from typing import Tuple, Optional, Literal
+import re
 
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.http.http_client import Url
+
+VERSION_URL_RX = re.compile(r"((?P<repo>\w+)\+)?(?P<url>.*)")
 
 
 class Version(ABC):
@@ -66,6 +71,12 @@ class UrlVersion(Version):
 
     def __repr__(self):
         return str(self)
+
+    @classmethod
+    def parse(cls, txt: str) -> UrlVersion:
+        match = VERSION_URL_RX.match(txt.lower())
+        parsed_url = Url.parse(match.group('url'))
+        return cls(match.group('url'), match.group('repo'), parsed_url.scheme)
 
 
 @dataclass(frozen=True)
@@ -188,7 +199,13 @@ class StandardVersion(Version):
     def __le__(self, other):
         return other == self or self < other
 
-    def __eq__(self, other):
+    def equals_to(self, other, compare_locals: bool):
+        """
+        compare two version, with/without taking into consideration the local part
+        :param compare_locals: if true, will take into consideration the local part
+        :param other: the version to compare to
+        """
+
         if not isinstance(other, StandardVersion):
             return False
 
@@ -198,7 +215,10 @@ class StandardVersion(Version):
                and v1.pre_release == v2.pre_release \
                and v1.post_release == v2.post_release \
                and v1.dev_release == v2.dev_release \
-               and v1.local_label == v2.local_label  # noqa
+               and (not compare_locals or self.local_label == other.local_label)  # noqa
+
+    def __eq__(self, other):
+        return self.equals_to(other, True)
 
     @staticmethod
     def normalized(v1: "StandardVersion", v2: "StandardVersion") -> Tuple["StandardVersion", "StandardVersion"]:

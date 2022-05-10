@@ -4,8 +4,9 @@ from dataclasses import dataclass, replace
 from typing import Optional, List, TYPE_CHECKING
 
 from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentMarker
+from pkm.api.versions.version import UrlVersion
 from pkm.api.versions.version_parser import VersionParser
-from pkm.api.versions.version_specifiers import VersionSpecifier, AnyVersion
+from pkm.api.versions.version_specifiers import VersionSpecifier, VersionMatch, AllowAllVersions
 from pkm.utils.parsers import SimpleParser
 
 if TYPE_CHECKING:
@@ -23,7 +24,7 @@ class Dependency:
     """
 
     package_name: str
-    version_spec: VersionSpecifier = AnyVersion
+    version_spec: VersionSpecifier = AllowAllVersions
     extras: Optional[List[str]] = None
     env_marker: Optional[EnvironmentMarker] = None
 
@@ -32,6 +33,17 @@ class Dependency:
 
     def with_extras(self, extras: Optional[List[str]]) -> Dependency:
         return replace(self, extras=extras)
+
+    def required_url(self) -> Optional[UrlVersion]:
+        """
+        :return: url version if this dependency is a "url dependency"
+            (meaning, its version specifier requires specific url), None otherwise.
+        """
+
+        vspec = self.version_spec
+        if isinstance(vspec, VersionMatch) and vspec.allow and isinstance(vspec.version, UrlVersion):
+            return vspec.version
+        return None
 
     def __str__(self):
         extras_str = f"[{','.join(self.extras)}]" if self.extras else ''
@@ -90,7 +102,7 @@ class PEP508DependencyParser(SimpleParser):
             extras = self._read_extras()
             self.match_ws()
 
-        version_spec: VersionSpecifier = AnyVersion
+        version_spec: VersionSpecifier = AllowAllVersions
         if self.peek() != ';':
             version_spec = self._read_version_spec()
             self.match_ws()

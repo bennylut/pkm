@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Union, Tuple, Dict, Optional, Callable, Any
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
@@ -26,7 +27,7 @@ class SimpleRepository(AbstractRepository):
         self._base_url = Url.parse(url).connection_part()
         self._packages: Dict[str, Dict[str, Package]] = {}  # name -> version -> package
 
-    def _do_match(self, dependency: Dependency) -> List[Package]:
+    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         if not (version_to_package := self._packages.get(dependency.package_name)):
             data = self._http_client.fetch_resource(f"{self._url}/{dependency.package_name}").data

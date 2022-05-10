@@ -236,7 +236,7 @@ class EnvironmentIntrospection(Configuration):
         # first we will precompute anything possible:
 
         my_ipt = self.interpreter_name
-        version_rx = re.compile("[0-9_]+")
+        version_rx = re.compile("[\\d_]+")
         my_ipt_version = tuple(self.interpreter_version[:2])
         if len(my_ipt_version) < 2:
             my_ipt_version += (0,)

@@ -6,7 +6,7 @@ from textwrap import dedent
 from typing import List, Union, Optional, ContextManager, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, InstallationModeInfo
+from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -138,7 +138,8 @@ class ContainerizedApplications:
                 updates=[d.package_name for d in app_config.dependencies])
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
-                .install_to(contained_target, app.descriptor.to_dependency(), InstallationModeInfo(editable=editable))
+                .install_to(contained_target, app.descriptor.to_dependency(),
+                            PackageInstallationInfo(editable=editable))
 
             contained_site.reload()
 
@@ -182,7 +183,7 @@ class ContainerizedApplications:
             app_entrypoints.entrypoints = entrypoints
             app_entrypoints.save()
 
-            dist_info.save_installation_mode_info(InstallationModeInfo(containerized=True, editable=False))
+            dist_info.save_installation_info(PackageInstallationInfo(containerized=True, editable=False))
             ct.touch(dist_info.installation_info_path())
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
 

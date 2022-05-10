@@ -163,10 +163,13 @@ class ExampleProblem(Problem):
     def get_dependencies(self, package: str, version: Version) -> List[Term]:
         return self._graph[package][str(version)]
 
-    def get_versions(self, package: str) -> List[Version]:
-        result = [Version.parse(it) for it in self._graph[package].keys()]
+    def get_versions(self, package: str) -> List[StandardVersion]:
+        result = [v for it in self._graph[package].keys() if isinstance(v := Version.parse(it), StandardVersion)]
         result.sort(reverse=True)
-        return result
+        return cast(List[StandardVersion], result)
+
+    def has_version(self, package: PKG, version: Version) -> bool:
+        return True
 
 
 def assert_solution(expected: Dict[str, str], solution: Dict[str, Version]):
