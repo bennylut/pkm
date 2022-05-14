@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
 from dataclasses import dataclass, replace
 from itertools import chain
-from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any, TypeVar, Protocol, Generic
+from typing import List, Dict, Iterable, Tuple, Optional, cast, DefaultDict, Union, Any, TypeVar, Protocol, Generic, Set
 
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionMatch, AllowAllVersions, \
-    RestrictAllVersions, StandardVersionRange
+    RestrictAllVersions
 from pkm.resolution.resolution_monitor import DependencyResolutionIterationEvent, \
     DependencyResolutionConclusionEvent, DependencyResolutionMonitoredOp
-from pkm.utils.commons import NoSuchElementException
 from pkm.utils.iterators import find_first
 from pkm.utils.sequences import argmax
 
@@ -42,21 +43,16 @@ class Term:
     package: PKG
     constraint: VersionSpecifier
 
-    # only true for a requiring dependency incompatibility
-    # means that if x requires y, the incompatibility will be [x, not y (optional)]
-    # this means that both if y not exists or not y then the incompatibility is satisfied
-    optional: bool = False
-
-    def negate(self, optional: bool = False) -> "Term":
-        return Term(self.package, self.constraint.inverse(), optional)
+    def negate(self) -> "Term":
+        return Term(self.package, self.constraint.inverse())
 
     def intersect(self, other: "Term") -> "Term":
-        assert self.package == other.package, 'cannot intesect terms of different packages'
+        assert self.package == other.package, 'cannot intersect terms of different packages'
         return Term(self.package, self.constraint.intersect_with(other.constraint))
 
     def satisfies(self, constraint: VersionSpecifier) -> bool:
         """self ⊆ term"""
-        return (self.optional and constraint is RestrictAllVersions) or constraint.allows_all(self.constraint)
+        return constraint.allows_all(self.constraint)
 
     @classmethod
     def join(cls, package: PKG, terms: Iterable["Term"]) -> "Term":
@@ -136,9 +132,7 @@ class PartialSolution:
                     if acc.decision_level == decision_level)
 
     def backtrack(self, decision_level: int):
-
         # print(f"backtrack to decision_level: {decision_level}")
-
         def filtered(lst: List[Assignment]) -> Iterable[Assignment]:
             return (ass for ass in lst if ass.decision_level <= decision_level)
 
@@ -195,7 +189,6 @@ class PartialSolution:
         if assignment.is_decision():
             # print(f"decided: {assignment}")
             self._decisions[assignment.term.package] = assignment
-            # print(f'entering decision level: {self._decision_level}')
         else:
             # print(f"derrived: {assignment}")
             ...
@@ -220,13 +213,70 @@ class IncompatibilitySatisfaction:
     def is_almost_full(self) -> bool:
         return bool(self.undecided_term)
 
+    def __str__(self):
+        if self.is_full():
+            return f"fully-satisfied: sat={self.satisfier}, pre-sat={self.prev_satisfier}"
+        if self.is_almost_full():
+            return f"almost-fully-satisfied: undecided={self.undecided_term}"
+        return "not-satisfied"
 
-@dataclass
+    @staticmethod
+    def find_satisfier(
+            solution: "PartialSolution", term: Term, next_satisfier: Optional[Assignment] = None
+    ) -> Optional[Assignment]:
+
+        if package_assignments := solution.assignments_by_package[term.package]:
+            if term.constraint.allows_all(package_assignments[-1].accumulated):
+                for assignment in package_assignments:
+                    if assignment is next_satisfier:
+                        return None
+
+                    acc = assignment.accumulated
+                    if next_satisfier:
+                        if term.constraint.allows_all(acc.intersect_with(next_satisfier.term.constraint)):
+                            return assignment
+                    elif term.constraint.allows_all(acc):
+                        return assignment
+        return None
+
+    @classmethod
+    def create_unsatisfied(cls, incompatibility: Incompatibility) -> IncompatibilitySatisfaction:
+        return cls(incompatibility)
+
+    @classmethod
+    def create_almost_full(cls, incompatibility: Incompatibility, undecided_term: Term) -> IncompatibilitySatisfaction:
+        return cls(incompatibility, undecided_term=undecided_term)
+
+    @classmethod
+    def create_full(
+            cls, incompatibility: Incompatibility, solution: PartialSolution, satisfiers: List[Assignment]
+    ) -> IncompatibilitySatisfaction:
+        satisfier_index = argmax(satisfiers, key=lambda s: s.order_index)
+        satisfier = satisfiers.pop(satisfier_index)
+
+        for term in incompatibility.terms:
+            if solution.requires(term.package):
+                satisfiers.append(solution.requiering_decision(term.package))
+
+            if term.package == satisfier.term.package:
+                if prev_satisfier := cls.find_satisfier(solution, term, satisfier):
+                    satisfiers.append(prev_satisfier)
+
+        prev_satisfier_index = argmax(satisfiers, key=lambda s: s.order_index) if satisfiers else None
+
+        return cls(
+            incompatibility, satisfier=satisfier,
+            prev_satisfier=satisfiers[prev_satisfier_index] if prev_satisfier_index is not None else None)
+
+
 class Incompatibility:
-    terms: Tuple[Term, ...]
-    internal_cause: Optional[Tuple["Incompatibility", "Incompatibility"]]
-    external_cause: Optional[str]
-    added: bool = False
+    def __init__(self, terms: Tuple[Term, ...], internal_cause: Optional[Tuple["Incompatibility", "Incompatibility"]],
+                 external_cause: Optional[str]):
+        assert not internal_cause or internal_cause[0] != internal_cause[1], "duplicated internal cause"
+
+        self.terms = terms
+        self.internal_cause = internal_cause
+        self.external_cause = external_cause
 
     def is_simple(self):
         if self.internal_cause:
@@ -244,57 +294,28 @@ class Incompatibility:
         satisfiers: List[Assignment] = []
 
         for term in self.terms:
-            satisfier: Optional[Assignment] = None
             package_assignments = assignments[term.package]
+            if package_assignments and package_assignments[-1].accumulated is RestrictAllVersions:
+                return IncompatibilitySatisfaction.create_unsatisfied(self)
 
-            if package_assignments:
-                acc = package_assignments[-1].accumulated
-                if acc is RestrictAllVersions and not term.optional:
-                    return IncompatibilitySatisfaction(self)
-
-                if term.constraint.allows_all(acc):
-                    for assignment in package_assignments:
-                        acc = assignment.accumulated
-
-                        if term.constraint.allows_all(acc):
-                            satisfier = assignment
-                            break
-
-                if not satisfier and not acc.allows_any(term.constraint):
-                    return IncompatibilitySatisfaction(self)
+        for term in self.terms:
+            satisfier = IncompatibilitySatisfaction.find_satisfier(solution, term)
+            if not satisfier and (assignments := solution.assignments_by_package[term.package]) \
+                    and not assignments[-1].accumulated.allows_any(term.constraint):
+                return IncompatibilitySatisfaction.create_unsatisfied(self)
 
             if not satisfier:
                 if not undecided_term:
                     undecided_term = term
                 else:
-                    return IncompatibilitySatisfaction(self)
+                    return IncompatibilitySatisfaction.create_unsatisfied(self)
             else:
                 satisfiers.append(satisfier)
 
         if undecided_term:
-            return IncompatibilitySatisfaction(self, undecided_term=undecided_term)
+            return IncompatibilitySatisfaction.create_almost_full(self, undecided_term)
 
-        satisfier_index = argmax(satisfiers, key=lambda s: s.order_index)
-        satisfier = satisfiers.pop(satisfier_index)
-
-        for term in self.terms:
-            if solution.requires(term.package):
-                satisfiers.append(solution.requiering_decision(term.package))
-            if term.package == satisfier.term.package:
-                for assignment in assignments[term.package]:
-                    if assignment is satisfier:
-                        break
-
-                    if term.constraint.allows_all(
-                            assignment.accumulated.intersect_with(satisfier.term.constraint)):
-                        satisfiers.append(assignment)
-                        break
-
-        prev_satisfier_index = argmax(satisfiers, key=lambda s: s.order_index) if satisfiers else None
-
-        return IncompatibilitySatisfaction(
-            self, satisfier=satisfier,
-            prev_satisfier=satisfiers[prev_satisfier_index] if prev_satisfier_index is not None else None)
+        return IncompatibilitySatisfaction.create_full(self, solution, satisfiers)
 
     def is_empty(self) -> bool:
         return not self.terms
@@ -314,9 +335,6 @@ class Incompatibility:
             if terms[0].constraint is AllowAllVersions:
                 return f"{terms[0].package} cannot be resolved"
             return f"{terms[0].package} must be {terms[0].constraint.inverse()}"
-        elif len(terms) == 2:
-            sterms = sorted(terms, key=lambda x: bool(isinstance(x.constraint, VersionMatch) and x.constraint.allow))
-            return f"{sterms[0]} requires that {sterms[1].negate()}"
 
         return f"{terms}"
 
@@ -381,7 +399,10 @@ class Incompatibility:
                     generate(dr)
                     write(incompatability, f"And because {ex}, {incompatability}")
             else:
-                write(incompatability, f"Because {ic1} and {ic2}, {incompatability}")
+                if ic2.external_cause.startswith("Compatible version for"):
+                    write(incompatability, f"Because {ic1} which is unresolved, {incompatability}")
+                else:
+                    write(incompatability, f"Because {ic1} and {ic2}, {incompatability}")
 
         generate(self)
         lines = sorted(report.values(), key=lambda x: x[0])
@@ -407,27 +428,55 @@ class Incompatibility:
         self.terms = (replace(self.terms[0], constraint=new_constraint),)
         self.external_cause = f'Compatible version for {self.terms[0]} not found'
 
-    def update_dependency(self, new_depender: Term):
-        assert len(self.terms) == 2, 'attempting to update terms for non dependency incompatability'
 
-        if not (old_depender := find_first(self.terms, lambda it: it.package != new_depender.package)):
-            raise NoSuchElementException("attempting to update dependency incompatability with a "
-                                         "term that does not belongs to it")
+class DependencyIncompatibility(Incompatibility):
+    def __init__(self, dependant: Term, dependency: Term):
+        super().__init__(
+            tuple(sorted([dependency.negate(), dependant], key=lambda x: str(x.package))), None,
+            f"{dependant} depends on {dependency}")
 
-        self.external_cause = f"{new_depender} depends on {old_depender.negate()}"
-        self.terms = tuple(sorted([old_depender, new_depender], key=lambda x: x.package))
+        self.dependant = dependant
+        self.dependency = dependency
+        self.added = False
+
+    def check_satisfaction(self, solution: "PartialSolution") -> IncompatibilitySatisfaction:
+        if dependant_assignments := solution.assignments_by_package[self.dependant.package]:
+            dependant_assignment = dependant_assignments[-1]
+            acc = dependant_assignment.accumulated
+            if acc.allows_any(self.dependant.constraint) or \
+                    (acc is not RestrictAllVersions and self.dependant.constraint.allows_all(acc)):
+                return super().check_satisfaction(solution)
+
+        return IncompatibilitySatisfaction.create_unsatisfied(self)
+
+    def update_dependant(self, new_dependant: Term):
+        package = str(new_dependant.package)
+        assert package == str(self.dependant.package), \
+            "attempting to update dependency incompatibility with a term that does not belongs to it"
+
+        self.dependant = new_dependant
+        self.terms = tuple(sorted([self.dependency.negate(), new_dependant], key=lambda x: str(x.package)))
+        self.external_cause = f"{new_dependant} depends on {self.dependency}"
 
 
 @dataclass
 class _PackageVersion:
     term: Term
-    generalized_constraint: VersionSpecifier = AllowAllVersions
+    # the effective range of this version (v2.0.0 -> range >=1.7.3, <1.0.1)
+    effective_constraint_range: VersionSpecifier = AllowAllVersions
     dependencies: Optional[Dict[PKG, "PackageDependency"]] = None
     next: Optional["_PackageVersion"] = None
 
     @property
     def version(self) -> Version:
         return cast(VersionMatch, self.term.constraint).version
+
+    def fetch_dependencies_info(self, problem: Problem):
+        if not self.dependencies:
+            version_dependencies = problem.get_dependencies(self.term.package, self.version)
+            self.dependencies = {
+                d.package: PackageDependency(d)
+                for d in version_dependencies}
 
     def compute_incompatibilities(self) -> List[Incompatibility]:
         result: List[Incompatibility] = []
@@ -450,16 +499,13 @@ class _PackageVersion:
                 incompatibility = last_requiring.dependencies[dependency.term.package].incompatibility
                 if incompatibility:
                     result.append(incompatibility)
-                    gmin, gmax = None, None
-                    if isinstance(self.generalized_constraint, StandardVersionRange):
-                        gmin, gmax = self.generalized_constraint.min, self.generalized_constraint.max
-                    incompatibility.update_dependency(
-                        Term(self.term.package, VersionSpecifier.create_range(gmin, gmax)))
+                    incompatibility.update_dependant(
+                        Term(self.term.package,
+                             incompatibility.dependant.constraint.union_with(self.effective_constraint_range)))
                     continue
 
-            nt = Term(self.term.package, self.generalized_constraint)
-            dependency.incompatibility = Incompatibility.create(
-                [nt, dependency.term.negate(True)], None, f'{nt} depends on {dependency.term}')
+            nt = Term(self.term.package, self.effective_constraint_range)
+            dependency.incompatibility = DependencyIncompatibility(nt, dependency.term)
             result.append(dependency.incompatibility)
 
         return result
@@ -471,7 +517,7 @@ class _PackageVersion:
 @dataclass
 class PackageDependency:
     term: Term
-    incompatibility: Optional[Incompatibility] = None
+    incompatibility: Optional[DependencyIncompatibility] = None
 
 
 class Problem(ABC):
@@ -519,13 +565,13 @@ class Solver(Generic[PKG_T]):
         # incompatibilities by package
         self._incompatibilities: DefaultDict[PKG, List[Incompatibility]] = defaultdict(list)
 
-    def _add_incompatability(self, incompatibility: Incompatibility):
-        if incompatibility.added:
-            return
-        incompatibility.added = True
+    def _add_incompatibility(self, incompatibility: Incompatibility):
+        if isinstance(incompatibility, DependencyIncompatibility):
+            if incompatibility.added:
+                return True
+            incompatibility.added = True
 
         # print(f'adding incompatibility: {incompatibility}')
-
         for term in incompatibility.terms:
             term_incompatibilities = self._incompatibilities[term.package]
             if incompatibility not in term_incompatibilities:
@@ -534,7 +580,7 @@ class Solver(Generic[PKG_T]):
     def solve(self) -> Dict[PKG_T, Version]:
         with DependencyResolutionMonitoredOp() as mop:
             root_term = self.package_versions(self._root_package)[0].term
-            self._add_incompatability(
+            self._add_incompatibility(
                 Incompatibility.create([root_term.negate()], external_cause='Root Project'))
 
             self._solution.require([root_term.package])
@@ -553,28 +599,17 @@ class Solver(Generic[PKG_T]):
     def _propagate(self, next_package: PKG):
 
         # print("#### unit propagation ####")
-
         changed = {next_package}
 
         while changed:
             package = changed.pop()
 
-            for incompatibility in reversed(self._incompatibilities[package]):
+            for incompatibility in list(reversed(self._incompatibilities[package])):
                 satisfaction: IncompatibilitySatisfaction = incompatibility.check_satisfaction(self._solution)
                 if satisfaction.is_full():
-
                     # print(f"incompatibility: {incompatibility} satisfied, entering conflict resolution")
-                    new_incompatibility = self._resolve_conflict(incompatibility, satisfaction)
-                    # print(f"conflict resolution resulted with incompatibility {new_incompatibility}")
-                    satisfaction = new_incompatibility.check_satisfaction(self._solution)
+                    changed.add(self._resolve_conflict(incompatibility, satisfaction))
 
-                    assert satisfaction.is_almost_full(), \
-                        "new incompatibility resulted after conflict resolution is not almost satisfied"
-
-                    term = satisfaction.undecided_term
-                    self._solution.assign(term.negate(), new_incompatibility)
-                    # changed = {term.package}
-                    changed.add(term.package)
                 elif satisfaction.is_almost_full():
                     term = satisfaction.undecided_term
                     # print(f"incompatibility {incompatibility} is almost full, undecided_term is {term}")
@@ -582,15 +617,15 @@ class Solver(Generic[PKG_T]):
                     changed.add(term.package)
 
     def _is_tautology(self, incompatibility: Incompatibility) -> bool:
-        return not incompatibility.terms or (
-                len(incompatibility.terms) == 1 and incompatibility.terms[0].package == self._root_package)
+        return not (terms := incompatibility.terms) or \
+               (len(terms) == 1 and terms[0].package == self._root_package)
 
     def _resolve_conflict(
-            self, incompatibility: Incompatibility, satisfaction: IncompatibilitySatisfaction) -> Incompatibility:
+            self, incompatibility: Incompatibility, satisfaction: IncompatibilitySatisfaction) -> PKG:
 
         # print("#### conflict resolution ####")
-
         original_incompatibility = incompatibility
+
         while True:
             # print(f"enter conflict resolution loop with {incompatibility}")
             for term in incompatibility.terms:
@@ -604,33 +639,54 @@ class Solver(Generic[PKG_T]):
 
             prev_satisfier = satisfaction.prev_satisfier
             prev_satisfier_level = prev_satisfier.decision_level if prev_satisfier else 0
-
             # print(f"satisfier: {satisfier}, prev_satisfier: {prev_satisfier}")
 
             if satisfier.is_decision() or prev_satisfier_level < satisfier.decision_level:
                 self._solution.backtrack(prev_satisfier_level)
                 if incompatibility is not original_incompatibility:
-                    self._add_incompatability(incompatibility)
-                return incompatibility
+                    self._add_incompatibility(incompatibility)
 
-            prior_cause_terms = [
+                satisfaction = incompatibility.check_satisfaction(self._solution)
+                assert satisfaction.is_almost_full(), \
+                    "new incompatibility resulted after conflict resolution is not almost satisfied"
+
+                term = satisfaction.undecided_term
+                # print(f"conflict happened because {term}, rejecting this assignment from now on")
+                self._solution.assign(term.negate(), incompatibility)
+                return term.package
+
+            prior_cause_terms: Set[Term] = {
                 term for term in chain(incompatibility.terms, satisfier.cause.terms)
-                if term.package != satisfier.term.package]
+                if term.package != satisfier.term.package}
 
-            if not term.optional and (not satisfier.term.satisfies(term.constraint) or not prior_cause_terms):
-                prior_cause_terms.append(
+            assert satisfier.cause != incompatibility  # this massup the error reporting...
+            if not satisfier.term.satisfies(term.constraint) or not prior_cause_terms:
+                prior_cause_terms.add(
                     Term(satisfier.term.package,
-                         satisfier.term.constraint.difference_from(term.constraint).inverse(),
-                         False)
-                )
+                         # satisfier.term.constraint.difference_from(term.constraint).inverse()))
+                         satisfier.accumulated.difference_from(term.constraint).inverse()))
 
+            prev_incompatibility = incompatibility
             incompatibility = Incompatibility.create(
-                prior_cause_terms, internal_cause=(satisfier.cause, incompatibility))
+                list(prior_cause_terms), internal_cause=(satisfier.cause, incompatibility))
+
+            if len(prior_cause_terms) == 0:
+                self._solution.backtrack(0)
+                self._solution.assign(Term(term.package, RestrictAllVersions), cause=incompatibility)
+                return term.package
 
             # print(f"root cause: {incompatibility}")
 
             if not self._is_tautology(incompatibility):
                 satisfaction = incompatibility.check_satisfaction(self._solution)
+
+                if not satisfaction.is_full():
+                    print("DBG")
+                    incompatibility.check_satisfaction(self._solution)
+
+                assert satisfaction.is_full(), \
+                    f"incompatibility: {prev_incompatibility} resulted in " \
+                    f"root cause: {incompatibility} that is not satisfied"
 
     def package_versions(self, package: PKG) -> List[_PackageVersion]:
         versions = self._package_versions.get(package)
@@ -645,17 +701,17 @@ class Solver(Generic[PKG_T]):
                 sorted_versions[i].next = sorted_versions[i + 1]
 
             if len(sorted_versions) == 1:
-                sorted_versions[0].generalized_constraint = AllowAllVersions
+                sorted_versions[0].effective_constraint_range = AllowAllVersions
             elif sorted_versions:
                 for i in range(1, len(versions) - 1):
-                    sorted_versions[i].generalized_constraint = VersionSpecifier.create_range(
+                    sorted_versions[i].effective_constraint_range = VersionSpecifier.create_range(
                         min_=cast(StandardVersion, sorted_versions[i - 1].version),
-                        max_=cast(StandardVersion, sorted_versions[i + 1].version))
-                sorted_versions[0].generalized_constraint = VersionSpecifier.create_range(
-                    max_=cast(StandardVersion, sorted_versions[1].version))
-                sorted_versions[-1].generalized_constraint = VersionSpecifier.create_range(
-                    min_=cast(StandardVersion, sorted_versions[-1].version),
-                    includes_min=True)
+                        max_=cast(StandardVersion, sorted_versions[i].version), includes_max=True)
+
+                sorted_versions[0].effective_constraint_range = VersionSpecifier.create_range(
+                    max_=cast(StandardVersion, sorted_versions[0].version), includes_max=True)
+                sorted_versions[-1].effective_constraint_range = VersionSpecifier.create_range(
+                    min_=cast(StandardVersion, sorted_versions[-2].version))
 
         return versions
 
@@ -670,11 +726,12 @@ class Solver(Generic[PKG_T]):
         for conflict in conflicts:
             dependency: Term = find_first(conflict.terms, lambda it: it.package != package)
             dependency_assignments = self._solution.assignments_by_package[dependency.package]
+            dependency_requirement = dependency.constraint.inverse()
             if len(dependency_assignments) > 1 and dependency_assignments[-1].is_decision():
                 actual_limitation = dependency_assignments[-2].accumulated
-                if actual_limitation.allows_any(dependency.constraint):
+                if actual_limitation.allows_any(dependency_requirement):
                     # print(f"{package} is conflicting with {dependency.package}, it requires that ", end='')
-                    # print(f"{dependency.constraint.inverse()} but it actual limitation is '{actual_limitation}'")
+                    # print(f"{dependency_requirement} but it actual limitation in solution is '{actual_limitation}'")
                     dlevel = dependency_assignments[-1].decision_level - 1
                     minor_adjustment_dlevel = dlevel if minor_adjustment_dlevel == -1 \
                         else min(dlevel, minor_adjustment_dlevel)
@@ -697,7 +754,6 @@ class Solver(Generic[PKG_T]):
             return None
 
         # print(f"undecided packages: {undecided_packages}")
-
         package_matching_versions: Dict[PKG, List[_PackageVersion]] = {}
         for package in undecided_packages:
             acc_assignment = self._solution.assignments_by_package[package][-1].accumulated
@@ -734,23 +790,19 @@ class Solver(Generic[PKG_T]):
                         [Term(package, acc_assignment)],
                         external_cause=f'Compatible version for [{package} {acc_assignment}] not found')
                     self._package_availability_incompatibilities[package] = ic
-                    self._add_incompatability(ic)
+                    self._add_incompatibility(ic)
                 return package
 
             version = versions.pop(0)
             # print(f"version: {version} match our term")
 
-            if not version.dependencies:
-                try:
-                    version_dependencies = self._problem.get_dependencies(package, version.version)
-                    version.dependencies = {
-                        d.package: PackageDependency(d)
-                        for d in version_dependencies}
-                except MalformedPackageException:
-                    import traceback
-                    traceback.print_exc()
-                    print(f"version: {version} discovered to be malformed")
-                    continue  # retry with another version
+            try:
+                version.fetch_dependencies_info(self._problem)
+            except MalformedPackageException:
+                import traceback
+                traceback.print_exc()
+                print(f"version: {version} discovered to be malformed")
+                continue  # retry with another version
             break
 
         incompatibilities = self._add_dependency_incompatibilities(version)
@@ -778,6 +830,6 @@ class Solver(Generic[PKG_T]):
     def _add_dependency_incompatibilities(self, version: _PackageVersion) -> List[Incompatibility]:
         incompatibilities = version.compute_incompatibilities()
         for incompatibility in incompatibilities:
-            self._add_incompatability(incompatibility)
+            self._add_incompatibility(incompatibility)
 
         return incompatibilities

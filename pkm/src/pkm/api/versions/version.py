@@ -121,6 +121,21 @@ class StandardVersion(Version):
             return replace(self, release=self.release[:2])
         return self
 
+    def standartize(self) -> "StandardVersion":
+        release = self.release
+        while len(release) > 1 and release[-1] == 0:
+            release = release[:-1]
+
+        post, dev = self.post_release, self.dev_release
+        post = None if post == 0 else post
+        dev = None if dev == 0 else dev
+
+        return replace(self, release=release, post_release=post, dev_release=dev)
+
+    def __hash__(self):
+        s = self.standartize()
+        return hash((s.release, s.epoch, s.dev_release, s.post_release, s.pre_release, s.local_label))
+
     def is_pre_or_dev_release(self) -> bool:
         return self.pre_release is not None or self.dev_release is not None
 

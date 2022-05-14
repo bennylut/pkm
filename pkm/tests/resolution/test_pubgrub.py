@@ -145,6 +145,21 @@ class TestSolver(TestCase):
 
         assert_failure(lambda: Solver(problem).solve())
 
+    # def test_error_reporting(self):
+    #     # GOOD
+    #     # problem = ExampleProblem({
+    #     #     'root 1.0.0': ['foo ==1.0.0']
+    #     # })
+    #
+    #     problem = ExampleProblem({
+    #         'root 1.0.0': ['foo *'],
+    #         'foo 1.0.0': ['bar ==1.0.0'],
+    #         'foo 2.0.0': ['bar ==2.0.0'],
+    #         'foo 3.0.0': ['bar ==2.0.0']
+    #     })
+    #
+    #     Solver(problem).solve()
+
 
 class ExampleProblem(Problem):
 

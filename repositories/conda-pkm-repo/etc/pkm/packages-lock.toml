@@ -1,1 +1,1 @@
-lock = []
+lock = [ {env_markers_hash = "bd61a601a82b4ae163cc23ed3186418f", package = {name = "pkm", version = "0.4.40"}},  {env_markers_hash = "bd61a601a82b4ae163cc23ed3186418f", package = {name = "conda-pkm-repo", version = "0.1.0"}}]

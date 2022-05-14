@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod, ABC
+from dataclasses import dataclass
 from typing import List, Optional, Set
 
 from pkm.api.versions.version import Version, StandardVersion, UrlVersion
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.iterators import first_or_raise
 from pkm.utils.seqs import seq
+from pkm.utils.sequences import oseq_hash, useq_hash
 
 
 class VersionSpecifier(ABC):
@@ -72,7 +74,7 @@ class VersionSpecifier(ABC):
 
         eq = min_ == max_
         assert not (eq and includes_min != includes_max), \
-            "min == max  but includes_min != includes_max "
+            f"{min_}(min) == {max_}(max) but includes_min != includes_max "
 
         if min_ is None and max_ is None:
             return AllowAllVersions
@@ -86,6 +88,7 @@ class VersionSpecifier(ABC):
         return StandardVersionRange(min_, max_, includes_min, includes_max)
 
 
+@dataclass(unsafe_hash=True)
 class _RestrictAll(VersionSpecifier):
 
     def inverse(self) -> VersionSpecifier:
@@ -119,6 +122,7 @@ class _RestrictAll(VersionSpecifier):
 RestrictAllVersions = _RestrictAll()
 
 
+@dataclass(unsafe_hash=True)
 class _AllowAll(VersionSpecifier):
 
     def inverse(self) -> VersionSpecifier:
@@ -158,13 +162,17 @@ class _AllowAll(VersionSpecifier):
 AllowAllVersions = _AllowAll()
 
 
+@dataclass
 class VersionsUnion(VersionSpecifier):
+    segments: List[VersionSpecifier]
 
-    def __init__(self, segments: List[VersionSpecifier]):
-        self.segments = segments
+    def __post_init__(self):
+        assert len(self.segments) > 1
+        assert all(it is not RestrictAllVersions and it is not AllowAllVersions for it in self.segments)
         self.segments.sort()
 
-        assert len(segments) > 1
+    def __hash__(self):
+        return oseq_hash(self.segments)
 
     def allows_pre_or_dev_releases(self) -> bool:
         return any(it.allows_pre_or_dev_releases() for it in self.segments)
@@ -228,18 +236,21 @@ class VersionsUnion(VersionSpecifier):
         return result
 
 
+@dataclass
 class HetroVersionIntersection(VersionSpecifier):
-    def __init__(self, blacklist: Set[Version], standard_spec: VersionSpecifier):
-        assert len(blacklist) > 0, "blacklist must be larger than 0"
-        assert standard_spec is not RestrictAllVersions
-        # assert all(not isinstance(it, StandardVersion) for it in blacklist)
+    blacklist: Set[Version]
+    standard_spec: VersionSpecifier
 
-        self.blacklist = blacklist
-        self.standard_spec = standard_spec
+    def __post_init__(self):
+        assert len(self.blacklist) > 0, "blacklist must be larger than 0"
+        assert self.standard_spec is not RestrictAllVersions
 
     def allows_pre_or_dev_releases(self) -> bool:
         return self.standard_spec.allows_pre_or_dev_releases() \
                or any(it.is_pre_or_dev_release() for it in self.blacklist)
+
+    def __hash__(self):
+        return (7 * 31 + useq_hash(self.blacklist)) * 31 + hash(self.standard_spec)
 
     def allows_version(self, version: Version) -> bool:
         if version in self.blacklist:
@@ -303,7 +314,10 @@ class HetroVersionIntersection(VersionSpecifier):
         raise UnsupportedOperationException()
 
     def inverse(self) -> VersionSpecifier:
-        return VersionsUnion([*(VersionMatch(it) for it in self.blacklist), self.standard_spec.inverse()])
+        union = [*(VersionMatch(it) for it in self.blacklist)]
+        if self.standard_spec is not AllowAllVersions:
+            union.append(self.standard_spec.inverse())
+        return VersionsUnion(union)
 
     def __str__(self) -> str:
         result = ", ".join(f"!={it}" for it in self.blacklist)
@@ -348,11 +362,10 @@ class HetroVersionIntersection(VersionSpecifier):
         return HetroVersionIntersection(blacklist, standard_spec)
 
 
+@dataclass(unsafe_hash=True)
 class VersionMatch(VersionSpecifier):
-
-    def __init__(self, version: Version, allow: bool = True):
-        self.version = version
-        self.allow = allow
+    version: Version
+    allow: bool = True
 
     def allows_pre_or_dev_releases(self) -> bool:
         return self.allow and self.version.is_pre_or_dev_release()
@@ -459,20 +472,18 @@ class VersionMatch(VersionSpecifier):
         return RestrictAllVersions if self.allow else other
 
 
+@dataclass(unsafe_hash=True)
 class StandardVersionRange(VersionSpecifier):
+    min: Optional[StandardVersion]
+    max: Optional[StandardVersion]
+    includes_min: bool
+    includes_max: bool
 
-    def __init__(self, min_: Optional[StandardVersion], max_: Optional[StandardVersion],
-                 includes_min: bool, includes_max: bool):
-
-        self.min = min_
-        self.max = max_
-        self.includes_min = includes_min
-        self.includes_max = includes_max
-
-        assert min_ or max_, "either min or max should be provided"
-        assert not includes_min or min_, "cannot include min if min is not provided"
-        assert not includes_max or max_, "cannot include max if max is not provided"
-        assert not min_ or not max_ or min_ < max_, f"min ({min_}) must be < max ({max_}) "
+    def __post_init__(self):
+        assert self.min or self.max, "either min or max should be provided"
+        assert not self.includes_min or self.min, "cannot include min if min is not provided"
+        assert not self.includes_max or self.max, "cannot include max if max is not provided"
+        assert not self.min or not self.max or self.min < self.max, f"min ({self.min}) must be < max ({self.max}) "
 
     def allows_pre_or_dev_releases(self) -> bool:
         return (self.min and self.min.is_pre_or_dev_release()) or (self.max and self.max.is_pre_or_dev_release())
@@ -571,7 +582,12 @@ class StandardVersionRange(VersionSpecifier):
                 imin = self.includes_min and other.includes_min
             if self.max == other.max:
                 imax = self.includes_max and other.includes_max
-            return VersionSpecifier.create_range(other.min, self.max, imin, imax)
+
+            max_ = self.max
+            if not max_ or (other.max and self.max > other.max):
+                max_, imax = other.max, other.includes_max
+
+            return VersionSpecifier.create_range(other.min, max_, imin, imax)
         if self.includes_max and other.includes_min and self.max == other.min:
             return VersionMatch(self.max, True)
 

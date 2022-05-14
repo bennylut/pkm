@@ -100,7 +100,9 @@ class _PkmPackageInstallationProblem(Problem):
 
     def get_versions(self, package: _Pkg) -> List[StandardVersion]:
         all_packages = self._prefetch(package).result()
-        packages = [p for p in all_packages if p.is_compatible_with(self._env)]
+        # packages = [p for p in all_packages if p.is_compatible_with(self._env)]
+        # make versions unique
+        packages = list({p.version: p for p in all_packages if p.is_compatible_with(self._env)}.values())
 
         for package in packages:
             self.opened_packages[replace(package.descriptor, name=package.descriptor.name.lower())] = package

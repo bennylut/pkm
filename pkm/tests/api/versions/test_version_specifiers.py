@@ -56,6 +56,9 @@ class TestVersionSpecifiers(TestCase):
         assert s.allows_all(s)
         assert not s.allows_any(s.inverse())
 
+        assert spec(">5.4.0, <8.2.0").allows_all(spec(">=7.2.0, <=7.5.0"))
+        assert spec('>1.0.1').allows_all(spec('>=1.1.0, <1.1.1'))
+
     def test_parsing(self):
         assert_spec(spec("== 1.1"), "==1.1")
         assert_spec(spec("== 1.1.post1"), "==1.1.post1")
@@ -89,6 +92,7 @@ class TestVersionSpecifiers(TestCase):
         assert_spec(v1.difference_from(v2), '==1.2.3')
         assert_spec(spec("<2.0").intersect_with(RestrictAllVersions), '<none>')
 
+
     def test_range_set_operations(self):
         v1 = ver("1.2.3")
         v2 = ver("2.0.0")
@@ -117,6 +121,7 @@ class TestVersionSpecifiers(TestCase):
         assert_spec(spec('>=0.3.1, <=0.3.3').intersect_with(u), '>=0.3.1, <=0.3.2')
 
         assert_spec(spec(">=4.62").intersect_with(spec(">=4.62,<4.65")), ">=4.62, <4.65")
+        assert_spec(spec("<=5.4.0").union_with(spec(">=7.3.0, <=8.2.0")))
 
     def test_star_operations(self):
         all_ = AllowAllVersions

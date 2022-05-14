@@ -13,9 +13,11 @@
 - refactoring: rename version specifiers according to pep440
 
 ## DONE IN THIS VERSION
-- versions algebra full rewrite - faster, simpler to read and support hetrogenious versions intersection
-- refactoring: repository should get the required environment in match
-- refactoring: repository should filter pre-releases based on rules - no need for flags..
+- major update to pubgrub:
+  - reduce complexity of some of its operations
+  - speed enhancements 
+  - simplify and improve output
+  - fix wrong output when unable to resolve problem
 
 ## BACKLOG TASKS:
 
