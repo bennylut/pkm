@@ -254,7 +254,7 @@ class WheelFileConfiguration(FileConfiguration):
     @classmethod
     def load(cls, path: Path):
         if not path.exists():
-            raise UnsupportedOperationException(f"wheel does not contain WHEEL file in dist-info")
+            return cls(path=path, data={})
 
         seperator_rx = re.compile("\\s*:\\s*")
         lines = (line.strip() for line in path.read_text().splitlines())
@@ -311,7 +311,7 @@ class RecordsFileConfiguration(FileConfiguration):
 
                 hash_sig = get_or_compute(
                     precomputed_hashes, path,
-                    lambda: HashSignature.create_urlsafe_base64_nopad_encoded('sha256', file))
+                    lambda: HashSignature.compute_urlsafe_base64_nopad_encoded('sha256', file))
 
                 records.append(Record(
                     path,

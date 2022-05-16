@@ -6,9 +6,9 @@ from typing import List, Optional, Set
 
 from pkm.api.versions.version import Version, StandardVersion, UrlVersion
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.hashes import HashBuilder
 from pkm.utils.iterators import first_or_raise
 from pkm.utils.seqs import seq
-from pkm.utils.sequences import oseq_hash, useq_hash
 
 
 class VersionSpecifier(ABC):
@@ -172,7 +172,7 @@ class VersionsUnion(VersionSpecifier):
         self.segments.sort()
 
     def __hash__(self):
-        return oseq_hash(self.segments)
+        return HashBuilder().ordered_seq(self.segments).build()
 
     def allows_pre_or_dev_releases(self) -> bool:
         return any(it.allows_pre_or_dev_releases() for it in self.segments)
@@ -250,7 +250,7 @@ class HetroVersionIntersection(VersionSpecifier):
                or any(it.is_pre_or_dev_release() for it in self.blacklist)
 
     def __hash__(self):
-        return (7 * 31 + useq_hash(self.blacklist)) * 31 + hash(self.standard_spec)
+        return HashBuilder().unordered_seq(self.blacklist).regular(self.standard_spec).build()
 
     def allows_version(self, version: Version) -> bool:
         if version in self.blacklist:

@@ -83,7 +83,7 @@ class PEP508DependencyParser(SimpleParser):
         return self.subparser(VersionParser).read_specifier()
 
     def _read_identifier(self) -> str:
-        if self.peek().isalpha():
+        if (p := self.peek()).isalpha() or p == '_':
             return self.until(lambda i, t: not t[i].isalnum() and t[i] not in '_-.')
         self.raise_err('expecting identifier')
 

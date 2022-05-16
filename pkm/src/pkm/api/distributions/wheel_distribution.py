@@ -9,7 +9,7 @@ from typing import Optional, TYPE_CHECKING, List
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
+from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo, RecordsFileConfiguration
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -83,7 +83,8 @@ class WheelDistribution(Distribution):
     @classmethod
     def install_extracted_wheel(
             cls, package: PackageDescriptor, content: Path, target: "PackageInstallationTarget",
-            user_request: Optional[Dependency] = None, installation_mode: Optional[PackageInstallationInfo] = None):
+            user_request: Optional[Dependency] = None, installation_info: Optional[PackageInstallationInfo] = None,
+            skip_record_verification: bool = False):
 
         dist_info = _find_dist_info(content, package)
 
@@ -94,30 +95,9 @@ class WheelDistribution(Distribution):
 
         site_packages = Path(target.purelib if wheel_file['Root-Is-Purelib'] == 'true' else target.platlib)
 
-        records_file = dist_info.load_record_cfg()
-        if not records_file.exists():
-            raise InstallationException(
-                f"Unsigned wheel for package {package} (no RECORD file found in dist-info)")
-
-        # check that the records hash match
-        record_by_path = {r.file: r for r in records_file.records}
-
-        for file in content.rglob("*"):
-            if file.is_dir():
-                continue
-
-            path = str(path_to(content, file))
-            if record := record_by_path.get(path):
-                if not record.hash_signature.validate_against(file):
-                    if any(it.name.endswith('.dist-info') for it in file.parents):
-                        warnings.warn(f"mismatch hash signature for {file}")
-                    else:
-                        raise InstallationException(f"File signature not matched for: {record.file}")
-
-            elif file != dist_info.path / "RECORD":
-                raise InstallationException(
-                    f"Wheel contains files with no signature in RECORD, "
-                    f"e.g., {path}")
+        records_file: RecordsFileConfiguration = dist_info.load_record_cfg()
+        if not skip_record_verification:
+            _verify_records(dist_info, content, records_file)
 
         with CopyTransaction() as ct:
             for d in content.iterdir():
@@ -163,9 +143,10 @@ class WheelDistribution(Distribution):
             new_dist_info = DistInfo.load(site_packages / dist_info.path.name)
             new_record_file = new_dist_info.load_record_cfg()
 
-            new_record_file.sign_files(ct.copied_files, site_packages, {
+            precomputed_hashes = {
                 r.file: r.hash_signature for r in records_file.records
-            })
+            } if not skip_record_verification else None
+            new_record_file.sign_files(ct.copied_files, site_packages, precomputed_hashes)
 
             new_record_file.save()
 
@@ -173,8 +154,8 @@ class WheelDistribution(Distribution):
             (new_dist_info.path / "INSTALLER").write_text(f"pkm")
             if user_request:
                 new_dist_info.mark_as_user_requested(user_request)
-            if installation_mode:
-                new_dist_info.save_installation_info(installation_mode)
+            if installation_info:
+                new_dist_info.save_installation_info(installation_info)
 
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None,
                    installation_mode: Optional[PackageInstallationInfo] = None):
@@ -202,3 +183,28 @@ def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInf
         raise InstallationException(f"wheel for {package} contains more than one possible dist-info")
 
     return DistInfo.load(dist_info[0])
+
+
+def _verify_records(dist_info: DistInfo, content: Path, records_file: RecordsFileConfiguration):
+    if not records_file.exists():
+        raise InstallationException(
+            f"Unsigned wheel for package {dist_info.package_name} (no RECORD file found in dist-info)")
+
+    # check that the records hash match
+    record_by_path = {r.file: r for r in records_file.records}
+    for file in content.rglob("*"):
+        if file.is_dir():
+            continue
+
+        path = str(path_to(content, file))
+        if record := record_by_path.get(path):
+            if not record.hash_signature.validate_against(file):
+                if any(it.name.endswith('.dist-info') for it in file.parents):
+                    warnings.warn(f"mismatch hash signature for {file}")
+                else:
+                    raise InstallationException(f"File signature not matched for: {record.file}")
+
+        elif file != dist_info.path / "RECORD":
+            raise InstallationException(
+                f"Wheel contains files with no signature in RECORD, "
+                f"e.g., {path}")

@@ -138,7 +138,7 @@ def first_or_raise(it: Iterable[_T]) -> Optional[_T]:
     :return: the first value in `it`
     """
     if (result := first(it, _SENTINAL)) is _SENTINAL:
-        raise NoSuchElementException()
+        raise NoSuchElementException("empty")
     return result
 
 

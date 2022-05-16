@@ -10,8 +10,9 @@ from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.pep517_builders.external_builders import BuildError
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
+from pkm.utils.hashes import HashBuilder
 from pkm.utils.promises import Promise
-from pkm.utils.sequences import single_or_raise, oseq_hash
+from pkm.utils.sequences import single_or_raise
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -110,6 +111,7 @@ class _PkmPackageInstallationProblem(Problem):
         return cast(List[StandardVersion], [p.version for p in packages if isinstance(p.version, StandardVersion)])
 
     def has_version(self, package: _Pkg, version: Version) -> bool:
+        print(f"DBG: checking has version for {package} == {version}")
         return bool(self._repo.match(Dependency(package.name, VersionMatch(version), package.extras), self._env))
 
 
@@ -131,10 +133,11 @@ class _Pkg:
         return str(self) < str(other)
 
     def __hash__(self):
-        h = hash(self.name)
+        hb = HashBuilder().regular(self.name)
         if self.extras:
-            h = h * 31 + oseq_hash(self.extras)
-        return h
+            hb.ordered_seq(self.extras)
+
+        return hb.build()
 
     @classmethod
     def of(cls, d: Dependency) -> _Pkg:

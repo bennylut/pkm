@@ -11,13 +11,10 @@
     - cli managed configuration
 - refactoring: repositories should by itself be a project group
 - refactoring: rename version specifiers according to pep440
+- cli dont allow working on global without the -g flag
 
 ## DONE IN THIS VERSION
-- major update to pubgrub:
-  - reduce complexity of some of its operations
-  - speed enhancements 
-  - simplify and improve output
-  - fix wrong output when unable to resolve problem
+- new hashbuilder util 
 
 ## BACKLOG TASKS:
 

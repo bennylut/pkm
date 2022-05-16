@@ -1,6 +1,8 @@
+from __future__ import annotations
+import re
 from collections import defaultdict
 
-from dataclasses import replace
+from dataclasses import replace, dataclass
 from typing import Dict, Any, Optional, List, cast, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
@@ -11,8 +13,9 @@ from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.pkm import pkm
 from pkm.api.versions.version import Version, StandardVersion, UrlVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions, VersionMatch, VersionsUnion, \
-    StandardVersionRange
+    StandardVersionRange, RestrictAllVersions
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.hashes import HashBuilder
 from pkm.utils.iterators import first_or_none, groupby
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import strs
@@ -71,26 +74,32 @@ class CondaChannelSubdir:
         self.channel = channel
         self.subdir = subdir
 
-        package_to_artifacts: Dict[Tuple[str, str], Dict[str, CondaSubdirPackageArtifact]] = defaultdict(dict)
+        package_to_artifacts: Dict[Tuple[str, str], List[CondaSubdirPackageArtifact]] = defaultdict(list)
         for artifact_name, artifact_info in repodata["packages"].items():
+            package_artifacts = package_to_artifacts[(artifact_info["name"], artifact_info["version"])]
+            package_artifacts.append(CondaSubdirPackageArtifact(self, artifact_name, artifact_info))
 
-            python_dep = first_or_none(
-                it == 'python' or it.startswith("python ") for it in artifact_info.get("depends") or [])
-            if not python_dep:
-                python_dep = "any"
-
-            package_dict = package_to_artifacts[(artifact_info["name"], artifact_info["version"])]
-            if other := package_dict.get(python_dep):
-                if other.build_number() > artifact_info['build_number']:
-                    continue
-
-            package_dict[python_dep] = CondaSubdirPackageArtifact(self, artifact_name, artifact_info)
-
-        packages = [CondaSubdirPackage(name, version, list(artifacts.values()))
+        packages = [CondaSubdirPackage(name, version, artifacts)
                     for (name, version), artifacts in package_to_artifacts.items()]
 
         self.packages = groupby(packages, lambda it: it.pname)
         self.repodata = repodata
+
+    def __repr__(self):
+        return f"CondaChannelSubdir({self.channel=}, {self.subdir=})"
+
+    def __hash__(self):
+        return HashBuilder().regulars(self.channel, self.subdir).build()
+
+    def match_artifacts_by_build(self, package: str, version: str, build: str) -> List[CondaSubdirPackageArtifact]:
+        assert build, "build must be provided"
+
+        build_matcher = re.compile(re.escape(build).replace("\\*", ".*"))
+        package_versions = self.packages.get(package) or []
+        version_spec = AllowAllVersions if version == '*' else VersionSpecifier.parse(f"=={version}")
+        allowed_packages = [p for p in package_versions if version_spec.allows_version(p.version)]
+        return [artifact for p in allowed_packages for artifact in p.artifacts
+                if build_matcher.match(artifact.info['build'])]
 
     def general_package(self, package: str) -> List[Package]:
         return self.packages.get(package) or []
@@ -103,39 +112,56 @@ class CondaChannelSubdir:
         return None
 
 
-class CondaSubdirPackageArtifact:
+def _parse_specifier(spec: str) -> VersionSpecifier:
+    if spec[0] in _RELATIVE_OPS_PREFIXES:
+        return VersionSpecifier.parse(spec)
+    if spec == "*":
+        return AllowAllVersions
+    if spec.endswith(".*"):
+        return VersionSpecifier.parse(f"~={spec[:-2]}.0")
+    return VersionMatch(Version.parse(spec))
 
-    def __init__(self, container: CondaChannelSubdir, artifact: str, info: Dict[str, Any]):
-        self.info = info
-        self.container = container
-        self.artifact = artifact
+
+@dataclass
+class CondaSubdirPackageArtifact:
+    container: CondaChannelSubdir
+    artifact: str
+    info: Dict[str, Any]
+
+    def __hash__(self):
+        return HashBuilder().regulars(self.container, self.artifact).build()
 
     @cached_property
     def _all_dependencies(self) -> List[Dependency]:
         dependencies: List[str] = self.info["depends"]
         return [self._parse_dependency(d) for d in dependencies]
 
-    def _parse_specifier(self, spec: str) -> VersionSpecifier:
-        if spec[0] in _RELATIVE_OPS_PREFIXES:
-            return VersionSpecifier.parse(spec)
-        if spec == "*":
-            return AllowAllVersions
-        if spec.endswith(".*"):
-            return VersionSpecifier.parse(f"~={spec[:-2]}.0")
-        return VersionMatch(Version.parse(spec))
-
     def _parse_dependency(self, dstr: str) -> Dependency:
         parts = dstr.split(" ")
         if len(parts) == 1:
             return Dependency(parts[0])
         elif len(parts) == 2:
-            options = [self._parse_specifier(it) for it in parts[1].split("|")]
+            options = [_parse_specifier(it) for it in parts[1].split("|")]
             if len(options) == 1:
                 return Dependency(parts[0], options[0])
             return Dependency(parts[0], VersionsUnion(options))
         else:
-            url = f"conda+{self.container.channel}/{self.container.subdir}/{parts[0]}-{parts[1]}-{parts[2]}.tar.bz2"
-            return Dependency(parts[0], VersionMatch(UrlVersion.parse(url)))
+
+            artifacts = self.container.match_artifacts_by_build(parts[0], parts[1], parts[2])
+            matches = [
+                VersionMatch(UrlVersion.parse(f"conda+{self.container.channel}/{self.container.subdir}/{a.artifact}"))
+                for a in artifacts]
+
+            if not matches:
+                spec = RestrictAllVersions
+                print("DBG")
+                self.container.match_artifacts_by_build(parts[0], parts[1], parts[2])
+            elif len(matches) == 1:
+                spec = matches[0]
+            else:
+                spec = VersionsUnion(matches)
+
+            return Dependency(parts[0], spec)
 
     def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
         return [
@@ -172,13 +198,17 @@ class CondaSubdirPackageArtifact:
 class CondaSubdirPackage(Package):
 
     def __init__(self, name: str, version: str, artifacts: List[CondaSubdirPackageArtifact]):
-        self._artifacts = artifacts
+        self.artifacts = artifacts
         self.pname = name
         self._ver = version
 
     def _best_artifact_for(self, env: Environment) -> Optional[CondaSubdirPackageArtifact]:
-        scored_artifacts = {a: score for a in self._artifacts
-                            if (score := env.compatibility_tag_score(a.compatibility_tag)) is not None}
+        scored_artifacts = {
+            a: (tag_score, a.build_number())
+            for a in self.artifacts
+            if (tag_score := env.compatibility_tag_score(a.compatibility_tag)) is not None
+               and all(d.version_spec is not RestrictAllVersions for d in a.dependencies(env, [])) # noqa
+        }
 
         if not scored_artifacts:
             return None
@@ -200,11 +230,11 @@ class CondaSubdirPackage(Package):
 
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
                    editable: bool = True):
-        artifact = self._best_artifact_for(target.env)
+        artifact: CondaSubdirPackageArtifact = self._best_artifact_for(target.env)
         if not artifact:
             raise UnsupportedOperationException("asking to install inside unsupported environment")
 
         url = f"{artifact.container.channel}/{artifact.container.subdir}/{artifact.artifact}"
-        artifact = pkm.httpclient.fetch_resource(url).data
-        dist = CondaDistribution(self.descriptor, artifact)
+        artifact_path = pkm.httpclient.fetch_resource(url).data
+        dist = CondaDistribution(self.descriptor, artifact_path)
         dist.install_to(target, user_request, PackageInstallationInfo(compatibility_tag=artifact.compatibility_tag))

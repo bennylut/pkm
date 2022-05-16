@@ -187,10 +187,15 @@ class CopyTransaction:
         if target.exists():
             self.rm(target)
 
-        if not target.parent.exists():
-            self.mkdir(target.parent)
+        try:
+            shutil.copy(source, target)
+        except FileNotFoundError:
+            if not target.exists():
+                self.mkdir(target.parent)
+                shutil.copy(source, target)
+            else:
+                raise
 
-        shutil.copy(source, target)
         self._copied_files.add(target)
 
     @property

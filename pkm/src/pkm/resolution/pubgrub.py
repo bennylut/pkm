@@ -133,6 +133,7 @@ class PartialSolution:
 
     def backtrack(self, decision_level: int):
         # print(f"backtrack to decision_level: {decision_level}")
+
         def filtered(lst: List[Assignment]) -> Iterable[Assignment]:
             return (ass for ass in lst if ass.decision_level <= decision_level)
 
@@ -443,6 +444,7 @@ class DependencyIncompatibility(Incompatibility):
         if dependant_assignments := solution.assignments_by_package[self.dependant.package]:
             dependant_assignment = dependant_assignments[-1]
             acc = dependant_assignment.accumulated
+
             if acc.allows_any(self.dependant.constraint) or \
                     (acc is not RestrictAllVersions and self.dependant.constraint.allows_all(acc)):
                 return super().check_satisfaction(solution)
@@ -679,11 +681,6 @@ class Solver(Generic[PKG_T]):
 
             if not self._is_tautology(incompatibility):
                 satisfaction = incompatibility.check_satisfaction(self._solution)
-
-                if not satisfaction.is_full():
-                    print("DBG")
-                    incompatibility.check_satisfaction(self._solution)
-
                 assert satisfaction.is_full(), \
                     f"incompatibility: {prev_incompatibility} resulted in " \
                     f"root cause: {incompatibility} that is not satisfied"

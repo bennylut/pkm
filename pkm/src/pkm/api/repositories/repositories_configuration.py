@@ -5,7 +5,8 @@ from enum import Enum
 from typing import Optional, Any, Dict, List
 
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
-from pkm.utils.dicts import remove_none_values, udict_hash
+from pkm.utils.dicts import remove_none_values
+from pkm.utils.hashes import HashBuilder
 
 
 class RepositoriesConfigInheritanceMode(Enum):
@@ -51,13 +52,7 @@ class RepositoryInstanceConfig:
     args: Dict[str, Any]
 
     def __hash__(self):
-        h = 7
-        h = h * 31 + hash(self.type)
-        h = h * 31 + hash(self.packages)
-        h = h * 31 + hash(self.name)
-        h = h * 31 + udict_hash(self.args)
-
-        return h
+        return HashBuilder().regulars(self.type, self.packages, self.name).unordered_mapping(self.args).build()
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({
