@@ -6,21 +6,23 @@ from contextlib import contextmanager
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterator, List, Dict, Any
+from typing import Optional, Iterator, List, Dict, Any, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
-from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import HasAttachedRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import is_relative_to
 from pkm.utils.properties import cached_property
 
+if TYPE_CHECKING:
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
-class EnvironmentsZoo:
+
+class EnvironmentsZoo(HasAttachedRepository):
 
     def __init__(self, cfg: EnvironmentZooConfiguration):
         self.config = cfg
@@ -31,8 +33,9 @@ class EnvironmentsZoo:
         return self.path / ".zoo/bin"
 
     @cached_property
-    def attached_repository(self) -> Repository:
-        return pkm.repository_loader.load_for_env_zoo(self)
+    def repository_management(self) -> "RepositoryManagement":
+        from pkm.api.repositories.repository_management import ZooRepositoryManagement
+        return ZooRepositoryManagement(self)
 
     def create_environment(self, name: str, python: Dependency) -> Environment:
 

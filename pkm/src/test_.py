@@ -1,5 +1,4 @@
-from pathlib import Path
-
 from pkm.api.projects.project import Project
 
-Project.load(Path("/home/bennyl/projects/pkm-new/pkm-cli")).build()  # .install_with_dependencies()
+project = Project.load("/home/bennyl/projects/pkm-new/workspace/test-prj")
+project.attached_environment.install("numpy", updates=["numpy"], repository=project.attached_repository)

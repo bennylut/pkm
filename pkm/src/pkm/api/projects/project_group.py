@@ -1,19 +1,21 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Union, Optional, Tuple, List
+from typing import Iterable, Union, Optional, Tuple, List, TYPE_CHECKING
 
-from pkm.api.pkm import pkm
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, Authentication
+from pkm.api.repositories.repository import Repository, Authentication, HasAttachedRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
 
+if TYPE_CHECKING:
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
-class ProjectGroup:
+
+class ProjectGroup(HasAttachedRepository):
     """
     project group, like the name implies, is a group of projects
     the projects are related to themselves in a parent/children manner,
@@ -33,12 +35,13 @@ class ProjectGroup:
         return self._config
 
     @cached_property
-    def attached_repository(self) -> Repository:
-        return pkm.repository_loader.load_for_project_group(self)
-
-    @cached_property
     def environments_config(self) -> EnvironmentsConfiguration:
         return EnvironmentsConfiguration.load(self.path / ENVIRONMENT_CONFIGURATION_PATH)
+
+    @cached_property
+    def repository_management(self) -> "RepositoryManagement":
+        from pkm.api.repositories.repository_management import ProjectGroupRepositoryManagement
+        return ProjectGroupRepositoryManagement(self)
 
     @cached_property
     def parent(self) -> Optional["ProjectGroup"]:

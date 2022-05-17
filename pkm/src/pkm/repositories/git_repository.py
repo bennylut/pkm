@@ -89,7 +89,7 @@ class GitRepository(AbstractRepository):
 
         target_dir = self._workspace / dependency.package_name / url.host / url.path.lstrip('/')
         if branch:
-            target_dir = target_dir / branch
+            target_dir /= branch
 
         if target_dir.exists():
             self._git_client.update(dependency.package_name, target_dir)

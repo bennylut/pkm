@@ -16,8 +16,7 @@ from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.site_packages import SitePackages
-from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Repository
+from pkm.api.repositories.repository import Repository, HasAttachedRepository
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
@@ -30,13 +29,14 @@ from pkm.utils.types import SupportsLessThanEq
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
     from pkm.api.environments.containerized_apps import ContainerizedApplications
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
 _T = TypeVar("_T")
 
 
-class Environment:
+class Environment(HasAttachedRepository):
 
     def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, *,
                  use_user_site: bool = False, zoo: Optional["EnvironmentsZoo"] = None):
@@ -66,8 +66,9 @@ class Environment:
         return self.installation_target.app_containers
 
     @cached_property
-    def attached_repository(self) -> Repository:
-        return pkm.repository_loader.load_for_env(self)
+    def repository_management(self) -> "RepositoryManagement":
+        from pkm.api.repositories.repository_management import EnvRepositoryManagement
+        return EnvRepositoryManagement(self)
 
     @cached_property
     def _introspection(self) -> EnvironmentIntrospection:

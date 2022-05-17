@@ -9,10 +9,10 @@ from pkm.repositories.simple_repository import SimpleRepository
 from pkm.api.versions.version import StandardVersion
 from pkm.utils.commons import unone
 from pkm.utils.properties import cached_property
-from pkm_torch_repository.cuda_compatibility import CudaCompatibilityTable
+from download_torch_pkm_repo.cuda_compatibility import CudaCompatibilityTable
 
 
-class TorchRepository(AbstractRepository):
+class DownloadTorchRepository(AbstractRepository):
 
     def __init__(
             self, name: str, allow_cpu: bool,
@@ -56,16 +56,16 @@ class TorchRepository(AbstractRepository):
         return packages
 
 
-class TorchRepositoryBuilder(RepositoryBuilder):
+class DownloadTorchRepositoryBuilder(RepositoryBuilder):
 
     def __init__(self):
-        super().__init__('torch')
+        super().__init__('download-torch')
 
     @cached_property
     def _cuda_compatibility(self) -> CudaCompatibilityTable:
         return CudaCompatibilityTable.load()
 
-    def build(self, name: Optional[str], packages: Optional[List[str]], **kwargs: Any) -> Repository:
+    def build(self, name: Optional[str], packages_limit: Optional[List[str]], **kwargs: Any) -> Repository:
         allow_cpu = unone(kwargs.get('allow-cpu'), lambda: True)
 
-        return TorchRepository(name, allow_cpu, self._cuda_compatibility.compatible_cuda_versions())
+        return DownloadTorchRepository(name, allow_cpu, self._cuda_compatibility.compatible_cuda_versions())

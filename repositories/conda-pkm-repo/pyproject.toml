@@ -7,6 +7,10 @@ requires-python= ">=3.8, <4.0"
 authors = [{name="bennyl"}]
 dependencies = [ "pkm >=0.4.40, <1"]
 
+[project.entry-points.pkm-repositories]
+conda="conda_pkm_repo.pkm_extension:install"
+
+
 [build-system]
 requires=["pkm"]
 build-backend = "pkm.api.buildsys"

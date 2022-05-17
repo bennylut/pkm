@@ -1,25 +1,23 @@
 import hashlib
-
 import json
 import os
+import re
 import shutil
 from pathlib import Path
-from typing import Optional, Dict, Set, List
-import re
+from typing import Optional, Dict, Set
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import PackageInstallationInfo, DistInfo
 from pkm.api.distributions.distribution import Distribution
-from pkm.api.distributions.wheel_distribution import WheelDistribution, InstallationException
+from pkm.api.distributions.wheel_distribution import InstallationException
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.utils.archives import extract_archive
-from pkm.utils.commons import UnsupportedOperationException
-from pkm.utils.files import temp_dir, mkdir, path_to, CopyTransaction
+from pkm.utils.files import temp_dir, path_to, CopyTransaction
 from pkm.utils.hashes import HashSignature, stream
-from pkm.utils.iterators import first_or_raise, first_or_none
+from pkm.utils.iterators import first_or_none
 from pkm.utils.processes import monitored_run
 from pkm.utils.seqs import seq
 

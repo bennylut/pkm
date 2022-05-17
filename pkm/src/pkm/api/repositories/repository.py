@@ -12,6 +12,7 @@ from pkm.utils.iterators import partition
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
 
 class Repository(Protocol):
@@ -144,13 +145,28 @@ class RepositoryBuilder(ABC):
         self.name = name
 
     @abstractmethod
-    def build(self, name: Optional[str], packages: Optional[List[str]],
+    def build(self, name: str, packages_limit: Optional[List[str]],
               **kwargs: Any) -> Repository:
         """
         build a new repository instance using the given `kwargs`
         :param name: name for the created repository
-        :param packages: list of packages the user ask the repository to be limited to
+        :param packages_limit: list of packages the user ask the repository to be limited to
                 (or None if no such request was made)
         :param kwargs: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """
+
+
+class HasAttachedRepository(ABC):
+
+    @property
+    @abstractmethod
+    def repository_management(self) -> "RepositoryManagement":
+        ...
+
+    @property
+    def attached_repository(self) -> Repository:
+        """
+        :return: the repository that is attached to this artifact
+        """
+        return self.repository_management.attached_repo

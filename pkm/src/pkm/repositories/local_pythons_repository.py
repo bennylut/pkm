@@ -47,6 +47,8 @@ class InstalledPythonsRepository(AbstractRepository):
                     _DEFAULT_PKG_EXTRAS))
 
             except (ChildProcessError, CalledProcessError):
+                # import traceback
+                # traceback.print_exc()
                 pass  # skip this interpreter
 
         return sorted(result, key=lambda p: p.version, reverse=True)
@@ -99,8 +101,12 @@ _PYTHON_EXEC_RX = re.compile(r"python-?[\d.]*(.exe)?")
 
 def _interpreters_in_path() -> Set[Path]:
     path_parts = [path for it in (os.environ.get("PATH") or "").split(os.pathsep) if (path := Path(it)).exists()]
+
+    def is_python_executeable(file: Path):
+        return _PYTHON_EXEC_RX.fullmatch(file.name.lower()) and is_executable(file)
+
     return {
         file.resolve()
         for path in path_parts
         for file in path.iterdir()
-        if _PYTHON_EXEC_RX.fullmatch(file.name.lower()) and is_executable(file)}
+        if is_python_executeable(file)}

@@ -1,5 +1,5 @@
 [project]
-name = "pkm-torch-repository"
+name = "download-torch-pkm-repo"
 version = "0.1.0"
 description = "light-the-torch based repository for pkm"
 readme = "README.md"
@@ -8,7 +8,7 @@ authors = [{name="bennyl"}]
 dependencies = [ "pkm >=0.4.22, <1"]
 
 [project.entry-points.pkm-repositories]
-torch="pkm_torch_repository.entrypoint:builder"
+torch= "download_torch_pkm_repo.pkm_extension:install"
 
 [build-system]
 requires=["pkm"]

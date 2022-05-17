@@ -13,7 +13,7 @@ from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.config.configuration import TomlFileConfiguration
 from pkm.utils.properties import cached_property
 from pkm.utils.resources import ResourcePath
-from pkm_torch_repository.utils.html import BasicDomParser
+from download_torch_pkm_repo.utils.html import BasicDomParser
 
 
 @dataclass

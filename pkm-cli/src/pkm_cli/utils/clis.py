@@ -30,10 +30,15 @@ class ExtrasAppender(Action):
             raise IllegalStateException(f"no receiver for extra '{values}'")
 
         extras_list_name = f"{namespace._extras_pending}_extras"  # noqa
-        if not (extras_list := getattr(namespace, extras_list_name, None)):
-            setattr(namespace, extras_list_name, extras_list := [])
+        if not (extras_map := getattr(namespace, extras_list_name, None)):
+            setattr(namespace, extras_list_name, extras_map := {})
 
-        extras_list.extend(values)
+        for value in values:
+            if '=' in value:
+                k, d, v = value.partition('=')
+                extras_map[k] = v
+            else:
+                extras_map[value] = True
 
 
 @dataclass

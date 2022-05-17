@@ -60,7 +60,7 @@ class HashBuilder:
         """
         result = 7 * 31
         for item in seq:
-            result = result ^ item_hash(item)
+            result ^= item_hash(item)
 
         self._result = self._result * 31 + result
         return self
@@ -79,7 +79,7 @@ class HashBuilder:
         result = 0
         for k, v in m.items():
             kvh = (7 * 31 + key_hash(k)) * 31 + value_hash(v)
-            result = result ^ kvh
+            result ^= kvh
 
         self._result = self._result * 31 + result
         return self

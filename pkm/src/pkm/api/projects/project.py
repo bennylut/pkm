@@ -11,12 +11,11 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
-from pkm.api.pkm import pkm
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
     AttachedEnvironmentConfig
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmDistributionConfig, \
     PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
-from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
+from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication, HasAttachedRepository
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
@@ -28,9 +27,10 @@ if TYPE_CHECKING:
     from pkm.api.projects.project_group import ProjectGroup
     from pkm.api.environments.environment import Environment
     from pkm.api.dependencies.dependency import Dependency
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class Project(Package):
+class Project(Package, HasAttachedRepository):
 
     def __init__(self, pyproject: PyProjectConfiguration, group: Optional["ProjectGroup"] = None):
         self._path = pyproject.path.absolute().parent
@@ -60,6 +60,11 @@ class Project(Package):
         :return: the environments.toml configuration (etc/pkm/environments.toml)
         """
         return EnvironmentsConfiguration.load(self.path / ENVIRONMENT_CONFIGURATION_PATH)
+
+    @cached_property
+    def repository_management(self) -> "RepositoryManagement":
+        from pkm.api.repositories.repository_management import ProjectRepositoryManagement
+        return ProjectRepositoryManagement(self)
 
     @property
     def path(self) -> Path:
@@ -279,16 +284,12 @@ class Project(Package):
         from pkm.api.dependencies.dependency import Dependency
 
         if not Environment.is_valid(env_path):
+            if env_path.exists():
+                shutil.rmtree(env_path)
+
             return EnvironmentBuilder.create_matching(
                 env_path, Dependency('python', self.config.project.requires_python))
         return Environment(env_path)
-
-    @cached_property
-    def attached_repository(self) -> "Repository":
-        """
-        :return: the repository that is attached to this project (will be used with its attached environment)
-        """
-        return pkm.repository_loader.load_for_project(self)
 
     def build_app_sdist(self, target_dir: Optional[Path] = None) -> Path:
         """
@@ -457,7 +458,7 @@ def _update_dependencies(
              for d in save_optional_dependencies.get(optional_group, [])
              if d.package_name not in new_deps] + list(new_deps.values())
     else:
-        save_dependencies = save_dependencies + list(new_deps.values())
+        save_dependencies += list(new_deps.values())
 
     config.project = replace(
         config.project,

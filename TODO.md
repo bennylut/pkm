@@ -1,23 +1,21 @@
 ## RUNNING TASKS:
 
-- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
-- repositories: conda
-    - it seems that it will be simple enough to implement
-      myself: https://docs.conda.io/projects/conda-build/en/latest/resources/package-spec.html
-- `pkm install torch --repo download-torch +arch=cpu`, `pkm install torch --repo conda +channel=main`
-    - if such source is not defined will auto define it with the same type
-    - if type not defined will search pypi for download-torch-pkm-repo, if found will ask the user if can install
-    - for the conda, repository instance builder should support "url" based configuration
-    - cli managed configuration
-- refactoring: repositories should by itself be a project group
-- refactoring: rename version specifiers according to pep440
-- cli dont allow working on global without the -g flag
 
 ## DONE IN THIS VERSION
-- new hashbuilder util 
+
+- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
+- cli: support `pkm repos install conda` | `pkm repos install conda-pkm-repo`
+- cli: support `pkm repos add conda-main -t conda +channel='xxx' -l p1 p2 p3`
+- add the repository management class
+- repository_management: check that builder exists before adding repository
 
 ## BACKLOG TASKS:
 
+- when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
+  and git)
+- refactoring: project.install_dev belongs to the cli flow and not to main pkm
+- cli: dont allow working on global without the -g flag
+- refactoring: rename version specifiers according to pep440
 - cli consider moving install and remove into a "save" paradigm instead of '-o' use `-s` or `-S where`
 - clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
   metadata (as defined in PEP 459).
@@ -96,11 +94,11 @@
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 
-- automatic monkey patching of a module by import hooks - this hooks can be defined in the project level = extension
-  methods, this can be done with pth files and import hooks!
+- automatic monkey patching of a module - can be defined in the project level = extension methods, this can be done with
+  pth files and import hooks!
 - mechanism for lazy importing (like in java) that use the new module level "get attr" or locals:
     - can be made by a preprocessor (like: '#preprocessor: lazy imports' on the beginning of the file)
     - it will then have to replace all the type annotations into string based or something similar..
 - shim dependencies (pkm can choose to install them with the shim name instead of the lib name)
 - python installation repository (no sudo! - download for os and install in data files - if possible)
-- containerized applications (a prototype was previously made, it requires some hacking but it is possible)
+- tranpilation between python version (babel kind) in the build process to produce suitable wheels

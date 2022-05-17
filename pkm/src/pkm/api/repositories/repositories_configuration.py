@@ -49,10 +49,14 @@ class RepositoryInstanceConfig:
     type: str
     packages: Optional[List[str]]  # use to limit to the repository to only the given packages
     name: Optional[str]
-    args: Dict[str, Any]
+    args: Dict[str, str]
 
     def __hash__(self):
-        return HashBuilder().regulars(self.type, self.packages, self.name).unordered_mapping(self.args).build()
+        return HashBuilder() \
+            .regulars(self.type, self.name) \
+            .unordered_mapping(self.args) \
+            .unordered_seq(self.packages) \
+            .build()
 
     def to_config(self) -> Dict[str, Any]:
         return remove_none_values({

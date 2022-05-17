@@ -12,7 +12,7 @@ from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.pkm import pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
-from pkm.api.repositories.repository import Authentication
+from pkm.api.repositories.repository import Authentication, HasAttachedRepository
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
@@ -23,7 +23,32 @@ from pkm_cli.reports.environment_report import EnvironmentReport
 from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
-from pkm_cli.utils.clis import command, Arg, create_args_parser, Command
+from pkm_cli.utils.clis import command, Arg, create_args_parser, Command, with_extras
+
+
+@command('pkm repos install', Arg('names', nargs=argparse.REMAINDER))
+def install_repos(args: Namespace):
+    if not args.global_context:
+        raise UnsupportedOperationException("repository installation is only supported in global context (add -g)")
+
+    global_env = Environment.current()
+    target = global_env.installation_target
+    if pkm_container := global_env.app_containers.container_of('pkm'):
+        target = pkm_container.installation_target
+    target.install([Dependency.parse(it) for it in args.names])
+
+
+@command(
+    'pkm repos add',
+    Arg("name"),
+    Arg(["-t", "--type"], action=with_extras(), required=True),
+    Arg(['-l', '--limit-to'], nargs="+", required=False))
+def add_repo(args: Namespace):
+    def add(with_repo: HasAttachedRepository):
+        with_repo.repository_management.add_repository(args.name, args.type, args.type_extras, args.limit_to)
+
+    on_environment, on_project, on_project_group, = add, add, add
+    Context.of(args).run(**locals())
 
 
 @command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))

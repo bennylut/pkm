@@ -115,7 +115,7 @@ class SimpleRepositoryBuilder(RepositoryBuilder):
         super().__init__("simple")
         self._http_client = http_client
 
-    def build(self, name: Optional[str], packages: Optional[List[str]], **kwargs: Any) -> Repository:
+    def build(self, name: Optional[str], packages_limit: Optional[List[str]], **kwargs: Any) -> Repository:
         if not (url := kwargs.get('url')):
             raise KeyError("url field is required to build 'simple' repository")
         return SimpleRepository(name or url, self._http_client, str(url).rstrip('/'))

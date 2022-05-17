@@ -17,8 +17,8 @@ _REPODATA_PATH = "repodata.json.bz2"
 
 class CondaRepository(AbstractRepository):
 
-    def __init__(self, channel: str = _DEFAULT_CHANNEL):
-        super().__init__("conda")
+    def __init__(self, name: str, channel: str = _DEFAULT_CHANNEL):
+        super().__init__(name)
         self.channel = _normalize_channel(channel)
         self.subdirs: Dict[str, CondaChannelSubdir] = {}
 
