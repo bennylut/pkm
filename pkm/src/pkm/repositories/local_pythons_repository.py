@@ -31,6 +31,7 @@ class InstalledPythonsRepository(AbstractRepository):
     def _interpreters(self) -> List["LocalInterpreterPackage"]:
         result: List[LocalInterpreterPackage] = []
         interpreters_in_path = _interpreters_in_path()
+        executeables_matched: Set[Path] = set()
         for interpreter_path in interpreters_in_path:
             try:
                 cmdout = subprocess.run(
@@ -40,9 +41,15 @@ class InstalledPythonsRepository(AbstractRepository):
                 cmdout.check_returncode()
 
                 version_str, executable = cmdout.stdout.decode().strip().splitlines(keepends=False)
+                executable = Path(executable.strip()).resolve()
+
+                if executable in executeables_matched:
+                    continue
+
+                executeables_matched.add(executable)
 
                 result.append(LocalInterpreterPackage(
-                    Path(executable.strip()),
+                    executable,
                     PackageDescriptor("python", Version.parse(version_str.strip())),
                     _DEFAULT_PKG_EXTRAS))
 

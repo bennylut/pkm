@@ -1,16 +1,16 @@
 ## RUNNING TASKS:
+- documentation: describe repositories,
+    - describe repositories extensions + torch repository
+    - describe inheritance mode
+- make-like task system
+- common tasks: test, build doc, etc.
 
 
 ## DONE IN THIS VERSION
-
-- pkm repositories: rename torch to download-torch-pkm-repo (to follow new standard)
-- cli: support `pkm repos install conda` | `pkm repos install conda-pkm-repo`
-- cli: support `pkm repos add conda-main -t conda +channel='xxx' -l p1 p2 p3`
-- add the repository management class
-- repository_management: check that builder exists before adding repository
+- bug: dont show the same python interpreter (the same executable) when creating env
 
 ## BACKLOG TASKS:
-
+- option to install pkm without shell
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
 - refactoring: project.install_dev belongs to the cli flow and not to main pkm
@@ -38,9 +38,6 @@
 - test: install project with optionals and then just install should keep optionals
 - bug: copy transaction should be used at the level of the full installation as sometimes it has to upgrade packages
   which means that they will get deleted - bypassing the copy transaction realm
-- documentation: describe repositories,
-    - describe repositories extensions + torch repository
-    - describe inheritance mode
 - package artifact hash validation: pypi, simple, torch
 - bug: when running in "build-sys" mode should not "implicitly install" cache files
     - also when running in this mode some basic monitoring should be made
@@ -58,12 +55,10 @@
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - environment naming (for project for example..)
 - cli: publish keyring
-- optimization: if the resource we are fetching is already compressed (like wheels and sdist) there is no need to
-  request compression from the webserver and then reopen it locally
 - cmd: pkm remove -o (orphans)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir, l, ll
 - documentation: templates docs
-- site: sidebar responsive to phones
+- documentation site: sidebar responsive to phones
 - toml parser/writer need unit tests
 - toml - lists user style - check the pre-last delimiter and repeat it
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
@@ -76,18 +71,12 @@
 - `pkm shell` support custom environment variables loading like in pipenv
 - improve api documentation
 - create installation script for pkm
-- find a dependency that requires the "include" directory and check if it is handled correctly (maybe download spacy by
-  source)
 - in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
   that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - decide the difference for when installing in application mode and in library mode (some sort of manifast?)
-- prepare an installation test from export that uses many known python packages and several python versions
-- create problem exporter for debug
-- make-like task system
-- common tasks: test, build doc, etc.
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it, I think I also saw this possibility in conda
 - shell venv - alias to print environment and project in context
