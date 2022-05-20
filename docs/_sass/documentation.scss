@@ -76,6 +76,11 @@ $header-height: 33px;
             white-space: nowrap;
             font-size: smaller;
 
+            h5 {
+                margin-top: 12px;
+                margin-bottom: 12px;
+            }
+
             li::marker {
               font-size: 1.0em;
               content: '> ';

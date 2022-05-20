@@ -8,12 +8,12 @@ from pathlib import Path
 from typing import Protocol, IO, Union, Iterable, TypeVar, Callable, Mapping
 
 from pkm.utils.io_streams import chunks
-from pkm.utils.types import SupportHashCode
+from pkm.utils.types import Hashable
 
 _T = TypeVar("_T")
 _K = TypeVar("_K")
 _V = TypeVar("_V")
-_H = TypeVar("_H", bound=SupportHashCode)
+_H = TypeVar("_H", bound=Hashable)
 
 
 class HashBuilder:

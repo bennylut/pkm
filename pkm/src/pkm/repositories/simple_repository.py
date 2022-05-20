@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import List, Union, Tuple, Dict, Optional, Callable, Any
+from typing import List, Union, Tuple, Dict, Optional, Callable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -115,7 +115,6 @@ class SimpleRepositoryBuilder(RepositoryBuilder):
         super().__init__("simple")
         self._http_client = http_client
 
-    def build(self, name: Optional[str], packages_limit: Optional[List[str]], **kwargs: Any) -> Repository:
-        if not (url := kwargs.get('url')):
-            raise KeyError("url field is required to build 'simple' repository")
+    def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
+        url = self._arg(args, 'url', required=True)
         return SimpleRepository(name or url, self._http_client, str(url).rstrip('/'))

@@ -4,6 +4,7 @@ import csv
 import json
 import os
 import re
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING, Any
@@ -306,18 +307,21 @@ class RecordsFileConfiguration(FileConfiguration):
         precomputed_hashes = precomputed_hashes or {}
         records: List[Record] = self.records
         for file in files:
-            if not file.is_dir():
-                path = str(path_to(root, file))
+            if file.exists():
+                if not file.is_dir():
+                    path = str(path_to(root, file))
 
-                hash_sig = get_or_compute(
-                    precomputed_hashes, path,
-                    lambda: HashSignature.compute_urlsafe_base64_nopad_encoded('sha256', file))
+                    hash_sig = get_or_compute(
+                        precomputed_hashes, path,
+                        lambda: HashSignature.compute_urlsafe_base64_nopad_encoded('sha256', file))
 
-                records.append(Record(
-                    path,
-                    hash_sig,
-                    file.lstat().st_size  # size
-                ))
+                    records.append(Record(
+                        path,
+                        hash_sig,
+                        file.lstat().st_size  # size
+                    ))
+            else:
+                warnings.warn(f"requiring to sign non existing file - {file}, skipping it")
 
         return self
 

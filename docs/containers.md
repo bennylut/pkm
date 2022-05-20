@@ -99,8 +99,8 @@ $ pkm install --app myapp
 $ pkm install --app myapp plugin1 plugin2
 ...
 
-# remove plugin1:
-$ pkm remove --app myapp plugin1
+# uninstall plugin1:
+$ pkm uninstall --app myapp plugin1
 ...
 ```
 

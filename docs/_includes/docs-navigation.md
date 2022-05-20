@@ -7,6 +7,7 @@
 - [Package Management]({{'/package_management' | relative_url}})
 - [Projects]({{'/projects' | relative_url}})
 - [Environments]({{'/environments' | relative_url}})
+- [Repositories]({{'/repositories' | relative_url}})
 
 
 ##### Advanced Topics

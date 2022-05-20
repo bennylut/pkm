@@ -11,7 +11,7 @@ from typing import Optional, Iterator, List, Dict, Any, TYPE_CHECKING
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
-from pkm.api.repositories.repository import HasAttachedRepository
+from pkm.api.pkm import HasAttachedRepository
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException

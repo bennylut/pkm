@@ -1,8 +1,8 @@
 from typing import TypeVar, MutableMapping, Optional, Callable, Dict, Mapping
 
-from pkm.utils.types import SupportHashCode
+from pkm.utils.types import Hashable
 
-_K = TypeVar("_K", bound=SupportHashCode)
+_K = TypeVar("_K", bound=Hashable)
 _V = TypeVar("_V")
 _M = TypeVar("_M", bound=MutableMapping)
 _IM = TypeVar("_IM", bound=Mapping)

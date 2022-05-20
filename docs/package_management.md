@@ -57,42 +57,42 @@ $ pkm install --app package_name
 # install update versions of already installed package 
 $ pkm install --update package_name
 
-# remove some package
-$ pkm remove package_name
+# uninstall some package
+$ pkm uninstall package_name
 
-# remove package installed as application container
-$ pkm remove --app package_name
+# uninstall package installed as application container
+$ pkm uninstall --app package_name
 ```
 
 ----
-## the `pkm remove` command
+## the `pkm uninstall` command
 
-`pkm remove` is, as the name implies, responsible for removing packages. It works for both projects and environments.
-When executed under a project context, it also updates `pyproject.toml` file to remove the requested dependency.
+`pkm uninstall` is, as the name implies, responsible for removing packages. It works for both projects and environments.
+When executed under a project context, it also updates `pyproject.toml` file to uninstall the requested dependency.
 
 ```console
-usage: pkm remove [-h] [-a] [-v] [-c CONTEXT] [-g] ...
+usage: pkm uninstall [-h] [-a] [-v] [-c CONTEXT] [-g] ...
 
-remove packages from the current context
+uninstall packages from the current context
 
 positional arguments:
-  package_names         the packages to remove
+  package_names         the packages to uninstall
 
 optional arguments:
   -h, --help            show this help message and exit
-  -a, --app             remove containerized packages
+  -a, --app             uninstall containerized packages
   -v, --verbose         run with verbose output
   -c CONTEXT, --context CONTEXT
                         path to the context to run this command under
   -g, --global-context  use the global environment context
 ```
 <br>
-The following are some examples of using the `pkm remove` command:
+The following are some examples of using the `pkm uninstall` command:
 
 ```bash
-# remove some package
-$ pkm remove package_name
+# uninstall some package
+$ pkm uninstall package_name
 
-# remove package installed as application container
-$ pkm remove --app package_name
+# uninstall package installed as application container
+$ pkm uninstall --app package_name
 ```

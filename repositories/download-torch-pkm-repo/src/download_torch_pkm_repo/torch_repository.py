@@ -1,15 +1,14 @@
-from typing import List, cast, Any, Tuple, Optional
+from typing import List, cast, Tuple, Optional, Dict
 
+from download_torch_pkm_repo.cuda_compatibility import CudaCompatibilityTable
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
-from pkm.repositories.simple_repository import SimpleRepository
 from pkm.api.versions.version import StandardVersion
-from pkm.utils.commons import unone
+from pkm.repositories.simple_repository import SimpleRepository
 from pkm.utils.properties import cached_property
-from download_torch_pkm_repo.cuda_compatibility import CudaCompatibilityTable
 
 
 class DownloadTorchRepository(AbstractRepository):
@@ -65,7 +64,6 @@ class DownloadTorchRepositoryBuilder(RepositoryBuilder):
     def _cuda_compatibility(self) -> CudaCompatibilityTable:
         return CudaCompatibilityTable.load()
 
-    def build(self, name: Optional[str], packages_limit: Optional[List[str]], **kwargs: Any) -> Repository:
-        allow_cpu = unone(kwargs.get('allow-cpu'), lambda: True)
-
+    def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
+        allow_cpu = self._arg(args, 'allow-cpu', default="true").lower() == "true"
         return DownloadTorchRepository(name, allow_cpu, self._cuda_compatibility.compatible_cuda_versions())

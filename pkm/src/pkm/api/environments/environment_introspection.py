@@ -14,7 +14,7 @@ from pkm.config.configuration import Configuration
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
-from pkm.utils.types import SupportsLessThan, SupportsLessThanEq
+from pkm.utils.types import HasLessThan, Comparable
 
 _INTROSPECTION_CODE = """
 import sys
@@ -134,7 +134,7 @@ class EnvironmentIntrospection(Configuration):
             "implementation_version": _compute_implementation_version()
         }
 
-    def compatibility_score(self, tag: str) -> Optional[SupportsLessThanEq]:
+    def compatibility_score(self, tag: str) -> Optional[Comparable]:
         """
         compute the compatibility score for the given pep425 compatibility tag
         :param tag: the pep425 compatibility tag
@@ -226,7 +226,7 @@ class EnvironmentIntrospection(Configuration):
         return abis
 
     @cached_property
-    def _compatibility_tag_scorer(self) -> Callable[[str, str, str], Optional[SupportsLessThan]]:
+    def _compatibility_tag_scorer(self) -> Callable[[str, str, str], Optional[HasLessThan]]:
 
         # some of the code for compatibility tags scoring is based on `packaging::tags` module
         # but instead of output list of tags which requires us to know external information about the version history of
@@ -323,7 +323,7 @@ class EnvironmentIntrospection(Configuration):
 
         # precomputation done. now for creating the scorer
 
-        def scorer(ipt: str, abi: str, plt: str) -> Optional[SupportsLessThan]:
+        def scorer(ipt: str, abi: str, plt: str) -> Optional[HasLessThan]:
             score_components = []
 
             # check abi compatibility

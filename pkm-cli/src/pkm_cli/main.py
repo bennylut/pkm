@@ -9,56 +9,98 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package_installation import PackageInstallationTarget
-from pkm.api.pkm import pkm
+from pkm.api.pkm import pkm, HasAttachedRepository
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
-from pkm.api.repositories.repository import Authentication, HasAttachedRepository
+from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
+from pkm.api.repositories.repository import Authentication
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
 from pkm_cli.context import Context
 from pkm_cli.display.display import Display
+from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
+from pkm_cli.reports.installed_repositories_report import InstalledRepositoriesReport
 from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
 from pkm_cli.utils.clis import command, Arg, create_args_parser, Command, with_extras
 
 
-@command('pkm repos install', Arg('names', nargs=argparse.REMAINDER))
+def _cli_container() -> PackageInstallationTarget:
+    global_env = Environment.current()
+    if pkm_container := global_env.app_containers.container_of('pkm-cli'):
+        return pkm_container.installation_target
+    return global_env.installation_target
+
+
+@command('pkm repos install', Arg(["-u", "--update"], action="store_true"), Arg('names', nargs=argparse.REMAINDER))
 def install_repos(args: Namespace):
     if not args.global_context:
         raise UnsupportedOperationException("repository installation is only supported in global context (add -g)")
 
-    global_env = Environment.current()
-    target = global_env.installation_target
-    if pkm_container := global_env.app_containers.container_of('pkm'):
-        target = pkm_container.installation_target
-    target.install([Dependency.parse(it) for it in args.names])
+    updates = args.names if args.update else []
+    _cli_container().install([Dependency.parse(it) for it in args.names], updates=updates)
+
+
+@command('pkm repos uninstall', Arg('names', nargs=argparse.REMAINDER))
+def uninstall_repo(args: Namespace):
+    if not args.global_context:
+        raise UnsupportedOperationException("repository uninstallation is only supported in global context (add -g)")
+
+    _cli_container().uninstall(args.names)
+
+
+@command('pkm repos show installed')
+def show_installed_repositories(_: Namespace):
+    InstalledRepositoriesReport().display()
 
 
 @command(
     'pkm repos add',
     Arg("name"),
-    Arg(["-t", "--type"], action=with_extras(), required=True),
-    Arg(['-l', '--limit-to'], nargs="+", required=False))
+    Arg("type", action=with_extras()),
+    Arg(['-b', '--bind-only'], action="store_true", required=False))
 def add_repo(args: Namespace):
     def add(with_repo: HasAttachedRepository):
-        with_repo.repository_management.add_repository(args.name, args.type, args.type_extras, args.limit_to)
+        with_repo.repository_management.add_repository(
+            args.name, args.type, getattr(args, 'type_extras', {}), args.bind_only)
 
     on_environment, on_project, on_project_group, = add, add, add
     Context.of(args).run(**locals())
 
 
+@command('pkm repos remove', Arg("name"))
+def remove_repo(args: Namespace):
+    def rm(with_repo: HasAttachedRepository):
+        with_repo.repository_management.remove_repository(args.name)
+
+    on_environment, on_project, on_project_group, = rm, rm, rm
+    Context.of(args).run(**locals())
+
+
+@command('pkm repos show added')
+def show_added_repositories(args: Namespace):
+    def show(with_repo: HasAttachedRepository):
+        AddedRepositoriesReport(with_repo).display()
+
+    on_environment, on_project, on_project_group, = show, show, show
+    Context.of(args).run(**locals())
+
+
 @command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))
 def run(args: Namespace):
-    def on_environment(env: Environment):
-        if not args.cmd:
-            raise UnsupportedOperationException("command is required to be executed")
+    if not args.cmd:
+        raise UnsupportedOperationException("command is required to be executed")
 
+    def on_environment(env: Environment):
         with env.activate():
             sys.exit(execvpe(args.cmd[0], args.cmd[1:], os.environ))
+
+    def on_project(project: Project):
+        on_environment(project.attached_environment)
 
     Context.of(args).run(**locals())
 
@@ -113,12 +155,17 @@ def vbump(args: Namespace):
 @command(
     'pkm install',
     Arg(["-o", "--optional"], help="optional group to use (only for projects)"),
+    Arg(["-f", "--force"], action='store_true', help="forcefully remove and reinstall the given pacakges"),
     Arg(["-a", "--app"], action='store_true', help="install package in containerized application mode"),
     Arg(["-u", "--update"], action='store_true', help="update the given packages if already installed"),
     Arg(["-m", "--mode"], required=False, default='editable', choices=['editable', 'copy'],
         help="choose the installation mode for the requested packages."),
     Arg(['-s', '--site'], required=False, choices=['user', 'system'],
-        help="applicable for global-context, which site to use - default to 'user'"),
+        help="applicable for global-context, which site to use - defaults to 'user'"),
+    Arg(['-r', '--repo'], required=False,
+        help="bind the given packages to a specific repositry by name, use 'default' to remove previous binding"),
+    Arg(['-R', '--unnamed-repo'], required=False, action=with_extras(),
+        help="bind the given packages to a new unnamed repositry given its configuration"),
     Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
 def install(args: Namespace):
     """
@@ -128,40 +175,55 @@ def install(args: Namespace):
     dependencies = [Dependency.parse(it) for it in args.packages]
     editable = args.mode == 'editable'
 
+    def register_repo_bindings(contex: HasAttachedRepository):
+        if repo := args.repo:
+            repo = None if repo == 'default' else repo
+            if any(contex.repository_management.configuration.package_bindings.get(d.package_name) != repo
+                   for d in dependencies):
+                contex.repository_management.register_bindings([d.package_name for d in dependencies], repo)
+                args.force = True
+        elif repo_type := args.unnamed_repo:
+            print("DBG: recognized unnamed repo option")
+            instance_config = RepositoryInstanceConfig(repo_type, None, None, getattr(args, 'unnamed_repo_extras', {}))
+            contex.repository_management.register_bindings([d.package_name for d in dependencies], instance_config)
+            args.force = True
+
+    def force(target: PackageInstallationTarget):
+        if args.force:
+            for d in dependencies:
+                target.force_remove(d.package_name)
+
     def on_project(project: Project):
+        register_repo_bindings(project)
         if args.app:
             raise UnsupportedOperationException("application install as project dependency is not supported")
 
+        force(project.attached_environment.installation_target)
         project.dev_install(dependencies, optional_group=args.optional, update=args.update, editable=editable)
 
-    def on_project_group(project_group: ProjectGroup):
-        if dependencies or args.app or args.update:
-            raise UnsupportedOperationException("could not install/update dependencies in project group")
-
-        Display.print(f"Installing all projects in group")
-        project_group.install_all()
-
     def on_environment(env: Environment):
-        package_names = [d.package_name for d in dependencies]
+        nonlocal dependencies
+        register_repo_bindings(env)
         if args.optional:
             raise UnsupportedOperationException("optional dependencies are only supported inside projects")
 
         if dependencies:
+            target = env.installation_target
             if args.app:
-                app, plugins = dependencies[0], dependencies[1:]
-                env.app_containers \
-                    .install(app, update=args.update and not plugins, editable=editable) \
-                    .installation_target.install(plugins, updates=package_names[1:] if args.update else None,
-                                                 editables={p: editable for p in package_names[1:]})
-            else:
-                env.install(
-                    dependencies, updates=package_names if args.update else None,
-                    editables={p: editable for p in package_names})
+                target = env.app_containers.install(
+                    dependencies[0], editable=editable, update=args.update and len(dependencies) == 1)
+                dependencies = dependencies[1:]
+
+            if dependencies:
+                force(target)
+                updates = [d.package_name for d in dependencies] if args.update else None
+                editables = {d.package_name: editable for d in dependencies}
+                target.install(dependencies, updates=updates, editables=editables)
 
     Context.of(args).run(**locals())
 
 
-@command('pkm remove', Arg(["-a", "--app"], action='store_true', help="remove containerized packages"),
+@command('pkm uninstall', Arg(["-a", "--app"], action='store_true', help="remove containerized packages"),
          Arg(["-f", "--force"], action="store_true",
              help="remove the requested packages even if they are dependant of other packages, "
                   "will not remove any other packages or update pyproject"),
@@ -190,7 +252,7 @@ def remove(args: Namespace):
         if args.force:
             _remove(project.attached_environment.installation_target)
         else:
-            project.remove_dependencies(package_names)
+            project.dev_remove(package_names)
 
     def on_environment(env: Environment):
         if app_install:

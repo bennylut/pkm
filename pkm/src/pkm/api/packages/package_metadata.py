@@ -55,6 +55,10 @@ class PackageMetadata(FileConfiguration):
         requires_dist = self["Requires-Dist"] or []
         return [Dependency.parse(d) for d in requires_dist]
 
+    @dependencies.modifier
+    def set_dependencies(self, new_dependencies: List[Dependency]):
+        self["Requires-Dist"] = [str(it) for it in new_dependencies]
+
     @computed_based_on("Requires-Python")
     def required_python_spec(self) -> VersionSpecifier:
         if version_str := self["Requires-Python"]:

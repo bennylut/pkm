@@ -27,8 +27,6 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None,
     :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
     """
 
-    print("building app wheel")
-
     target_dir = target_dir or (project.directories.dist / str(project.version))
     interpreter_path = target_env.interpreter_path if target_env else project.attached_environment.interpreter_path
 

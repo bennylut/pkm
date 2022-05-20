@@ -11,11 +11,12 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
+from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
     AttachedEnvironmentConfig
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmDistributionConfig, \
     PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
-from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication, HasAttachedRepository
+from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
@@ -163,7 +164,7 @@ class Project(Package, HasAttachedRepository):
             self.config.save()
         return new_version
 
-    def remove_dependencies(self, packages: List[str]):
+    def dev_remove(self, packages: List[str]):
         """
         remove and uninstall all dependencies that are related to the given list of packages
         :param packages: the list of package names to remove
@@ -213,8 +214,10 @@ class Project(Package, HasAttachedRepository):
         project_dependency = self.descriptor.to_dependency()
         if optional_group:
             project_dependency = project_dependency.with_extras([optional_group])
+
+        # should probably submit the optionals
         self.update_at(
-            self.attached_environment.installation_target, editable=True)  # should probably submit the optionals
+            self.attached_environment.installation_target, editable=True, user_request=project_dependency)
 
         new_deps_names = list(new_deps.keys())
 

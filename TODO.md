@@ -1,16 +1,36 @@
 ## RUNNING TASKS:
-- documentation: describe repositories,
-    - describe repositories extensions + torch repository
-    - describe inheritance mode
-- make-like task system
-- common tasks: test, build doc, etc.
-
+- cli: `pkm publish repo-name +user=<name> +password=<password>`
+- protected credentials file (maybe check ideas in: https://youtu.be/hsRR9-aZZ4Q), also allow plain text if user wishes
 
 ## DONE IN THIS VERSION
-- bug: dont show the same python interpreter (the same executable) when creating env
+- cli: change `pkm remove` to `pkm uninstall`
+- cli: add `-R, --unnamed-repo` option to `pkm install`
+- performance: conda repository builder should reuse repository instances by url
+- add unnamed repositories support for package binding
+- generate default global repositories configuration if this file does not exists
+- add pypi as a repository type, allow specifying "main" and "test" as url alternatives
+- cli: add `-r, --repo` option to `pkm install`
+- cli: support `pkm install -f,--force`, also force will be the default for changing repo
+- cli: add `pkm repos add`, `pkm repos remove` and `pkm repos show added` support
+- refactoring: repositories.binding configuration (support unnamed repository binding)
+- refactoring: repository package limiting should become a flag
+- refactoring: rename the local repository type into the "file-system" repository type
+- documentation: describe repositories
+- bug: build failed if a removed file is required for signing
+- bug: terminal cursor left hidden on program exit
+- bug: repository installing does not occur inside the application container
+- bug: uninstalling anything from a container also removes the main container package
+- bug: removing anything from a project also remove other required packages (project itself is not marked as requested)
 
 ## BACKLOG TASKS:
-- option to install pkm without shell
+- refactor: there are several instances where dynamic args are provided as a dictionary - create DynamicArguments class
+  with common functionality (may be used in repository builder, in publish credentials,etc.)
+- make-like task system
+- common tasks: test, build doc, etc.
+- integrate pydoc as a task, attach it to after the build
+- documentation: repositories - how to build your own
+- add git repository type
+- pkm shell should be moved into its own project (optionally automatically installed when requested)
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
 - refactoring: project.install_dev belongs to the cli flow and not to main pkm

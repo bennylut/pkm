@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, Union, Optional, Tuple, List, TYPE_CHECKING
 
+from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, Authentication, HasAttachedRepository
+from pkm.api.repositories.repository import Repository, Authentication
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_raise

@@ -1,11 +1,11 @@
 from typing import TypeVar, Iterable, Callable, Dict, List, Optional, Tuple, Iterator
 
 from pkm.utils.commons import NoSuchElementException
-from pkm.utils.types import SupportHashCode
+from pkm.utils.types import Hashable
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
-_K = TypeVar("_K", bound=SupportHashCode)
+_K = TypeVar("_K", bound=Hashable)
 _SENTINAL = object()
 
 

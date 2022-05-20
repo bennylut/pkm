@@ -673,8 +673,12 @@ class _TomlParser(SimpleParser):
         prolog = self.read_non_data()
         key = self.read_key()
         self._mark_internal_tables((), key[:-1], 'hidden')
-        self.match_or_err('\n', 'expecting newline after table key')
-        data = self.read_table_assignments(key)
+
+        if self.is_empty():
+            data = {}
+        else:
+            self.match_or_err('\n', 'expecting newline after table key')
+            data = self.read_table_assignments(key)
 
         if key[-1] == -1:
             key = (*key[:-1], id(data))

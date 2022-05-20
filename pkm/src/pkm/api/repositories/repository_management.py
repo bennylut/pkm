@@ -1,12 +1,13 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Iterable
+from typing import Dict, List, Optional, Tuple, Iterable, Union
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.pkm import HasAttachedRepository, Pkm, pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
@@ -20,7 +21,6 @@ from pkm.utils.properties import cached_property, clear_cached_properties
 class RepositoryManagement(ABC):
     def __init__(self, cfg: RepositoriesConfiguration, loader: Optional[RepositoryLoader] = None):
         if not loader:
-            from pkm.api.pkm import pkm
             loader = pkm.repository_loader
 
         self._loader = loader
@@ -30,6 +30,27 @@ class RepositoryManagement(ABC):
     def _load_attached(self) -> Repository:
         ...
 
+    @abstractmethod
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        ...
+
+    def register_bindings(self, packages: List[str], repo: Optional[Union[str, RepositoryInstanceConfig]]):
+        if repo:
+            if isinstance(repo, RepositoryInstanceConfig):
+                repo = repo.to_config()
+
+            self.configuration.package_bindings = {
+                **self.configuration.package_bindings,
+                **{p: repo for p in packages}
+            }
+        else:
+            self.configuration.package_bindings = {
+                p: r for p, r in self.configuration.package_bindings.items()
+                if p not in packages
+            }
+
+        self._update_config()
+
     @cached_property
     def attached_repo(self) -> Repository:
         return self._load_attached()
@@ -38,8 +59,8 @@ class RepositoryManagement(ABC):
         self.configuration.save()
         clear_cached_properties(self)
 
-    def add_repository(self, name: str, builder: str, args: Dict[str, str], packages_limit: Optional[List[str]] = None):
-        config = RepositoryInstanceConfig(builder, packages_limit, name, args)
+    def add_repository(self, name: str, builder: str, args: Dict[str, str], bind_only: bool = False):
+        config = RepositoryInstanceConfig(builder, bind_only, name, args)
 
         # the following line act a s a safeguard before the add operation,
         # if it fails the actual addition will not take place
@@ -50,16 +71,31 @@ class RepositoryManagement(ABC):
 
         self._update_config()
 
-    def list_defined_repositories(self) -> List[RepositoryInstanceConfig]:
+    def defined_repositories(self) -> List[RepositoryInstanceConfig]:
         return self.configuration.repositories
 
     def remove_repository(self, name: str):
         self.configuration.repositories = [repo for repo in self.configuration.repositories if repo.name != name]
+        self.configuration.package_bindings = {
+            p: r for p, r in self.configuration.package_bindings.items() if r != name}
         self._update_config()
 
 
 def _config_at(path: Path) -> RepositoriesConfiguration:
     return RepositoriesConfiguration.load(path / REPOSITORIES_CONFIGURATION_PATH)
+
+
+class PkmRepositoryManagement(RepositoryManagement):
+
+    def __init__(self, pkm_: Pkm):
+        super().__init__(pkm_.repository_loader.global_repo_config, pkm_.repository_loader)
+        self.pkm = pkm_
+
+    def _load_attached(self) -> Repository:
+        return self._loader.global_repo
+
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        return []
 
 
 class EnvRepositoryManagement(RepositoryManagement):
@@ -68,8 +104,11 @@ class EnvRepositoryManagement(RepositoryManagement):
         super().__init__(_config_at(env.path), loader)
         self.env = env
 
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        return [self.env.zoo or pkm]
+
     def _load_attached(self) -> Repository:
-        repo = self._loader.main
+        repo = self._loader.global_repo
         if zoo := self.env.zoo:
             repo = zoo.attached_repository
 
@@ -80,12 +119,16 @@ class EnvRepositoryManagement(RepositoryManagement):
 
 
 class ZooRepositoryManagement(RepositoryManagement):
+
     def __init__(self, zoo: EnvironmentsZoo, loader: Optional[RepositoryLoader] = None):
         super().__init__(_config_at(zoo.path), loader)
         self.zoo = zoo
 
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        return pkm
+
     def _load_attached(self) -> Repository:
-        repo = self._loader.main
+        repo = self._loader.global_repo
         if self.configuration.path.exists():
             repo = self._loader.load("zoo-configured-repository", self.configuration, repo)
 
@@ -100,7 +143,7 @@ def _load_for_project_group(
         group: ProjectGroup,
         config: RepositoriesConfiguration,
         base_repo: Optional[Repository] = None) -> Repository:
-    repo = base_repo or loader.main
+    repo = base_repo or loader.global_repo
 
     if config.path.exists():
         repo = loader.load("group-configured-repository", config, repo)
@@ -114,6 +157,13 @@ class ProjectRepositoryManagement(RepositoryManagement):
     def __init__(self, project: Project, loader: Optional[RepositoryLoader] = None):
         super().__init__(_config_at(project.path), loader)
         self.project = project
+
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        result = [self.project.attached_environment]
+        if self.project.group:
+            result.append(self.project.group)
+
+        return result
 
     def _load_attached(self) -> Repository:
         repo = self.project.attached_environment.attached_repository
@@ -134,12 +184,16 @@ class ProjectRepositoryManagement(RepositoryManagement):
 
 
 class ProjectGroupRepositoryManagement(RepositoryManagement):
+
     def __init__(self, group: ProjectGroup, loader: Optional[RepositoryLoader] = None):
         super().__init__(_config_at(group.path), loader)
         self.group = group
 
     def _load_attached(self) -> Repository:
         return _load_for_project_group(self._loader, self.group, self.configuration, None)
+
+    def parent_contexts(self) -> List[HasAttachedRepository]:
+        return [pkm]
 
 
 class _ProjectsRepository(AbstractRepository):

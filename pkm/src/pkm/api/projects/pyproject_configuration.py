@@ -374,8 +374,11 @@ class PyProjectConfiguration(TomlFileConfiguration):
         return None
 
     @pkm_application.modifier
-    def set_pkm_application(self, app: PkmApplicationConfig):
-        self['tool.pkm.application'] = app.to_config()
+    def set_pkm_application(self, app: Optional[PkmApplicationConfig]):
+        if app is None:
+            del self['tool.pkm.application']
+        else:
+            self['tool.pkm.application'] = app.to_config()
 
     @computed_based_on("tool.pkm.distribution")
     def pkm_distribution(self) -> PkmDistributionConfig:

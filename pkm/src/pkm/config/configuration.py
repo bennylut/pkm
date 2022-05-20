@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import configparser
 from abc import ABC, abstractmethod
 from copy import copy

@@ -6,7 +6,7 @@ import os
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from subprocess import CompletedProcess
 from typing import List, Set, Dict, Optional, Union, TypeVar, NoReturn, MutableMapping, TYPE_CHECKING
@@ -16,7 +16,8 @@ from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.site_packages import SitePackages
-from pkm.api.repositories.repository import Repository, HasAttachedRepository
+from pkm.api.pkm import HasAttachedRepository
+from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
@@ -24,7 +25,7 @@ from pkm.utils.files import is_root_path
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
 from pkm.utils.properties import cached_property, clear_cached_properties
-from pkm.utils.types import SupportsLessThanEq
+from pkm.utils.types import Comparable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
@@ -130,7 +131,7 @@ class Environment(HasAttachedRepository):
             python_interpreter_bits=32 if ispc.is_32bit_interpreter else 64
         )
 
-    def compatibility_tag_score(self, tag: str) -> Optional[SupportsLessThanEq]:
+    def compatibility_tag_score(self, tag: str) -> Optional[Comparable]:
         """
         compute the compatibility score for the given pep425 compatibility tag
         :param tag: the pep425 compatibility tag
@@ -283,7 +284,7 @@ class Environment(HasAttachedRepository):
 
         for package in self.site_packages.installed_packages():
             for ep in package.dist_info.load_entrypoints_cfg().entrypoints:
-                groups[ep.group].append(ep)
+                groups[ep.group].append(replace(ep, containing_package=package))
 
         return groups
 

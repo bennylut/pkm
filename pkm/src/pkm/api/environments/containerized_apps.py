@@ -18,7 +18,7 @@ from pkm.api.repositories.repositories_configuration import RepositoriesConfigur
 from pkm.api.repositories.repository_loader import REPOSITORIES_CONFIGURATION_PATH
 from pkm.distributions.executables import Executables
 from pkm.pep517_builders.pkm_builders import build_wheel
-from pkm.repositories.local_packages_repository import LOCAL_PACKAGES_REPOSITORY_TYPE
+from pkm.repositories.file_system_repository import FILE_SYSTEM_REPOSITORY_TYPE
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import temp_dir, mkdir, CopyTransaction, path_to
 from pkm.utils.hashes import HashSignature
@@ -96,8 +96,8 @@ class ContainerizedApplications:
             if isinstance(app, Project):
                 repocfg = RepositoriesConfiguration.load(tdir / REPOSITORIES_CONFIGURATION_PATH)
                 repocfg.repositories = [RepositoryInstanceConfig.from_config('wrapped-project', {
-                    'type': LOCAL_PACKAGES_REPOSITORY_TYPE,
-                    'projects': [app.path]
+                    'type': FILE_SYSTEM_REPOSITORY_TYPE,
+                    'path': app.path
                 })]
 
                 repocfg.save()
@@ -157,6 +157,10 @@ class ContainerizedApplications:
 
             ct.copy_tree(contained_distinfo.path, dist_info.path)
             ct.touch(app_dir / "__init__.py", True)
+
+            contained_metadata = contained_distinfo.load_metadata_cfg()
+            contained_metadata.dependencies = app_config.dependencies
+            contained_metadata.save()
 
             # collect script entrypoints
             script_entrypoints: List[EntryPoint] = []

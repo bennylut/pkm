@@ -35,9 +35,17 @@ env_markers_hash = "6ba324ff4b889cb435ef2074beb74bb2"
 package = {name = "pkm", version = "0.4.40"}
 
 [[lock]]
+env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "pkm", version = "0.4.54"}
+
+[[lock]]
 env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "pkm-torch-repository", version = "0.1.0"}
 
 [[lock]]
 env_markers_hash = "6ba324ff4b889cb435ef2074beb74bb2"
+package = {name = "download-torch-pkm-repo", version = "0.1.0"}
+
+[[lock]]
+env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "download-torch-pkm-repo", version = "0.1.0"}

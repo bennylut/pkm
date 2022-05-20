@@ -19,7 +19,7 @@ from pkm.utils.hashes import HashBuilder
 from pkm.utils.iterators import first_or_none, groupby
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import strs
-from src.conda_pkm_repo.conda_distribution import CondaDistribution
+from conda_pkm_repo.conda_distribution import CondaDistribution
 
 _RELATIVE_OPS_PREFIXES = "><=!~"
 

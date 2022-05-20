@@ -1,30 +1,33 @@
-import typing
-from typing import Any, TypeVar, Protocol, Generic, Iterator
+from __future__ import annotations
 
 import sys
+import typing
+from typing import Any, TypeVar, Protocol, Iterator
 
 _T = TypeVar("_T")
 
 
-class IterableWithLen(Generic[_T]):
-    def __len__(self) -> int:
-        ...
+class MeasurableIterable(Protocol[_T]):
+    def __len__(self) -> int: ...
 
-    def __iter__(self) -> Iterator[_T]:
-        ...
+    def __iter__(self) -> Iterator[_T]: ...
 
 
-class SupportsLessThan(Protocol):
+class StackLike(MeasurableIterable[_T], Protocol[_T]):
+    def pop(self) -> _T: ...
+
+
+class HasLessThan(Protocol):
     def __lt__(self, __other: Any) -> bool: ...
 
 
-class SupportsLessThanEq(Protocol):
+class Comparable(Protocol):
     def __lt__(self, __other: Any) -> bool: ...
 
     def __eq__(self, other: Any) -> bool: ...
 
 
-class SupportHashCode(Protocol):
+class Hashable(Protocol):
     def __hash__(self): ...
 
     def __eq__(self, other): ...

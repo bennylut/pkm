@@ -1,10 +1,10 @@
 from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
 
-from pkm.utils.types import SupportHashCode, SupportsLessThan
+from pkm.utils.types import Hashable, HasLessThan, StackLike
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
-_K = TypeVar("_K", bound=SupportHashCode)
+_K = TypeVar("_K", bound=Hashable)
 
 
 def subiter(sq: Sequence[_T], offset: int = 0, length: Optional[int] = None) -> Iterable[_T]:
@@ -22,7 +22,7 @@ def startswith(sq: Sequence[_T], prefix: Sequence[_T]) -> bool:
     return all(s == p for s, p in zip(sq, prefix))
 
 
-def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], SupportsLessThan]]) -> int:
+def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], HasLessThan]]) -> int:
     if key is None:
         okey = seq.__getitem__
     else:
@@ -32,7 +32,7 @@ def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], SupportsLessThan]]) -
     return min(range(len(seq)), key=okey)
 
 
-def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], SupportsLessThan]]) -> int:
+def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], HasLessThan]]) -> int:
     if key is None:
         okey = seq.__getitem__
     else:
@@ -83,3 +83,15 @@ def strs(seq: Sequence[_T]) -> List[str]:
     :return: list containing `str(item)` for each item in `seq`
     """
     return [str(it) for it in seq]
+
+
+def pop_or_none(stack: StackLike[_T]) -> Optional[_T]:
+    """
+    pops an item from the given stack-like object, if it empty, return None
+    :param stack: the stack to pop an item from
+    :return: poped item or None
+    """
+
+    if len(stack) > 0:
+        return stack.pop()
+    return None

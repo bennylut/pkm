@@ -14,7 +14,7 @@ from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.hashes import HashSignature
-from pkm.utils.types import SupportsLessThanEq
+from pkm.utils.types import Comparable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -60,7 +60,7 @@ class AbstractPackage(Package):
 
         source_dist: Optional[PackageArtifact] = None
         best_binary_dist: Optional[PackageArtifact] = None
-        best_binary_dist_score: Optional[SupportsLessThanEq] = None
+        best_binary_dist_score: Optional[Comparable] = None
 
         for artifact in self._artifacts:
             requires_python = artifact.requires_python

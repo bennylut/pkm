@@ -1,8 +1,10 @@
-from typing import Optional, List, Any
+from weakref import WeakValueDictionary
 
+from typing import Dict
+
+from conda_pkm_repo.conda_repo import CondaRepository
 from pkm.api.repositories.repository import RepositoryBuilder, Repository
 from pkm.api.repositories.repository_loader import RepositoriesExtension
-from src.conda_pkm_repo.conda_repo import CondaRepository
 
 
 def install() -> RepositoriesExtension:
@@ -12,12 +14,16 @@ def install() -> RepositoriesExtension:
     )
 
 
+_prebuilt_repositories = WeakValueDictionary()
+
+
 class CondaRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__("conda")
 
-    def build(self, name: str, packages_limit: Optional[List[str]], **kwargs: Any) -> Repository:
-        if not isinstance(channel := kwargs.get('channel'), str):
-            raise ValueError("expecting channel argument with type string")
+    def build(self, name: str, args: Dict[str, str]) -> Repository:
+        channel = self._arg(args, 'channel', required=True)
+        if not (result := _prebuilt_repositories.get(channel)):
+            _prebuilt_repositories[channel] = result = CondaRepository(name, channel)
 
-        return CondaRepository(name, channel)
+        return result

@@ -48,15 +48,15 @@ This command will install the <i str>"some_package"</i> package in the same envi
 > <i case>* in venv context *</i> installs in that venv. <br>
 > <i case>* otherwise *</i> installs in system env.
 
-### `pkm remove ...`
+### `pkm uninstall ...`
 
-> <i tag>⏳ TLDR</i> remove the given set of package names <br>
+> <i tag>⏳ TLDR</i> uninstall the given set of package names <br>
 > ```console
-> $> pkm remove p1 p2 p3 ...
+> $> pkm uninstall p1 p2 p3 ...
 > ```
-> <i case>* in project context *</i> remove from the assigned venv and also update pyproject. <br>
-> <i case>* in venv context *</i> remove from that venv. <br>
-> <i case>* otherwise *</i> remove from system env.
+> <i case>* in project context *</i> uninstall from the assigned venv and also update pyproject. <br>
+> <i case>* in venv context *</i> uninstall from that venv. <br>
+> <i case>* otherwise *</i> uninstall from system env.
 
 ---
 ## Manage Projects

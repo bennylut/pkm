@@ -2,17 +2,17 @@ from abc import abstractmethod, ABC
 from base64 import b64encode
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Any, Protocol, Iterable, TYPE_CHECKING
+from typing import List, Union, Optional, Tuple, Protocol, Iterable, TYPE_CHECKING, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import AllowAllVersions
+from pkm.utils.commons import unone
 from pkm.utils.iterators import partition
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
-    from pkm.api.repositories.repository_management import RepositoryManagement
 
 
 class Repository(Protocol):
@@ -141,32 +141,22 @@ class Authentication:
 
 class RepositoryBuilder(ABC):
 
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, repo_type: str):
+        self.repo_type = repo_type
+
+    def _arg(self, args: Dict[str, str], name: str,
+             default: Optional[str] = None, required: bool = False) -> Optional[str]:
+        result = args.get(name)
+        if not result and required:
+            raise ValueError(f"missing argument: {name} for repository type: {self.repo_type}")
+
+        return unone(result, lambda: default)
 
     @abstractmethod
-    def build(self, name: str, packages_limit: Optional[List[str]],
-              **kwargs: Any) -> Repository:
+    def build(self, name: str, args: Dict[str, str]) -> Repository:
         """
         build a new repository instance using the given `kwargs`
         :param name: name for the created repository
-        :param packages_limit: list of packages the user ask the repository to be limited to
-                (or None if no such request was made)
-        :param kwargs: arguments for the instance creation, may be defined by derived classes
+        :param args: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """
-
-
-class HasAttachedRepository(ABC):
-
-    @property
-    @abstractmethod
-    def repository_management(self) -> "RepositoryManagement":
-        ...
-
-    @property
-    def attached_repository(self) -> Repository:
-        """
-        :return: the repository that is attached to this artifact
-        """
-        return self.repository_management.attached_repo

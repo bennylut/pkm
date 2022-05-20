@@ -7,7 +7,8 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, PackageArtifact
-from pkm.api.repositories.repository import Authentication, AbstractRepository
+from pkm.api.pkm import pkm
+from pkm.api.repositories.repository import Authentication, AbstractRepository, RepositoryBuilder, Repository
 from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -21,19 +22,22 @@ from pkm.utils.properties import cached_property
 
 class PyPiRepository(AbstractRepository):
 
-    def __init__(self, http: HttpClient):
-        super().__init__('pypi')
-        self._http = http
+    def __init__(self, name: str, fetch_url: str, publish_url: Optional[str]):
+        super().__init__(name)
+        self._http = pkm.httpclient
+        self._fetch_url = fetch_url
+        self._publish_url = publish_url
 
     @cached_property
     def publisher(self) -> Optional["RepositoryPublisher"]:
-        return PyPiPublisher(self._http)
+        if self._publish_url:
+            return PyPiPublisher(self.name, self._http, self._publish_url)
+        return None
 
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
-        # monitor.on_dependency_match(dependency)
         try:
             json: Dict[str, Any] = self._http \
-                .fetch_resource(f'https://pypi.org/pypi/{dependency.package_name}/json',
+                .fetch_resource(f'{self._fetch_url}/{dependency.package_name}/json',
                                 cache=CacheDirective.ask_for_update(),
                                 resource_name=f"matching packages for {dependency}") \
                 .read_data_as_json()
@@ -86,7 +90,7 @@ class PypiPackage(AbstractPackage):
 
     def _unfiltered_dependencies(self, environment: Environment) -> List["Dependency"]:
         json: Dict[str, Any] = self._repo._http \
-            .fetch_resource(f'https://pypi.org/pypi/{self.name}/{self.version}/json',
+            .fetch_resource(f'{self._repo._fetch_url}/{self.name}/{self.version}/json',
                             resource_name=f"metadata for {self.name} {self.version}") \
             .read_data_as_json()
 
@@ -112,9 +116,10 @@ def _create_artifact_from_pypi_release(release: Dict[str, Any]) -> Optional[Pack
 # https://warehouse.pypa.io/api-reference/legacy.html
 class PyPiPublisher(RepositoryPublisher):
 
-    def __init__(self, http: HttpClient):
-        super().__init__('pypi')
+    def __init__(self, repo_name: str, http: HttpClient, publish_url: str):
+        super().__init__(repo_name)
         self._http = http
+        self._publish_url = publish_url
 
     def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
         print(f"uploading distribution: {distribution}")
@@ -158,10 +163,29 @@ class PyPiPublisher(RepositoryPublisher):
                 ("Content-Type", payload.content_type()),
             ])
 
-            # for tests we can use: "https://test.pypi.org/legacy/"
-            # with self._http.post("https://test.pypi.org/legacy/", payload, headers=headers,
-            with self._http.post("https://upload.pypi.org/legacy/", payload, headers=headers,
+            with self._http.post(f"{self._publish_url}/", payload, headers=headers,
                                  max_redirects=0) as response:
                 if response.status != 200:
                     content = response.read()
                     raise HttpException(f"publish failed, server responded with {response.status}, {content}")
+
+
+class PypiRepositoryBuilder(RepositoryBuilder):
+
+    def __init__(self):
+        super().__init__('pypi')
+
+    def build(self, name: str, args: Dict[str, str]) -> Repository:
+        url = self._arg(args, 'url', required=True)
+
+        if url == 'main':
+            fetch_url = "https://pypi.org/pypi"
+            publish_url = "https://upload.pypi.org/legacy"
+        elif url == 'test':
+            fetch_url = "https://test.pypi.org/pypi"
+            publish_url = "https://test.pypi.org/legacy"
+        else:
+            fetch_url = url.rstrip('/')
+            publish_url = self._arg(args, 'publish-url')
+
+        return PyPiRepository(name, fetch_url, publish_url)

@@ -1,19 +1,23 @@
 import os
 import shutil
 import sys
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pkm.utils.files import mkdir
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.resources import ResourcePath
 
 if TYPE_CHECKING:
     from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
     from pkm.api.repositories.repository import Repository
     from pkm.api.repositories.repository_loader import RepositoryLoader
     from pkm.distributions.source_build_cache import SourceBuildCache
+    from pkm.api.repositories.repository_management import RepositoryManagement
 
 ENV_PKM_HOME = "PKM_HOME"
 
@@ -25,27 +29,54 @@ class _PkmRepositories:
     installed_pythons: "InstalledPythonsRepository"
 
 
-class _Pkm:
+class HasAttachedRepository(ABC):
+
+    @property
+    @abstractmethod
+    def repository_management(self) -> "RepositoryManagement":
+        ...
+
+    @property
+    def attached_repository(self) -> "Repository":
+        """
+        :return: the repository that is attached to this artifact
+        """
+        return self.repository_management.attached_repo
+
+
+class Pkm(HasAttachedRepository):
     repositories: _PkmRepositories
 
     def __init__(self):
-        self.workspace = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
+        self.home = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
         workspace.mkdir(exist_ok=True, parents=True)
         self.httpclient = HttpClient(workspace / 'resources/http')
         self.threads = ThreadPoolExecutor()
 
     @cached_property
+    def repository_management(self) -> "RepositoryManagement":
+        from pkm.api.repositories.repository_management import PkmRepositoryManagement
+        return PkmRepositoryManagement(self)
+
+    @cached_property
     def source_build_cache(self) -> "SourceBuildCache":
         from pkm.distributions.source_build_cache import SourceBuildCache
-        return SourceBuildCache(self.workspace / 'build-cache')
+        return SourceBuildCache(self.home / 'build-cache')
 
     @cached_property
     def repository_loader(self) -> "RepositoryLoader":
         from pkm.api.repositories.repository_loader import RepositoryLoader, REPOSITORIES_CONFIGURATION_PATH
+
+        repo_config = self.home / REPOSITORIES_CONFIGURATION_PATH
+        if not repo_config.exists():
+            mkdir(repo_config.parent)
+            with ResourcePath('pkm.resources', 'default_pkm_repositories.toml').use() as default_pkm_repo_cfg:
+                shutil.copy(default_pkm_repo_cfg, repo_config)
+
         return RepositoryLoader(
-            self.workspace / REPOSITORIES_CONFIGURATION_PATH,
+            repo_config,
             self.httpclient,
-            self.workspace / 'repos')
+            self.home / 'repos')
 
     @cached_property
     def repositories(self) -> _PkmRepositories:
@@ -53,7 +84,7 @@ class _Pkm:
 
         return _PkmRepositories(
             self.repository_loader.pypi,
-            self.repository_loader.main,
+            self.repository_loader.global_repo,
             InstalledPythonsRepository(),
         )
 
@@ -96,4 +127,4 @@ def _default_home_directory():
     return (path / 'pkm').expanduser().resolve()
 
 
-pkm = _Pkm()
+pkm = Pkm()

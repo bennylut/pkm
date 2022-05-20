@@ -9,7 +9,7 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository
-from src.conda_pkm_repo.conda_channel_subdir import CondaChannelSubdir, subdir_of
+from conda_pkm_repo.conda_channel_subdir import CondaChannelSubdir, subdir_of
 
 _DEFAULT_CHANNEL = "https://repo.anaconda.com/pkgs/main"
 _REPODATA_PATH = "repodata.json.bz2"

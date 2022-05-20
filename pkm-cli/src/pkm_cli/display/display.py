@@ -1,3 +1,4 @@
+import atexit
 import os
 from abc import abstractmethod
 from contextlib import contextmanager
@@ -39,6 +40,7 @@ class _LiveOutput(ConsoleRenderable):
         self._requires_render = Condition()
 
         Thread(name="live output refresher", target=self._refresh_loop, daemon=True).start()
+        atexit.register(lambda: print("\x1b[?25h"))  # make sure the cursor is re-shown after python exiting
 
     def _refresh_loop(self):
         empty_rendered = False

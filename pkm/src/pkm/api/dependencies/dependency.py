@@ -48,11 +48,11 @@ class Dependency:
     def __str__(self):
         extras_str = f"[{','.join(self.extras)}]" if self.extras else ''
 
-        version_str = str(self.version_spec)
+        version_str = "" if self.version_spec is AllowAllVersions else f" {str(self.version_spec)}"
 
         marker_str = f";{self.env_marker}" if self.env_marker else ''
 
-        return f"{self.package_name}{extras_str} {version_str}{marker_str}"
+        return f"{self.package_name}{extras_str}{version_str}{marker_str}"
 
     def __repr__(self):
         return f"Dependency({self})"

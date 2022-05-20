@@ -6,6 +6,10 @@ from pathlib import Path
 
 from pkm.api.projects.project import Project
 
+# import sys
+# sys.stdout = open(Path("/Users/bennyl/pkm-build.log").resolve(), "w")
+# sys.stderr = open(Path("/Users/bennyl/pkm-build-err.log").resolve(), "w")
+
 
 # noinspection PyUnusedLocal
 def build_wheel(wheel_directory: str, config_settings=None, metadata_directory=None):

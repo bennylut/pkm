@@ -7,6 +7,7 @@ from importlib import import_module
 from types import ModuleType
 from typing import ClassVar, Optional, List, Any
 
+from pkm.api.packages.package import PackageDescriptor
 from pkm.utils.commons import UnsupportedOperationException
 
 # noinspection RegExpRedundantEscape
@@ -70,6 +71,7 @@ class EntryPoint:
     group: str
     name: str
     ref: "ObjectReference"
+    containing_package: Optional[PackageDescriptor] = None
 
     G_CONSOLE_SCRIPTS: ClassVar[str] = "console_scripts"
     G_GUI_SCRIPTS: ClassVar[str] = "gui_scripts"

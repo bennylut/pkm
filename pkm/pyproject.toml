@@ -1,6 +1,6 @@
 [project]
 name = "pkm"
-version = "0.4.40"
+version = "0.4.54"
 description = "Package Manager For Python"
 authors = [{ name = "bennyl" }]
 license.text = "MIT License"

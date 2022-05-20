@@ -51,7 +51,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
     def reload(self):
         clear_cached_properties(self)
 
-    def uninstall(self, packages: List[str]) -> Set[str]:
+    def uninstall(self, packages_to_remove: List[str]) -> Set[str]:
         """
         attempt to remove the required packages from this target together will all the dependencies
         that may become orphan as a result of this step.
@@ -60,7 +60,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         "user requested" package `q not in packages` then `p` will be kept in the target but its
         "user requested" flag will be removed (if it was existed)
 
-        :param packages: the package names to remove
+        :param packages_to_remove: the package names to remove
         :return the set of package names that were successfully removed from the environment
         """
 
@@ -68,7 +68,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
 
         preinstalled_packages = list(self.site_packages.installed_packages())
         requested_deps = {p.name: p.user_request for p in preinstalled_packages if p.user_request}
-        for package_name in packages:
+        for package_name in packages_to_remove:
             requested_deps.pop(package_name, None)
 
         user_request = _UserRequestPackage(list(requested_deps.values()))
@@ -79,12 +79,12 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
 
         kept = {p.name for p in installation}
 
-        for p in packages:
+        for p in packages_to_remove:
             if p in kept:
                 self.site_packages.installed_package(p).dist_info.unmark_as_user_requested()
 
         self.reload()
-        return {p for p in packages if p not in kept}
+        return {p for p in packages_to_remove if p not in kept}
 
     def install(
             self, dependencies: List[Dependency], repository: Optional[Repository] = None, user_requested: bool = True,
@@ -243,12 +243,14 @@ class InstallationPlan:
             editable = editables.get(package.name)
             if operation == PackageOperation.INSTALL:
                 promises.append(Promise.execute(
-                    pkm.threads, package.install_to, target, editable=bool(editable)))
+                    pkm.threads, package.install_to, target, editable=bool(editable),
+                    user_request=self.user_requests.get(package.name)))
             elif operation == PackageOperation.UPDATE:
                 if editable is None:
                     editable = site.installed_package(package.name).installation_info.editable
                 promises.append(Promise.execute(
-                    pkm.threads, package.update_at, target, editable=editable))
+                    pkm.threads, package.update_at, target, editable=editable,
+                    user_request=self.user_requests.get(package.name)))
             elif operation == PackageOperation.REMOVE:
                 promises.append(Promise.execute(pkm.threads, package.uninstall))
 
