@@ -1,8 +1,6 @@
 from abc import abstractmethod, ABC
-from base64 import b64encode
-from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Protocol, Iterable, TYPE_CHECKING, Dict
+from typing import List, Union, Optional, Protocol, Iterable, TYPE_CHECKING, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
@@ -116,27 +114,17 @@ class RepositoryPublisher:
         self.repository_name = repository_name
 
     # noinspection PyMethodMayBeStatic
-    def required_authentication_fields(self) -> List[str]:
-        return ['username', 'password']
+    def requires_authentication(self) -> bool:
+        return True
 
     @abstractmethod
-    def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
+    def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, distribution: Path):
         """
         publish a `distribution` belonging to the given `package_meta` into the repository (registering it if needed)
-        :param auth: authentication object filled with the fields that were
-                     returned by the method `required_authentication_fields`
+        :param auth_args: dictionary filled with authentication data as supplied by user
         :param package_meta: metadata for the package that this distribution belongs to
         :param distribution: the distribution archive (e.g., wheel, sdist)
         """
-
-
-@dataclass(frozen=True, eq=True)
-class Authentication:
-    username: str
-    password: str
-
-    def as_basic_auth_header(self) -> Tuple[str, str]:
-        return 'Authorization', f'Basic {b64encode(f"{self.username}:{self.password}".encode()).decode("ascii")}'
 
 
 class RepositoryBuilder(ABC):
@@ -160,3 +148,6 @@ class RepositoryBuilder(ABC):
         :param args: arguments for the instance creation, may be defined by derived classes
         :return: the created instance
         """
+
+    def build_publisher(self, name: str, args: Dict[str, str]) -> Optional[RepositoryPublisher]:
+        return self.build(name, args).publisher

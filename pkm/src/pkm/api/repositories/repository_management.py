@@ -11,11 +11,14 @@ from pkm.api.pkm import HasAttachedRepository, Pkm, pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
-from pkm.api.repositories.repository import Repository, AbstractRepository
+from pkm.api.repositories.repository import Repository, AbstractRepository, RepositoryPublisher
 from pkm.api.repositories.repository_loader import RepositoryLoader, REPOSITORIES_CONFIGURATION_PATH
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.resolution.packages_lock import LockPrioritizingRepository
+from pkm.utils.commons import NoSuchElementException
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.sequences import pop_or_none
+from pkm.utils.sets import try_add
 
 
 class RepositoryManagement(ABC):
@@ -30,9 +33,30 @@ class RepositoryManagement(ABC):
     def _load_attached(self) -> Repository:
         ...
 
+    @cached_property
+    def _publishers(self) -> Dict[str, Optional[RepositoryPublisher]]:
+        return {}  # it is cached only so that _update_config will clear it
+
     @abstractmethod
     def parent_contexts(self) -> List[HasAttachedRepository]:
         ...
+
+    def publisher_for(self, name: str) -> Optional[RepositoryPublisher]:
+        if name in self._publishers:
+            return self._publishers[name]
+
+        contexes: List[RepositoryManagement] = [self]
+        opened = set()
+        while context := pop_or_none(contexes):
+            if not try_add(opened, id(context)):
+                continue
+            contexes.extend((it.repository_management for it in context.parent_contexts()))
+            for repo_config in context.defined_repositories():
+                if repo_config.name == name:
+                    result = self._publishers[name] = self._loader.build(repo_config).publisher
+                    return result
+
+        raise NoSuchElementException(f"repository: {name} could not be found")
 
     def register_bindings(self, packages: List[str], repo: Optional[Union[str, RepositoryInstanceConfig]]):
         if repo:

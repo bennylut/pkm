@@ -1,9 +1,10 @@
 import argparse
 import os
-import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
+
+import sys
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -13,7 +14,6 @@ from pkm.api.pkm import pkm, HasAttachedRepository
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
-from pkm.api.repositories.repository import Authentication
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
@@ -267,22 +267,33 @@ def remove(args: Namespace):
     Context.of(args).run(**locals())
 
 
-@command('pkm publish', Arg('user'), Arg('password'))
+@command('pkm publish', Arg('repo', action=with_extras()), Arg(['-s', '--save'], action='store_true'))
 def publish(args: Namespace):
-    if not (uname := args.user):
-        raise ValueError("missing user name")
-
-    if not (password := args.password):
-        raise ValueError("missing password")
+    try:
+        from pkm_cli.auth.publish_auth_store import PublishAuthenticationStore
+        publish_auth = PublishAuthenticationStore()
+    except Exception as e:
+        Display.print(f"[red]Could not load publish authentication store: {e}[/red]")
+        publish_auth = None
 
     def on_project(project: Project):
         if not project.is_built_in_default_location():
             project.build()
 
-        project.publish(pkm.repositories.pypi, Authentication(uname, password))
+        if not (publisher := project.repository_management.publisher_for(args.repo)):
+            raise UnsupportedOperationException(f"repository: {args.repo} does not support publishing")
 
-    def on_project_group(project_group: ProjectGroup):
-        project_group.publish_all(pkm.repositories.pypi, Authentication(uname, password))
+        auth_args: Dict[str, str] = {}
+        if hasattr(args, 'repo_extras'):
+            auth_args = args.repo_extras
+        elif publisher.requires_authentication():
+            if not publish_auth or not publish_auth.is_configuration_exists() \
+                    or not (auth_args := publish_auth.auth_args_for(args.repo)):
+                raise UnsupportedOperationException("authentication required")
+
+        project.publish(publisher, auth_args)
+        if args.save and publish_auth:
+            publish_auth.add_auth_args(args.repo, auth_args)
 
     Context.of(args).run(**locals())
 

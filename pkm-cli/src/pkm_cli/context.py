@@ -79,7 +79,7 @@ class Context:
 
         if self._use_global:
             env = Environment.current(site=self._site or 'user')
-            Display.print(f"using global virtual-env context: {env.path}")
+            Display.print(f"using global context: {env.interpreter_path}")
             on_environment(env)
             return
 

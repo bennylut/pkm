@@ -16,7 +16,7 @@ from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVI
     AttachedEnvironmentConfig
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmDistributionConfig, \
     PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
-from pkm.api.repositories.repository import Repository, RepositoryPublisher, Authentication
+from pkm.api.repositories.repository import Repository, RepositoryPublisher
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
@@ -376,14 +376,14 @@ class Project(Package, HasAttachedRepository):
 
         return (self.directories.dist / str(self.version)).exists()
 
-    def publish(self, repository: Union[Repository, RepositoryPublisher], auth: Authentication,
+    def publish(self, repository: Union[Repository, RepositoryPublisher], auth_args: Dict[str, str],
                 distributions_dir: Optional[Path] = None):
         """
         publish/register this project distributions, as found in the given `distributions_dir`
         to the given `repository`. using `auth` for authentication
 
         :param repository: the repository to publish to
-        :param auth: authentication for this repository
+        :param auth_args: authentication for this repository/publisher
         :param distributions_dir: directory containing the distributions (archives like wheels and sdists) to publish
         """
 
@@ -399,7 +399,7 @@ class Project(Package, HasAttachedRepository):
         metadata = PackageMetadata.from_project_config(self._pyproject.project)
         for distribution in distributions_dir.iterdir():
             if distribution.is_file():
-                publisher.publish(auth, metadata, distribution)
+                publisher.publish(auth_args, metadata, distribution)
 
     @classmethod
     def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None,

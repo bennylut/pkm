@@ -8,11 +8,12 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, PackageArtifact
 from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import Authentication, AbstractRepository, RepositoryBuilder, Repository
+from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
 from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import NoSuchElementException
+from pkm.utils.http.auth import BasicAuthentication
 from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
@@ -121,7 +122,7 @@ class PyPiPublisher(RepositoryPublisher):
         self._http = http
         self._publish_url = publish_url
 
-    def publish(self, auth: "Authentication", package_meta: PackageMetadata, distribution: Path):
+    def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, distribution: Path):
         print(f"uploading distribution: {distribution}")
 
         data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}
@@ -159,7 +160,7 @@ class PyPiPublisher(RepositoryPublisher):
 
             payload = MultipartFormDataPayload(fields=fields)
             headers = dict([
-                auth.as_basic_auth_header(),
+                BasicAuthentication(**auth_args).as_header(),
                 ("Content-Type", payload.content_type()),
             ])
 

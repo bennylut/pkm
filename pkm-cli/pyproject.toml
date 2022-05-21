@@ -1,12 +1,14 @@
 [project]
 name = "pkm-cli"
-version = "0.4.43"
+version = "0.4.44"
 description = "Command line interface for PKM"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"
 authors = [{ name = "bennyl" }]
 license.text = "MIT License"
-dependencies = [ "questionary",  "pkm",  "jinja2",  "xonsh",  "pygments",  "prompt-toolkit",  "setproctitle;sys_platform != 'win32'",  "rich >=11.1.0, <12"]
+dependencies = [
+    "questionary", "pkm", "jinja2", "xonsh", "pygments", "prompt-toolkit",
+    "setproctitle;sys_platform != 'win32'", "rich >=11.1.0, <12", "cryptography >=37.0.2, <38"]
 
 [project.scripts]
 pkm = "pkm_cli.main:main"

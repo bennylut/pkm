@@ -214,7 +214,7 @@ def _exec_build_cycle_script(
         result = _BuildCycleResult(**json.loads((tdir_path / 'output').read_text()))
         if result.status == 'fail':
             raise BuildError(
-                f"PEP517 build cycle execution failed.\n"
+                f"PEP517 build cycle execution failed, see lines below for description.\n"
                 f"Project: {project.name} {project.version}\n"
                 f"Build backend: {build_backend}\n"
                 f"Hook: {hook}\n"

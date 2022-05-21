@@ -12,6 +12,22 @@ KEY_T = Tuple
 DUMPS_T = Callable[[Dict[str, Any]], str]
 
 
+class _ValueSignature:
+    def __init__(self, value: Optional[Any]):
+        self._value = value
+
+    def is_similar_to(self, other: Any) -> bool:
+        if self._value is None:
+            return other is None
+
+        if isinstance(self._value, (List, Mapping)):
+            return type(other) == type(self._value)
+
+        return id(self._value) == id(other) or self._value == other
+
+_none_signature = _ValueSignature(None)
+
+
 class TimeLiteral(str):
     pass
 
@@ -36,7 +52,7 @@ class _ValueStyle:
     content_trailing: str = ''
 
     value_str: Optional[str] = None
-    value_sig: int = 0
+    value_sig: _ValueSignature = _none_signature
 
     display: str = 'auto'
 
@@ -67,11 +83,7 @@ class _StyleSheet:
         self.keys[key] = style
 
     def set_value_style(self, key: KEY_T, value: Any, style: _ValueStyle):
-        if isinstance(value, (Mapping, List)):
-            style.value_sig = type(value)
-        else:
-            style.value_sig = id(value)
-
+        style.value_sig = _ValueSignature(value)
         self.values[key] = style
 
     def update_value_auto_display(self, key: KEY_T, value: Any, display: str):
@@ -95,8 +107,7 @@ class _StyleSheet:
 
     def value_style(self, key: KEY_T, value: Any, display: str = 'auto') -> _ValueStyle:
         predefined_style = self.values.get(key)
-        if not predefined_style or \
-                (predefined_style.value_sig is not type(value) and predefined_style.value_sig != id(value)):
+        if not predefined_style or not predefined_style.value_sig.is_similar_to(value):
             predefined_style = _DEFAULT_VALUE_STYLE
 
         if isinstance(value, (Table, Array)):
@@ -197,7 +208,7 @@ class _Writer:
             s = self.style.value_style(k, v, 'inline')
             return self._write_value(v, k, s)
 
-        result += ', '.join(_write_value(v, i) for i, v in enumerate(data))
+        result += ', '.join(_write_value(v, i).strip(' ') for i, v in enumerate(data))
         result += f'{vstyle.content_trailing}]{vstyle.epilog}'
         return result
 

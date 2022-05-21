@@ -9,6 +9,7 @@ from typing import Optional, Protocol, TypeVar, ContextManager, List
 from rich.console import ConsoleRenderable, Console, ConsoleOptions, RenderResult
 from rich.live import Live
 from time import sleep
+import questionary as q
 
 _PKM_THEME = Theme({
     'h1': "green_yellow"
@@ -74,6 +75,7 @@ class _LiveOutput(ConsoleRenderable):
                 self._live_components = [c for c in self._live_components if c is not renderable]
 
 
+# noinspection PyMethodMayBeStatic
 class _Display:
 
     def __init__(self, dumb: Optional[bool] = None):
@@ -88,6 +90,12 @@ class _Display:
     def print(self, msg: str, *, newline: bool = True, use_markup: bool = True):
         with console_lock:
             self._console.print(msg, end=os.linesep if newline else '', markup=use_markup)
+
+    def ask(self, prompt: str) -> str:
+        return q.text(prompt).ask()
+
+    def ask_password(self, prompt: str) -> str:
+        return q.password(prompt).ask()
 
     @contextmanager
     def show(self, iu: _T) -> _T:

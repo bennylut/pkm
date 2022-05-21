@@ -6,7 +6,6 @@ from typing import Iterable, Union, Optional, Tuple, List, TYPE_CHECKING
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import Repository, Authentication
 from pkm.config.configuration import TomlFileConfiguration, computed_based_on
 from pkm.utils.files import path_to, ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_raise
@@ -126,31 +125,6 @@ class ProjectGroup(HasAttachedRepository):
                 project.build()
             else:
                 project.build_all()
-
-    def publish_all(self, repository: Repository, auth: Authentication):
-        """
-        recursively run the publish operation on all projects and subprojects in this group
-        :param repository: the repository to publish into
-        :param auth: authentication for this repository
-        """
-
-        # with monitor.on_publish_all(self):
-        for project in self.children:
-            if isinstance(project, Project):
-                project.publish(repository, auth)
-            else:
-                project.publish_all(repository, auth)
-
-    def install_all(self):
-        """
-        recursively run the 'install' (with dependencies) operation on all projects and subprojects in this group
-        """
-        # with monitor.on_install_all(self):
-        for project in self.children:
-            if isinstance(project, Project):
-                project.dev_install()
-            else:
-                project.install_all()
 
     @classmethod
     def _find_parent(cls, path: Path) -> Optional["ProjectGroup"]:

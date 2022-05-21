@@ -47,11 +47,17 @@ class HasAttachedRepository(ABC):
 class Pkm(HasAttachedRepository):
     repositories: _PkmRepositories
 
-    def __init__(self):
-        self.home = workspace = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
-        workspace.mkdir(exist_ok=True, parents=True)
-        self.httpclient = HttpClient(workspace / 'resources/http')
+    def __init__(self, home: Path):
         self.threads = ThreadPoolExecutor()
+        self._home = home
+
+    @cached_property
+    def home(self) -> Path:
+        return mkdir(self._home)
+
+    @cached_property
+    def httpclient(self) -> HttpClient:
+        return HttpClient(self.home / 'resources/http')
 
     @cached_property
     def repository_management(self) -> "RepositoryManagement":
@@ -127,4 +133,5 @@ def _default_home_directory():
     return (path / 'pkm').expanduser().resolve()
 
 
-pkm = Pkm()
+pkm_home = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
+pkm = Pkm(pkm_home)

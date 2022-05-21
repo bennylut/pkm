@@ -1,28 +1,14 @@
 ## RUNNING TASKS:
+
+## DONE IN THIS VERSION
+- bug: cli, when using the global context does show the path to the python interpreter instead of '/'
+- bug: when running in "build-sys" mode should not "implicitly install" cache files
 - cli: `pkm publish repo-name +user=<name> +password=<password>`
 - protected credentials file (maybe check ideas in: https://youtu.be/hsRR9-aZZ4Q), also allow plain text if user wishes
 
-## DONE IN THIS VERSION
-- cli: change `pkm remove` to `pkm uninstall`
-- cli: add `-R, --unnamed-repo` option to `pkm install`
-- performance: conda repository builder should reuse repository instances by url
-- add unnamed repositories support for package binding
-- generate default global repositories configuration if this file does not exists
-- add pypi as a repository type, allow specifying "main" and "test" as url alternatives
-- cli: add `-r, --repo` option to `pkm install`
-- cli: support `pkm install -f,--force`, also force will be the default for changing repo
-- cli: add `pkm repos add`, `pkm repos remove` and `pkm repos show added` support
-- refactoring: repositories.binding configuration (support unnamed repository binding)
-- refactoring: repository package limiting should become a flag
-- refactoring: rename the local repository type into the "file-system" repository type
-- documentation: describe repositories
-- bug: build failed if a removed file is required for signing
-- bug: terminal cursor left hidden on program exit
-- bug: repository installing does not occur inside the application container
-- bug: uninstalling anything from a container also removes the main container package
-- bug: removing anything from a project also remove other required packages (project itself is not marked as requested)
-
 ## BACKLOG TASKS:
+- bug: uninstall does not delete the ".lib" directories but installer did created them
+- simplification: configuration - remove parent
 - refactor: there are several instances where dynamic args are provided as a dictionary - create DynamicArguments class
   with common functionality (may be used in repository builder, in publish credentials,etc.)
 - make-like task system
@@ -33,34 +19,27 @@
 - pkm shell should be moved into its own project (optionally automatically installed when requested)
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
-- refactoring: project.install_dev belongs to the cli flow and not to main pkm
-- cli: dont allow working on global without the -g flag
+- refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
 - refactoring: rename version specifiers according to pep440
 - cli consider moving install and remove into a "save" paradigm instead of '-o' use `-s` or `-S where`
 - clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
   metadata (as defined in PEP 459).
 - qof: ability to specify max cache size
 - simplification: remove the coerced dependnecies and package names support in env install/remove
-- refactoring: consider providing the install method with 'installation request' class that contains both the dependency
-  and all other flags like editable, user request, update, etc.
 - enhancement: delegation should also support abstract properties
 - test: check installation of editable packages inside shared packages zoo
 - cli: read about parents in argparse - may help improve code readability
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
 - feature: environment export
-- bug: app plugin install does not register newly created files in the container records
 - bug: generated pyc files are not getting signed
 - shell: `pkm -v` print pkm version
-- enhancement: if pkm is installed on some environment we cannot choose a different global environment
 - replace dependency resolution progressbar with spinner?
-- enhancement: shared package installation - use to the new package installation target schema
 - test: install project with optionals and then just install should keep optionals
 - bug: copy transaction should be used at the level of the full installation as sometimes it has to upgrade packages
   which means that they will get deleted - bypassing the copy transaction realm
 - package artifact hash validation: pypi, simple, torch
-- bug: when running in "build-sys" mode should not "implicitly install" cache files
-    - also when running in this mode some basic monitoring should be made
+- qof: when running in "build-sys" mode, basic monitoring should be on
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
 - test pkm on os where platlib and purelib are different (centos?)
 - pkm show : print cache size, attached repository, etc.
@@ -74,13 +53,11 @@
 - cmd: pkm remove - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - environment naming (for project for example..)
-- cli: publish keyring
-- cmd: pkm remove -o (orphans)
+- cmd: pkm uninstall -o (orphans)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir, l, ll
 - documentation: templates docs
 - documentation site: sidebar responsive to phones
 - toml parser/writer need unit tests
-- toml - lists user style - check the pre-last delimiter and repeat it
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
 - content information (author and maintainer) name and email should be validated before publishing,
     - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
@@ -89,14 +66,10 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - `pkm shell` support custom environment variables loading like in pipenv
-- improve api documentation
 - create installation script for pkm
-- in pubgrub output replace package induced boundaries like * with actual boundaries like '> 2.7' or somehow let it know
-  that we drop some dependencies with a specific reason (e.g., preinstalled user requested version, etc.)
 - support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
-- decide the difference for when installing in application mode and in library mode (some sort of manifast?)
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it, I think I also saw this possibility in conda
 - shell venv - alias to print environment and project in context

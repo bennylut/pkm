@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import warnings
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
@@ -41,8 +43,17 @@ class RepositoriesConfiguration(TomlFileConfiguration):
     @computed_based_on("repos")
     def repositories(self) -> List[RepositoryInstanceConfig]:
         repositories: Dict[str, Dict] = self["repos"] or {}
+
+        def read_config_warn_err(name: str, repo: Dict[str, str]) -> Optional[RepositoryInstanceConfig]:
+            try:
+                return RepositoryInstanceConfig.from_config(name, repo)
+            except Exception as e:
+                warnings.warn(f"could not process repository config for {name}: {e}, ignoring its configuration")
+                return None
+
         return [
-            RepositoryInstanceConfig.from_config(name, repo) for name, repo in repositories.items()]
+            repo_instance for name, repo in repositories.items()
+            if (repo_instance := read_config_warn_err(name, repo)) is not None]
 
     @repositories.modifier
     def set_repositories(self, repos: List[RepositoryInstanceConfig]):
