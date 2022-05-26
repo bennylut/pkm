@@ -216,36 +216,18 @@ Some repositories may require authentication/credentials in order to publish.
 You can provide those directly in the commandline
 
 ```console
-$> pkm publish <repo-name> <user-name> <password> # in case the auth are simple user-password type
-$> pkm publish <repo-name> --auth +arg1=val1 +arg2=val2 # for more advanced cases
+$> pkm publish <repo-name> +cred-arg1=cred-val1 +cred-arg2=cred-val2
 ```
 
-You can instruct pkm to store these credentials in a password protected storage using the `pkm repos publish-auth store`
-command
+You can instruct pkm to store these credentials in a password protected storage using the `-s,--save` flag
 
 ```console
-$> pkm repos publish-auth <repo-name> <user-name> <password> # in case the auth are simple user-password type
-$> pkm repos publish-auth <repo-name> --auth +arg1=val1 +arg2=val2 # for more advanced cases
-Enter password for authentication storage: ******
-Authentication info stored. 
+$> pkm publish <repo-name> +cred-arg1=cred-val1 +cred-arg2=cred-val2 -s
 ```
 
-if authentication info stored you can publish using:
-
+if authentication info stored you can publish by just calling 
 ```console
 $> pkm publish <repo-name>
-```
-
-remove the stored credentials using:
-
-```console
-$> pkm repos publish-auth remove <repo-name>
-```
-
-show information about the stored credentials using:
-
-```console
-$> pkm repos publish-auth show
 ```
 
 ## Available Repositories
@@ -255,10 +237,7 @@ repositories you can install. These repositories are listed below.
 
 ### File-System Repository
 
-A repository that fetch packages from files and directories in your file system.
-
-#### Installation
-not required
+Built-in repository that fetch packages from files and directories in your file system.
 
 #### Properties
 
@@ -272,17 +251,14 @@ path
 * wheel or sdist file, the repository will be able to match the packaged library
 * library containing wheels or sdist files, the repository will be able to match the packaged libraries
 
-#### Example
+Add an instance of this repository using the command
 ```console
 $> pkm repo add repo-name file-system +path="/supported/path"
 ```
 
 ### Pypi Repository
 
-A repositry supporting the [pypi json api](https://warehouse.pypa.io/api-reference/json.html)
-
-#### Installation
-not required
+Built-in repositry supporting the [pypi json api](https://warehouse.pypa.io/api-reference/json.html)
 
 #### Properties
 
@@ -290,22 +266,33 @@ type
 : pypi
 
 url
-: the base url of the repository
+: the base url of the repository, also supports shortcuts: 
+- "main"(shortcut for "https://pypi.org/pypi") 
+- "test" (shortcut for "https://test.pypi.org/pypi")  
 
 publish-url
 : optional, if given, the defined reporitory becomes publishable and will use the given url as the publish endpoint
 
-#### Example
+Add an instance of this repository using the command
 ```console
 $> pkm repo add repo-name pypi +url="https://.." 
 ```
 
+#### Publish Authentication Arguments
+username
+: your registered user name
+
+password
+: the password associated with your registered user name
+
+Publish into this repository using the command
+```console
+$> pkm publish <repo-name> +username=<your name> +password=<your password>
+```
+
 ### Simple Repository
 
-A repositry supporting PEP503 [simple repository api](https://peps.python.org/pep-0503/)
-
-#### Installation
-not required
+Built-in repositry supporting PEP503 [simple repository api](https://peps.python.org/pep-0503/)
 
 #### Properties
 
@@ -315,14 +302,14 @@ type
 url
 : the base url of the repository
 
-#### Example
+Add an instance of this repository using the command
 ```console
 $> pkm repo add repo-name simple +url="https://.." 
 ```
 
 ### "Download-Torch" Repository (experimental)
 
-A repository that automatically download torch to match your gpu type
+Repository that automatically download a torch version that best match your gpu type
 
 #### Installation
 ```console
@@ -337,14 +324,14 @@ type
 arch
 : gpu or cpu (defaults to gpu if not given)
 
-#### Example
+Add an instance of this repository using the command
 ```console
 $> pkm repo add repo-name download-torch +arch=gpu
 ```
 
 ### Conda Repository (experimental)
 
-A repository that download from a conda channels
+Repository that download from a conda channels
 
 #### Installation
 ```console
@@ -359,7 +346,7 @@ type
 channel
 : url for the conda channel, or the string "main" as a shortcut to the main conda channel url
 
-#### Example
+Add an instance of this repository using the command
 ```console
 $> pkm repos add repo-name conda +channl=main
 ```

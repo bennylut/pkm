@@ -111,7 +111,6 @@ class _PkmPackageInstallationProblem(Problem):
         return cast(List[StandardVersion], [p.version for p in packages if isinstance(p.version, StandardVersion)])
 
     def has_version(self, package: _Pkg, version: Version) -> bool:
-        print(f"DBG: checking has version for {package} == {version}")
         return bool(self._repo.match(Dependency(package.name, VersionMatch(version), package.extras), self._env))
 
 

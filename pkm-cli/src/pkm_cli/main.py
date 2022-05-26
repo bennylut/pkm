@@ -1,6 +1,6 @@
 import argparse
 import os
-from argparse import ArgumentParser, Namespace
+from argparse import Namespace
 from pathlib import Path
 from typing import List, Optional, Dict
 
@@ -18,7 +18,7 @@ from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
-from pkm_cli.context import Context
+from pkm_cli.utils.context import Context
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
@@ -26,7 +26,11 @@ from pkm_cli.reports.installed_repositories_report import InstalledRepositoriesR
 from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
 from pkm_cli.scaffold.engine import ScaffoldingEngine
+from pkm_cli.tasks.tasks_runner import TasksRunner
 from pkm_cli.utils.clis import command, Arg, create_args_parser, Command, with_extras
+
+context: Optional[Context] = None
+tasks: Optional[TasksRunner] = None
 
 
 def _cli_container() -> PackageInstallationTarget:
@@ -60,16 +64,16 @@ def show_installed_repositories(_: Namespace):
 
 @command(
     'pkm repos add',
-    Arg("name"),
+    Arg("repo_name"),
     Arg("type", action=with_extras()),
     Arg(['-b', '--bind-only'], action="store_true", required=False))
 def add_repo(args: Namespace):
     def add(with_repo: HasAttachedRepository):
         with_repo.repository_management.add_repository(
-            args.name, args.type, getattr(args, 'type_extras', {}), args.bind_only)
+            args.repo_name, args.type, getattr(args, 'type_extras', {}), args.bind_only)
 
     on_environment, on_project, on_project_group, = add, add, add
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm repos remove', Arg("name"))
@@ -78,7 +82,7 @@ def remove_repo(args: Namespace):
         with_repo.repository_management.remove_repository(args.name)
 
     on_environment, on_project, on_project_group, = rm, rm, rm
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm repos show added')
@@ -87,7 +91,7 @@ def show_added_repositories(args: Namespace):
         AddedRepositoriesReport(with_repo).display()
 
     on_environment, on_project, on_project_group, = show, show, show
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))
@@ -100,9 +104,18 @@ def run(args: Namespace):
             sys.exit(execvpe(args.cmd[0], args.cmd[1:], os.environ))
 
     def on_project(project: Project):
-        on_environment(project.attached_environment)
+        if args.cmd[0].startswith("@"):
+            task_name = args.cmd[0][1:]
+            task_args = args.cmd[1:]
+            if '-h' in task_args:
+                Display.print(tasks.describe(task_name))
+            else:
+                with project.attached_environment.activate():
+                    sys.exit(tasks.run(task_name, task_args))
+        else:
+            on_environment(project.attached_environment)
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 # noinspection PyUnusedLocal
@@ -122,7 +135,7 @@ def shell(args: Namespace):
     def on_free_context():
         on_environment(Environment.current())
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 # noinspection PyUnusedLocal
@@ -138,7 +151,7 @@ def build(args: Namespace):
     def on_project_group(project_group: ProjectGroup):
         project_group.build_all()
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command(
@@ -149,7 +162,7 @@ def vbump(args: Namespace):
         new_version = project.bump_version(args.particle)
         Display.print(f"Version bumped to: {new_version}")
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command(
@@ -183,7 +196,6 @@ def install(args: Namespace):
                 contex.repository_management.register_bindings([d.package_name for d in dependencies], repo)
                 args.force = True
         elif repo_type := args.unnamed_repo:
-            print("DBG: recognized unnamed repo option")
             instance_config = RepositoryInstanceConfig(repo_type, None, None, getattr(args, 'unnamed_repo_extras', {}))
             contex.repository_management.register_bindings([d.package_name for d in dependencies], instance_config)
             args.force = True
@@ -211,7 +223,8 @@ def install(args: Namespace):
             target = env.installation_target
             if args.app:
                 target = env.app_containers.install(
-                    dependencies[0], editable=editable, update=args.update and len(dependencies) == 1)
+                    dependencies[0], editable=editable,
+                    update=args.update and len(dependencies) == 1).installation_target
                 dependencies = dependencies[1:]
 
             if dependencies:
@@ -220,7 +233,7 @@ def install(args: Namespace):
                 editables = {d.package_name: editable for d in dependencies}
                 target.install(dependencies, updates=updates, editables=editables)
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm uninstall', Arg(["-a", "--app"], action='store_true', help="remove containerized packages"),
@@ -264,7 +277,7 @@ def remove(args: Namespace):
         else:
             _remove(env.installation_target, package_names)
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm publish', Arg('repo', action=with_extras()), Arg(['-s', '--save'], action='store_true'))
@@ -295,7 +308,7 @@ def publish(args: Namespace):
         if args.save and publish_auth:
             publish_auth.add_auth_args(args.repo, auth_args)
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm new', Arg('template'), Arg('template_args', nargs=argparse.REMAINDER))
@@ -312,7 +325,7 @@ def show_context(args: Namespace):
     def on_environment(env: Environment):
         EnvironmentReport(env).display()
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm show package', Arg('dependency'))
@@ -323,7 +336,7 @@ def show_package(args: Namespace):
     def on_environment(env: Environment):
         PackageReport(env, args.dependency).display()
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 # noinspection PyUnusedLocal
@@ -338,7 +351,7 @@ def clean_shared(args: Namespace):
     def on_env_zoo(env_zoo: EnvironmentsZoo):
         env_zoo.clean_unused_shared()
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 @command('pkm clean dist', Arg(["--all", "-a"], action="store_true"))
@@ -347,24 +360,39 @@ def clean_dist(args: Namespace):
         keep_versions = [project.version] if not args.all else None
         project.directories.clean_dist(keep_versions)
 
-    Context.of(args).run(**locals())
+    context.run(**locals())
 
 
 def main(args: Optional[List[str]] = None):
+    global context
     args = args or sys.argv[1:]
 
-    def customize_command(cmd: ArgumentParser, _: Command):
-        cmd.add_argument('-v', '--verbose', action='store_true', help="run with verbose output")
-        cmd.add_argument('-c', '--context', help="path to the context to run this command under")
-        cmd.add_argument('-g', '--global-context', action='store_true', help="use the global environment context")
-
     pkm_parser = create_args_parser(
-        "pkm - python package management for busy developers", globals().values(), customize_command)
+        "pkm - python package management for busy developers", globals().values())
+
+    pkm_parser.add_argument('-v', '--verbose', action='store_true', help="run with verbose output")
+    pkm_parser.add_argument('-c', '--context', help="path to the context to run this command under")
+    pkm_parser.add_argument('-g', '--global-context', action='store_true', help="use the global environment context")
+    pkm_parser.add_argument('-nt', '--no-tasks', action='store_true', help="dont run command-attached tasks")
 
     pargs = pkm_parser.parse_args(args)
     cli_monitors.listen('verbose' in pargs and pargs.verbose)
+    context = Context.of(pargs)
+
     if 'func' in pargs:
-        pargs.func(pargs)
+        def with_tasks(p: Project):
+            global tasks
+            tasks = TasksRunner(p)
+            with tasks.run_attached(Command.of(pargs.func), pargs):
+                pargs.func(pargs)
+
+        def without_tasks():
+            pargs.func(pargs)
+
+        if pargs.no_tasks:
+            without_tasks()
+        else:
+            context.run(on_project=with_tasks, on_missing=without_tasks, silent=True)
     else:
         pkm_parser.print_help()
 

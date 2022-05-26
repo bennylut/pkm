@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pkm_cli.reports.added_repositories_report &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/docs.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../static/documentation_options.js"></script>
+    <script src="../../../static/jquery.js"></script>
+    <script src="../../../static/underscore.js"></script>
+    <script src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pkm_cli.html">pkm_cli</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pkm_cli.reports.added_repositories_report</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pkm.api.pkm</span> <span class="kn">import</span> <span class="n">HasAttachedRepository</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.sequences</span> <span class="kn">import</span> <span class="n">pop_or_none</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.sets</span> <span class="kn">import</span> <span class="n">try_add</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.display.display</span> <span class="kn">import</span> <span class="n">Display</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.report</span> <span class="kn">import</span> <span class="n">Report</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="AddedRepositoriesReport"><a class="viewcode-back" href="../../../api/pkm_cli.reports.added_repositories_report.html#pkm_cli.reports.added_repositories_report.AddedRepositoriesReport">[docs]</a><span class="k">class</span> <span class="nc">AddedRepositoriesReport</span><span class="p">(</span><span class="n">Report</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_repo</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_with_repo</span> <span class="o">=</span> <span class="n">with_repo</span>
+
+<div class="viewcode-block" id="AddedRepositoriesReport.display"><a class="viewcode-back" href="../../../api/pkm_cli.reports.added_repositories_report.html#pkm_cli.reports.added_repositories_report.AddedRepositoriesReport.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dumb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Display</span><span class="o">.</span><span class="n">is_dumb</span><span class="p">()):</span>
+        <span class="n">line_sep</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">80</span>
+
+        <span class="n">contexts</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_with_repo</span><span class="p">]</span>
+        <span class="n">opened</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">context</span> <span class="o">:=</span> <span class="n">pop_or_none</span><span class="p">(</span><span class="n">contexts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">try_add</span><span class="p">(</span><span class="n">opened</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">)):</span>
+                <span class="k">continue</span>
+            <span class="n">contexts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">parent_contexts</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">defined_repositories</span> <span class="o">:=</span> <span class="n">context</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">defined_repositories</span><span class="p">():</span>
+                <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">line_sep</span><span class="p">)</span>
+                <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[h1]</span><span class="si">{</span><span class="n">_context_name</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="si">}</span><span class="s2"> Context[/]&quot;</span><span class="p">)</span>
+                <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">line_sep</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">added_repository</span> <span class="ow">in</span> <span class="n">defined_repositories</span><span class="p">:</span>
+                    <span class="n">desc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">added_repository</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">added_repository</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">if</span> <span class="n">added_repository</span><span class="o">.</span><span class="n">bind_only</span><span class="p">:</span>
+                        <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot; (bind only)&quot;</span>
+                    <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+
+        <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">line_sep</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_context_name</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;([A-Z])&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39; \1&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

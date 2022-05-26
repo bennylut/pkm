@@ -42,18 +42,18 @@ class _ContextualCommand:
     on_env_zoo: Optional[Callable[[EnvironmentsZoo], None]] = None,
 
     # noinspection PyCallingNonCallable
-    def execute(self, path: Path):
+    def execute(self, path: Path, print_: Callable[[str], None]):
         if (on_project := self.on_project) and (project := _lookup_project(path)):
-            Display.print(f"using project context: {project.path}")
+            print_(f"using project context: {project.path}")
             on_project(project)
         elif (on_project_group := self.on_project_group) and (project_group := _lookup_project_group(path)):
-            Display.print(f"using project-group context: {project_group.path}")
+            print_(f"using project-group context: {project_group.path}")
             on_project_group(project_group)
         elif (on_environment := self.on_environment) and (env := _lookup_env(path)):
-            Display.print(f"using virtual-env context: {env.path}")
+            print_(f"using virtual-env context: {env.path}")
             on_environment(env)
         elif (on_env_zoo := self.on_env_zoo) and (env_zoo := _lookup_env_zoo(path)):
-            Display.print(f"using env-zoo context: {env_zoo.path}")
+            print_(f"using env-zoo context: {env_zoo.path}")
             on_env_zoo(env_zoo)
         else:
             return False
@@ -75,12 +75,25 @@ class Context:
             on_free_context: Optional[Callable[[], None]] = None,
             on_env_zoo: Optional[Callable[[EnvironmentsZoo], None]] = None,
             on_missing: Optional[Callable[[], None]] = None,
-            **junk):
+            silent: bool = False,
+            **_):
+
+        if silent:
+            def print(_):
+                ...
+        else:
+            def print(msg):
+                Display.print(msg)
 
         if self._use_global:
             env = Environment.current(site=self._site or 'user')
-            Display.print(f"using global context: {env.interpreter_path}")
-            on_environment(env)
+            print(f"using global context: {env.interpreter_path}")
+            if on_environment:
+                on_environment(env)
+            elif on_missing:
+                on_missing()
+            else:
+                raise UnsupportedOperationException("could not execute operation")
             return
 
         path = self._path
@@ -89,11 +102,11 @@ class Context:
             on_environment=on_environment, on_env_zoo=on_env_zoo
         )
 
-        executed = cmd.execute(path)
+        executed = cmd.execute(path, print)
 
         if not executed and self._lookup:
             for parent in path.parents:
-                if executed := cmd.execute(parent):
+                if executed := cmd.execute(parent, print):
                     break
         if not executed:
             if on_free_context:

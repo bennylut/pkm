@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pkm_cli.scaffold.doc_generator &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../static/docs.css" />
+    <script data-url_root="../" id="documentation_options" src="../static/documentation_options.js"></script>
+    <script src="../static/jquery.js"></script>
+    <script src="../static/underscore.js"></script>
+    <script src="../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pkm_cli.scaffold.engine" href="pkm_cli.scaffold.engine.html" />
+    <link rel="prev" title="pkm_cli.scaffold" href="pkm_cli.scaffold.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="pkm_cli.scaffold.html" title="pkm_cli.scaffold"
+             accesskey="P">previous</a> |
+          <a href="pkm_cli.scaffold.engine.html" title="pkm_cli.scaffold.engine"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pkm_cli.html">pkm_cli</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pkm_cli.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pkm_cli.auth.html">pkm_cli.auth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pkm_cli.display.html">pkm_cli.display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pkm_cli.reports.html">pkm_cli.reports</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="pkm_cli.scaffold.html">pkm_cli.scaffold</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="pkm_cli.scaffold.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l5 current"><a class="current reference internal" href="#">pkm_cli.scaffold.doc_generator</a></li>
+<li class="toctree-l5"><a class="reference internal" href="pkm_cli.scaffold.engine.html">pkm_cli.scaffold.engine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pkm_cli.tasks.html">pkm_cli.tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pkm_cli.utils.html">pkm_cli.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pkm_cli.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-pkm_cli.scaffold.doc_generator">
+<span id="pkm-cli-scaffold-doc-generator"></span><h1>pkm_cli.scaffold.doc_generator<a class="headerlink" href="#module-pkm_cli.scaffold.doc_generator" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pkm_cli.scaffold.doc_generator.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protopy_module_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_descriptor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'protopy'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../modules/pkm_cli/scaffold/doc_generator.html#generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pkm_cli.scaffold.doc_generator.generate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="pkm_cli.scaffold.html" title="pkm_cli.scaffold"
+              >previous</a> |
+            <a href="pkm_cli.scaffold.engine.html" title="pkm_cli.scaffold.engine"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../sources/api/pkm_cli.scaffold.doc_generator.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

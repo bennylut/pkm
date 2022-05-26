@@ -14,6 +14,7 @@ from pkm.utils.archives import extract_archive
 from pkm.utils.commons import unone
 from pkm.utils.files import temp_dir, name_without_ext
 from pkm.utils.resources import ResourcePath
+from pkm_cli.display.display import Display
 
 
 class ScaffoldingEngine:
@@ -184,13 +185,12 @@ class _UserInteractor:
 
         return None
 
-    def say(self, msg: str, style: str):
+    def say(self, msg: str):
         """
         display a message to the user
         :param msg: the message to display
-        :param style: the style to use
         """
-        q.print(msg, style)
+        Display.print(msg)
 
     def confirm(
             self, named_arg: str, *, prompt: str, doc: str = "", default: bool = True,

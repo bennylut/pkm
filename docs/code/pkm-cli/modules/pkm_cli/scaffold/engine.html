@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pkm_cli.scaffold.engine &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/docs.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../static/documentation_options.js"></script>
+    <script src="../../../static/jquery.js"></script>
+    <script src="../../../static/underscore.js"></script>
+    <script src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pkm_cli.html">pkm_cli</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pkm_cli.scaffold.engine</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">importlib.util</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">import</span> <span class="nn">questionary</span> <span class="k">as</span> <span class="nn">q</span>
+
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">ModuleType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">FileSystemLoader</span>
+<span class="kn">from</span> <span class="nn">jinja2.sandbox</span> <span class="kn">import</span> <span class="n">SandboxedEnvironment</span>
+
+<span class="kn">from</span> <span class="nn">pkm.utils.archives</span> <span class="kn">import</span> <span class="n">extract_archive</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.commons</span> <span class="kn">import</span> <span class="n">unone</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.files</span> <span class="kn">import</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">name_without_ext</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.resources</span> <span class="kn">import</span> <span class="n">ResourcePath</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.display.display</span> <span class="kn">import</span> <span class="n">Display</span>
+
+
+<div class="viewcode-block" id="ScaffoldingEngine"><a class="viewcode-back" href="../../../api/pkm_cli.scaffold.engine.html#pkm_cli.scaffold.engine.ScaffoldingEngine">[docs]</a><span class="k">class</span> <span class="nc">ScaffoldingEngine</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jinja</span> <span class="o">=</span> <span class="n">SandboxedEnvironment</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span>
+
+    <span class="c1"># noinspection PyMethodMayBeStatic</span>
+<div class="viewcode-block" id="ScaffoldingEngine.render_doc"><a class="viewcode-back" href="../../../api/pkm_cli.scaffold.engine.html#pkm_cli.scaffold.engine.ScaffoldingEngine.render_doc">[docs]</a>    <span class="k">def</span> <span class="nf">render_doc</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">template_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+            <span class="n">template_descriptor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">command_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pkm new&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param template_dir: the directory holding the template</span>
+<span class="sd">        :param template_descriptor: the descriptor that used to resolve the template directory, if not provided,</span>
+<span class="sd">                                    the template directory will be considered as the descriptor</span>
+<span class="sd">        :param command_prefix: the prefix of the commandline that should be used to generate this template</span>
+<span class="sd">        :return: a generated documentation for this template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">pkm_cli.scaffold.doc_generator</span> <span class="k">as</span> <span class="nn">dg</span>
+        <span class="k">return</span> <span class="n">dg</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">template_dir</span><span class="p">),</span> <span class="n">template_descriptor</span><span class="p">,</span> <span class="n">command_prefix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ScaffoldingEngine.render"><a class="viewcode-back" href="../../../api/pkm_cli.scaffold.engine.html#pkm_cli.scaffold.engine.ScaffoldingEngine.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ResourcePath</span><span class="p">],</span> <span class="n">target_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+               <span class="n">args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">extra_context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+               <span class="n">excluded_files</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        renders the given template into the target directory</span>
+
+<span class="sd">        :param template_path: the directory/resource holding the template</span>
+<span class="sd">        :param target_dir: the directory to output the generated content into</span>
+<span class="sd">        :param args: positional arguments for the template</span>
+<span class="sd">        :param kwargs: named arguments for the template</span>
+<span class="sd">        :param extra_context: extra variables that will be available inside proto.py</span>
+<span class="sd">        :param excluded_files:  list of path objects that represents files in the template directory that should be</span>
+<span class="sd">                                excluded from the generation process</span>
+<span class="sd">        :param allow_overwrite: if True, files that are already exists will be overridden by the template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="n">ResourcePath</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">template_path</span><span class="o">.</span><span class="n">use</span><span class="p">()</span> <span class="k">as</span> <span class="n">path</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">()</span> <span class="k">as</span> <span class="n">tdir</span><span class="p">:</span>
+                <span class="n">extract_archive</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">tdir</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="n">tdir</span> <span class="o">/</span> <span class="s1">&#39;scaffold.py&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span> <span class="ow">and</span> \
+                        <span class="p">(</span><span class="n">scaffold_path</span> <span class="o">:=</span> <span class="n">tdir</span> <span class="o">/</span> <span class="n">name_without_ext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;scaffold.py&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="n">tdir</span> <span class="o">=</span> <span class="n">scaffold_path</span><span class="o">.</span><span class="n">parent</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+                    <span class="n">tdir</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">,</span> <span class="n">excluded_files</span><span class="o">=</span><span class="n">excluded_files</span><span class="p">,</span>
+                    <span class="n">allow_overwrite</span><span class="o">=</span><span class="n">allow_overwrite</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="n">unone</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">unone</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="n">extra_context</span> <span class="o">=</span> <span class="n">unone</span><span class="p">(</span><span class="n">extra_context</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+
+        <span class="n">template_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">template_path</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="n">template_path</span><span class="p">))</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+        <span class="n">target_dir</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_dir</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_dir</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="n">target_dir</span><span class="p">))</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+        <span class="n">excluded_files</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="p">(</span><span class="n">excluded_files</span> <span class="ow">or</span> <span class="p">[]),</span> <span class="n">template_path</span> <span class="o">/</span> <span class="s2">&quot;scaffold.py&quot;</span><span class="p">,</span> <span class="n">template_path</span> <span class="o">/</span> <span class="s2">&quot;__pycache__&quot;</span><span class="p">]</span>
+
+        <span class="n">target_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ui</span> <span class="o">=</span> <span class="n">_UserInteractor</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">_load_proto</span><span class="p">(</span><span class="n">template_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;scaffold.py&quot;</span><span class="p">),</span> <span class="n">ui</span><span class="p">,</span>
+                             <span class="p">{</span><span class="o">**</span><span class="n">extra_context</span><span class="p">,</span> <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">})</span>
+
+        <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)}</span>
+
+        <span class="n">ignored_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_ignored_files_list</span><span class="p">(</span><span class="n">template_path</span><span class="p">))</span>
+        <span class="n">ignored_files</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">excluded_files</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_overwrite</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_override</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;post_generation&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">post_generation</span><span class="p">):</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">post_generation</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_override</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">Path</span><span class="p">]):</span>
+
+        <span class="n">jinja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jinja</span>
+
+        <span class="k">for</span> <span class="n">template_child</span> <span class="ow">in</span> <span class="n">template_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">template_child</span> <span class="ow">in</span> <span class="n">ignored_files</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">name</span> <span class="o">=</span> <span class="n">jinja</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">template_child</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>  <span class="c1"># empty names indicate unneeded files</span>
+                <span class="k">continue</span>
+
+            <span class="n">target_child</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_dir</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">target_child</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="n">template_child</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">template_child</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_check_override</span><span class="p">(</span><span class="n">template_child</span><span class="p">,</span> <span class="n">target_child</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">target_child</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.tmpl&#39;</span><span class="p">:</span>
+                    <span class="n">target_child</span> <span class="o">=</span> <span class="n">target_child</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">target_child</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file already exists: </span><span class="si">{</span><span class="n">target_child</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">Path</span><span class="p">]):</span>
+
+        <span class="n">jinja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jinja</span>
+
+        <span class="k">for</span> <span class="n">template_child</span> <span class="ow">in</span> <span class="n">template_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">template_child</span> <span class="ow">in</span> <span class="n">ignored_files</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">name</span> <span class="o">=</span> <span class="n">jinja</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">template_child</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>  <span class="c1"># empty names indicate unneeded files</span>
+                <span class="k">continue</span>
+
+            <span class="n">target_child</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_dir</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">target_child</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">target_child</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">template_child</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">template_child</span> <span class="o">/</span> <span class="s2">&quot;.scaffoldpreserve&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">template_child</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_child</span><span class="o">.</span><span class="n">absolute</span><span class="p">()))</span>
+                    <span class="k">return</span>
+
+                <span class="n">target_child</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span><span class="n">template_child</span><span class="p">,</span> <span class="n">target_child</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">ignored_files</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">target_child</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.tmpl&quot;</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">target_child</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">jinja</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">template_child</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">context</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">template_child</span><span class="p">,</span> <span class="n">target_child</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_ignored_files_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pi_file</span> <span class="o">=</span> <span class="n">template_root</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;.scaffoldignore&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pi_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">pi_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">template_root</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">line</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">sub_dir</span> <span class="ow">in</span> <span class="n">template_root</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sub_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_ignored_files_list</span><span class="p">(</span><span class="n">sub_dir</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<span class="c1"># noinspection PyUnusedLocal,PyMethodMayBeStatic</span>
+<span class="k">class</span> <span class="nc">_UserInteractor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span> <span class="nf">_pre_answered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">named_arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">positional_arg</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">named_arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">named_arg</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">positional_arg</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">[</span><span class="n">positional_arg</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">say</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        display a message to the user</span>
+<span class="sd">        :param msg: the message to display</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">named_arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">positional_arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ask the user for yes/no confirmation</span>
+<span class="sd">        (either retrieving it from the command line or from the user supplied arguments)</span>
+<span class="sd">        :param named_arg: the name of the argument that may contain the value for this function to return</span>
+<span class="sd">                          (supports the values y,yes,n,no)</span>
+<span class="sd">        :param prompt: (optional - defaults to a string generated from named_arg) the prompt to show to the user</span>
+<span class="sd">        :param default: (optional - defaults to True = &#39;yes&#39;) the default value to suggest the user</span>
+<span class="sd">        :param positional_arg: (optional - defaults to -1) the index of the positional argument that may contain the</span>
+<span class="sd">                                value for this function to return</span>
+<span class="sd">        :param doc: documentation to show in the commandline (must be a string literal)</span>
+<span class="sd">        :return: True if the user confirmed or False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">pre_answered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_answered</span><span class="p">(</span><span class="n">named_arg</span><span class="p">,</span> <span class="n">positional_arg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pre_answered</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pre_answered</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">confirm</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">r</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">named_arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">positional_arg</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        fetch a value from the commandline arguments, without asking the user for it if not provided</span>
+<span class="sd">        :param named_arg: the name of the argument that may contain the value for this function to return</span>
+<span class="sd">                          (supports the values y,yes,n,no)</span>
+<span class="sd">        :param doc: documentation to show in the commandline (must be a string literal)</span>
+<span class="sd">        :param default: (optional - defaults to None) the default value to suggest the user</span>
+<span class="sd">        :param positional_arg:  (optional - defaults to -1) the index of the positional argument that may contain the</span>
+<span class="sd">                                value for this function to return</span>
+<span class="sd">        :return: the requested user value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pre_answered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_answered</span><span class="p">(</span><span class="n">named_arg</span><span class="p">,</span> <span class="n">positional_arg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pre_answered</span> <span class="k">if</span> <span class="n">pre_answered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default</span>
+
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">named_arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">secret</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">positional_arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">autocomplete</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">multiselect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ask the user for information (either retrieving it from the command line or from the user supplied arguments)</span>
+<span class="sd">        :param named_arg: the name of the argument that may contain the value for this function to return</span>
+<span class="sd">        :param prompt: (optional - defaults to a string generated from named_arg) the prompt to show to the user</span>
+<span class="sd">        :param default: (optional - defaults to None) the default value to suggest the user</span>
+<span class="sd">        :param options: (optional - defaults to None) list of choices to restrict the user input to</span>
+<span class="sd">        :param secret: (optional - defaults to False) set to True to hide the user input</span>
+<span class="sd">        :param positional_arg:  (optional - defaults to -1) the index of the positional argument that may contain the</span>
+<span class="sd">                                value for this function to return</span>
+<span class="sd">        :param multiselect: if true, multiple options can be selected</span>
+<span class="sd">        :param autocomplete: if true, options are suggested via auto-complete</span>
+<span class="sd">        :param path: if true, will require the user to enter a valid path as a result to the prompt</span>
+<span class="sd">        :param doc: documentation to show in the commandline (must be a string literal)</span>
+
+<span class="sd">        :return: the requested user input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">prompt</span><span class="p">:</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="n">named_arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+        <span class="n">pre_answered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_answered</span><span class="p">(</span><span class="n">named_arg</span><span class="p">,</span> <span class="n">positional_arg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pre_answered</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pre_answered</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>  <span class="c1"># ensure we have a list</span>
+            <span class="n">default</span> <span class="o">=</span> <span class="n">default</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">multiselect</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">checkbox</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">autocomplete</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">autocomplete</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">secret</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">password</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">):</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">ask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">confirm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirm</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">say</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">say</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg</span>
+
+
+<span class="k">def</span> <span class="nf">_load_proto</span><span class="p">(</span><span class="n">proto_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ui</span><span class="p">:</span> <span class="s2">&quot;_UserInteractor&quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s2">&quot;__PROTO__&quot;</span><span class="p">,</span> <span class="n">proto_file</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="n">ui</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">module</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while evaluating: </span><span class="si">{</span><span class="n">proto_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

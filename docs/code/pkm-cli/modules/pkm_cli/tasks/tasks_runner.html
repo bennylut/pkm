@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pkm_cli.tasks.tasks_runner &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/docs.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../static/documentation_options.js"></script>
+    <script src="../../../static/jquery.js"></script>
+    <script src="../../../static/underscore.js"></script>
+    <script src="../../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pkm_cli.html">pkm_cli</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pkm_cli.tasks.tasks_runner</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span> <span class="nn">jinja2.utils</span> <span class="kn">import</span> <span class="n">Namespace</span>
+
+<span class="kn">from</span> <span class="nn">pkm.api.projects.project</span> <span class="kn">import</span> <span class="n">Project</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.commons</span> <span class="kn">import</span> <span class="n">NoSuchElementException</span><span class="p">,</span> <span class="n">UnsupportedOperationException</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.files</span> <span class="kn">import</span> <span class="n">temp_dir</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.utils.clis</span> <span class="kn">import</span> <span class="n">Command</span>
+
+<span class="n">_EXECUTE_TASK</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">import inspect</span>
+<span class="s2">import typing</span>
+<span class="s2">import json</span>
+<span class="s2">import sys</span>
+<span class="s2">from pathlib import Path</span>
+<span class="s2">import importlib.util as iu</span>
+
+<span class="s2">insn = json.loads(Path(&#39;insn.json&#39;).read_text())</span>
+<span class="s2">if parent_path := insn.get(&#39;parent_path&#39;):</span>
+<span class="s2">    sys.path.insert(1, parent_path)</span>
+<span class="s2">    </span>
+<span class="s2">sys.path.insert(1, insn[&#39;path&#39;])</span>
+
+<span class="s2">def load_task(name):</span>
+<span class="s2">    task_spec = iu.find_spec(name)</span>
+<span class="s2">    task = iu.module_from_spec(task_spec)</span>
+<span class="s2">    </span>
+<span class="s2">    # extend builtins</span>
+<span class="s2">    task.run_task = run_task</span>
+<span class="s2">    task.project_info = insn[&#39;project_info&#39;]</span>
+<span class="s2">        </span>
+<span class="s2">    task_spec.loader.exec_module(task)</span>
+<span class="s2">    return task</span>
+
+<span class="s2">def run_task(name, *args, **kwargs):</span>
+<span class="s2">    task = load_task(name.replace(&#39;-&#39;,&#39;_&#39;))</span>
+<span class="s2">    task.run(*args, **kwargs)</span>
+
+<span class="s2">task = load_task(insn[&#39;task&#39;])</span>
+<span class="s2">run_function = task.run</span>
+<span class="s2">arg_types = typing.get_type_hints(run_function)</span>
+
+<span class="s2">arg_names = inspect.getfullargspec(task.run).args</span>
+<span class="s2">named_args = zip(insn[&#39;args&#39;], arg_names)</span>
+
+<span class="s2">def identity(x):</span>
+<span class="s2">    return x</span>
+
+<span class="s2">def typeof(name: str):</span>
+<span class="s2">    result = arg_types.get(name, identity)</span>
+<span class="s2">    if isinstance(result, str):</span>
+<span class="s2">        result = identity</span>
+<span class="s2">    return result</span>
+
+<span class="s2">parsed_args = [typeof(name)(arg) for arg, name in named_args]</span>
+<span class="s2">parsed_kwargs = {k: typeof(k)(v) for k, v in insn[&#39;kwargs&#39;].items()}</span>
+
+<span class="s2">task.run(*parsed_args, **parsed_kwargs)</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="TasksRunner"><a class="viewcode-back" href="../../../api/pkm_cli.tasks.tasks_runner.html#pkm_cli.tasks.tasks_runner.TasksRunner">[docs]</a><span class="k">class</span> <span class="nc">TasksRunner</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project</span> <span class="o">=</span> <span class="n">project</span>
+
+<div class="viewcode-block" id="TasksRunner.run"><a class="viewcode-back" href="../../../api/pkm_cli.tasks.tasks_runner.html#pkm_cli.tasks.tasks_runner.TasksRunner.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sep</span><span class="p">:</span>
+                <span class="n">k</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;positional arguments are not supported after named arguments: </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">task</span> <span class="o">:=</span> <span class="n">_locate_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NoSuchElementException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no such task: </span><span class="si">{</span><span class="n">task_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">k</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TasksRunner.run_attached"><a class="viewcode-back" href="../../../api/pkm_cli.tasks.tasks_runner.html#pkm_cli.tasks.tasks_runner.TasksRunner.run_attached">[docs]</a>    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">run_attached</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">Command</span><span class="p">,</span> <span class="n">command_args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+        <span class="n">command_args_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">command_args</span><span class="p">))</span>
+        <span class="k">del</span> <span class="n">command_args_dict</span><span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">]</span>
+        <span class="n">task_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;commands.</span><span class="si">{</span><span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">before</span> <span class="o">:=</span> <span class="n">_locate_task</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">task_prefix</span><span class="si">}</span><span class="s2">.before&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">):</span>
+            <span class="n">before</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command_args_dict</span><span class="p">)</span>
+        <span class="k">yield</span>
+        <span class="k">if</span> <span class="n">after</span> <span class="o">:=</span> <span class="n">_locate_task</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">task_prefix</span><span class="si">}</span><span class="s2">.after&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">):</span>
+            <span class="n">after</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command_args_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TasksRunner.describe"><a class="viewcode-back" href="../../../api/pkm_cli.tasks.tasks_runner.html#pkm_cli.tasks.tasks_runner.TasksRunner.describe">[docs]</a>    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">task</span> <span class="o">:=</span> <span class="n">_locate_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NoSuchElementException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no such task: </span><span class="si">{</span><span class="n">task_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_Task</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">project</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">group</span>
+        <span class="n">insn</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">((</span><span class="n">project</span><span class="o">.</span><span class="n">path</span> <span class="o">/</span> <span class="s1">&#39;tasks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()),</span>
+            <span class="s1">&#39;parent_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">((</span><span class="n">group</span><span class="o">.</span><span class="n">path</span> <span class="o">/</span> <span class="s1">&#39;tasks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span> <span class="k">if</span> <span class="n">group</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span>
+            <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+            <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span>
+            <span class="s1">&#39;project_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">project</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>
+                <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()),</span>
+                <span class="s1">&#39;group_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span> <span class="k">if</span> <span class="n">group</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="n">temp_dir</span><span class="p">()</span> <span class="k">as</span> <span class="n">tdir</span><span class="p">:</span>
+            <span class="n">execute_py</span> <span class="o">=</span> <span class="n">tdir</span> <span class="o">/</span> <span class="s2">&quot;execute.py&quot;</span>
+            <span class="p">(</span><span class="n">tdir</span> <span class="o">/</span> <span class="s2">&quot;insn.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">insn</span><span class="p">))</span>
+            <span class="n">execute_py</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_EXECUTE_TASK</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="o">.</span><span class="n">interpreter_path</span><span class="p">),</span> <span class="s2">&quot;execute.py&quot;</span><span class="p">],</span>
+                                  <span class="n">cwd</span><span class="o">=</span><span class="n">tdir</span><span class="p">)</span><span class="o">.</span><span class="n">returncode</span>
+
+    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">ast</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()))</span>
+        <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">)</span> <span class="ow">and</span> <span class="n">stmt</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;run&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ast</span><span class="o">.</span><span class="n">get_docstring</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># noqa</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_locate_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">_Task</span><span class="p">]:</span>
+    <span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">name_parts</span> <span class="o">=</span> <span class="n">task_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_task_path</span><span class="p">(</span><span class="n">base_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;tasks&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">name_parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">name_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.py&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">path</span> <span class="o">:=</span> <span class="n">_task_path</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">path</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">_Task</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">group</span> <span class="o">:=</span> <span class="n">project</span><span class="o">.</span><span class="n">group</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">path</span> <span class="o">:=</span> <span class="n">_task_path</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">path</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">_Task</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

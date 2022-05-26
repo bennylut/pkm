@@ -86,9 +86,6 @@ class RepositoryLoader:
         return self._global_repo
 
     def load(self, name: str, config: RepositoriesConfiguration, next_in_context: Repository) -> Repository:
-
-        print(f"DBG: loading package config at {config.path}")
-
         package_search_list = []
         binding_only_repositories = set()
 
@@ -104,16 +101,11 @@ class RepositoryLoader:
             package_search_list.append(self.global_repo)
 
         package_binding: Dict[str, str] = {}
-        print(f"DBG: {config.package_bindings=}")
         for package, binding in config.package_bindings.items():
-
-            print(f"DBG: considering package binding: {package} = {binding}")
-
             if isinstance(binding, str):
                 package_binding[package] = binding
             else:
                 binding = self.build(RepositoryInstanceConfig.from_config(f'_unnamed_repo_for_{package}', binding))
-                print(f"DBG: build unnamed repository: {binding.name}")
                 binding_only_repositories.add(binding.name)
                 package_search_list.append(binding)
                 package_binding[package] = binding.name
@@ -162,9 +154,6 @@ class _CompositeRepository(AbstractRepository):
 
         if repo_name := self._package_binding.get(dependency.package_name):
             if not (repo := first_or_none(it for it in self._package_search_list if it.name == repo_name)):
-                print(f"DBG: repositories are {[r.name for r in self._package_search_list]}")
-                print(f"DBG: type of repo_name is {type(repo_name)}")
-
                 raise NoSuchElementException(f"package: {dependency.package_name} is bound to "
                                              f"repository: {repo_name}, but this repository is not defined")
             return repo.match(dependency, env)

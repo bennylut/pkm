@@ -403,10 +403,13 @@ class Project(Package, HasAttachedRepository):
 
     @classmethod
     def load(cls, path: Union[Path, str], package: Optional[PackageDescriptor] = None,
-             group: Optional["ProjectGroup"] = None) -> "Project":
+             group: Optional["ProjectGroup"] = None) -> Project:
         path = Path(path)
         pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml', package)
         return Project(pyproject, group=group)
+
+
+
 
 
 @dataclass()

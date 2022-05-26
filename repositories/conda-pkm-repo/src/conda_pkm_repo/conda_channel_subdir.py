@@ -154,8 +154,6 @@ class CondaSubdirPackageArtifact:
 
             if not matches:
                 spec = RestrictAllVersions
-                print("DBG")
-                self.container.match_artifacts_by_build(parts[0], parts[1], parts[2])
             elif len(matches) == 1:
                 spec = matches[0]
             else:

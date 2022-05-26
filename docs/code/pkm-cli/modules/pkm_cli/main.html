@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pkm_cli.main &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../static/docs.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../static/documentation_options.js"></script>
+    <script src="../../static/jquery.js"></script>
+    <script src="../../static/underscore.js"></script>
+    <script src="../../static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/pkm_cli.html">pkm_cli</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pkm_cli.main</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">pkm.api.dependencies.dependency</span> <span class="kn">import</span> <span class="n">Dependency</span>
+<span class="kn">from</span> <span class="nn">pkm.api.environments.environment</span> <span class="kn">import</span> <span class="n">Environment</span>
+<span class="kn">from</span> <span class="nn">pkm.api.environments.environments_zoo</span> <span class="kn">import</span> <span class="n">EnvironmentsZoo</span>
+<span class="kn">from</span> <span class="nn">pkm.api.packages.package_installation</span> <span class="kn">import</span> <span class="n">PackageInstallationTarget</span>
+<span class="kn">from</span> <span class="nn">pkm.api.pkm</span> <span class="kn">import</span> <span class="n">pkm</span><span class="p">,</span> <span class="n">HasAttachedRepository</span>
+<span class="kn">from</span> <span class="nn">pkm.api.projects.project</span> <span class="kn">import</span> <span class="n">Project</span>
+<span class="kn">from</span> <span class="nn">pkm.api.projects.project_group</span> <span class="kn">import</span> <span class="n">ProjectGroup</span>
+<span class="kn">from</span> <span class="nn">pkm.api.repositories.repositories_configuration</span> <span class="kn">import</span> <span class="n">RepositoryInstanceConfig</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.commons</span> <span class="kn">import</span> <span class="n">UnsupportedOperationException</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.processes</span> <span class="kn">import</span> <span class="n">execvpe</span>
+<span class="kn">from</span> <span class="nn">pkm.utils.resources</span> <span class="kn">import</span> <span class="n">ResourcePath</span>
+<span class="kn">from</span> <span class="nn">pkm_cli</span> <span class="kn">import</span> <span class="n">cli_monitors</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.utils.context</span> <span class="kn">import</span> <span class="n">Context</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.display.display</span> <span class="kn">import</span> <span class="n">Display</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.added_repositories_report</span> <span class="kn">import</span> <span class="n">AddedRepositoriesReport</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.environment_report</span> <span class="kn">import</span> <span class="n">EnvironmentReport</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.installed_repositories_report</span> <span class="kn">import</span> <span class="n">InstalledRepositoriesReport</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.package_report</span> <span class="kn">import</span> <span class="n">PackageReport</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.reports.project_report</span> <span class="kn">import</span> <span class="n">ProjectReport</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.scaffold.engine</span> <span class="kn">import</span> <span class="n">ScaffoldingEngine</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.tasks.tasks_runner</span> <span class="kn">import</span> <span class="n">TasksRunner</span>
+<span class="kn">from</span> <span class="nn">pkm_cli.utils.clis</span> <span class="kn">import</span> <span class="n">command</span><span class="p">,</span> <span class="n">Arg</span><span class="p">,</span> <span class="n">create_args_parser</span><span class="p">,</span> <span class="n">Command</span><span class="p">,</span> <span class="n">with_extras</span>
+
+<span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Context</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">tasks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TasksRunner</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">_cli_container</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">PackageInstallationTarget</span><span class="p">:</span>
+    <span class="n">global_env</span> <span class="o">=</span> <span class="n">Environment</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">pkm_container</span> <span class="o">:=</span> <span class="n">global_env</span><span class="o">.</span><span class="n">app_containers</span><span class="o">.</span><span class="n">container_of</span><span class="p">(</span><span class="s1">&#39;pkm-cli&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pkm_container</span><span class="o">.</span><span class="n">installation_target</span>
+    <span class="k">return</span> <span class="n">global_env</span><span class="o">.</span><span class="n">installation_target</span>
+
+
+<div class="viewcode-block" id="install_repos"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.install_repos">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm repos install&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-u&quot;</span><span class="p">,</span> <span class="s2">&quot;--update&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">),</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">install_repos</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">global_context</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;repository installation is only supported in global context (add -g)&quot;</span><span class="p">)</span>
+
+    <span class="n">updates</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">names</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">update</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">_cli_container</span><span class="p">()</span><span class="o">.</span><span class="n">install</span><span class="p">([</span><span class="n">Dependency</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">names</span><span class="p">],</span> <span class="n">updates</span><span class="o">=</span><span class="n">updates</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="uninstall_repo"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.uninstall_repo">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm repos uninstall&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">uninstall_repo</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">global_context</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;repository uninstallation is only supported in global context (add -g)&quot;</span><span class="p">)</span>
+
+    <span class="n">_cli_container</span><span class="p">()</span><span class="o">.</span><span class="n">uninstall</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">names</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_installed_repositories"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.show_installed_repositories">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm repos show installed&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_installed_repositories</span><span class="p">(</span><span class="n">_</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="n">InstalledRepositoriesReport</span><span class="p">()</span><span class="o">.</span><span class="n">display</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="add_repo"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.add_repo">[docs]</a><span class="nd">@command</span><span class="p">(</span>
+    <span class="s1">&#39;pkm repos add&#39;</span><span class="p">,</span>
+    <span class="n">Arg</span><span class="p">(</span><span class="s2">&quot;repo_name&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">with_extras</span><span class="p">()),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="s1">&#39;--bind-only&#39;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">add_repo</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">with_repo</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">):</span>
+        <span class="n">with_repo</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">add_repository</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">repo_name</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;type_extras&#39;</span><span class="p">,</span> <span class="p">{}),</span> <span class="n">args</span><span class="o">.</span><span class="n">bind_only</span><span class="p">)</span>
+
+    <span class="n">on_environment</span><span class="p">,</span> <span class="n">on_project</span><span class="p">,</span> <span class="n">on_project_group</span><span class="p">,</span> <span class="o">=</span> <span class="n">add</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">add</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="remove_repo"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.remove_repo">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm repos remove&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">remove_repo</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="n">with_repo</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">):</span>
+        <span class="n">with_repo</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">remove_repository</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">on_environment</span><span class="p">,</span> <span class="n">on_project</span><span class="p">,</span> <span class="n">on_project_group</span><span class="p">,</span> <span class="o">=</span> <span class="n">rm</span><span class="p">,</span> <span class="n">rm</span><span class="p">,</span> <span class="n">rm</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="show_added_repositories"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.show_added_repositories">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm repos show added&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_added_repositories</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="n">with_repo</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">):</span>
+        <span class="n">AddedRepositoriesReport</span><span class="p">(</span><span class="n">with_repo</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+    <span class="n">on_environment</span><span class="p">,</span> <span class="n">on_project</span><span class="p">,</span> <span class="n">on_project_group</span><span class="p">,</span> <span class="o">=</span> <span class="n">show</span><span class="p">,</span> <span class="n">show</span><span class="p">,</span> <span class="n">show</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.run">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm run&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;cmd&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;command is required to be executed&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">activate</span><span class="p">():</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">execvpe</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">):</span>
+            <span class="n">task_name</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">task_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="s1">&#39;-h&#39;</span> <span class="ow">in</span> <span class="n">task_args</span><span class="p">:</span>
+                <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">tasks</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">task_name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="o">.</span><span class="n">activate</span><span class="p">():</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">tasks</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">task_args</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">on_environment</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<span class="c1"># noinspection PyUnusedLocal</span>
+<div class="viewcode-block" id="shell"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.shell">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm shell&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="s1">&#39;--execute&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">shell</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">env</span><span class="o">.</span><span class="n">activate</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">execution</span> <span class="o">:=</span> <span class="n">args</span><span class="o">.</span><span class="n">execute</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">execvpe</span><span class="p">(</span><span class="n">execution</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">execution</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">))</span>
+
+            <span class="kn">import</span> <span class="nn">xonsh.main</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">xonsh</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">main</span><span class="p">([]))</span>
+
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">on_environment</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_free_context</span><span class="p">():</span>
+        <span class="n">on_environment</span><span class="p">(</span><span class="n">Environment</span><span class="o">.</span><span class="n">current</span><span class="p">())</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<span class="c1"># noinspection PyUnusedLocal</span>
+<div class="viewcode-block" id="build"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.build">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm build&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">((</span><span class="n">u</span> <span class="o">:=</span> <span class="n">d</span><span class="o">.</span><span class="n">required_url</span><span class="p">())</span> <span class="ow">and</span> <span class="n">u</span><span class="o">.</span><span class="n">protocol</span> <span class="o">==</span> <span class="s1">&#39;file&#39;</span>
+               <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">dependencies</span> <span class="ow">or</span> <span class="p">[])):</span>
+            <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[orange1]Warning[/] you are building a project that depends on packages located in your &quot;</span>
+                          <span class="s2">&quot;file system, [red]publishing this project will result in unusable package[/]&quot;</span><span class="p">)</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_project_group</span><span class="p">(</span><span class="n">project_group</span><span class="p">:</span> <span class="n">ProjectGroup</span><span class="p">):</span>
+        <span class="n">project_group</span><span class="o">.</span><span class="n">build_all</span><span class="p">()</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="vbump"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.vbump">[docs]</a><span class="nd">@command</span><span class="p">(</span>
+    <span class="s1">&#39;pkm vbump&#39;</span><span class="p">,</span>
+    <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;particle&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="s1">&#39;patch&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;rc&#39;</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;patch&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">vbump</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">new_version</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">bump_version</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">particle</span><span class="p">)</span>
+        <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Version bumped to: </span><span class="si">{</span><span class="n">new_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="install"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.install">[docs]</a><span class="nd">@command</span><span class="p">(</span>
+    <span class="s1">&#39;pkm install&#39;</span><span class="p">,</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--optional&quot;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;optional group to use (only for projects)&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--force&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;forcefully remove and reinstall the given pacakges&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-a&quot;</span><span class="p">,</span> <span class="s2">&quot;--app&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;install package in containerized application mode&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-u&quot;</span><span class="p">,</span> <span class="s2">&quot;--update&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;update the given packages if already installed&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mode&quot;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;editable&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;editable&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;choose the installation mode for the requested packages.&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--site&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;applicable for global-context, which site to use - defaults to &#39;user&#39;&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--repo&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;bind the given packages to a specific repositry by name, use &#39;default&#39; to remove previous binding&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">([</span><span class="s1">&#39;-R&#39;</span><span class="p">,</span> <span class="s1">&#39;--unnamed-repo&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">with_extras</span><span class="p">(),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;bind the given packages to a new unnamed repositry given its configuration&quot;</span><span class="p">),</span>
+    <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;packages&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the packages to install (support pep508 dependency syntax)&quot;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    install packages under the current context</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dependency</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">packages</span><span class="p">]</span>
+    <span class="n">editable</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;editable&#39;</span>
+
+    <span class="k">def</span> <span class="nf">register_repo_bindings</span><span class="p">(</span><span class="n">contex</span><span class="p">:</span> <span class="n">HasAttachedRepository</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">repo</span> <span class="o">:=</span> <span class="n">args</span><span class="o">.</span><span class="n">repo</span><span class="p">:</span>
+            <span class="n">repo</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">repo</span> <span class="o">==</span> <span class="s1">&#39;default&#39;</span> <span class="k">else</span> <span class="n">repo</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">contex</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">package_bindings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">repo</span>
+                   <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">):</span>
+                <span class="n">contex</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">register_bindings</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">],</span> <span class="n">repo</span><span class="p">)</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">force</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">repo_type</span> <span class="o">:=</span> <span class="n">args</span><span class="o">.</span><span class="n">unnamed_repo</span><span class="p">:</span>
+            <span class="n">instance_config</span> <span class="o">=</span> <span class="n">RepositoryInstanceConfig</span><span class="p">(</span><span class="n">repo_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;unnamed_repo_extras&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+            <span class="n">contex</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">register_bindings</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">],</span> <span class="n">instance_config</span><span class="p">)</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">force</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">PackageInstallationTarget</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">:</span>
+                <span class="n">target</span><span class="o">.</span><span class="n">force_remove</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">register_repo_bindings</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">app</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;application install as project dependency is not supported&quot;</span><span class="p">)</span>
+
+        <span class="n">force</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="o">.</span><span class="n">installation_target</span><span class="p">)</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">dev_install</span><span class="p">(</span><span class="n">dependencies</span><span class="p">,</span> <span class="n">optional_group</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">optional</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">dependencies</span>
+        <span class="n">register_repo_bindings</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">optional</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;optional dependencies are only supported inside projects&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dependencies</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">installation_target</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">app</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">app_containers</span><span class="o">.</span><span class="n">install</span><span class="p">(</span>
+                    <span class="n">dependencies</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">editable</span><span class="o">=</span><span class="n">editable</span><span class="p">,</span>
+                    <span class="n">update</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">update</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dependencies</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">installation_target</span>
+                <span class="n">dependencies</span> <span class="o">=</span> <span class="n">dependencies</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="k">if</span> <span class="n">dependencies</span><span class="p">:</span>
+                <span class="n">force</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+                <span class="n">updates</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">update</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">editables</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="o">.</span><span class="n">package_name</span><span class="p">:</span> <span class="n">editable</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">}</span>
+                <span class="n">target</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">dependencies</span><span class="p">,</span> <span class="n">updates</span><span class="o">=</span><span class="n">updates</span><span class="p">,</span> <span class="n">editables</span><span class="o">=</span><span class="n">editables</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="remove"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.remove">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm uninstall&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-a&quot;</span><span class="p">,</span> <span class="s2">&quot;--app&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;remove containerized packages&quot;</span><span class="p">),</span>
+         <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--force&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;remove the requested packages even if they are dependant of other packages, &quot;</span>
+                  <span class="s2">&quot;will not remove any other packages or update pyproject&quot;</span><span class="p">),</span>
+         <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;package_names&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the packages to remove&quot;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    remove packages from the current context</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">package_names</span> <span class="o">:=</span> <span class="n">args</span><span class="o">.</span><span class="n">package_names</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no package names are provided to be removed&quot;</span><span class="p">)</span>
+
+    <span class="n">app_install</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">app</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">PackageInstallationTarget</span><span class="p">,</span> <span class="n">packages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">package_names</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="n">packages</span><span class="p">:</span>
+                <span class="n">target</span><span class="o">.</span><span class="n">force_remove</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">uninstall</span><span class="p">(</span><span class="n">packages</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app_install</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;application install/remove as project dependency is not supported&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+            <span class="n">_remove</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">attached_environment</span><span class="o">.</span><span class="n">installation_target</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">project</span><span class="o">.</span><span class="n">dev_remove</span><span class="p">(</span><span class="n">package_names</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app_install</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">container</span> <span class="o">:=</span> <span class="n">env</span><span class="o">.</span><span class="n">installation_target</span><span class="o">.</span><span class="n">app_containers</span><span class="o">.</span><span class="n">container_of</span><span class="p">(</span><span class="n">package_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">package_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">container</span><span class="o">.</span><span class="n">uninstall</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_remove</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">installation_target</span><span class="p">,</span> <span class="n">package_names</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_remove</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">installation_target</span><span class="p">,</span> <span class="n">package_names</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="publish"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.publish">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm publish&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;repo&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">with_extras</span><span class="p">()),</span> <span class="n">Arg</span><span class="p">([</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--save&#39;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pkm_cli.auth.publish_auth_store</span> <span class="kn">import</span> <span class="n">PublishAuthenticationStore</span>
+        <span class="n">publish_auth</span> <span class="o">=</span> <span class="n">PublishAuthenticationStore</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[red]Could not load publish authentication store: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">[/red]&quot;</span><span class="p">)</span>
+        <span class="n">publish_auth</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">project</span><span class="o">.</span><span class="n">is_built_in_default_location</span><span class="p">():</span>
+            <span class="n">project</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">publisher</span> <span class="o">:=</span> <span class="n">project</span><span class="o">.</span><span class="n">repository_management</span><span class="o">.</span><span class="n">publisher_for</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">repo</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;repository: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2"> does not support publishing&quot;</span><span class="p">)</span>
+
+        <span class="n">auth_args</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;repo_extras&#39;</span><span class="p">):</span>
+            <span class="n">auth_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">repo_extras</span>
+        <span class="k">elif</span> <span class="n">publisher</span><span class="o">.</span><span class="n">requires_authentication</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">publish_auth</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">publish_auth</span><span class="o">.</span><span class="n">is_configuration_exists</span><span class="p">()</span> \
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">auth_args</span> <span class="o">:=</span> <span class="n">publish_auth</span><span class="o">.</span><span class="n">auth_args_for</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">repo</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">UnsupportedOperationException</span><span class="p">(</span><span class="s2">&quot;authentication required&quot;</span><span class="p">)</span>
+
+        <span class="n">project</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">publisher</span><span class="p">,</span> <span class="n">auth_args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save</span> <span class="ow">and</span> <span class="n">publish_auth</span><span class="p">:</span>
+            <span class="n">publish_auth</span><span class="o">.</span><span class="n">add_auth_args</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">repo</span><span class="p">,</span> <span class="n">auth_args</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="new"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.new">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm new&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;template&#39;</span><span class="p">),</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;template_args&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">REMAINDER</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="n">ScaffoldingEngine</span><span class="p">()</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+        <span class="n">ResourcePath</span><span class="p">(</span><span class="s1">&#39;pkm_cli.scaffold&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;new_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">template</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span><span class="p">),</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">(),</span> <span class="n">args</span><span class="o">.</span><span class="n">template_args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_context"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.show_context">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm show context&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_context</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">ProjectReport</span><span class="p">(</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="n">EnvironmentReport</span><span class="p">(</span><span class="n">env</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="show_package"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.show_package">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm show package&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s1">&#39;dependency&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">show_package</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">PackageReport</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">dependency</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_environment</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">):</span>
+        <span class="n">PackageReport</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">dependency</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<span class="c1"># noinspection PyUnusedLocal</span>
+<div class="viewcode-block" id="clean_cache"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.clean_cache">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm clean cache&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">clean_cache</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="n">pkm</span><span class="o">.</span><span class="n">clean_cache</span><span class="p">()</span></div>
+
+
+<span class="c1"># noinspection PyUnusedLocal</span>
+<div class="viewcode-block" id="clean_shared"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.clean_shared">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm clean shared&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">clean_shared</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_env_zoo</span><span class="p">(</span><span class="n">env_zoo</span><span class="p">:</span> <span class="n">EnvironmentsZoo</span><span class="p">):</span>
+        <span class="n">env_zoo</span><span class="o">.</span><span class="n">clean_unused_shared</span><span class="p">()</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="clean_dist"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.clean_dist">[docs]</a><span class="nd">@command</span><span class="p">(</span><span class="s1">&#39;pkm clean dist&#39;</span><span class="p">,</span> <span class="n">Arg</span><span class="p">([</span><span class="s2">&quot;--all&quot;</span><span class="p">,</span> <span class="s2">&quot;-a&quot;</span><span class="p">],</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">clean_dist</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">keep_versions</span> <span class="o">=</span> <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">version</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">all</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">directories</span><span class="o">.</span><span class="n">clean_dist</span><span class="p">(</span><span class="n">keep_versions</span><span class="p">)</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../api/pkm_cli.main.html#pkm_cli.main.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">context</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">args</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="n">pkm_parser</span> <span class="o">=</span> <span class="n">create_args_parser</span><span class="p">(</span>
+        <span class="s2">&quot;pkm - python package management for busy developers&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="n">pkm_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;run with verbose output&quot;</span><span class="p">)</span>
+    <span class="n">pkm_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--context&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;path to the context to run this command under&quot;</span><span class="p">)</span>
+    <span class="n">pkm_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-g&#39;</span><span class="p">,</span> <span class="s1">&#39;--global-context&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;use the global environment context&quot;</span><span class="p">)</span>
+    <span class="n">pkm_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-nt&#39;</span><span class="p">,</span> <span class="s1">&#39;--no-tasks&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;dont run command-attached tasks&quot;</span><span class="p">)</span>
+
+    <span class="n">pargs</span> <span class="o">=</span> <span class="n">pkm_parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">cli_monitors</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span> <span class="ow">in</span> <span class="n">pargs</span> <span class="ow">and</span> <span class="n">pargs</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">Context</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">pargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;func&#39;</span> <span class="ow">in</span> <span class="n">pargs</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">with_tasks</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>
+            <span class="k">global</span> <span class="n">tasks</span>
+            <span class="n">tasks</span> <span class="o">=</span> <span class="n">TasksRunner</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">tasks</span><span class="o">.</span><span class="n">run_attached</span><span class="p">(</span><span class="n">Command</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">pargs</span><span class="o">.</span><span class="n">func</span><span class="p">),</span> <span class="n">pargs</span><span class="p">):</span>
+                <span class="n">pargs</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">pargs</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">without_tasks</span><span class="p">():</span>
+            <span class="n">pargs</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">pargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pargs</span><span class="o">.</span><span class="n">no_tasks</span><span class="p">:</span>
+            <span class="n">without_tasks</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">on_project</span><span class="o">=</span><span class="n">with_tasks</span><span class="p">,</span> <span class="n">on_missing</span><span class="o">=</span><span class="n">without_tasks</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pkm_parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+
+    <span class="n">Display</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

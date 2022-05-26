@@ -185,7 +185,8 @@ class Environment(HasAttachedRepository):
             else:
                 del env["VIRTUAL_ENV"]
 
-    def exec_proc(self, cmd: str, args: Optional[List[str]] = None, env: Optional[Dict[str, str]] = None) -> NoReturn:
+    def exec_proc(self, cmd: str, args: Optional[List[str]] = None,
+                  env: Optional[Dict[str, str]] = None) -> NoReturn:
         """
         similar to `run_proc` but does not return, this process will become the new process
         (on supporting operating systems)

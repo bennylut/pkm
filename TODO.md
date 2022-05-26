@@ -1,19 +1,39 @@
 ## RUNNING TASKS:
+- 3rd party tasks, publish and install
+- bug: when uninstalling from optional group, the dependency is not removed from the pyproject.toml
+- integrate sphnix as a task
+- project group tasks support should be removed in favor of 3rd party tasks
+- remove the project-group tasks lookup
+- add support for the `pkm_tasks` namespace
+- support `pkm new tasks-project`
+- bug: the task print function does not use Display.print and therefore has problems with text disapearing
+- support for non-publishable (private) projects
+- after the "new" command, some indication should be made for the user that the template generated its content
+  successfully
+- move documentation site to sphnix
 
 ## DONE IN THIS VERSION
-- bug: cli, when using the global context does show the path to the python interpreter instead of '/'
-- bug: when running in "build-sys" mode should not "implicitly install" cache files
-- cli: `pkm publish repo-name +user=<name> +password=<password>`
-- protected credentials file (maybe check ideas in: https://youtu.be/hsRR9-aZZ4Q), also allow plain text if user wishes
+- task naming support '-' (when generating or calling - replace with '_')
+- support tasks extended builtins: `run_task` and `project_info`
+- integrate github docs serve
+- support `pkm run @task -h`
+- write task executor, should accept the selected command and its parameters
+- cli: `--no-tasks` flag to disable tasks execution
+- cli: support `pkm new task`
+- cli: -g, -c (context control) should probably be part of the pkm command and not the subcommands
+- support task attachements to commands
+- cli: add support for `pkm run @task`
 
 ## BACKLOG TASKS:
+- integrate a task to generate commands documentation
+- integrate bash* autocomplete (can we also do so for `pkm run`?)
+- display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
+  sub builds from main build
+- add test support (maybe extendable test engine?)
 - bug: uninstall does not delete the ".lib" directories but installer did created them
 - simplification: configuration - remove parent
 - refactor: there are several instances where dynamic args are provided as a dictionary - create DynamicArguments class
   with common functionality (may be used in repository builder, in publish credentials,etc.)
-- make-like task system
-- common tasks: test, build doc, etc.
-- integrate pydoc as a task, attach it to after the build
 - documentation: repositories - how to build your own
 - add git repository type
 - pkm shell should be moved into its own project (optionally automatically installed when requested)
@@ -27,7 +47,6 @@
 - qof: ability to specify max cache size
 - simplification: remove the coerced dependnecies and package names support in env install/remove
 - enhancement: delegation should also support abstract properties
-- test: check installation of editable packages inside shared packages zoo
 - cli: read about parents in argparse - may help improve code readability
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
@@ -50,7 +69,7 @@
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
 - bug: pkm new - cannot cancel creation - it just continues to the next question
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
-- cmd: pkm remove - display the packages being removed
+- cmd: pkm uninstall - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - environment naming (for project for example..)
 - cmd: pkm uninstall -o (orphans)

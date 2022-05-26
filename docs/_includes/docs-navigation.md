@@ -8,6 +8,7 @@
 - [Projects]({{'/projects' | relative_url}})
 - [Environments]({{'/environments' | relative_url}})
 - [Repositories]({{'/repositories' | relative_url}})
+- [Project Tasks]({{'/tasks' | relative_url}})
 
 
 ##### Advanced Topics
