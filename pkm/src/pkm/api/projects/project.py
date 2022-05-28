@@ -15,7 +15,7 @@ from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
     AttachedEnvironmentConfig
 from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, PkmDistributionConfig, \
-    PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP
+    PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP, PKM_DIST_CFG_TYPE_NONE
 from pkm.api.repositories.repository import Repository, RepositoryPublisher
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
@@ -347,10 +347,15 @@ class Project(Package, HasAttachedRepository):
         :return list of paths to all the distributions created
         """
 
+        required_distribution_type = self.config.pkm_distribution.type
+
+        if required_distribution_type == PKM_DIST_CFG_TYPE_NONE:
+            return []
+
         builders: List[Callable[[Path], Path]] = [self.build_sdist, self.build_wheel]
         if self.is_containerized_application():
             builders = [self.build_sdist]
-        elif self.config.pkm_distribution.type == PKM_DIST_CFG_TYPE_CAPP:
+        elif required_distribution_type == PKM_DIST_CFG_TYPE_CAPP:
             builders = [self.build_app_sdist]
 
         return [build(target_dir) for build in builders]

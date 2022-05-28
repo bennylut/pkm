@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from contextlib import contextmanager
 from pathlib import Path
@@ -20,10 +21,6 @@ from pathlib import Path
 import importlib.util as iu
 
 insn = json.loads(Path('insn.json').read_text())
-if parent_path := insn.get('parent_path'):
-    sys.path.insert(1, parent_path)
-    
-sys.path.insert(1, insn['path'])
 
 def load_task(name):
     task_spec = iu.find_spec(name)
@@ -70,6 +67,13 @@ class TasksRunner:
     def run(self, task_name: str, args: List[str]) -> int:
         a, k = [], {}
         for arg in args:
+
+            if arg.startswith('--'):
+                if '=' in arg:
+                    arg = arg[2:]
+                else:
+                    arg = arg[2:] + "=True"
+
             name, sep, value = arg.partition('=')
             if sep:
                 k[name] = value
@@ -112,8 +116,8 @@ class _Task:
         project = self.project
         group = project.group
         insn = {
-            'path': str((project.path / 'tasks').resolve()),
-            'parent_path': str((group.path / 'tasks').resolve()) if group else None,
+            # 'path': str((project.path / 'tasks').resolve()),
+            # 'parent_path': str((group.path / 'tasks').resolve()) if group else None,
             'task': self.task,
             'args': args,
             'kwargs': kwargs,
@@ -129,8 +133,17 @@ class _Task:
             execute_py = tdir / "execute.py"
             (tdir / "insn.json").write_text(json.dumps(insn))
             execute_py.write_text(_EXECUTE_TASK)
-            return subprocess.run([str(self.project.attached_environment.interpreter_path), "execute.py"],
-                                  cwd=tdir).returncode
+            with self.project.attached_environment.activate():
+                pythonpath = str((project.path / 'tasks').resolve())
+                if old_pythonpath := os.environ.get("PYTHONPATH", ""):
+                    pythonpath = pythonpath + os.pathsep + old_pythonpath
+
+                os.environ["PYTHONPATH"] = pythonpath
+                try:
+                    return subprocess.run(
+                        [str(self.project.attached_environment.interpreter_path), "execute.py"], cwd=tdir).returncode
+                finally:
+                    os.environ["PYTHONPATH"] = old_pythonpath
 
     def describe(self) -> str:
         import ast

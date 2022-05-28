@@ -1,6 +1,6 @@
 import argparse
 import os
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 from pathlib import Path
 from typing import List, Optional, Dict
 
@@ -110,8 +110,7 @@ def run(args: Namespace):
             if '-h' in task_args:
                 Display.print(tasks.describe(task_name))
             else:
-                with project.attached_environment.activate():
-                    sys.exit(tasks.run(task_name, task_args))
+                sys.exit(tasks.run(task_name, task_args))
         else:
             on_environment(project.attached_environment)
 
@@ -363,10 +362,7 @@ def clean_dist(args: Namespace):
     context.run(**locals())
 
 
-def main(args: Optional[List[str]] = None):
-    global context
-    args = args or sys.argv[1:]
-
+def prepare_parser() -> ArgumentParser:
     pkm_parser = create_args_parser(
         "pkm - python package management for busy developers", globals().values())
 
@@ -374,6 +370,14 @@ def main(args: Optional[List[str]] = None):
     pkm_parser.add_argument('-c', '--context', help="path to the context to run this command under")
     pkm_parser.add_argument('-g', '--global-context', action='store_true', help="use the global environment context")
     pkm_parser.add_argument('-nt', '--no-tasks', action='store_true', help="dont run command-attached tasks")
+    return pkm_parser
+
+
+def main(args: Optional[List[str]] = None):
+    global context
+    args = args or sys.argv[1:]
+
+    pkm_parser = prepare_parser()
 
     pargs = pkm_parser.parse_args(args)
     cli_monitors.listen('verbose' in pargs and pargs.verbose)

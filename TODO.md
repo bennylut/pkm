@@ -1,30 +1,28 @@
 ## RUNNING TASKS:
 - 3rd party tasks, publish and install
 - bug: when uninstalling from optional group, the dependency is not removed from the pyproject.toml
-- integrate sphnix as a task
 - project group tasks support should be removed in favor of 3rd party tasks
 - remove the project-group tasks lookup
 - add support for the `pkm_tasks` namespace
-- support `pkm new tasks-project`
 - bug: the task print function does not use Display.print and therefore has problems with text disapearing
-- support for non-publishable (private) projects
 - after the "new" command, some indication should be made for the user that the template generated its content
   successfully
-- move documentation site to sphnix
+- documentation: document tasks argument support for flags (`--`)
 
 ## DONE IN THIS VERSION
-- task naming support '-' (when generating or calling - replace with '_')
-- support tasks extended builtins: `run_task` and `project_info`
-- integrate github docs serve
-- support `pkm run @task -h`
-- write task executor, should accept the selected command and its parameters
-- cli: `--no-tasks` flag to disable tasks execution
-- cli: support `pkm new task`
-- cli: -g, -c (context control) should probably be part of the pkm command and not the subcommands
-- support task attachements to commands
-- cli: add support for `pkm run @task`
+- move documentation site to sphnix
+- support distribution_type=none in pyproject.toml
+- bug: double activation of environment on `pkm run`
+- tasks arguments - handle flags (translate into argument = true) 
 
 ## BACKLOG TASKS:
+- extract the docs-builder to a template - this may be usefull to many other projects
+- support `pkm new tasks-project`
+- documentation: environments
+- documentation: how to work with multiprojects in pycharm
+- documentation: mostly rewrite and extend the projects documentation
+- bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
+- bug: `pkm uninstall package` can fail if other unrelated dependency in `pyproject.toml` is not installed yet
 - integrate a task to generate commands documentation
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of

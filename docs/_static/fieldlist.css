@@ -1,0 +1,1 @@
+div.document dl.field-list{display:grid;grid-template-columns:auto 1fr;border:1px groove #969696;margin-bottom:2rem}div.document dl.field-list dd{margin:0;padding:8px;background-color:#202020}div.document dl.field-list dt{padding:8px;font-weight:bold;background-color:#202020}div.document dl.field-list dd.field-odd,div.document dl.field-list dt.field-odd{background-color:#282828}

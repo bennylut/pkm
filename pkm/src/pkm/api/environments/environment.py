@@ -19,7 +19,7 @@ from pkm.api.packages.site_packages import SitePackages
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
-from pkm.utils.commons import unone, NoSuchElementException
+from pkm.utils.commons import unone, NoSuchElementException, UnsupportedOperationException
 from pkm.utils.entrypoints import EntryPoint
 from pkm.utils.files import is_root_path
 from pkm.utils.iterators import find_first
@@ -36,6 +36,7 @@ _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
 _PACKAGE_NAMES_T = Union[str, List[str]]
 _T = TypeVar("_T")
 
+_DBG_ACTIVATED = set()
 
 class Environment(HasAttachedRepository):
 
@@ -162,6 +163,7 @@ class Environment(HasAttachedRepository):
 
     @contextmanager
     def activate(self, env: MutableMapping[str, str] = os.environ):
+
         new_path = f"{self._introspection.paths['scripts']}"
         if old_path := env.get("PATH"):
             new_path = f"{new_path}{os.pathsep}{old_path}"

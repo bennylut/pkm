@@ -259,13 +259,13 @@ def _entrypoints_script(epoints: List[EntryPoint]):
     from pathlib import Path
 
     container_path = Path(__file__).parent
-    site.addsitedir(container_path / '__container__/site')
+    site.addsitedir(str(container_path / '__container__/site'))
     sys.path.insert(1, sys.path.pop())
 
     old_path = os.environ['PATH']
     new_path = str(container_path / '{CONTAINERIZED_APP_BIN_PATH}')
     if old_path:
-        new_path = old_path + os.pathsep + new_path
+        new_path = new_path + os.pathsep + old_path
     os.environ['PATH'] = new_path
     
     sys.prefix = str(container_path/'{CONTAINERIZED_APP_DATA_PATH}')

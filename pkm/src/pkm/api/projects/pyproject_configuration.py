@@ -66,6 +66,7 @@ def _entrypoints_to_config(entries: List[EntryPoint]) -> Dict[str, str]:
 
 PKM_DIST_CFG_TYPE_LIB = "lib"
 PKM_DIST_CFG_TYPE_CAPP = "cnt-app"
+PKM_DIST_CFG_TYPE_NONE = "none"
 
 
 @dataclass(frozen=True, eq=True)

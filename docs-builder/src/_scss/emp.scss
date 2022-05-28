@@ -1,0 +1,36 @@
+.program {
+    color: #76aa75;
+    font-style: italic;
+}
+
+.package {
+    color: #cb6868;
+    font-style: italic;
+}
+
+.file {
+    color: #68b8cb;
+    font-style: italic;
+}
+
+.name {
+    color: #9ccd70;
+}
+
+.toml-table {
+    color: #2fb158;
+    background: black;
+    padding: 2px;
+
+    &:before {
+        content: "[";
+    }
+
+    &:after {
+        content: "]";
+    }
+}
+
+.toml-key {
+    color: #2fb158;
+}

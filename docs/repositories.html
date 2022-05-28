@@ -1,0 +1,455 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Repositories &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/docs.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Project Tasks" href="tasks.html" />
+    <link rel="prev" title="PKM Projects" href="projects.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="projects.html" title="PKM Projects"
+             accesskey="P">previous</a> |
+          <a href="tasks.html" title="Project Tasks"
+             accesskey="N">next</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pkm_cli/commands.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projects.html">PKM Projects</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="repositories">
+<h1>Repositories<a class="headerlink" href="#repositories" title="Permalink to this headline">¶</a></h1>
+<p>Python repositories are services that holds python packages, one well known example is pypi - the PYthon Package Index.</p>
+<p>pkm has an extendable repositories mechanism, it comes with support for the most common repositories and allows you to
+install and even develop your own support for the less common ones.</p>
+<p>Finally, pkm allows you to configure repositories - both on a global level and on a context level.</p>
+<section id="context-attached-repositories">
+<h2>Context-Attached Repositories<a class="headerlink" href="#context-attached-repositories" title="Permalink to this headline">¶</a></h2>
+<p>pkm chooses the repositories to use based on the context of your commands.
+When installing packages globally (using the <code class="docutils literal notranslate"><span class="pre">-g</span></code> flag) pkm uses its “global” repositories configuration to choose the
+most appropriate repository for the required package.
+When installing packages in a specific context (like project or environment) it uses the “contextual” repository
+configuration.
+Unless specified otherwise, the contextual configuration inherits the global configuration and extends it.</p>
+<p>See the <a class="reference internal" href="#managing-attached-repositories"><span class="std std-ref">Managing Attached Repositories</span></a> for more details.</p>
+</section>
+<section id="managing-repository-support">
+<h2>Managing Repository Support<a class="headerlink" href="#managing-repository-support" title="Permalink to this headline">¶</a></h2>
+<p>Pkm defines an extendable repository support mechanism, you can install and develop your own repository support and then
+configure pkm to use them.</p>
+<section id="installing-new-repository-support">
+<h3>Installing New Repository Support<a class="headerlink" href="#installing-new-repository-support" title="Permalink to this headline">¶</a></h3>
+<p>New repository support must be installed in a global manner. It can be done via the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos install -g &lt;repository-dependency&gt;
+</pre></div>
+</div>
+<p>The syntax for providing repository-dependency is the standard <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0508/"><strong>PEP 508</strong></a> syntax for dependency specification.</p>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">-u,--update</span></code> flag to upgrade your repository installation</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos install -g --update &lt;repository-dependency&gt;
+</pre></div>
+</div>
+</section>
+<section id="removing-installed-repository">
+<h3>Removing Installed Repository<a class="headerlink" href="#removing-installed-repository" title="Permalink to this headline">¶</a></h3>
+<p>You can remove previously installed repository via the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos uninstall -g &lt;repository-package-name&gt;
+</pre></div>
+</div>
+</section>
+<section id="listing-installed-repositories">
+<h3>Listing Installed Repositories<a class="headerlink" href="#listing-installed-repositories" title="Permalink to this headline">¶</a></h3>
+<p>To list all the repositories that was installed with some additional information about them, you can use the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos show installed
+</pre></div>
+</div>
+</section>
+</section>
+<section id="managing-attached-repositories">
+<span id="id1"></span><h2>Managing Attached Repositories<a class="headerlink" href="#managing-attached-repositories" title="Permalink to this headline">¶</a></h2>
+<p>adding/removing repository support does not add any actual repository instances to pkm, to do so you need to manage your
+attached repositories (= the repositories attached to different pkm contextes).</p>
+<p>The repositories configuration is located in the file: <span class="file">repositories.toml</span>.
+For the global repository configuration, this file is located at <span class="file">$PKM_HOME/etc/pkm/repositories.toml</span>.
+For context specific configuration (like projects, environments, environment-zoos, etc.) the file is located
+at <span class="file">etc/pkm/repositories.toml</span> relative to the root of the context.</p>
+<p>You can modify the file manually or via the pkm cli as described in the following subsections.</p>
+<section id="adding-and-configuring-a-repository">
+<h3>Adding and Configuring a Repository<a class="headerlink" href="#adding-and-configuring-a-repository" title="Permalink to this headline">¶</a></h3>
+<p>to add a repository via command line you can use:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos add &lt;repo-name&gt; &lt;repo-type&gt; +arg1<span class="o">=</span>val1 +arg2<span class="o">=</span>val2 ...
+</pre></div>
+</div>
+<p>you can choose to add the repository to the global configuration via the <code class="docutils literal notranslate"><span class="pre">-g</span></code> flag, otherwise it will be added to the
+current context.</p>
+<p>for example, to add a project-group locally stored at <span class="file">/my-projects</span> as a repository named my-projects you can execute:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos add my-projects file-system +path<span class="o">=</span>/my-projects
+</pre></div>
+</div>
+<p>The commands above will just modify the file:<cite>repositories.toml</cite> to reflect your request. You can do so yourself using the
+following syntax</p>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">repositories.toml</span><a class="headerlink" href="#id7" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[repos.repo-name]</span><span class="w"></span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;repo-type&quot;</span><span class="w"></span>
+<span class="n">arg1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;val1&quot;</span><span class="w"></span>
+<span class="n">arg2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;val2&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<p>or, to follow our previous example, to add the “my-projects” repository you can add
+the following to the <span class="file">environments.toml</span> file</p>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">repositories.toml</span><a class="headerlink" href="#id8" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[repos.my-projects]</span><span class="w"></span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;file&quot;</span><span class="w"></span>
+<span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/my-projects&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="package-search-order">
+<h3>Package Search Order<a class="headerlink" href="#package-search-order" title="Permalink to this headline">¶</a></h3>
+<p>When installing new packages, pkm searches for the required dependency in the repositories listed in its
+<span class="file">repositories.toml</span> configuration file from top to bottom. It will stop on the first repository that has a package
+matching the dependency.</p>
+<p>If pkm run inside a specific context and could not find a suitable repository for a requested dependency, it will try
+and search a “parent” context if it exists, going up to the global context. For example, for a project that reside
+within a project group, the project group is the parent context of the project.</p>
+<p>You can control this behaviour via the <span class="toml-key">inheritance</span> key by giving it the following values:</p>
+<dl class="field-list simple">
+<dt class="field-odd">context</dt>
+<dd class="field-odd"><p>the default - when package not found, go to the repositories defined in the upper context</p>
+</dd>
+<dt class="field-even">global</dt>
+<dd class="field-even"><p>when package not found, go directly to the repositories defined in the global context</p>
+</dd>
+<dt class="field-odd">none</dt>
+<dd class="field-odd"><p>when package not found, dont try any other repositories</p>
+</dd>
+</dl>
+<p>For example:</p>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">repositories.toml</span><a class="headerlink" href="#id9" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">inheritance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;global&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<p>If you want to instruct pkm, that for a specific package it should use a specific repository, regardless of the search
+order, you can use the <span class="toml-table">package-binding</span> section in <span class="file">repositories.toml</span> file.</p>
+<div class="literal-block-wrapper docutils container" id="id10">
+<div class="code-block-caption"><span class="caption-text">repositories.toml</span><a class="headerlink" href="#id10" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[package-binding]</span><span class="w"></span>
+<span class="n">package1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;repo-1&quot;</span><span class="w"> </span><span class="c1"># reference preconfigured repository by name</span><span class="w"></span>
+<span class="n">package2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;repo-type&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">arg1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;arg1&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">arg2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;arg2&#39;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="c1"># bind to inline, unnamed repository configuration</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<p>You can also bind a package to a preconfigured repository upon installation using the <code class="docutils literal notranslate"><span class="pre">-r,</span> <span class="pre">--repo</span></code> option in the
+installation command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -r &lt;repo-name&gt; &lt;dependency&gt;
+</pre></div>
+</div>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">-r</span> <span class="pre">default</span></code> to remove previous binding to the given packages and reinstall them.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -r default &lt;dependency&gt;
+</pre></div>
+</div>
+<p>In addition, you can use the <code class="docutils literal notranslate"><span class="pre">-R,</span> <span class="pre">--unnamed-repo</span></code> to bind a package to an unnamed repo</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -R &lt;repo-type&gt; +arg1<span class="o">=</span>val1 +arg2<span class="o">=</span>val2 &lt;dependency&gt;
+</pre></div>
+</div>
+<p>One additional way you can effect the package search order is by defining a repository as <span class="toml-key">bind-only</span>.
+Repository defined as <span class="toml-key">bind-only</span> will not be searched for a dependency unless the dependency package was bound to this
+repository.
+In addition, repositories defined in such way improve the search performance of pkm as it dont need to query this
+repository in most cases.</p>
+<p>To define a repository as <span class="toml-key">bind-only</span>, you can use the flag <code class="docutils literal notranslate"><span class="pre">-b,</span> <span class="pre">--bind-only</span></code> of the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">add</span></code> command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos add --bind-only &lt;repo-name&gt; &lt;repo-type&gt; +arg1<span class="o">=</span>val1 +arg2<span class="o">=</span>val2
+</pre></div>
+</div>
+<p>or specify it directly in the configuration file</p>
+<div class="literal-block-wrapper docutils container" id="id11">
+<div class="code-block-caption"><span class="caption-text">repositories.toml</span><a class="headerlink" href="#id11" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[repos.repo-name]</span><span class="w"></span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;repo-type&quot;</span><span class="w"></span>
+<span class="n">bind-only</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">true</span><span class="w"> </span><span class="c1"># &lt;&lt;&lt;</span><span class="w"></span>
+<span class="n">arg1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;val1&quot;</span><span class="w"></span>
+<span class="n">arg2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;val2&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="removing-a-configured-repository">
+<h3>Removing a Configured Repository<a class="headerlink" href="#removing-a-configured-repository" title="Permalink to this headline">¶</a></h3>
+<p>to remove a preconfigured repository you can use the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos remove &lt;repo-name&gt;
+</pre></div>
+</div>
+<p>this will remove the “repo-name” repository and any package binding to it.
+Of course, removing repositories or package binding directly from the configuration file works the same.</p>
+</section>
+<section id="listing-configured-repositories">
+<h3>Listing Configured Repositories<a class="headerlink" href="#listing-configured-repositories" title="Permalink to this headline">¶</a></h3>
+<p>to show information about the configured repositories in the current context (or globally using the <code class="docutils literal notranslate"><span class="pre">-g</span></code> flag) you can
+use the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos show configured
+</pre></div>
+</div>
+</section>
+</section>
+<section id="publishing-your-project-to-a-repository">
+<h2>Publishing Your Project to a Repository<a class="headerlink" href="#publishing-your-project-to-a-repository" title="Permalink to this headline">¶</a></h2>
+<p>If a configured repository supports publishing, you can use the publish command to publish your project</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt;
+</pre></div>
+</div>
+<p>Some repositories may require authentication/credentials in order to publish.
+You can provide those directly in the commandline</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt; +cred-arg1<span class="o">=</span>cred-val1 +cred-arg2<span class="o">=</span>cred-val2
+</pre></div>
+</div>
+<p>You can instruct pkm to store these credentials in a password protected storage using the <code class="docutils literal notranslate"><span class="pre">-s,--save</span></code> flag</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt; +cred-arg1<span class="o">=</span>cred-val1 +cred-arg2<span class="o">=</span>cred-val2 -s
+</pre></div>
+</div>
+<p>if authentication info stored you can publish by just calling</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt;
+</pre></div>
+</div>
+</section>
+<section id="available-repositories">
+<h2>Available Repositories<a class="headerlink" href="#available-repositories" title="Permalink to this headline">¶</a></h2>
+<p>pkm comes with several types of repositories that you can use out of the box, it also has several experimental
+repositories you can install. These repositories are listed below.</p>
+<section id="file-system-repository">
+<h3>File-System Repository<a class="headerlink" href="#file-system-repository" title="Permalink to this headline">¶</a></h3>
+<p>Built-in repository that fetch packages from files and directories in your file system.</p>
+<section id="properties">
+<h4>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>the constant string: file-system</p>
+</dd>
+<dt class="field-even">path</dt>
+<dd class="field-even"><p>absolute path to any of the following:</p>
+<ul class="simple">
+<li><p>project directory, the repository will be able to match this project</p></li>
+<li><p>project group directory, the repository will be able to match all the projects in the group</p></li>
+<li><p>wheel or sdist file, the repository will be able to match the packaged library</p></li>
+<li><p>library containing wheels or sdist files, the repository will be able to match the packaged libraries</p></li>
+</ul>
+</dd>
+</dl>
+<p>Add an instance of this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repo add repo-name file-system +path<span class="o">=</span><span class="s2">&quot;/supported/path&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="pypi-repository">
+<h3>Pypi Repository<a class="headerlink" href="#pypi-repository" title="Permalink to this headline">¶</a></h3>
+<p>Built-in repositry supporting the <a class="reference external" href="https://warehouse.pypa.io/api-reference/json.html">pypi json api</a></p>
+<section id="id2">
+<h4>Properties<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>the constant string: pypi</p>
+</dd>
+<dt class="field-even">url</dt>
+<dd class="field-even"><p>the base url of the repository, also supports shortcuts:</p>
+<ul class="simple">
+<li><p>“main”(shortcut for “<a class="reference external" href="https://pypi.org/pypi">https://pypi.org/pypi</a>”)</p></li>
+<li><p>“test” (shortcut for “<a class="reference external" href="https://test.pypi.org/pypi">https://test.pypi.org/pypi</a>”)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">publish-url</dt>
+<dd class="field-odd"><p>optional, if given, the defined reporitory becomes publishable and will use the given url as the publish endpoint</p>
+</dd>
+</dl>
+<p>Add an instance of this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repo add repo-name pypi +url<span class="o">=</span><span class="s2">&quot;https://..&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="publish-authentication-arguments">
+<h4>Publish Authentication Arguments<a class="headerlink" href="#publish-authentication-arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">username</dt>
+<dd class="field-odd"><p>your registered user name</p>
+</dd>
+<dt class="field-even">password</dt>
+<dd class="field-even"><p>the password associated with your registered user name</p>
+</dd>
+</dl>
+<p>Publish into this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt; +username<span class="o">=</span>&lt;your name&gt; +password<span class="o">=</span>&lt;your password&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="simple-repository">
+<h3>Simple Repository<a class="headerlink" href="#simple-repository" title="Permalink to this headline">¶</a></h3>
+<p>Built-in repositry supporting the <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0503/"><strong>PEP 503</strong></a> “Simple repository api”</p>
+<section id="id3">
+<h4>Properties<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>the constant string: simple</p>
+</dd>
+<dt class="field-even">url</dt>
+<dd class="field-even"><p>the base url of the repository</p>
+</dd>
+</dl>
+<p>Add an instance of this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repo add repo-name simple +url<span class="o">=</span><span class="s2">&quot;https://..&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="download-torch-repository-experimental">
+<h3>“Download-Torch” Repository (experimental)<a class="headerlink" href="#download-torch-repository-experimental" title="Permalink to this headline">¶</a></h3>
+<p>Repository that automatically download a torch version that best match your gpu type</p>
+<section id="installation">
+<h4>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos install download-torch-pkm-repo
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h4>Properties<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>the constant string: download-torch</p>
+</dd>
+<dt class="field-even">arch</dt>
+<dd class="field-even"><p>gpu or cpu (defaults to gpu if not given)</p>
+</dd>
+</dl>
+<p>Add an instance of this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repo add repo-name download-torch +arch<span class="o">=</span>gpu
+</pre></div>
+</div>
+</section>
+</section>
+<section id="conda-repository-experimental">
+<h3>Conda Repository (experimental)<a class="headerlink" href="#conda-repository-experimental" title="Permalink to this headline">¶</a></h3>
+<p>Repository that download from a conda channels</p>
+<section id="id5">
+<h4>Installation<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos install conda-pkm-repo
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h4>Properties<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<dl class="field-list simple">
+<dt class="field-odd">type</dt>
+<dd class="field-odd"><p>the constant string: conda</p>
+</dd>
+<dt class="field-even">channel</dt>
+<dd class="field-even"><p>url for the conda channel, or the string “main” as a shortcut to the main conda channel url</p>
+</dd>
+</dl>
+<p>Add an instance of this repository using the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm repos add repo-name conda +channl<span class="o">=</span>main
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="creating-your-own-repository-support">
+<h2>Creating Your Own Repository Support<a class="headerlink" href="#creating-your-own-repository-support" title="Permalink to this headline">¶</a></h2>
+<p>TODO: after api documentation will be uploaded</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="projects.html" title="PKM Projects"
+              >previous</a> |
+            <a href="tasks.html" title="Project Tasks"
+              >next</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/repositories.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

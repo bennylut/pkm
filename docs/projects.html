@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>PKM Projects &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/docs.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Repositories" href="repositories.html" />
+    <link rel="prev" title="Cli Command Reference" href="pkm_cli/commands.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="pkm_cli/commands.html" title="Cli Command Reference"
+             accesskey="P">previous</a> |
+          <a href="repositories.html" title="Repositories"
+             accesskey="N">next</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pkm_cli/commands.html">Command Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PKM Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repositories.html">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pkm-projects">
+<h1>PKM Projects<a class="headerlink" href="#pkm-projects" title="Permalink to this headline">¶</a></h1>
+<section id="the-pyproject-toml-file">
+<h2>The <span class="file">pyproject.toml</span> File<a class="headerlink" href="#the-pyproject-toml-file" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> projects follows <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0631/"><strong>PEP 631</strong></a>, <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0621/"><strong>PEP 621</strong></a>, <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0517/"><strong>PEP 517</strong></a> and <span class="target" id="index-3"></span><a class="pep reference external" href="https://peps.python.org/pep-0518/"><strong>PEP 518</strong></a>.
+It reads the project configuration from the standard <span class="file">pyproject.toml</span> file.
+<span class="program">toml</span> is a fairly human-readable format, you can learn more about it [here](<a class="reference external" href="https://toml.io/en/">https://toml.io/en/</a>).</p>
+<section id="the-project-table">
+<h3>The <span class="toml-table">project</span> Table<a class="headerlink" href="#the-project-table" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following documentation is based mainly on <span class="target" id="index-4"></span><a class="pep reference external" href="https://peps.python.org/pep-0621/"><strong>PEP 621</strong></a>, you may want to refer to it for further details.</p>
+</div>
+<p>The <span class="toml-table">project</span> table is the main section to configure your project metadata, since most of the values in
+this section are self-explanatory, we will begin with an example (taken directly from <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0621/"><strong>PEP 621</strong></a>):</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="k">[project]</span><span class="w"></span>
+<span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.2.3&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Lovely Spam! Wonderful Spam!&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">readme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;README.rst&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&gt;=3.8&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">license</span><span class="p">.</span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;LICENSE.txt&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">keywords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;egg&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bacon&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sausage&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;tomatoes&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Lobster Thermidor&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w"> </span><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hi@pradyunsg.me&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"></span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Tzu-Ping Chung&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w"> </span><span class="n">maintainers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Brett Cannon&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;brett@python.org&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w"> </span><span class="n">classifiers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;Development Status :: 4 - Beta&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;Programming Language :: Python&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="p">]</span><span class="w"></span>
+
+<span class="w"> </span><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;httpx&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;gidgethub[httpx]&gt;4.0.0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;django&gt;2.1; os_name != &#39;nt&#39;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;django&gt;2.0; os_name == &#39;nt&#39;&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="p">]</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">[project.optional-dependencies]</span><span class="w"></span>
+<span class="w"> </span><span class="n">test</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;pytest &lt; 5.0.0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">     </span><span class="s">&quot;pytest-cov[all]&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="p">]</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">[project.urls]</span><span class="w"></span>
+<span class="w"> </span><span class="n">homepage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example.com&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">documentation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;readthedocs.org&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">repository</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;github.com&quot;</span><span class="w"></span>
+<span class="w"> </span><span class="n">changelog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;github.com/me/spam/blob/master/CHANGELOG.md&quot;</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">[project.scripts]</span><span class="w"></span>
+<span class="w"> </span><span class="n">spam-cli</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam:main_cli&quot;</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">[project.gui-scripts]</span><span class="w"></span>
+<span class="w"> </span><span class="n">spam-gui</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam:main_gui&quot;</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">[project.entry-points.&quot;spam.magical&quot;]</span><span class="w"></span>
+<span class="w"> </span><span class="n">tomatoes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam:main_tomatoes&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<p>Following, is  short explanation for the supported fields in this table:</p>
+<dl class="field-list">
+<dt class="field-odd">name</dt>
+<dd class="field-odd"><p>The name of the project.</p>
+</dd>
+<dt class="field-even">version</dt>
+<dd class="field-even"><p>The version of the project as supported by <span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0440/"><strong>PEP 440</strong></a></p>
+</dd>
+<dt class="field-odd">description</dt>
+<dd class="field-odd"><p>The summary description of the project.</p>
+</dd>
+<dt class="field-even">readme</dt>
+<dd class="field-even"><p>The field accepts either a string or a table.</p>
+<ul class="simple">
+<li><p>If it is a string then it is the relative path to the project readme (rst or md).</p></li>
+<li><p>If it is a table, the <span class="toml-key">file</span> key accepts the relative path to the readme,
+while the <span class="toml-key">text</span> key accepts the actual description.</p></li>
+</ul>
+<p><strong>These keys are mutually-exclusive</strong></p>
+</dd>
+<dt class="field-odd">requires-python</dt>
+<dd class="field-odd"><p>The Python version requirements of the project.</p>
+</dd>
+<dt class="field-even">license</dt>
+<dd class="field-even"><p>The field accepts a table with the following keys:</p>
+<ul class="simple">
+<li><p>The <span class="toml-key">file</span> key accepts the relative path to a license file.</p></li>
+<li><p>The <span class="toml-key">text</span> key accepts a license identifier.</p></li>
+</ul>
+<p><strong>These keys are mutually exclusive</strong></p>
+</dd>
+<dt class="field-odd">authors/maintainers</dt>
+<dd class="field-odd"><p>Array of <span class="toml-key">name</span> + <span class="toml-key">email</span> tables
+holding the contact information for the authors and maintainers</p>
+</dd>
+<dt class="field-even">keywords</dt>
+<dd class="field-even"><p>Array of keywords for the project</p>
+</dd>
+<dt class="field-odd">classifiers</dt>
+<dd class="field-odd"><p>Array of <a class="reference external" href="https://pypi.org/classifiers/">Trove classifiers</a> which apply to the project.</p>
+</dd>
+<dt class="field-even">urls</dt>
+<dd class="field-even"><p>Table of name to url mapping</p>
+</dd>
+<dt class="field-odd">entry-points</dt>
+<dd class="field-odd"><p>Table which contains sub-tables for each of the project entrypoint’s groups.</p>
+<p>Each of the entrypoints group table contains the project-provided name to
+<a class="reference external" href="https://packaging.python.org/en/latest/specifications/entry-points/">entrypoint</a> mapping.</p>
+</dd>
+<dt class="field-even">scripts</dt>
+<dd class="field-even"><p>special entrypoints table that contains the <em>‘console_scripts’</em> group of entrypoints</p>
+</dd>
+<dt class="field-odd">gui-scripts</dt>
+<dd class="field-odd"><p>special entrypoints table that contains the <em>‘gui_scripts’</em> group of entrypoints</p>
+</dd>
+<dt class="field-even">dependencies</dt>
+<dd class="field-even"><p>Array of <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0508/"><strong>PEP 508</strong></a> strings which represents the dependencies of the project</p>
+</dd>
+<dt class="field-odd">optional-dependencies</dt>
+<dd class="field-odd"><p>Table which contains arrays of dependencies for each of the project <em>extra</em> dependencies.</p>
+</dd>
+</dl>
+</section>
+<section id="the-tool-pkm-table">
+<h3>The <span class="toml-table">tool.pkm</span> table<a class="headerlink" href="#the-tool-pkm-table" title="Permalink to this headline">¶</a></h3>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>🚧 This section is not documented yet 🚧</p>
+</div>
+</section>
+</section>
+<section id="package-locking">
+<h2>Package locking<a class="headerlink" href="#package-locking" title="Permalink to this headline">¶</a></h2>
+<p>Package locking is a mechanism that attempts to reduce package versioning dissimilarities on multi-user projects. It
+actually sounds more complex than it is..</p>
+<div class="admonition-lets-try-to-understand-the-problem-that-it-tries-to-solve-using-an-example admonition">
+<p class="admonition-title">Lets try to understand the problem that it tries to solve using an example</p>
+<p>Say that there are two developers working on your project - <span class="name">Alice</span> and <span class="name">Bob</span>.</p>
+<p><span class="name">Alice</span> added a dependency to the project: <span class="package">x &gt;= 1.0.0</span>, upon installation, she got in her
+environment the package <span class="package">x == 1.1.0</span> (which satisfies the required dependency). Later this week,
+<span class="name">Bob</span> started to work and fetched <span class="package">x == 1.1.1</span> (which also satisfied the required dependency).</p>
+<p><span class="name">Alice</span> filled a bug which unknowingly, happens because of a behavior specific to <span class="package">x == 1.1.0</span>.
+When <span class="name">Bob</span> tried to fix the bug he could not reproduce it, which of-course lead to both of them fighting and
+not talking to each-other for more than a year.</p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code>’s Package locking mechanism stores the exact version of the package that was installed inside the file
+<span class="file">etc/pkm/packages-lock.toml</span> alongside other environment specific information. It then tries to use this
+information to reduce dissimilarities across the developers. Unlike many other package locking mechanisms, it takes into
+consideration the fact that different developers may work on totally different environments: they may have different
+operating systems or may use a different version of python, etc. Therefore, it is usable even on these scenarios.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> automatically updates <span class="file">etc/pkm/packages-lock.toml</span> when you install new dependencies, all you need to
+do is to make sure that you commit this file to your version control system.</p>
+</section>
+<section id="distribution-types">
+<h2>Distribution Types<a class="headerlink" href="#distribution-types" title="Permalink to this headline">¶</a></h2>
+<section id="regular-library-distribution">
+<h3>Regular (library) Distribution<a class="headerlink" href="#regular-library-distribution" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</section>
+<section id="containerized-application-distribution">
+<h3>Containerized Application Distribution<a class="headerlink" href="#containerized-application-distribution" title="Permalink to this headline">¶</a></h3>
+<p>Projects can be distributed as containerized application</p>
+<p>packages installed as containerized applications creates their own container “sub environment” inside the environment
+they are installed at. they install all their dependencies inside this container and are exposed to the main environment
+only by their registered script entrypoints</p>
+<p>To distribute your application as a “containerized application” all you needs to do is to add the following
+into <span class="file">pyproject.toml</span>:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[tool.pkm.distribution]</span><span class="w"></span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;cnt-app&#39;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<p>when building and publishing your project, a special <em>‘sdist’</em> will be created which will take care of containerizing your
+application when it is installed. (it can be installed regularly like any other package with any modern python package
+management that supports <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0517/"><strong>PEP 517</strong></a>, e.g., <span class="program">pip</span>)</p>
+<p>If you like, :doc:<a href="#id1"><span class="problematic" id="id2">`</span></a>read more about containerized applications &lt;containers&gt;.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="pkm_cli/commands.html" title="Cli Command Reference"
+              >previous</a> |
+            <a href="repositories.html" title="Repositories"
+              >next</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/projects.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

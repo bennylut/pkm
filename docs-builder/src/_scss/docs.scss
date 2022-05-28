@@ -1,0 +1,196 @@
+@import "syntax";
+@import "layout";
+@import "emp";
+@import "admonition";
+@import "fieldlist";
+
+/* footer */
+div.footer-wrapper {
+    min-height: 65px;
+    height: 65px;
+    background: #473d50;
+}
+
+div.footer > * {
+    padding-right: 8px;
+}
+
+div.footer .left {
+    flex-grow: 1;
+    float: initial;
+    display: flex;
+}
+
+div.footer .left [role="note"] > br {
+    display: none;
+}
+
+div.footer .left [role="note"] {
+    margin-left: 42px;
+}
+
+div.footer .left [role="note"] a {
+    color: #9caf63;
+}
+
+/* header */
+div.header {
+    background-color: #73cd68;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 18px;
+}
+
+
+div.header .headertitle {
+    margin: 0;
+    padding: 12px;
+    font-size: 16px;
+    font-family: inherit;
+}
+
+div.header div.rel {
+    margin: 0;
+    margin-left: 12px;
+    padding: 12px;
+    font-size: 12px;
+}
+
+div.header div.rel a {
+    color: #252c89;
+
+}
+
+/* document */
+div.document {
+    flex-grow: 1;
+    padding: 12px;
+    background: #1a1a1a;
+    overflow-y: auto;
+    width: initial;
+    position: relative;
+    float: initial;
+    display: flex;
+    flex-direction: column;
+}
+
+div.document div.documentwrapper {
+    overflow: auto;
+    position: absolute;
+    top: 0;
+    bottom:0;
+    left:0;
+    right:0;
+    flex-grow: 1;
+}
+
+div.document .body {
+    padding: 2em;
+}
+
+
+div.document section#submodules > h2 {
+    color: #d39a43;
+}
+
+div.document li a[href$="#submodules"] {
+    color: #d39a43;
+    font-style: italic;
+}
+
+div.document section#subpackages > h2 {
+    color: #d35843;
+}
+
+div.document li a[href$="#subpackages"] {
+    color: #d39a43;
+    font-style: italic;
+}
+
+div.document ul {
+    margin: 8px;
+}
+
+div.document tr.cap {
+    color: white;
+    background: #714381;
+}
+
+/* documentation itself */
+
+.py.class > .sig .sig-name {
+    color: #d1bf67
+}
+
+.py.class > .sig > .property {
+    color: #b379c1;
+}
+
+.py.function .sig-name, .py.method .sig-name {
+    color:#aacd68;
+}
+
+.py.function .sig-param .n:nth-child(4), .py.method .sig-param .n:nth-child(4) {
+    color:#a66982;
+}
+
+.field-list p strong {
+    color:#7f9aaf;
+}
+
+/* sidebar */
+.sidebar {
+    padding: 12px;
+    background: #303030;
+    color: white;
+}
+
+div.sidebar h3 {
+    color: #a27eb9;
+    text-transform: initial;
+    font-size: inherit;
+    letter-spacing: initial;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+div.content div.sidebar li a {
+    color: white;
+    margin-left: 0px;
+    border: none;
+}
+
+div.sidebar li.toctree-l1 a {
+    background: #303030;
+}
+
+div.content div.sidebar li.current > a {
+    border: none;
+    background: #303030;
+    font-style: italic;
+    color: #9cdeff;
+}
+
+div.content div.sidebar li a[href$="#submodules"] {
+    color: #d39a43;
+    font-weight: 700;
+    font-size: 85%;
+}
+
+div.content div.sidebar li a[href$="#submodules"]:only-child,
+div.content div.sidebar li a[href$="#subpackages"]:only-child {
+    display: none;
+}
+
+div.content div.sidebar li a[href$="#subpackages"] {
+    color: #d35843;
+    font-weight: 700;
+    font-size: 85%;
+}
+
+div.content div.sidebar ul {
+    padding-left: 12px;
+    /* border-left: 1px solid red; */
+}
+

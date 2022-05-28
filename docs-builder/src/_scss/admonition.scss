@@ -1,0 +1,34 @@
+div.document {
+
+    div.admonition {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding: 2px 7px 1px 7px;
+        border-left: 0.2em solid #767676;
+        background: #242424;
+    }
+
+    /* NOTE */
+    div.note {
+        border: none;
+        margin: 24px 0;
+        background: #4b4c4a;
+        padding: 12px;
+        .admonition-title {
+            &:before {
+                content: "💡";
+            }
+        }
+    }
+
+    /* ATTENTION */
+    div.attention {
+        border: none;
+        color: #d3b96d;
+        background: #603535;
+        margin: 24px;
+        padding: 12px;
+        text-align: center;
+        font-size: 17px;
+    }
+}

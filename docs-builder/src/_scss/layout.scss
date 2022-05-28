@@ -1,0 +1,90 @@
+
+body, html{
+    position: absolute;
+    top: 0;
+    bottom:0;
+    left:0;
+    right:0;
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 16px;
+    font-weight: 400;
+    color: white;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+    font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
+    color: #b5e853;
+    letter-spacing: -0.03em;
+}
+
+h1, div.document h1 {
+    margin-top: 64px;
+}
+
+h2, div.document h2 {
+    border-bottom: 1px solid #4a4e52;
+    color: #a27eb9;
+    font-size: 20px;
+    margin-top: 48px;
+}
+
+h3, div.document h3 {
+    font-weight: normal;
+    color: #5fa3c5;
+    letter-spacing: -0.03em;
+    margin-top: 24px;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+h4, div.document h4 {
+    color: #5fa3c5;
+    margin-top: 15px;
+    margin-bottom: 7px;
+    font-style: italic;
+
+    &:before {
+        content:".. "
+    }
+}
+
+
+div.bodywrapper a, a {
+    color: #8eabcb;
+    text-decoration: initial;
+    border: none;
+}
+
+div.body > section:first-child > h1:first-child {
+    margin-top: 0;
+}
+
+div.header, div.content, div.footer {
+    width: initial;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    padding: 12px;
+}
+
+
+div.content-wrapper, div.content {
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+h1 {
+    color: #9ac56d;
+}
+

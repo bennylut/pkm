@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Cli Command Reference &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/docs.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PKM Projects" href="../projects.html" />
+    <link rel="prev" title="Installation" href="../installation.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../installation.html" title="Installation"
+             accesskey="P">previous</a> |
+          <a href="../projects.html" title="PKM Projects"
+             accesskey="N">next</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../projects.html">PKM Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../repositories.html">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tasks.html">Project Tasks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../containers.html">Application Containers</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cli-command-reference">
+<h1>Cli Command Reference<a class="headerlink" href="#cli-command-reference" title="Permalink to this headline">¶</a></h1>
+<section id="the-main-pkm-command">
+<h2>The Main <code class="docutils literal notranslate"><span class="pre">pkm</span></code> Command<a class="headerlink" href="#the-main-pkm-command" title="Permalink to this headline">¶</a></h2>
+<p><p>pkm - python package management for busy developers</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONTEXT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nt</span><span class="p">]</span> <span class="p">{</span><span class="n">repos</span><span class="p">,</span><span class="n">run</span><span class="p">,</span><span class="n">shell</span><span class="p">,</span><span class="n">build</span><span class="p">,</span><span class="n">vbump</span><span class="p">,</span><span class="n">install</span><span class="p">,</span><span class="n">uninstall</span><span class="p">,</span><span class="n">publish</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="n">show</span><span class="p">,</span><span class="n">clean</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>run with verbose output</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-c, --context</kbd></dt>
+<dd><p>path to the context to run this command under</p>
+</dd>
+<dt><kbd>-g, --global-context</kbd></dt>
+<dd><p>use the global environment context</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-nt, --no-tasks</kbd></dt>
+<dd><p>dont run command-attached tasks</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="contextual-commands">
+<h2>Contextual Commands<a class="headerlink" href="#contextual-commands" title="Permalink to this headline">¶</a></h2>
+<p>Many of <code class="docutils literal notranslate"><span class="pre">pkm</span></code>’s commands are context dependent, for example, the command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install some_package
+</pre></div>
+</div>
+<p>installs <span class="package">some_package</span> into <strong>some</strong> python environment, but which? this depends on the context it runs in:</p>
+<ul class="simple">
+<li><p>If the above executes inside a virtual environment directory - pkm will install it on that virtual environment.</p></li>
+<li><p>If on the other hand, it executes inside a project directory, pkm will install the dependency inside the virtual environment that belongs to that project (the <em>“attached virtual environment”</em>) and also update the <span class="file">pyproject.toml</span> configuration file.</p></li>
+</ul>
+<section id="finding-context">
+<h3>Finding context<a class="headerlink" href="#finding-context" title="Permalink to this headline">¶</a></h3>
+<p>The way <code class="docutils literal notranslate"><span class="pre">pkm</span></code> find the corrent context is very simple, upon execution of context dependent command,
+pkm looks at the current directory and try to findout if it runs inside a supported context
+(venv, project, project-group, etc.) if it does - it uses that context, otherwise it goes up a directory and retries.
+If <code class="docutils literal notranslate"><span class="pre">pkm</span></code> reaches the root directory it stops and reports that no context could be found for the given command.</p>
+</section>
+<section id="controlling-context">
+<h3>Controlling Context<a class="headerlink" href="#controlling-context" title="Permalink to this headline">¶</a></h3>
+<p>if you want pkm to use a specific context (instead of searching for one itself) you can do so using the <code class="docutils literal notranslate"><span class="pre">-c</span></code> flag. For example,</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -c path/to/context some_package
+</pre></div>
+</div>
+<p>The above command will use the path <span class="file">path/to/context</span> as its context (failing if no supported context found in this path).</p>
+</section>
+<section id="global-context">
+<h3>Global context<a class="headerlink" href="#global-context" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pkm</span></code> considers the environment it was installed in as the global context.</dt><dd><p>If you installed <code class="docutils literal notranslate"><span class="pre">pkm</span></code> directly on your system installation, the global environment will be that installation.</p>
+</dd>
+</dl>
+<p>you can ask <code class="docutils literal notranslate"><span class="pre">pkm</span></code> to use the global context in your commands by using the flag <code class="docutils literal notranslate"><span class="pre">-g</span></code>, for example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -g some_package
+</pre></div>
+</div>
+<p>This command will install the <span class="package">some_package</span> package in the same environment as the one that <code class="docutils literal notranslate"><span class="pre">pkm</span></code> was installed into.</p>
+</section>
+</section>
+<section id="package-management-commands">
+<h2>Package Management Commands<a class="headerlink" href="#package-management-commands" title="Permalink to this headline">¶</a></h2>
+<p>This section outlines the <code class="docutils literal notranslate"><span class="pre">pkm</span></code> sub-commands that are related to package management</p>
+<section id="pkm-install">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">install</span></code><a class="headerlink" href="#pkm-install" title="Permalink to this headline">¶</a></h3>
+<p><blockquote>
+<div><p>install packages under the current context</p>
+</div></blockquote>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">install</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTIONAL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">{</span><span class="n">editable</span><span class="p">,</span><span class="n">copy</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="p">{</span><span class="n">user</span><span class="p">,</span><span class="n">system</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REPO</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">R</span> <span class="n">UNNAMED_REPO</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>packages</kbd></dt>
+<dd><p>the packages to install (support pep508 dependency syntax)</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-o, --optional</kbd></dt>
+<dd><p>optional group to use (only for projects)</p>
+</dd>
+<dt><kbd>-f, --force</kbd></dt>
+<dd><p>forcefully remove and reinstall the given pacakges</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-a, --app</kbd></dt>
+<dd><p>install package in containerized application mode</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-u, --update</kbd></dt>
+<dd><p>update the given packages if already installed</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-m, --mode</kbd></dt>
+<dd><p>Possible choices: editable, copy</p>
+<p>choose the installation mode for the requested packages.</p>
+<p>Default: “editable”</p>
+</dd>
+<dt><kbd>-s, --site</kbd></dt>
+<dd><p>Possible choices: user, system</p>
+<p>applicable for global-context, which site to use - defaults to ‘user’</p>
+</dd>
+<dt><kbd>-r, --repo</kbd></dt>
+<dd><p>bind the given packages to a specific repositry by name, use ‘default’ to remove previous binding</p>
+</dd>
+<dt><kbd>-R, --unnamed-repo</kbd></dt>
+<dd><p>bind the given packages to a new unnamed repositry given its configuration</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="pkm-uninstall">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">uninstall</span></code><a class="headerlink" href="#pkm-uninstall" title="Permalink to this headline">¶</a></h3>
+<p><blockquote>
+<div><p>remove packages from the current context</p>
+</div></blockquote>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">uninstall</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>package_names</kbd></dt>
+<dd><p>the packages to remove</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-a, --app</kbd></dt>
+<dd><p>remove containerized packages</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-f, --force</kbd></dt>
+<dd><p>remove the requested packages even if they are dependant of other packages, will not remove any other packages or update pyproject</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="project-management-commands">
+<h2>Project Management Commands<a class="headerlink" href="#project-management-commands" title="Permalink to this headline">¶</a></h2>
+<section id="pkm-build">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">build</span></code><a class="headerlink" href="#pkm-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">build</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="pkm-publish">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">publish</span></code><a class="headerlink" href="#pkm-publish" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">publish</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="n">repo</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>repo</kbd></dt>
+<dd></dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-s, --save</kbd></dt>
+<dd><p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="pkm-vbump">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">vbump</span></code><a class="headerlink" href="#pkm-vbump" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">vbump</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[{</span><span class="n">major</span><span class="p">,</span><span class="n">minor</span><span class="p">,</span><span class="n">patch</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">rc</span><span class="p">}]</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>particle</kbd></dt>
+<dd><p>Possible choices: major, minor, patch, a, b, rc</p>
+<p>Default: “patch”</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="repositories-management-commands">
+<h2>Repositories Management Commands<a class="headerlink" href="#repositories-management-commands" title="Permalink to this headline">¶</a></h2>
+<section id="pkm-repos-install">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">install</span></code><a class="headerlink" href="#pkm-repos-install" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">repos</span> <span class="n">install</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>names</kbd></dt>
+<dd></dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-u, --update</kbd></dt>
+<dd><p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="pkm-repos-uninstall">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">uninstall</span></code><a class="headerlink" href="#pkm-repos-uninstall" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">repos</span> <span class="n">uninstall</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>names</kbd></dt>
+<dd></dd>
+</dl>
+</section>
+</section>
+<section id="pkm-repos-add">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">add</span></code><a class="headerlink" href="#pkm-repos-add" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">repos</span> <span class="n">add</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="n">repo_name</span> <span class="nb">type</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>repo_name</kbd></dt>
+<dd></dd>
+<dt><kbd>type</kbd></dt>
+<dd></dd>
+</dl>
+</section>
+<section id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-b, --bind-only</kbd></dt>
+<dd><p>Default: False</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="pkm-repos-remove">
+<h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">remove</span></code><a class="headerlink" href="#pkm-repos-remove" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">repos</span> <span class="n">remove</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">name</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>name</kbd></dt>
+<dd></dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../installation.html" title="Installation"
+              >previous</a> |
+            <a href="../projects.html" title="PKM Projects"
+              >next</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/pkm_cli/commands.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

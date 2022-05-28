@@ -296,7 +296,8 @@ class _RemovalRepository(AbstractRepository):
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
-        return [self._preinstalled[PackageDescriptor.normalize_src_package_name(dependency.package_name).lower()]]
+        match = self._preinstalled.get(PackageDescriptor.normalize_src_package_name(dependency.package_name).lower())
+        return [match] if match else []
 
 
 @delegate(Repository, '_repo')

@@ -1,2 +1,5 @@
 [project-group]
-children = ["pkm", "pkm-cli", "repositories/download-torch-pkm-repo", "repositories/conda-pkm-repo", "new-docs"]
+children = [
+    "pkm", "pkm-cli",
+    "repositories/download-torch-pkm-repo", "repositories/conda-pkm-repo",
+    "docs-builder"]

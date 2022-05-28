@@ -1,0 +1,25 @@
+
+div.document dl.field-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    border: 1px groove rgb(150,150,150);
+    margin-bottom: 2rem;
+
+    dd {
+        margin: 0;
+        padding: 8px;
+        background-color: #202020;
+    }
+
+    dt {
+
+        padding: 8px;
+        font-weight: bold;
+        background-color: #202020;
+    }
+
+    dd.field-odd, dt.field-odd{
+        background-color: #282828;
+    }
+
+}
