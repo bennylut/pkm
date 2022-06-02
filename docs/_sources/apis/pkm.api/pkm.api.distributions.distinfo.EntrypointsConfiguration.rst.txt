@@ -1,0 +1,69 @@
+:orphan:
+
+EntrypointsConfiguration \(Class\)
+##################################
+
+..	code-block:: python
+	
+	class EntrypointsConfiguration(IniFileConfiguration)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@computed_based_on('')
+	def entrypoints(self) -> Iterable['EntryPoint']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@entrypoints.modifier
+	def set_entrypoints(self, entries: List['EntryPoint'])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	entries
+		-	List['EntryPoint']
+		-	No Description
+	

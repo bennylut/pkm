@@ -1,0 +1,72 @@
+:orphan:
+
+EnvironmentBuilder \(Class\)
+############################
+
+..	code-block:: python
+	
+	class EnvironmentBuilder
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@staticmethod
+	def create_matching(env_path: Path, interpreter: Dependency) -> Environment
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	env_path
+		-	Path
+		-	No Description
+	*	-	interpreter
+		-	Dependency
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@staticmethod
+	def create(env_path: Path, interpreter_path: Path = Path(sys.executable)) -> Environment
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	env_path
+		-	Path
+		-	No Description
+	*	-	interpreter_path
+		-	Path
+		-	No Description
+	

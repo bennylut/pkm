@@ -1,0 +1,70 @@
+:orphan:
+
+SubParsers \(Class\)
+####################
+
+..	code-block:: python
+	
+	class SubParsers
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, parser: ArgumentParser)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	parser
+		-	ArgumentParser
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def add_command(self, cmd: Command) -> ArgumentParser
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	cmd
+		-	Command
+		-	No Description
+	

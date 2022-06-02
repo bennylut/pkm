@@ -1,0 +1,12 @@
+:orphan:
+
+RepositoriesExtension \(Class\)
+###############################
+
+..	code-block:: python
+	
+	@dataclass
+	class RepositoriesExtension
+	
+Class Methods
+=============

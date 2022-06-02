@@ -1,0 +1,263 @@
+:orphan:
+
+PackageDescriptor \(Class\)
+###########################
+
+..	code-block:: python
+	
+	@dataclass(frozen=True)
+	class PackageDescriptor
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@property
+	def expected_src_package_name(self) -> str
+	
+Description
+-----------
+
+The expected name of the source package is the same name of the package
+when hyphen is replaced with underscore, there is no guarantee that the
+package author used this name, but this is considered the expected behavior.
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the expected name of the source package that is stored in this package,
+
+-----------------------
+
+..	code-block:: python
+	
+	def __post_init__(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def to_dependency(self) -> 'Dependency'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def write(self) -> Dict[str, Any]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def read(cls, data: Dict[str, Any]) -> 'PackageDescriptor'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	data
+		-	Dict[str, Any]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@staticmethod
+	def normalize_src_package_name(package_name: str) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	package_name
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@staticmethod
+	def normalize_name(package_name: str) -> str
+	
+Description
+-----------
+
+normalize package names (see: https://packaging.python.org/en/latest/specifications/core-metadata/)
+
+A valid name consists only of ASCII letters and numbers, period, underscore and hyphen.
+It must start and end with a letter or number.
+Distribution names are limited to those which match the following regex (run with re.IGNORECASE):
+`^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$`
+
+this function replace any non valid chars in the name with '-'
+and then consecutive runs of chars in '-_.' are replaced with a single dash
+finally '-' chars are removed from the start and end of the name
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	package_name
+		-	str
+		-	 the package name to normalize
+	
+Returns
+-------
+
+ the normalized name
+
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def from_dist_name(cls, name: str) -> PackageDescriptor
+	
+Description
+-----------
+
+create package descriptor from a distribution file name, assuming standard distribution file name conventions
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	name
+		-	str
+		-	 the file name
+	
+Returns
+-------
+
+ the resulted package descriptor

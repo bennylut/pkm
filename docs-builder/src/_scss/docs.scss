@@ -194,3 +194,19 @@ div.content div.sidebar ul {
     /* border-left: 1px solid red; */
 }
 
+div.document .class-def-with-link {
+    display: flex;
+    align-items: center;
+
+    * {
+        margin: 0;
+    }
+
+    a {
+        padding: 13px;
+        border-width: 1px 0 1px 1px;
+        border-style: solid;
+        border-color: #484b52;
+    }
+
+}

@@ -1,0 +1,12 @@
+:orphan:
+
+BuildPackageMonitoredOp \(Class\)
+#################################
+
+..	code-block:: python
+	
+	@dataclass
+	class BuildPackageMonitoredOp(MonitoredOperation)
+	
+Class Methods
+=============

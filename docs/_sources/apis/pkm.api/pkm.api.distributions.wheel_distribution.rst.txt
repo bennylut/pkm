@@ -1,0 +1,32 @@
+..
+	HASH:d1e64232190ede9a102c57810c3dc168
+
+pkm.api.distributions.wheel\_distribution \(Module\)
+####################################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_METADATA_FILE_RX = re.compile('[^/]*\\.dist-info/METADATA')
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.wheel_distribution.InstallationException>`
+	
+	..	code-block:: python
+		
+		class InstallationException(IOError)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.wheel_distribution.WheelDistribution>`
+	
+	..	code-block:: python
+		
+		class WheelDistribution(Distribution)
+		

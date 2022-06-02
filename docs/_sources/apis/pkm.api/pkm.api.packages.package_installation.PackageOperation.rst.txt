@@ -1,0 +1,11 @@
+:orphan:
+
+PackageOperation \(Class\)
+##########################
+
+..	code-block:: python
+	
+	class PackageOperation(Enum)
+	
+Class Methods
+=============

@@ -1,0 +1,21 @@
+..
+	HASH:5eb25d056de1d9dde3df77cfe444a81d
+
+pkm.api.packages \(Package\)
+============================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	site_packages <pkm.api.packages.site_packages.rst>
+	standard_package <pkm.api.packages.standard_package.rst>
+	package_installation <pkm.api.packages.package_installation.rst>
+	package_metadata <pkm.api.packages.package_metadata.rst>
+	package <pkm.api.packages.package.rst>
+	package_monitors <pkm.api.packages.package_monitors.rst>
+	

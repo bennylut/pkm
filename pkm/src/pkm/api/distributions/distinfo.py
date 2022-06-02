@@ -296,11 +296,14 @@ class RecordsFileConfiguration(FileConfiguration):
                    precomputed_hashes: Optional[Dict[str, HashSignature]] = None) -> RecordsFileConfiguration:
         """
         add to the records in this file the signatures for the given `files`
+
         :param files: the files to sign
-        :param root: a root directory to sign the files relative to, when signing, the record file path will be writen
-                     relative to this root
-        :param precomputed_hashes: dictionary containing some or all of the given files precomputed hashes,
-               its key is the relative path from root to each of the files
+        :param root:
+            a root directory to sign the files relative to, when signing, the record file path will be writen
+            relative to this root
+        :param precomputed_hashes:
+            dictionary containing some or all of the given files precomputed hashes,
+            its key is the relative path from root to each of the files
         :return: self (for chaining support)
         """
 

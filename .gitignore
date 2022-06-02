@@ -6,3 +6,4 @@ workspace
 dist
 pkm/src/test_.py
 pkm-cli/src/test_.py
+docs/.doctrees

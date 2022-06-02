@@ -1,0 +1,38 @@
+..
+	HASH:31937764aa4b409af43189804cafd18e
+
+pkm.api.environments.environments\_zoo \(Module\)
+#################################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.environments.environments_zoo.EnvironmentsZoo>`
+	
+	..	code-block:: python
+		
+		class EnvironmentsZoo(HasAttachedRepository)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.environments.environments_zoo.PackageSharingConfig>`
+	
+	..	code-block:: python
+		
+		class PackageSharingConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.environments.environments_zoo.EnvironmentZooConfiguration>`
+	
+	..	code-block:: python
+		
+		class EnvironmentZooConfiguration(TomlFileConfiguration)
+		

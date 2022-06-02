@@ -1,0 +1,585 @@
+..
+	HASH:dfe03922afbc2b96ffe98c2cabbfd3d2
+
+pkm\_cli.main \(Module\)
+########################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	context: Optional[Context] = None
+	tasks: Optional[TasksRunner] = None
+	
+Module Functions
+================
+
+..	code-block:: python
+	
+	@command('pkm repos install', Arg(['-u', '--update'], action='store_true'), Arg('names', nargs=argparse.REMAINDER))
+	def install_repos(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm repos uninstall', Arg('names', nargs=argparse.REMAINDER))
+	def uninstall_repo(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm repos show installed')
+	def show_installed_repositories(_: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	_
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm repos add', Arg('repo_name'), Arg('type', action=with_extras()), Arg(['-b', '--bind-only'], action='store_true', required=False))
+	def add_repo(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm repos remove', Arg('name'))
+	def remove_repo(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm repos show added')
+	def show_added_repositories(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm run', Arg('cmd', nargs=argparse.REMAINDER))
+	def run(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm shell', Arg(['-e', '--execute'], required=False, nargs=argparse.REMAINDER))
+	def shell(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm build')
+	def build(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm vbump', Arg('particle', choices=['major', 'minor', 'patch', 'a', 'b', 'rc'], nargs='?', default='patch'))
+	def vbump(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm install', Arg(['-o', '--optional'], help='optional group to use (only for projects)'), Arg(['-f', '--force'], action='store_true', help='forcefully remove and reinstall the given pacakges'), Arg(['-a', '--app'], action='store_true', help='install package in containerized application mode'), Arg(['-u', '--update'], action='store_true', help='update the given packages if already installed'), Arg(['-m', '--mode'], required=False, default='editable', choices=['editable', 'copy'], help='choose the installation mode for the requested packages.'), Arg(['-s', '--site'], required=False, choices=['user', 'system'], help="applicable for global-context, which site to use - defaults to 'user'"), Arg(['-r', '--repo'], required=False, help="bind the given packages to a specific repositry by name, use 'default' to remove previous binding"), Arg(['-R', '--unnamed-repo'], required=False, action=with_extras(), help='bind the given packages to a new unnamed repositry given its configuration'), Arg('packages', nargs=argparse.REMAINDER, help='the packages to install (support pep508 dependency syntax)'))
+	def install(args: Namespace)
+	
+Description
+-----------
+
+install packages under the current context
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm uninstall', Arg(['-a', '--app'], action='store_true', help='remove containerized packages'), Arg(['-f', '--force'], action='store_true', help='remove the requested packages even if they are dependant of other packages, will not remove any other packages or update pyproject'), Arg('package_names', nargs=argparse.REMAINDER, help='the packages to remove'))
+	def remove(args: Namespace)
+	
+Description
+-----------
+
+remove packages from the current context
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm publish', Arg('repo', action=with_extras()), Arg(['-s', '--save'], action='store_true'))
+	def publish(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm new', Arg('template'), Arg('template_args', nargs=argparse.REMAINDER))
+	def new(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm show context')
+	def show_context(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm show package', Arg('dependency'))
+	def show_package(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm clean cache')
+	def clean_cache(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm clean shared')
+	def clean_shared(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@command('pkm clean dist', Arg(['--all', '-a'], action='store_true'))
+	def clean_dist(args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def prepare_parser() -> ArgumentParser
+	
+Description
+-----------
+
+Not Documented
+
+-----------------------
+
+..	code-block:: python
+	
+	def main(args: Optional[List[str]] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	args
+		-	Optional[List[str]]
+		-	No Description
+	

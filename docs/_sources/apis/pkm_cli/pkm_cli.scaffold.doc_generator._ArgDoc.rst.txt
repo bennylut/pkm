@@ -1,0 +1,83 @@
+:orphan:
+
+\_ArgDoc \(Class\)
+##################
+
+..	code-block:: python
+	
+	class _ArgDoc
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, arg_name: str, default_value: Any, prompt: str, 
+	    choices: Optional[List[str]], position: Optional[int])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	arg_name
+		-	str
+		-	No Description
+	*	-	default_value
+		-	Any
+		-	No Description
+	*	-	prompt
+		-	str
+		-	No Description
+	*	-	choices
+		-	Optional[List[str]]
+		-	No Description
+	*	-	position
+		-	Optional[int]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def doc(self, width: Optional[int] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	width
+		-	Optional[int]
+		-	No Description
+	

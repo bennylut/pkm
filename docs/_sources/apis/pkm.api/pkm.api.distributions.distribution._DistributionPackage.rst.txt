@@ -1,0 +1,199 @@
+:orphan:
+
+\_DistributionPackage \(Class\)
+###############################
+
+..	code-block:: python
+	
+	class _DistributionPackage(Package)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, dist: Distribution)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	dist
+		-	Distribution
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def descriptor(self) -> PackageDescriptor
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _metadata(self, env: 'Environment')
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	env
+		-	'Environment'
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def dependencies(self, environment: 'Environment', 
+	    extras: Optional[List[str]] = None) -> List['Dependency']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	environment
+		-	'Environment'
+		-	No Description
+	*	-	extras
+		-	Optional[List[str]]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def is_compatible_with(self, env: 'Environment') -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	env
+		-	'Environment'
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def install_to(self, target: 'PackageInstallationTarget', 
+	    user_request: Optional['Dependency'] = None, editable: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	target
+		-	'PackageInstallationTarget'
+		-	No Description
+	*	-	user_request
+		-	Optional['Dependency']
+		-	No Description
+	*	-	editable
+		-	bool
+		-	No Description
+	

@@ -1,0 +1,38 @@
+:orphan:
+
+PackageArtifact \(Class\)
+#########################
+
+..	code-block:: python
+	
+	@dataclass(frozen=True, eq=True)
+	class PackageArtifact
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def is_binary(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	

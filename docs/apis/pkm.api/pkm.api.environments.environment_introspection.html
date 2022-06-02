@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pkm.api.environments.environment_introspection (Module) &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/docs.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pkm.api.environments.environment (Module)" href="pkm.api.environments.environment.html" />
+    <link rel="prev" title="pkm.api.environments.environment_builder (Module)" href="pkm.api.environments.environment_builder.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="pkm.api.environments.environment_builder.html" title="pkm.api.environments.environment_builder (Module)"
+             accesskey="P">previous</a> |
+          <a href="pkm.api.environments.environment.html" title="pkm.api.environments.environment (Module)"
+             accesskey="N">next</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pkm_cli/commands.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../containers.html">Application Containers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pkm.api.html">pkm API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pkm-api-environments-environment-introspection-module">
+<h1>pkm.api.environments.environment_introspection (Module)<a class="headerlink" href="#pkm-api-environments-environment-introspection-module" title="Permalink to this headline">¶</a></h1>
+<section id="module-fields">
+<h2>Module Fields<a class="headerlink" href="#module-fields" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_INTROSPECTION_CODE</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">import sys</span><span class="se">\n</span><span class="s2">import sysconfig</span><span class="se">\n</span><span class="s2">import json</span><span class="se">\n</span><span class="s2">import importlib.machinery</span><span class="se">\n</span><span class="s2">import platform</span><span class="se">\n</span><span class="s2">import os</span><span class="se">\n</span><span class="s2">import site</span><span class="se">\n</span><span class="s2">import struct</span><span class="se">\n\n</span><span class="s2">if hasattr(sys, &#39;implementation&#39;):</span><span class="se">\n</span><span class="s2">    sys_implementation = {&#39;name&#39;: sys.implementation.name, &#39;version&#39;: sys.implementation.version}</span><span class="se">\n</span><span class="s2">else:</span><span class="se">\n</span><span class="s2">    sys_implementation = {&#39;name&#39;: platform.python_implementation().lower()}</span><span class="se">\n\n</span><span class="s2">result = {</span><span class="se">\n</span><span class="s2">    &#39;sysconfig&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;paths&#39;: sysconfig.get_paths(),</span><span class="se">\n</span><span class="s2">        &#39;paths_by_scheme&#39;: {s:sysconfig.get_paths(s) for s in sysconfig.get_scheme_names()},</span><span class="se">\n</span><span class="s2">        &#39;vars&#39;: sysconfig.get_config_vars(),</span><span class="se">\n</span><span class="s2">        &#39;platform&#39;: sysconfig.get_platform(),</span><span class="se">\n</span><span class="s2">        &#39;is_python_build&#39;: sysconfig.is_python_build(True)</span><span class="se">\n</span><span class="s2">    },</span><span class="se">\n\n</span><span class="s2">    &#39;sys&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;implementation&#39;: sys_implementation,</span><span class="se">\n</span><span class="s2">         &#39;version_info&#39;: sys.version_info,</span><span class="se">\n</span><span class="s2">         &#39;has_totalrefcount&#39;: hasattr(sys,&#39;gettotalrefcount&#39;),</span><span class="se">\n</span><span class="s2">         &#39;maxunicode&#39;: sys.maxunicode,</span><span class="se">\n</span><span class="s2">         &#39;maxsize&#39;: sys.maxsize,</span><span class="se">\n</span><span class="s2">         &#39;executable&#39;: sys.executable,</span><span class="se">\n</span><span class="s2">         &#39;platform&#39;: sys.platform</span><span class="se">\n</span><span class="s2">    },</span><span class="se">\n\n</span><span class="s2">    &#39;importlib&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;machinery&#39;: {</span><span class="se">\n</span><span class="s2">            &#39;EXTENSION_SUFFIXES&#39;: importlib.machinery.EXTENSION_SUFFIXES</span><span class="se">\n</span><span class="s2">        }</span><span class="se">\n</span><span class="s2">    },</span><span class="se">\n\n</span><span class="s2">    &#39;platform&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;system&#39;: platform.system(),</span><span class="se">\n</span><span class="s2">        &#39;mac_ver&#39;: platform.mac_ver(),</span><span class="se">\n</span><span class="s2">        &#39;machine&#39;: platform.machine(),</span><span class="se">\n</span><span class="s2">        &#39;python_implementation&#39;: platform.python_implementation(),</span><span class="se">\n</span><span class="s2">        &#39;release&#39;: platform.release(),</span><span class="se">\n</span><span class="s2">        &#39;version&#39;: platform.version(),</span><span class="se">\n</span><span class="s2">        &#39;python_version_tuple&#39;: platform.python_version_tuple(),</span><span class="se">\n</span><span class="s2">        &#39;python_version&#39;: platform.python_version()</span><span class="se">\n</span><span class="s2">    },</span><span class="se">\n\n</span><span class="s2">    &#39;os&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;conf&#39;: {cname: os.confstr(cname) for cname in getattr(os,&#39;confstr_names&#39;,[])},</span><span class="se">\n</span><span class="s2">        &#39;name&#39;: os.name,</span><span class="se">\n</span><span class="s2">        &#39;bits&#39;: struct.calcsize(&#39;P&#39;) * 8 </span><span class="se">\n</span><span class="s2">    },</span><span class="se">\n</span><span class="s2">    </span><span class="se">\n</span><span class="s2">    &#39;site&#39;: {</span><span class="se">\n</span><span class="s2">        &#39;packages&#39;: site.getsitepackages()</span><span class="se">\n</span><span class="s2">    }</span><span class="se">\n</span><span class="s2">}</span><span class="se">\n\n</span><span class="s2">print(json.dumps(result))</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">_USER_SCHEME_BY_PLATFORM</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Linux&#39;</span><span class="p">:</span> <span class="s1">&#39;posix_user&#39;</span><span class="p">,</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span> <span class="s1">&#39;nt_user&#39;</span><span class="p">,</span> <span class="s1">&#39;Darwin&#39;</span><span class="p">:</span> <span class="s1">&#39;osx_framework_user&#39;</span><span class="p">}</span>
+<span class="n">INTERPRETER_SHORT_NAMES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;python&#39;</span><span class="p">:</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="s1">&#39;cpython&#39;</span><span class="p">:</span> <span class="s1">&#39;cp&#39;</span><span class="p">,</span> <span class="s1">&#39;pypy&#39;</span><span class="p">:</span> <span class="s1">&#39;pp&#39;</span><span class="p">,</span> <span class="s1">&#39;ironpython&#39;</span><span class="p">:</span> <span class="s1">&#39;ip&#39;</span><span class="p">,</span> <span class="s1">&#39;jython&#39;</span><span class="p">:</span> <span class="s1">&#39;jy&#39;</span><span class="p">}</span>
+<span class="n">_EM_ARM</span> <span class="o">=</span> <span class="mi">40</span>
+<span class="n">_EM_386</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">_EF_ARM_ABIMASK</span> <span class="o">=</span> <span class="mi">4278190080</span>
+<span class="n">_EF_ARM_ABI_VER5</span> <span class="o">=</span> <span class="mi">83886080</span>
+<span class="n">_EF_ARM_ABI_FLOAT_HARD</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="n">_PT_INTERP</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">_elf_header_prefix_struct</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s1">&#39;4s5B7x&#39;</span><span class="p">)</span>
+<span class="n">_LEGACY_MANYLINUX_MAP</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;manylinux2014&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span> <span class="s1">&#39;manylinux2010&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="s1">&#39;manylinux1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)}</span>
+</pre></div>
+</div>
+</section>
+<section id="module-classes">
+<h2>Module Classes<a class="headerlink" href="#module-classes" title="Permalink to this headline">¶</a></h2>
+<div class="class-def-with-link docutils container">
+<p><a class="reference internal" href="pkm.api.environments.environment_introspection.EnvironmentIntrospection.html"><span class="doc">[DOC]</span></a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EnvironmentIntrospection</span><span class="p">(</span><span class="n">Configuration</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="pkm.api.environments.environment_builder.html" title="pkm.api.environments.environment_builder (Module)"
+              >previous</a> |
+            <a href="pkm.api.environments.environment.html" title="pkm.api.environments.environment (Module)"
+              >next</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../../_sources/apis/pkm.api/pkm.api.environments.environment_introspection.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

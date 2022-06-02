@@ -1,0 +1,1044 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Environment (Class) &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/docs.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pkm_cli/commands.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../containers.html">Application Containers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pkm.api.html">pkm API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="environment-class">
+<h1>Environment (Class)<a class="headerlink" href="#environment-class" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Environment</span><span class="p">(</span><span class="n">HasAttachedRepository</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="class-methods">
+<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">interpreter_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+    <span class="n">use_user_site</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">zoo</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;EnvironmentsZoo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="arguments">
+<h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>env_path</p></td>
+<td><p>Path</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>interpreter_path</p></td>
+<td><p>Optional[Path]</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>use_user_site</p></td>
+<td><p>bool</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>zoo</p></td>
+<td><p>Optional[‘EnvironmentsZoo’]</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id2">
+<h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>the path for this environment root directory</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">zoo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;EnvironmentsZoo&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id4">
+<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">app_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ContainerizedApplications&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id6">
+<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">repository_management</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;RepositoryManagement&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id8">
+<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">_introspection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnvironmentIntrospection</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>Description<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id10">
+<h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>Description<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id12">
+<h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">installation_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageInstallationTarget</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id14">
+<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id16">
+<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">interpreter_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StandardVersion</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id18">
+<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id19">
+<h3>Returns<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>the version of the environment’s python interpreter</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">interpreter_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</section>
+<section id="id20">
+<h3>Description<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id21">
+<h3>Arguments<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id22">
+<h3>Returns<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>the path for the environment’s python interpreter</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">operating_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;OperatingPlatform&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="id23">
+<h3>Description<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id24">
+<h3>Arguments<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compatibility_tag_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Comparable</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id25">
+<h3>Description<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<p>compute the compatibility score for the given pep425 compatibility tag</p>
+</section>
+<section id="id26">
+<h3>Arguments<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>tag</p></td>
+<td><p>str</p></td>
+<td><p>the pep425 compatibility tag</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id27">
+<h3>Returns<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>an opaque score object that support __le__ and __eq__ operations (read: comparable)</p>
+</div></blockquote>
+<p>which can be treated as a score (read: higher is better)</p>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">markers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id28">
+<h3>Description<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id29">
+<h3>Arguments<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id30">
+<h3>Returns<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>pep508 environment markers</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">site_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SitePackages</span>
+</pre></div>
+</div>
+</section>
+<section id="id31">
+<h3>Description<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id32">
+<h3>Arguments<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">markers_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</pre></div>
+</div>
+</section>
+<section id="id33">
+<h3>Description<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id34">
+<h3>Arguments<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id35">
+<h3>Returns<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>a hash built from the environment’s markers, can be used to identify instances of this environment</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">activate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id36">
+<h3>Description<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id37">
+<h3>Arguments<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>env</p></td>
+<td><p>MutableMapping[str, str]</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">exec_proc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span>
+</pre></div>
+</div>
+</section>
+<section id="id38">
+<h3>Description<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<p>similar to <cite>run_proc</cite> but does not return, this process will become the new process
+(on supporting operating systems)</p>
+</section>
+<section id="id39">
+<h3>Arguments<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>cmd</p></td>
+<td><p>str</p></td>
+<td><p>the command to execute</p></td>
+</tr>
+<tr class="row-even"><td><p>args</p></td>
+<td><p>Optional[List[str]]</p></td>
+<td><p>list of arguments</p></td>
+</tr>
+<tr class="row-odd"><td><p>env</p></td>
+<td><p>Optional[Dict[str, str]]</p></td>
+<td><p>environment variables</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">run_proc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">**</span><span class="n">subprocess_run_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompletedProcess</span>
+</pre></div>
+</div>
+</section>
+<section id="id40">
+<h3>Description<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<p>execute the given command in a new process, the process will be executed with its path adjusted to include this
+venv binaries and scripts</p>
+</section>
+<section id="id41">
+<h3>Arguments<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>args</p></td>
+<td><p>List[str]</p></td>
+<td><p>the command to execute</p></td>
+</tr>
+<tr class="row-even"><td><p>subprocess_run_kwargs</p></td>
+<td><p>Any</p></td>
+<td><p>any argument that is accepted by <cite>subprocess.run</cite> (aside from args)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id42">
+<h3>Returns<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>a <cite>CompletedProcess</cite> instance describing the completion of the requested process</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id43">
+<h3>Description<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
+<p>reload volatile information about this environment (like the installed packages)</p>
+</section>
+<section id="id44">
+<h3>Arguments<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">install_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span>
+    <span class="n">imports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id45">
+<h3>Description<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<p>installs a pth link (named <cite>name</cite>.pth) in the site packages (purelib)</p>
+</section>
+<section id="id46">
+<h3>Arguments<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>name</p></td>
+<td><p>str</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>paths</p></td>
+<td><p>List[Path]</p></td>
+<td><p>the paths to add in the created link</p></td>
+</tr>
+<tr class="row-odd"><td><p>imports</p></td>
+<td><p>Optional[List[str]]</p></td>
+<td><p>imports to execute at runtime when reading this link (example: <cite>imports</cite> = [‘abc’] will import the abc package when the interpreter attached to this environment gets executed and meets the created link)</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">:</span> <span class="n">_DEPENDENCIES_T</span><span class="p">,</span>
+    <span class="n">repository</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Repository</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_requested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dependencies_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dependency</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">editables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">updates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id47">
+<h3>Description<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h3>
+<p>installs the given set of dependencies into this environment.
+see: <cite>prepare_installation</cite> for more information about this method arguments</p>
+</section>
+<section id="id48">
+<h3>Arguments<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>dependencies</p></td>
+<td><p>_DEPENDENCIES_T</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>repository</p></td>
+<td><p>Optional[Repository]</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>user_requested</p></td>
+<td><p>bool</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>dependencies_override</p></td>
+<td><p>Optional[Dict[str, List[Dependency]]]</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>editables</p></td>
+<td><p>Optional[Dict[str, bool]]</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>updates</p></td>
+<td><p>Optional[List[str]]</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">force_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id49">
+<h3>Description<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h3>
+<p>forcefully remove the required package, will not remove its dependencies and will not check if other packages
+depends on it - use this method with care (or don’t use it at all :) )</p>
+</section>
+<section id="id50">
+<h3>Arguments<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>package</p></td>
+<td><p>str</p></td>
+<td><p>the name of the package to be removed</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">uninstall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packages</span><span class="p">:</span> <span class="n">_PACKAGE_NAMES_T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id51">
+<h3>Description<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
+<p>attempt to remove the required packages from this env together will all the dependencies that may become orphan
+as a result of this step.</p>
+<p>if a package <cite>p in packages</cite> is a dependency (directly or indirectly) of another
+“user requested” package <cite>q not in packages</cite> then <cite>p</cite> will be kept in the environment but its
+“user requested” flag will be removed (if it was existed)</p>
+</section>
+<section id="id52">
+<h3>Arguments<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>packages</p></td>
+<td><p>_PACKAGE_NAMES_T</p></td>
+<td><p>the package names to remove</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">entrypoints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">EntryPoint</span><span class="p">]]</span>
+</pre></div>
+</div>
+</section>
+<section id="id53">
+<h3>Description<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id54">
+<h3>Arguments<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id55">
+<h3>Returns<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>all entrypoints in this environment grouped by their defined group</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+</pre></div>
+</div>
+</section>
+<section id="id56">
+<h3>Description<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id57">
+<h3>Arguments<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>path</p></td>
+<td><p>Path</p></td>
+<td><p>a path that may contain a python environment</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id58">
+<h3>Returns<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>true if this path contains a python environment</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">of_interpreter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">interpreter</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;user&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
+</pre></div>
+</div>
+</section>
+<section id="id59">
+<h3>Description<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h3>
+<p>load an environment using the given interpreter</p>
+</section>
+<section id="id60">
+<h3>Arguments<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cls</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>interpreter</p></td>
+<td><p>Path</p></td>
+<td><p>the interpreter to use</p></td>
+</tr>
+<tr class="row-even"><td><p>site</p></td>
+<td><p>str</p></td>
+<td><p>control the installation site of the returned environment - acceptable values are ‘user’ and ‘system’, it is only applicable for system (read: non-virtual) environments. the ‘system’ option just use the regular site, you can read about the ‘user’ site in documentation of <cite>site.getusersitepackages()</cite></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id61">
+<h3>Returns<a class="headerlink" href="#id61" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>the loaded environment</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">current</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;user&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
+</pre></div>
+</div>
+</section>
+<section id="id62">
+<h3>Description<a class="headerlink" href="#id62" title="Permalink to this headline">¶</a></h3>
+<p>load the environment used by the currently executed interpreter</p>
+</section>
+<section id="id63">
+<h3>Arguments<a class="headerlink" href="#id63" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cls</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>site</p></td>
+<td><p>str</p></td>
+<td><p>control the installation site of the returned environment - acceptable values are ‘user’ and ‘system’, it is only applicable for system (read: non-virtual) environments. the ‘system’ option just use the regular site, you can read about the ‘user’ site in documentation of <cite>site.getusersitepackages()</cite></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id64">
+<h3>Returns<a class="headerlink" href="#id64" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>the loaded environment</p>
+</div></blockquote>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
+</pre></div>
+</div>
+</section>
+<section id="id65">
+<h3>Description<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id66">
+<h3>Arguments<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cls</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>path</p></td>
+<td><p>Union[Path, str]</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../../_sources/apis/pkm.api/pkm.api.environments.environment.Environment.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

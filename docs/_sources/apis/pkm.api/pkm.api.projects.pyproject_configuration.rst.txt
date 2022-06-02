@@ -1,0 +1,76 @@
+..
+	HASH:f39979158d02ffd0b0962b848c211187
+
+pkm.api.projects.pyproject\_configuration \(Module\)
+####################################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	PKM_DIST_CFG_TYPE_LIB = 'lib'
+	PKM_DIST_CFG_TYPE_CAPP = 'cnt-app'
+	PKM_DIST_CFG_TYPE_NONE = 'none'
+	_LEGACY_BUILDSYS = {'requires': ['setuptools', 'wheel', 'pip', 'cython'], 'build-backend': 'setuptools.build_meta:__legacy__'}
+	_LEGACY_PROJECT = {'dynamic': ['description', 'readme', 'requires-python', 'license', 'authors', 'maintainers', 'keywords', 'classifiers', 'urls', 'scripts', 'gui-scripts', 'entry-points', 'dependencies', 'optional-dependencies']}
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.BuildSystemConfig>`
+	
+	..	code-block:: python
+		
+		class BuildSystemConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.ContactInfo>`
+	
+	..	code-block:: python
+		
+		class ContactInfo
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.PkmDistributionConfig>`
+	
+	..	code-block:: python
+		
+		class PkmDistributionConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.PkmApplicationConfig>`
+	
+	..	code-block:: python
+		
+		class PkmApplicationConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.PkmProjectConfig>`
+	
+	..	code-block:: python
+		
+		class PkmProjectConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.ProjectConfig>`
+	
+	..	code-block:: python
+		
+		class ProjectConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.pyproject_configuration.PyProjectConfiguration>`
+	
+	..	code-block:: python
+		
+		class PyProjectConfiguration(TomlFileConfiguration)
+		

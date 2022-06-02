@@ -1,0 +1,30 @@
+..
+	HASH:77c50c5fc3c67b5be61ac03464637b95
+
+pkm.api.projects.project \(Module\)
+###################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.project.Project>`
+	
+	..	code-block:: python
+		
+		class Project(Package, HasAttachedRepository)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.project.ProjectDirectories>`
+	
+	..	code-block:: python
+		
+		class ProjectDirectories
+		

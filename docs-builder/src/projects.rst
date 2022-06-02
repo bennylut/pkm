@@ -81,6 +81,7 @@ Following, is  short explanation for the supported fields in this table:
    - If it is a string then it is the relative path to the project readme (rst or md).
    - If it is a table, the :toml-key:`file` key accepts the relative path to the readme,
      while the :toml-key:`text` key accepts the actual description.
+
    **These keys are mutually-exclusive**
 :requires-python: The Python version requirements of the project.
 :license:
@@ -88,6 +89,7 @@ Following, is  short explanation for the supported fields in this table:
 
    - The :toml-key:`file` key accepts the relative path to a license file.
    - The :toml-key:`text` key accepts a license identifier.
+
    **These keys are mutually exclusive**
 :authors/maintainers:
    Array of :toml-key:`name` + :toml-key:`email` tables
@@ -174,7 +176,7 @@ when building and publishing your project, a special *'sdist'* will be created w
 application when it is installed. (it can be installed regularly like any other package with any modern python package
 management that supports :pep:`517`, e.g., :program:`pip`)
 
-If you like, :doc:`read more about containerized applications <containers>.
+If you like, :doc:`read more about containerized applications <containers>`.
 
 
 

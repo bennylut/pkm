@@ -1,0 +1,137 @@
+:orphan:
+
+\_UpdatableInstalledPackage \(Class\)
+#####################################
+
+..	code-block:: python
+	
+	@delegate(Package, '_installed')
+	class _UpdatableInstalledPackage(Package, ABC)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, installed: InstalledPackage, repo: Repository)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	installed
+		-	InstalledPackage
+		-	No Description
+	*	-	repo
+		-	Repository
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def descriptor(self) -> PackageDescriptor
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def published_metadata(self) -> Optional['PackageMetadata']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def update_at(self, target: 'PackageInstallationTarget', 
+	    user_request: Optional['Dependency'] = None, editable: bool = True)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	target
+		-	'PackageInstallationTarget'
+		-	No Description
+	*	-	user_request
+		-	Optional['Dependency']
+		-	No Description
+	*	-	editable
+		-	bool
+		-	No Description
+	

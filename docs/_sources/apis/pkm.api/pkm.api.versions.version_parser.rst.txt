@@ -1,0 +1,79 @@
+..
+	HASH:03b7fe7f6093dabc4e176da764f2aa2e
+
+pkm.api.versions.version\_parser \(Module\)
+###########################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_PRE_RELEASE_TYPE_NORMALIZER = {'a': 'a', 'b': 'b', 'rc': 'rc', 'c': 'rc', 'alpha': 'a', 'beta': 'b', 'preview': 'rc'}
+	
+Module Functions
+================
+
+..	code-block:: python
+	
+	def parse_version(version_str: str) -> Version
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	version_str
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def parse_specifier(specifier_str: str) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	specifier_str
+		-	str
+		-	No Description
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_parser.VersionParser>`
+	
+	..	code-block:: python
+		
+		class VersionParser(SimpleParser)
+		

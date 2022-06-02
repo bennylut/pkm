@@ -1,0 +1,153 @@
+:orphan:
+
+PyProjectGroupConfiguration \(Class\)
+#####################################
+
+..	code-block:: python
+	
+	class PyProjectGroupConfiguration(TomlFileConfiguration)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@computed_based_on('name')
+	def name(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('project-group.children')
+	def children(self) -> Tuple[Path, ...]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@children.modifier
+	def set_children(self, new: Iterable[Path])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	new
+		-	Iterable[Path]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('project-group.parent')
+	def parent(self) -> Optional[Path]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	

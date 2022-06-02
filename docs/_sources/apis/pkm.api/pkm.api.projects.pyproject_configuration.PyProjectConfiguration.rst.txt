@@ -1,0 +1,314 @@
+:orphan:
+
+PyProjectConfiguration \(Class\)
+################################
+
+..	code-block:: python
+	
+	class PyProjectConfiguration(TomlFileConfiguration)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@computed_based_on('tool.pkm.project')
+	def pkm_project(self) -> PkmProjectConfig
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('tool.pkm.application')
+	def pkm_application(self) -> Optional[PkmApplicationConfig]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@pkm_application.modifier
+	def set_pkm_application(self, app: Optional[PkmApplicationConfig])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	app
+		-	Optional[PkmApplicationConfig]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('tool.pkm.distribution')
+	def pkm_distribution(self) -> PkmDistributionConfig
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@pkm_distribution.modifier
+	def set_pkm_distribution(self, distribution: PkmDistributionConfig)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	distribution
+		-	PkmDistributionConfig
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('project')
+	def project(self) -> Optional[ProjectConfig]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@project.modifier
+	def set_project(self, value: ProjectConfig)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	value
+		-	ProjectConfig
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('build-system')
+	def build_system(self) -> BuildSystemConfig
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@build_system.modifier
+	def set_build_system(self, bs: BuildSystemConfig)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	bs
+		-	BuildSystemConfig
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def load_effective(cls, pyproject_file: Path, 
+	    package: Optional[PackageDescriptor] = None) -> 'PyProjectConfiguration'
+	
+Description
+-----------
+
+load the effective pyproject file (with missing essential values filled with their legacy values)
+for example, if no build-system is available, this method will fill in the legacy build-system
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	pyproject_file
+		-	Path
+		-	 the pyproject.toml to load
+	*	-	package
+		-	Optional[PackageDescriptor]
+		-	 the package that this pyproject belongs to, if given, it will be used in case of missing name and version values
+	
+Returns
+-------
+
+ the loaded pyproject

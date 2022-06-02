@@ -51,6 +51,11 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
+</ul>
 
           <div role="search">
             <h3 style="margin-top: 1.5em;">Search</h3>
@@ -132,8 +137,10 @@ parameter passed by the commandline to this types.
 It does so by passing the string received in the command line to the type constructor (e.g., <code class="docutils literal notranslate"><span class="pre">arg2=int(&quot;42&quot;)</span></code> in the
 above shell snippet). This means that arguments can only be of types that support construction by single-string (e.g.,
 int, bool, str, Path or any user defined type that follows this rule)</p>
-<p>## Documenting tasks
-To document your task, just add a doc-string to your <code class="docutils literal notranslate"><span class="pre">run</span></code> function. You can view the task documentation using
+</section>
+<section id="documenting-tasks">
+<h2>Documenting tasks<a class="headerlink" href="#documenting-tasks" title="Permalink to this headline">¶</a></h2>
+<p>To document your task, just add a doc-string to your <code class="docutils literal notranslate"><span class="pre">run</span></code> function. You can view the task documentation using
 the <code class="docutils literal notranslate"><span class="pre">-h,</span> <span class="pre">--help</span></code> flag of the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> command with the given task.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm run @task -h
 </pre></div>

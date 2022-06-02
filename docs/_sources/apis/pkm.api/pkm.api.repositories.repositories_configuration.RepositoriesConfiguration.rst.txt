@@ -1,0 +1,156 @@
+:orphan:
+
+RepositoriesConfiguration \(Class\)
+###################################
+
+..	code-block:: python
+	
+	class RepositoriesConfiguration(TomlFileConfiguration)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@computed_based_on('inheritance')
+	def inheritance_mode(self) -> RepositoriesConfigInheritanceMode
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('package-bindings')
+	def package_bindings(self) -> Mapping[str, Any]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@package_bindings.modifier
+	def set_package_bindings(self, new_bindings: Mapping[str, Any])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	new_bindings
+		-	Mapping[str, Any]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@computed_based_on('repos')
+	def repositories(self) -> List[RepositoryInstanceConfig]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@repositories.modifier
+	def set_repositories(self, repos: List[RepositoryInstanceConfig])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	repos
+		-	List[RepositoryInstanceConfig]
+		-	No Description
+	

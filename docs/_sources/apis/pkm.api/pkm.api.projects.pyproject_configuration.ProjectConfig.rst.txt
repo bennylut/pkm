@@ -1,0 +1,306 @@
+:orphan:
+
+ProjectConfig \(Class\)
+#######################
+
+..	code-block:: python
+	
+	@dataclass(frozen=True, eq=True)
+	class ProjectConfig
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def all_entrypoints(self) -> List[EntryPoint]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def is_dynamic(self, field: str) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	field
+		-	str
+		-	 the field name (as in the configuration, e.g., optional-dependencies and not optional_dependencies)
+	
+Returns
+-------
+
+ True if the field is marked as dynamic, False otherwise
+
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def all_dependencies(self) -> List[Dependency]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def package_descriptor(self) -> PackageDescriptor
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def readme_content(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def script_entrypoints(self) -> Iterator[EntryPoint]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ iterator over the scripts (and gui scripts) entrypoints
+
+-----------------------
+
+..	code-block:: python
+	
+	def readme_content_type(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def license_content(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def to_config(self, project_path: Optional[Path] = None) -> Dict[str, Any]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	project_path
+		-	Optional[Path]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def from_config(cls, config: Dict[str, Any], 
+	    project_path: Optional[Path] = None) -> 'ProjectConfig'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	config
+		-	Dict[str, Any]
+		-	No Description
+	*	-	project_path
+		-	Optional[Path]
+		-	No Description
+	

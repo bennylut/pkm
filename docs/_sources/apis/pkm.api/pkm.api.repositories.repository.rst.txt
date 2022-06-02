@@ -1,0 +1,46 @@
+..
+	HASH:b39bf6cf06e399c3f424324a9d003dac
+
+pkm.api.repositories.repository \(Module\)
+##########################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository.Repository>`
+	
+	..	code-block:: python
+		
+		class Repository(Protocol)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository.AbstractRepository>`
+	
+	..	code-block:: python
+		
+		class AbstractRepository(Repository, ABC)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository.RepositoryPublisher>`
+	
+	..	code-block:: python
+		
+		class RepositoryPublisher
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository.RepositoryBuilder>`
+	
+	..	code-block:: python
+		
+		class RepositoryBuilder(ABC)
+		

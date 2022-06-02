@@ -3,7 +3,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "rich", version = "11.2.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "rich", version = "11.2.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "sphinxcontrib-applehelp", version = "1.0.2"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "sphinxcontrib-applehelp", version = "1.0.2"}
 
 [[lock]]
@@ -11,7 +19,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "wcwidth", version = "0.2.5"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "wcwidth", version = "0.2.5"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "sphinxcontrib-devhelp", version = "1.0.2"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "sphinxcontrib-devhelp", version = "1.0.2"}
 
 [[lock]]
@@ -19,7 +35,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "six", version = "1.16.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "six", version = "1.16.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "Sphinx", version = "4.5.0"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "Sphinx", version = "4.5.0"}
 
 [[lock]]
@@ -27,7 +51,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "cffi", version = "1.15.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "cffi", version = "1.15.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "alabaster", version = "0.7.12"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "alabaster", version = "0.7.12"}
 
 [[lock]]
@@ -35,7 +67,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "idna", version = "3.3"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "idna", version = "3.3"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "sphinx-argparse", version = "0.3.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "sphinx-argparse", version = "0.3.1"}
 
 [[lock]]
@@ -43,7 +83,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "pyparsing", version = "3.0.9"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "pyparsing", version = "3.0.9"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "requests", version = "2.27.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "requests", version = "2.27.1"}
 
 [[lock]]
@@ -51,7 +99,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "cryptography", version = "37.0.2"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "cryptography", version = "37.0.2"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "urllib3", version = "1.26.9"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "urllib3", version = "1.26.9"}
 
 [[lock]]
@@ -59,7 +115,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "pytz", version = "2022.1"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "pytz", version = "2022.1"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "importlib-metadata", version = "4.11.4"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "importlib-metadata", version = "4.11.4"}
 
 [[lock]]
@@ -67,7 +131,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "charset-normalizer", version = "2.0.12"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "charset-normalizer", version = "2.0.12"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "packaging", version = "21.3"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "packaging", version = "21.3"}
 
 [[lock]]
@@ -75,7 +147,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "tornado", version = "6.1"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "tornado", version = "6.1"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "questionary", version = "1.10.0"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "questionary", version = "1.10.0"}
 
 [[lock]]
@@ -83,7 +163,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "zipp", version = "3.8.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "zipp", version = "3.8.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "Jinja2", version = "3.1.2"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "Jinja2", version = "3.1.2"}
 
 [[lock]]
@@ -91,7 +179,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "prompt-toolkit", version = "3.0.29"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "prompt-toolkit", version = "3.0.29"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "imagesize", version = "1.3.0"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "imagesize", version = "1.3.0"}
 
 [[lock]]
@@ -99,7 +195,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "commonmark", version = "0.9.1"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "commonmark", version = "0.9.1"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "setproctitle", version = "1.2.3"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "setproctitle", version = "1.2.3"}
 
 [[lock]]
@@ -107,7 +211,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "pkm-cli", version = "0.4.44"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "pkm-cli", version = "0.4.44"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "MarkupSafe", version = "2.1.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "MarkupSafe", version = "2.1.1"}
 
 [[lock]]
@@ -115,7 +227,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "sphinxcontrib-qthelp", version = "1.0.3"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "sphinxcontrib-qthelp", version = "1.0.3"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "pkm", version = "0.4.55"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "pkm", version = "0.4.55"}
 
 [[lock]]
@@ -123,7 +243,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "docs-builder", version = "0.1.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "docs-builder", version = "0.1.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "pycparser", version = "2.21"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "pycparser", version = "2.21"}
 
 [[lock]]
@@ -131,7 +259,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "sphinxcontrib-serializinghtml", version = "1.1.5"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "sphinxcontrib-serializinghtml", version = "1.1.5"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "colorama", version = "0.4.4"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "colorama", version = "0.4.4"}
 
 [[lock]]
@@ -139,7 +275,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "xonsh", version = "0.12.4"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "xonsh", version = "0.12.4"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "Babel", version = "2.10.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "Babel", version = "2.10.1"}
 
 [[lock]]
@@ -147,7 +291,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "Pygments", version = "2.12.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "Pygments", version = "2.12.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "docutils", version = "0.17.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "docutils", version = "0.17.1"}
 
 [[lock]]
@@ -155,7 +307,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "sphinxcontrib-jsmath", version = "1.0.1"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "sphinxcontrib-jsmath", version = "1.0.1"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "snowballstemmer", version = "2.2.0"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "snowballstemmer", version = "2.2.0"}
 
 [[lock]]
@@ -163,7 +323,15 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "sphinx-autobuild", version = "2021.3.14"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "sphinx-autobuild", version = "2021.3.14"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "livereload", version = "2.6.3"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "livereload", version = "2.6.3"}
 
 [[lock]]
@@ -171,9 +339,29 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "libsass", version = "0.21.0"}
 
 [[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "libsass", version = "0.21.0"}
+
+[[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "sphinxcontrib-htmlhelp", version = "2.0.0"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
 package = {name = "sphinxcontrib-htmlhelp", version = "2.0.0"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "certifi", version = "2022.5.18.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "certifi", version = "2022.5.18.1"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "watchdog", version = "2.1.8"}
+
+[[lock]]
+env_markers_hash = "720705dec8ae156dc1ac048958e53ef1"
+package = {name = "lxml", version = "4.9.0"}

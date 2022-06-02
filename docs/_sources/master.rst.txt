@@ -14,3 +14,11 @@
     :caption: Advanced Topics
 
     Application Containers <containers.rst>
+
+..  toctree::
+    :titlesonly:
+    :maxdepth: 1
+    :caption: API Documentation
+
+    pkm-cli API <apis/pkm_cli/pkm_cli.rst>
+    pkm API <apis/pkm.api/pkm.api.rst>

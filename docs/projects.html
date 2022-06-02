@@ -51,6 +51,11 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
+</ul>
 
           <div role="search">
             <h3 style="margin-top: 1.5em;">Search</h3>
@@ -82,8 +87,8 @@ It reads the project configuration from the standard <span class="file">pyprojec
 </div>
 <p>The <span class="toml-table">project</span> table is the main section to configure your project metadata, since most of the values in
 this section are self-explanatory, we will begin with an example (taken directly from <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0621/"><strong>PEP 621</strong></a>):</p>
-<div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="k">[project]</span><span class="w"></span>
 <span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam&quot;</span><span class="w"></span>
 <span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.2.3&quot;</span><span class="w"></span>
@@ -241,8 +246,8 @@ they are installed at. they install all their dependencies inside this container
 only by their registered script entrypoints</p>
 <p>To distribute your application as a “containerized application” all you needs to do is to add the following
 into <span class="file">pyproject.toml</span>:</p>
-<div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[tool.pkm.distribution]</span><span class="w"></span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;cnt-app&#39;</span><span class="w"></span>
 </pre></div>
@@ -251,7 +256,7 @@ into <span class="file">pyproject.toml</span>:</p>
 <p>when building and publishing your project, a special <em>‘sdist’</em> will be created which will take care of containerizing your
 application when it is installed. (it can be installed regularly like any other package with any modern python package
 management that supports <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0517/"><strong>PEP 517</strong></a>, e.g., <span class="program">pip</span>)</p>
-<p>If you like, :doc:<a href="#id1"><span class="problematic" id="id2">`</span></a>read more about containerized applications &lt;containers&gt;.</p>
+<p>If you like, <a class="reference internal" href="containers.html"><span class="doc">read more about containerized applications</span></a>.</p>
 </section>
 </section>
 </section>

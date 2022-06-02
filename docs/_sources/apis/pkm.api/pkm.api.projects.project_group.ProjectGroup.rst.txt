@@ -1,0 +1,483 @@
+:orphan:
+
+ProjectGroup \(Class\)
+######################
+
+..	code-block:: python
+	
+	class ProjectGroup(HasAttachedRepository)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, config: 'PyProjectGroupConfiguration', 
+	    parent: Optional[ProjectGroup] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	config
+		-	'PyProjectGroupConfiguration'
+		-	No Description
+	*	-	parent
+		-	Optional[ProjectGroup]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def config(self) -> 'PyProjectGroupConfiguration'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def environments_config(self) -> EnvironmentsConfiguration
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def repository_management(self) -> 'RepositoryManagement'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def parent(self) -> Optional['ProjectGroup']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the parent of this project group (if such exists)
+
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def root(self) -> Optional['ProjectGroup']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the top most parent of this project group
+
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def children(self) -> Iterable[Union[Project, 'ProjectGroup']]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the child projects (or project groups) defined in this group
+
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def project_children_recursive(self) -> List[Project]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the child projects defined in this group and
+recursively the child projects of the project groups defined in this group
+
+-----------------------
+
+..	code-block:: python
+	
+	def add(self, project: Union[Project, Path])
+	
+Description
+-----------
+
+add project to this group, saving the modification in the configuration file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	project
+		-	Union[Project, Path]
+		-	 the project to add
+	
+-----------------------
+
+..	code-block:: python
+	
+	def remove(self, project: Union[str, Path])
+	
+Description
+-----------
+
+remove project from this group, saving the modification in the configuration file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	project
+		-	Union[str, Path]
+		-	 the project name or path to remove
+	
+-----------------------
+
+..	code-block:: python
+	
+	def build_all(self)
+	
+Description
+-----------
+
+recursively run the build operation on all projects and subprojects in this group
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def _find_parent(cls, path: Path) -> Optional['ProjectGroup']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def of(cls, project: Project) -> Optional['ProjectGroup']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	project
+		-	Project
+		-	 the project to get the project group for
+	
+Returns
+-------
+
+ the project group if such defined
+
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def load(cls, path: Path) -> 'ProjectGroup'
+	
+Description
+-----------
+
+load the project group from a specific path
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	 the path to the project group directory
+	
+Returns
+-------
+
+ the loaded project group
+
+-----------------------
+
+..	code-block:: python
+	
+	@staticmethod
+	def is_valid(path: Path) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	path
+		-	Path
+		-	 the path to check
+	
+Returns
+-------
+
+ True if the path contain project group, False otherwise

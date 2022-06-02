@@ -1,4 +1,4 @@
-from typing import TypeVar, Iterable, Callable, Dict, List, Optional, Tuple, Iterator
+from typing import TypeVar, Iterable, Callable, Dict, List, Optional, Tuple, Iterator, Any, Type
 
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.types import Hashable
@@ -148,3 +148,13 @@ def strs(it: Iterable[_T]) -> Iterator[str]:
     :return: iterable yielding `str(item)` for each item in `iter`
     """
     return (str(it) for it in it)
+
+
+def filter_type(itr: Iterable[Any], type_: Type[_T]) -> Iterable[_T]:
+    """
+    returns a new iterable yielding elements from `seq` if they are instanceof `type_`
+    :param itr: the iterable to filter
+    :param type_: the type to find
+    :return: the filtered list
+    """
+    return (it for it in itr if isinstance(it, type_))

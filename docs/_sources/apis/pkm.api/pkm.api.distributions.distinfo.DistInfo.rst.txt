@@ -1,0 +1,744 @@
+:orphan:
+
+DistInfo \(Class\)
+##################
+
+..	code-block:: python
+	
+	class DistInfo
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, path: Path)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def package_name(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the package name as can be computed from the dist-info file name. note that if the loaded dist-info
+path has non-standard, the return value of this method is undetermined
+
+-----------------------
+
+..	code-block:: python
+	
+	def load_wheel_cfg(self) -> 'WheelFileConfiguration'
+	
+Description
+-----------
+
+loads and return the WHEEL configuration file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the loaded configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def wheel_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the WHEEL configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def is_app_container(self) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ True if this package dist-info is marked as an app-container
+
+-----------------------
+
+..	code-block:: python
+	
+	def load_entrypoints_cfg(self) -> 'EntrypointsConfiguration'
+	
+Description
+-----------
+
+load and return the entry_points.txt configurate file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the loaded configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def load_installation_info(self) -> Optional[PackageInstallationInfo]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def save_installation_info(self, installation_mode: PackageInstallationInfo)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	installation_mode
+		-	PackageInstallationInfo
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def load_metadata_cfg(self) -> 'PackageMetadata'
+	
+Description
+-----------
+
+load and return the METADATA configuration file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the loaded configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def metadata_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the METADATA configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def load_record_cfg(self) -> 'RecordsFileConfiguration'
+	
+Description
+-----------
+
+load and return the RECORD configuration file
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the loaded configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def record_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the RECORD configuration file
+
+-----------------------
+
+..	code-block:: python
+	
+	def license_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the LICENSE file
+
+-----------------------
+
+..	code-block:: python
+	
+	def installation_info_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the pkm's added INSTALLATION_MODE file
+
+-----------------------
+
+..	code-block:: python
+	
+	def user_requested_path(self) -> Path
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the path to the REQUESTED marker file
+
+-----------------------
+
+..	code-block:: python
+	
+	def mark_as_user_requested(self, info: Dependency)
+	
+Description
+-----------
+
+marks the given package as a user requested one, pkm will not consider it as an orphan package if no other
+package depends on it
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	info
+		-	Dependency
+		-	 information about the user request
+	
+-----------------------
+
+..	code-block:: python
+	
+	def unmark_as_user_requested(self)
+	
+Description
+-----------
+
+remove the "user request" mark from a package, pkm will consider it as an orphan package if no other
+package depends on it
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def is_user_requested(self) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ True if this package dist-info is marked as user-requested
+
+-----------------------
+
+..	code-block:: python
+	
+	def load_user_requested_info(self) -> Optional[Dependency]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def load(cls, path: Path, non_standard_name_ok: bool = False) -> 'DistInfo'
+	
+Description
+-----------
+
+loads the given `path` as a distinfo
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	 the path to load, must be a directory
+	*	-	non_standard_name_ok
+		-	bool
+		-	 if False and the name of the given path is not standard will raise a ValueError
+	
+Returns
+-------
+
+ the loaded distinfo
+
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def scan(cls, path: Path) -> Iterator[DistInfo]
+	
+Description
+-----------
+
+scans a path for all its standard-named dist-info children, load and yield them.
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	 the path to scan
+	
+Returns
+-------
+
+ iterator over all the found dist-info children
+
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def expected_dir_name(cls, package: 'PackageDescriptor') -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	package
+		-	'PackageDescriptor'
+		-	 the package to compute the expected directory name for
+	
+Returns
+-------
+
+ the name of the dist-info directory (last element in the path for the dist-info) that is expected to be
+created for the given package
+
+-----------------------
+
+..	code-block:: python
+	
+	def installed_files(self) -> Iterator[Path]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ paths to all the files that were installed to the environment via this package (taken from RECORD)

@@ -1,0 +1,71 @@
+:orphan:
+
+HasAttachedRepository \(Class\)
+###############################
+
+..	code-block:: python
+	
+	class HasAttachedRepository(ABC)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@property
+	@abstractmethod
+	def repository_management(self) -> 'RepositoryManagement'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def attached_repository(self) -> 'Repository'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ the repository that is attached to this artifact

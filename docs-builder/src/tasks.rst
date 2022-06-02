@@ -75,7 +75,9 @@ It does so by passing the string received in the command line to the type constr
 above shell snippet). This means that arguments can only be of types that support construction by single-string (e.g.,
 int, bool, str, Path or any user defined type that follows this rule)
 
-## Documenting tasks
+Documenting tasks
+-----------------
+
 To document your task, just add a doc-string to your ``run`` function. You can view the task documentation using
 the ``-h, --help`` flag of the ``pkm run`` command with the given task.
 

@@ -1,0 +1,57 @@
+..
+	HASH:7ef28936dc6c503c457b9526d0ac1b45
+
+pkm.api.versions.version\_specifiers \(Module\)
+###############################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	RestrictAllVersions = _RestrictAll()
+	AllowAllVersions = _AllowAll()
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_specifiers.VersionSpecifier>`
+	
+	..	code-block:: python
+		
+		class VersionSpecifier(ABC)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_specifiers.VersionsUnion>`
+	
+	..	code-block:: python
+		
+		class VersionsUnion(VersionSpecifier)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_specifiers.HetroVersionIntersection>`
+	
+	..	code-block:: python
+		
+		class HetroVersionIntersection(VersionSpecifier)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_specifiers.VersionMatch>`
+	
+	..	code-block:: python
+		
+		class VersionMatch(VersionSpecifier)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.versions.version_specifiers.StandardVersionRange>`
+	
+	..	code-block:: python
+		
+		class StandardVersionRange(VersionSpecifier)
+		

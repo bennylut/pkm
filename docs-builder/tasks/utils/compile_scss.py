@@ -20,3 +20,4 @@ def compile_scss(spx: Sphinx, _):
 def setup(spx: Sphinx):
     spx.add_config_value('scss_dir', '_scss', 'html')
     spx.connect('build-finished', compile_scss)
+    return dict(parallel_read_safe=True)

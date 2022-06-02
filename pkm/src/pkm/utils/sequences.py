@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
+from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List, Type
 
 from pkm.utils.types import Hashable, HasLessThan, StackLike
 
@@ -95,3 +95,5 @@ def pop_or_none(stack: StackLike[_T]) -> Optional[_T]:
     if len(stack) > 0:
         return stack.pop()
     return None
+
+

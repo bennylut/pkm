@@ -1,0 +1,30 @@
+..
+	HASH:95a2ce16b6daceb3181ac4929bd739a3
+
+pkm.api.packages.site\_packages \(Module\)
+##########################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.packages.site_packages.SitePackages>`
+	
+	..	code-block:: python
+		
+		class SitePackages
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.packages.site_packages.InstalledPackage>`
+	
+	..	code-block:: python
+		
+		class InstalledPackage(Package)
+		

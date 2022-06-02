@@ -1,0 +1,22 @@
+..
+	HASH:e53ca954e54f25fc2f7692f0321a4aca
+
+pkm\_cli.reports.added\_repositories\_report \(Module\)
+#######################################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm_cli.reports.added_repositories_report.AddedRepositoriesReport>`
+	
+	..	code-block:: python
+		
+		class AddedRepositoriesReport(Report)
+		

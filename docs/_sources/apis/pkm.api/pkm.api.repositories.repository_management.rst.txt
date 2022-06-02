@@ -1,0 +1,62 @@
+..
+	HASH:3ec70890c06a235f5f075181508c8943
+
+pkm.api.repositories.repository\_management \(Module\)
+######################################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.RepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class RepositoryManagement(ABC)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.PkmRepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class PkmRepositoryManagement(RepositoryManagement)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.EnvRepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class EnvRepositoryManagement(RepositoryManagement)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.ZooRepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class ZooRepositoryManagement(RepositoryManagement)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.ProjectRepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class ProjectRepositoryManagement(RepositoryManagement)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.repositories.repository_management.ProjectGroupRepositoryManagement>`
+	
+	..	code-block:: python
+		
+		class ProjectGroupRepositoryManagement(RepositoryManagement)
+		

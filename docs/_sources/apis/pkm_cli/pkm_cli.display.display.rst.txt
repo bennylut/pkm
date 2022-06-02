@@ -1,0 +1,27 @@
+..
+	HASH:f3fda6c6071d93b835d12daa1e05820e
+
+pkm\_cli.display.display \(Module\)
+###################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_PKM_THEME = Theme({'h1': 'green_yellow'})
+	_T = TypeVar('_T', bound=InformationUnit)
+	console_lock = RLock()
+	Display = _Display()
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm_cli.display.display.InformationUnit>`
+	
+	..	code-block:: python
+		
+		class InformationUnit(Protocol)
+		

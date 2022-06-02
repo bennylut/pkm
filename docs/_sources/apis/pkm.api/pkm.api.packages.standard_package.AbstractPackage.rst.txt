@@ -1,0 +1,336 @@
+:orphan:
+
+AbstractPackage \(Class\)
+#########################
+
+..	code-block:: python
+	
+	class AbstractPackage(Package)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, descriptor: PackageDescriptor, 
+	    artifacts: List[PackageArtifact], 
+	    published_metadata: Optional[PackageMetadata] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	descriptor
+		-	PackageDescriptor
+		-	No Description
+	*	-	artifacts
+		-	List[PackageArtifact]
+		-	No Description
+	*	-	published_metadata
+		-	Optional[PackageMetadata]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def published_metadata(self) -> Optional[PackageMetadata]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	def descriptor(self) -> PackageDescriptor
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def best_artifact_for(self, env: 'Environment') -> Optional[PackageArtifact]
+	
+Description
+-----------
+
+searches for the best artifact that compatible with `env`
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	env
+		-	'Environment'
+		-	 the environment that the searched artifact should be compatible with
+	
+Returns
+-------
+
+ the best artifact found or None if no compatible artifact exists
+
+-----------------------
+
+..	code-block:: python
+	
+	def is_compatible_with(self, env: 'Environment')
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	env
+		-	'Environment'
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def _retrieve_artifact(self, artifact: PackageArtifact) -> Path
+	
+Description
+-----------
+
+retrieve the given artifact, storing it to the file system and returning it
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	artifact
+		-	PackageArtifact
+		-	 the artifact to retrieve
+	
+Returns
+-------
+
+ the stored artifact
+
+-----------------------
+
+..	code-block:: python
+	
+	def install_to(self, target: PackageInstallationTarget, 
+	    user_request: Optional['Dependency'] = None, editable: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	target
+		-	PackageInstallationTarget
+		-	No Description
+	*	-	user_request
+		-	Optional['Dependency']
+		-	No Description
+	*	-	editable
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _get_or_retrieve_artifact_path(self, artifact: PackageArtifact)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	artifact
+		-	PackageArtifact
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def dependencies(self, environment: 'Environment', 
+	    extras: Optional[List[str]] = None) -> List['Dependency']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	environment
+		-	'Environment'
+		-	No Description
+	*	-	extras
+		-	Optional[List[str]]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _unfiltered_dependencies(self, environment: 'Environment') -> List['Dependency']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	environment
+		-	'Environment'
+		-	No Description
+	

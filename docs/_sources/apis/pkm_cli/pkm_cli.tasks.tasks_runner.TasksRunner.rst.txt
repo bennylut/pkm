@@ -1,0 +1,137 @@
+:orphan:
+
+TasksRunner \(Class\)
+#####################
+
+..	code-block:: python
+	
+	class TasksRunner
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, project: Project)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	project
+		-	Project
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def run(self, task_name: str, args: List[str]) -> int
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	task_name
+		-	str
+		-	No Description
+	*	-	args
+		-	List[str]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@contextmanager
+	def run_attached(self, command: Command, command_args: Namespace)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	command
+		-	Command
+		-	No Description
+	*	-	command_args
+		-	Namespace
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def describe(self, task_name: str) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	task_name
+		-	str
+		-	No Description
+	

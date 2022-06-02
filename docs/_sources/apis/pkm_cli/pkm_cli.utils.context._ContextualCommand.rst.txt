@@ -1,0 +1,44 @@
+:orphan:
+
+\_ContextualCommand \(Class\)
+#############################
+
+..	code-block:: python
+	
+	@dataclass
+	class _ContextualCommand
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def execute(self, path: Path, print_: Callable[[str], None])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	path
+		-	Path
+		-	No Description
+	*	-	print_
+		-	Callable[[str], None]
+		-	No Description
+	

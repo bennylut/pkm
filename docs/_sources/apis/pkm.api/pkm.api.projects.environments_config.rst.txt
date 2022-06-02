@@ -1,0 +1,32 @@
+..
+	HASH:344607e00a601a34af1f3085977a456b
+
+pkm.api.projects.environments\_config \(Module\)
+################################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	ENVIRONMENT_CONFIGURATION_PATH = 'etc/pkm/environments.toml'
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.environments_config.AttachedEnvironmentConfig>`
+	
+	..	code-block:: python
+		
+		class AttachedEnvironmentConfig
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.projects.environments_config.EnvironmentsConfiguration>`
+	
+	..	code-block:: python
+		
+		class EnvironmentsConfiguration(TomlFileConfiguration)
+		

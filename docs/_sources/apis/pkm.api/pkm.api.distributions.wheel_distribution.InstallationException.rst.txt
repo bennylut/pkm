@@ -1,0 +1,11 @@
+:orphan:
+
+InstallationException \(Class\)
+###############################
+
+..	code-block:: python
+	
+	class InstallationException(IOError)
+	
+Class Methods
+=============

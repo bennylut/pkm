@@ -1,0 +1,344 @@
+:orphan:
+
+RepositoryManagement \(Class\)
+##############################
+
+..	code-block:: python
+	
+	class RepositoryManagement(ABC)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, cfg: RepositoriesConfiguration, 
+	    loader: Optional[RepositoryLoader] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	cfg
+		-	RepositoriesConfiguration
+		-	No Description
+	*	-	loader
+		-	Optional[RepositoryLoader]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def _load_attached(self) -> Repository
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def _publishers(self) -> Dict[str, Optional[RepositoryPublisher]]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def parent_contexts(self) -> List[HasAttachedRepository]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def publisher_for(self, name: str) -> Optional[RepositoryPublisher]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	name
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def register_bindings(self, packages: List[str], 
+	    repo: Optional[Union[str, RepositoryInstanceConfig]])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	packages
+		-	List[str]
+		-	No Description
+	*	-	repo
+		-	Optional[Union[str, RepositoryInstanceConfig]]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def attached_repo(self) -> Repository
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _update_config(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def add_repository(self, name: str, builder: str, args: Dict[str, str], 
+	    bind_only: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	name
+		-	str
+		-	No Description
+	*	-	builder
+		-	str
+		-	No Description
+	*	-	args
+		-	Dict[str, str]
+		-	No Description
+	*	-	bind_only
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def defined_repositories(self) -> List[RepositoryInstanceConfig]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def remove_repository(self, name: str)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	name
+		-	str
+		-	No Description
+	

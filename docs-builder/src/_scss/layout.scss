@@ -46,16 +46,32 @@ h3, div.document h3 {
 }
 
 h4, div.document h4 {
-    color: #5fa3c5;
-    margin-top: 15px;
+    color: #8fcb9d;
+    margin-top: 22px;
     margin-bottom: 7px;
-    font-style: italic;
 
     &:before {
         content:".. "
     }
 }
 
+table {
+
+
+    th, td { padding: 12px; }
+
+    th:last-child {
+        width: 100%;
+    }
+
+    tr.row-even {
+        background-color: #282828;
+    }
+
+    tr {
+        background-color: #202020;
+    }
+}
 
 div.bodywrapper a, a {
     color: #8eabcb;
@@ -63,8 +79,13 @@ div.bodywrapper a, a {
     border: none;
 }
 
-div.body > section:first-child > h1:first-child {
+div.body > section:first-child > h1:first-of-type {
     margin-top: 0;
+}
+
+div.body hr {
+    margin: 32px 0 16px 0;
+    border-color: #4a4e52;
 }
 
 div.header, div.content, div.footer {

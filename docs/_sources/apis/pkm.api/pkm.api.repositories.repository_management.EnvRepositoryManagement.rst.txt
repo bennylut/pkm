@@ -1,0 +1,98 @@
+:orphan:
+
+EnvRepositoryManagement \(Class\)
+#################################
+
+..	code-block:: python
+	
+	class EnvRepositoryManagement(RepositoryManagement)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, env: Environment, 
+	    loader: Optional[RepositoryLoader] = None)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	env
+		-	Environment
+		-	No Description
+	*	-	loader
+		-	Optional[RepositoryLoader]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def parent_contexts(self) -> List[HasAttachedRepository]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _load_attached(self) -> Repository
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	

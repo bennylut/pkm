@@ -1,0 +1,38 @@
+:orphan:
+
+\_PackageInfo \(Class\)
+#######################
+
+..	code-block:: python
+	
+	@dataclass
+	class _PackageInfo
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def display(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	

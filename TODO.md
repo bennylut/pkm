@@ -8,15 +8,15 @@
 - after the "new" command, some indication should be made for the user that the template generated its content
   successfully
 - documentation: document tasks argument support for flags (`--`)
+- support 3rd-party templates in `pkm_templates` namespace
 
 ## DONE IN THIS VERSION
-- move documentation site to sphnix
-- support distribution_type=none in pyproject.toml
-- bug: double activation of environment on `pkm run`
-- tasks arguments - handle flags (translate into argument = true) 
+- documentation: add pkm api documentation
+- new docs-builder project that can generate pkm's documentation site
 
 ## BACKLOG TASKS:
-- extract the docs-builder to a template - this may be usefull to many other projects
+- look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
+- extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - support `pkm new tasks-project`
 - documentation: environments
 - documentation: how to work with multiprojects in pycharm

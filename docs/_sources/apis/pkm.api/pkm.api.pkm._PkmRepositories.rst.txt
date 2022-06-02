@@ -1,0 +1,12 @@
+:orphan:
+
+\_PkmRepositories \(Class\)
+###########################
+
+..	code-block:: python
+	
+	@dataclass
+	class _PkmRepositories
+	
+Class Methods
+=============

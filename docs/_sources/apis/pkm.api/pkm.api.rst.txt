@@ -1,0 +1,34 @@
+..
+	HASH:bc45e6a938ab6f66984a291eb44d1d6d
+
+pkm.api \(Package\)
+===================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	pkm <pkm.api.pkm.rst>
+	licenses <pkm.api.licenses.rst>
+	buildsys <pkm.api.buildsys.rst>
+	
+Packages
+--------
+
+..	rst-class:: child-packages
+	
+..	toctree:: 
+	:titlesonly:
+	
+	packages <pkm.api.packages.rst>
+	repositories <pkm.api.repositories.rst>
+	dependencies <pkm.api.dependencies.rst>
+	environments <pkm.api.environments.rst>
+	versions <pkm.api.versions.rst>
+	distributions <pkm.api.distributions.rst>
+	projects <pkm.api.projects.rst>
+	

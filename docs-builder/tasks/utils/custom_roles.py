@@ -37,3 +37,4 @@ def initialize_css_roles(spx: Sphinx, config):
 def setup(spx: Sphinx):
     spx.add_config_value("class_roles", [], True)
     spx.connect('config-inited', initialize_css_roles)
+    return dict(parallel_read_safe=True)

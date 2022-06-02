@@ -1,0 +1,32 @@
+..
+	HASH:5b262d0534f5068a20d5f9514476196e
+
+pkm\_cli \(Package\)
+====================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	main <pkm_cli.main.rst>
+	cli_monitors <pkm_cli.cli_monitors.rst>
+	
+Packages
+--------
+
+..	rst-class:: child-packages
+	
+..	toctree:: 
+	:titlesonly:
+	
+	tasks <pkm_cli.tasks.rst>
+	utils <pkm_cli.utils.rst>
+	auth <pkm_cli.auth.rst>
+	reports <pkm_cli.reports.rst>
+	scaffold <pkm_cli.scaffold.rst>
+	display <pkm_cli.display.rst>
+	

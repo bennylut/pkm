@@ -1,0 +1,257 @@
+:orphan:
+
+PackageInstallationTarget \(Class\)
+###################################
+
+..	code-block:: python
+	
+	@dataclass
+	class PackageInstallationTarget
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@cached_property
+	def site_packages(self) -> 'SitePackages'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def app_containers(self) -> 'ContainerizedApplications'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def reload(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def uninstall(self, packages_to_remove: List[str]) -> Set[str]
+	
+Description
+-----------
+
+attempt to remove the required packages from this target together will all the dependencies
+that may become orphan as a result of this step.
+
+if a package `p in packages` is a dependency (directly or indirectly) of another
+"user requested" package `q not in packages` then `p` will be kept in the target but its
+"user requested" flag will be removed (if it was existed)
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	packages_to_remove
+		-	List[str]
+		-	 the package names to remove
+	
+-----------------------
+
+..	code-block:: python
+	
+	def install(self, dependencies: List[Dependency], 
+	    repository: Optional[Repository] = None, user_requested: bool = True, 
+	    dependencies_override: Optional[Dict[str, Dependency]] = None, 
+	    editables: Optional[Dict[str, bool]] = None, 
+	    updates: Optional[List[str]] = None)
+	
+Description
+-----------
+
+installs the given set of dependencies into this target.
+see: `prepare_installation` and `PreparedInstallation:install` for more information about this method arguments
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	dependencies
+		-	List[Dependency]
+		-	No Description
+	*	-	repository
+		-	Optional[Repository]
+		-	No Description
+	*	-	user_requested
+		-	bool
+		-	No Description
+	*	-	dependencies_override
+		-	Optional[Dict[str, Dependency]]
+		-	No Description
+	*	-	editables
+		-	Optional[Dict[str, bool]]
+		-	No Description
+	*	-	updates
+		-	Optional[List[str]]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def force_remove(self, package: str)
+	
+Description
+-----------
+
+forcefully remove the required package, will not remove its dependencies and will not check if other packages
+depends on it - use this method with care (or don't use it at all :) )
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	package
+		-	str
+		-	 the name of the package to be removed
+	
+-----------------------
+
+..	code-block:: python
+	
+	def plan_installation(self, dependencies: List[Dependency], 
+	    repository: Repository, user_requested: bool = True, 
+	    dependencies_override: Optional[Dict[str, Dependency]] = None, 
+	    updates: Optional[List[str]] = None) -> InstallationPlan
+	
+Description
+-----------
+
+plan but does not install an installation for the given dependencies.
+resolve the `dependencies` using the given `repository`, making sure to not break any pre-installed
+"user-requested" packages (but may upgrade their dependencies if it needs to)
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	dependencies
+		-	List[Dependency]
+		-	 the dependency to install
+	*	-	repository
+		-	Repository
+		-	 the repository to fetch this dependency from, if not given will use the attached repository
+	*	-	user_requested
+		-	bool
+		-	 indicator that the user requested this dependency themselves (this will be marked on the installation as per pep376)
+	*	-	dependencies_override
+		-	Optional[Dict[str, Dependency]]
+		-	 mapping from package name into dependency that should be "forcefully" used for this package
+	*	-	updates
+		-	Optional[List[str]]
+		-	 If given, the packages listed will be updated if required and already installed
+	

@@ -1,0 +1,35 @@
+..
+	HASH:3d84319ca31d116497fcefd6ea24f12f
+
+pkm.api.environments.environment \(Module\)
+###########################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
+	_PACKAGE_NAMES_T = Union[str, List[str]]
+	_T = TypeVar('_T')
+	_DBG_ACTIVATED = set()
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.environments.environment.Environment>`
+	
+	..	code-block:: python
+		
+		class Environment(HasAttachedRepository)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.environments.environment.OperatingPlatform>`
+	
+	..	code-block:: python
+		
+		class OperatingPlatform
+		

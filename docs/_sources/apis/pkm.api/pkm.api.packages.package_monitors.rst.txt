@@ -1,0 +1,22 @@
+..
+	HASH:47699444a19de33a3e845fdd597f5196
+
+pkm.api.packages.package\_monitors \(Module\)
+#############################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.packages.package_monitors.PackageInstallMonitoredOp>`
+	
+	..	code-block:: python
+		
+		class PackageInstallMonitoredOp(MonitoredOperation)
+		

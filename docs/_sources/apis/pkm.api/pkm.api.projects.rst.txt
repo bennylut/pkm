@@ -1,0 +1,20 @@
+..
+	HASH:cf91876450d4de2c414f64ed85e57b5a
+
+pkm.api.projects \(Package\)
+============================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	environments_config <pkm.api.projects.environments_config.rst>
+	project_group <pkm.api.projects.project_group.rst>
+	project <pkm.api.projects.project.rst>
+	pyproject_configuration <pkm.api.projects.pyproject_configuration.rst>
+	project_monitors <pkm.api.projects.project_monitors.rst>
+	

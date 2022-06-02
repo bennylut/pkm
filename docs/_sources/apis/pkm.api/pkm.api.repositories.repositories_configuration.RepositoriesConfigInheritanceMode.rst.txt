@@ -1,0 +1,11 @@
+:orphan:
+
+RepositoriesConfigInheritanceMode \(Class\)
+###########################################
+
+..	code-block:: python
+	
+	class RepositoriesConfigInheritanceMode(Enum)
+	
+Class Methods
+=============

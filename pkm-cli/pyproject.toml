@@ -13,9 +13,6 @@ dependencies = [
 [project.scripts]
 pkm = "pkm_cli.main:main"
 
-[project.optional-dependencies]
-dev = ["sphinx >=4.5.0, <5", "sphinx_pdj_theme"]
-
 [tool.pkm.distribution]
 type = 'cnt-app'
 

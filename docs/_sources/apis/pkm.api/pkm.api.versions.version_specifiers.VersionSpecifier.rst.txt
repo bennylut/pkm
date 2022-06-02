@@ -1,0 +1,501 @@
+:orphan:
+
+VersionSpecifier \(Class\)
+##########################
+
+..	code-block:: python
+	
+	class VersionSpecifier(ABC)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def allows_all(self, other: VersionSpecifier) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def allows_any(self, other: VersionSpecifier) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def allows_pre_or_dev_releases(self) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def allows_version(self, version: Version) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	version
+		-	Version
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def union_with(self, other: VersionSpecifier) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def inverse(self) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def difference_from(self, other: VersionSpecifier) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def __str__(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def __lt__(self, other: VersionSpecifier) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def __eq__(self, other: VersionSpecifier) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def __le__(self, other: VersionSpecifier)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def __gt__(self, other: VersionSpecifier)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	VersionSpecifier
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def __ge__(self, other)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	other
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def parse(cls, txt: str) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	txt
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def create_range(cls, min_: Optional[StandardVersion] = None, 
+	    max_: Optional[StandardVersion] = None, includes_min: bool = False, 
+	    includes_max: bool = False) -> VersionSpecifier
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	min_
+		-	Optional[StandardVersion]
+		-	No Description
+	*	-	max_
+		-	Optional[StandardVersion]
+		-	No Description
+	*	-	includes_min
+		-	bool
+		-	No Description
+	*	-	includes_max
+		-	bool
+		-	No Description
+	

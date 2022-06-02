@@ -1,0 +1,67 @@
+:orphan:
+
+\_ArgsVisitor \(Class\)
+#######################
+
+..	code-block:: python
+	
+	class _ArgsVisitor(ast.NodeVisitor)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def visit_Call(self, node: ast.Call) -> Any
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	node
+		-	ast.Call
+		-	No Description
+	

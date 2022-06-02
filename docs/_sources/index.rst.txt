@@ -1,3 +1,7 @@
+.. attention::
+    🚧 🚧 🚧 pkm is not released yet and still under development, the information in this site may be inaccurate 🚧 🚧 🚧
+
+
 Welcome to ``pkm`` Documentation
 ================================
 ``pkm`` is a new package management software for python. It provides holistic, fast and modern solution.

@@ -1,0 +1,62 @@
+..
+	HASH:4078cd067ded0edddf3de42f7b9851fc
+
+pkm.api.distributions.distinfo \(Module\)
+#########################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.DistInfo>`
+	
+	..	code-block:: python
+		
+		class DistInfo
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.PackageInstallationInfo>`
+	
+	..	code-block:: python
+		
+		class PackageInstallationInfo
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.EntrypointsConfiguration>`
+	
+	..	code-block:: python
+		
+		class EntrypointsConfiguration(IniFileConfiguration)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.WheelFileConfiguration>`
+	
+	..	code-block:: python
+		
+		class WheelFileConfiguration(FileConfiguration)
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.Record>`
+	
+	..	code-block:: python
+		
+		class Record
+		
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm.api.distributions.distinfo.RecordsFileConfiguration>`
+	
+	..	code-block:: python
+		
+		class RecordsFileConfiguration(FileConfiguration)
+		

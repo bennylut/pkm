@@ -1,0 +1,131 @@
+:orphan:
+
+\_LiveOutput \(Class\)
+######################
+
+..	code-block:: python
+	
+	class _LiveOutput(ConsoleRenderable)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, console: Console)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	console
+		-	Console
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _refresh_loop(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def __rich_console__(self, console: 'Console', options: 'ConsoleOptions') -> 'RenderResult'
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	console
+		-	'Console'
+		-	No Description
+	*	-	options
+		-	'ConsoleOptions'
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@contextmanager
+	def show(self, iu: InformationUnit)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	iu
+		-	InformationUnit
+		-	No Description
+	

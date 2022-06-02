@@ -1,0 +1,69 @@
+:orphan:
+
+PkmProjectConfig \(Class\)
+##########################
+
+..	code-block:: python
+	
+	@dataclass(frozen=True, eq=True)
+	class PkmProjectConfig
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def to_config(self) -> Dict[str, Any]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@classmethod
+	def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional['PkmProjectConfig']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	cls
+		-	Any
+		-	No Description
+	*	-	config
+		-	Optional[Dict[str, Any]]
+		-	No Description
+	

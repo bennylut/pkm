@@ -1,0 +1,70 @@
+:orphan:
+
+AddedRepositoriesReport \(Class\)
+#################################
+
+..	code-block:: python
+	
+	class AddedRepositoriesReport(Report)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, with_repo: HasAttachedRepository)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	with_repo
+		-	HasAttachedRepository
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def display(self, dumb: bool = Display.is_dumb())
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	dumb
+		-	bool
+		-	No Description
+	

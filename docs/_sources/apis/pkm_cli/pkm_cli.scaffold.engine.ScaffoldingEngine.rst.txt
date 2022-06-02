@@ -1,0 +1,243 @@
+:orphan:
+
+ScaffoldingEngine \(Class\)
+###########################
+
+..	code-block:: python
+	
+	class ScaffoldingEngine
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def render_doc(self, template_dir: Union[Path, str], 
+	    template_descriptor: Optional[str] = None, 
+	    command_prefix: str = 'pkm new') -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_dir
+		-	Union[Path, str]
+		-	 the directory holding the template
+	*	-	template_descriptor
+		-	Optional[str]
+		-	 the descriptor that used to resolve the template directory, if not provided, the template directory will be considered as the descriptor
+	*	-	command_prefix
+		-	str
+		-	 the prefix of the commandline that should be used to generate this template
+	
+Returns
+-------
+
+ a generated documentation for this template
+
+-----------------------
+
+..	code-block:: python
+	
+	def render(self, template_path: Union[Path, str, ResourcePath], 
+	    target_dir: Union[Path, str], args: Optional[List[str]] = None, 
+	    kwargs: Optional[Dict[str, str]] = None, 
+	    extra_context: Optional[Dict[str, Any]] = None, *, 
+	    excluded_files: Optional[List[Path]] = None, 
+	    allow_overwrite: bool = False)
+	
+Description
+-----------
+
+renders the given template into the target directory
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_path
+		-	Union[Path, str, ResourcePath]
+		-	 the directory/resource holding the template
+	*	-	target_dir
+		-	Union[Path, str]
+		-	 the directory to output the generated content into
+	*	-	args
+		-	Optional[List[str]]
+		-	 positional arguments for the template
+	*	-	kwargs
+		-	Optional[Dict[str, str]]
+		-	 named arguments for the template
+	*	-	extra_context
+		-	Optional[Dict[str, Any]]
+		-	 extra variables that will be available inside proto.py
+	*	-	excluded_files
+		-	Optional[List[Path]]
+		-	  list of path objects that represents files in the template directory that should be excluded from the generation process
+	*	-	allow_overwrite
+		-	bool
+		-	 if True, files that are already exists will be overridden by the template
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _check_override(self, template_dir: Path, target_dir: Path, context: dict, 
+	    ignored_files: Set[Path])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_dir
+		-	Path
+		-	No Description
+	*	-	target_dir
+		-	Path
+		-	No Description
+	*	-	context
+		-	dict
+		-	No Description
+	*	-	ignored_files
+		-	Set[Path]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _render(self, template_dir: Path, target_dir: Path, context: dict, 
+	    ignored_files: Set[Path])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_dir
+		-	Path
+		-	No Description
+	*	-	target_dir
+		-	Path
+		-	No Description
+	*	-	context
+		-	dict
+		-	No Description
+	*	-	ignored_files
+		-	Set[Path]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _load_ignored_files_list(self, template_root: Path)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_root
+		-	Path
+		-	No Description
+	

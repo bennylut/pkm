@@ -1,0 +1,213 @@
+:orphan:
+
+Repository \(Class\)
+####################
+
+..	code-block:: python
+	
+	class Repository(Protocol)
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	@property
+	@abstractmethod
+	def name(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@abstractmethod
+	def match(self, dependency: Union[Dependency, str], env: 'Environment') -> List[Package]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	dependency
+		-	Union[Dependency, str]
+		-	 the dependency to match (or a pep508 string representing it)
+	*	-	env
+		-	'Environment'
+		-	 the environment that the returned packages should be compatible with
+	
+Returns
+-------
+
+ list of all the packages in this repository that match the given `dependency`
+
+-----------------------
+
+..	code-block:: python
+	
+	def list(self, package_name: str, env: 'Environment') -> List[Package]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	package_name
+		-	str
+		-	 the package to match
+	*	-	env
+		-	'Environment'
+		-	 the environment that the returned packages should be compatible with
+	
+Returns
+-------
+
+ list of all the packages that match the given `package_name`
+
+-----------------------
+
+..	code-block:: python
+	
+	@property
+	@abstractmethod
+	def publisher(self) -> Optional['RepositoryPublisher']
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ if this repository is 'publishable' returns its publisher
+
+-----------------------
+
+..	code-block:: python
+	
+	def accepted_url_protocols(self) -> Iterable[str]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ sequence of url-dependency protocols that this repository can handle
+
+-----------------------
+
+..	code-block:: python
+	
+	def accept_non_url_packages(self) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+Returns
+-------
+
+ True if this repository should be used for non url packages

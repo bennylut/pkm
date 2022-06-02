@@ -43,7 +43,7 @@ The above command will use the path :file:`path/to/context` as its context (fail
 Global context
 ^^^^^^^^^^^^^^
 ``pkm`` considers the environment it was installed in as the global context.
- If you installed ``pkm`` directly on your system installation, the global environment will be that installation.
+If you installed ``pkm`` directly on your system installation, the global environment will be that installation.
 you can ask ``pkm`` to use the global context in your commands by using the flag ``-g``, for example:
 
 .. code-block:: console

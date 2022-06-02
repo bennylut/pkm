@@ -51,6 +51,11 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../containers.html">Application Containers</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis/pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/pkm.api/pkm.api.html">pkm API</a></li>
+</ul>
 
           <div role="search">
             <h3 style="margin-top: 1.5em;">Search</h3>
@@ -125,11 +130,9 @@ If <code class="docutils literal notranslate"><span class="pre">pkm</span></code
 </section>
 <section id="global-context">
 <h3>Global context<a class="headerlink" href="#global-context" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">pkm</span></code> considers the environment it was installed in as the global context.</dt><dd><p>If you installed <code class="docutils literal notranslate"><span class="pre">pkm</span></code> directly on your system installation, the global environment will be that installation.</p>
-</dd>
-</dl>
-<p>you can ask <code class="docutils literal notranslate"><span class="pre">pkm</span></code> to use the global context in your commands by using the flag <code class="docutils literal notranslate"><span class="pre">-g</span></code>, for example:</p>
+<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> considers the environment it was installed in as the global context.
+If you installed <code class="docutils literal notranslate"><span class="pre">pkm</span></code> directly on your system installation, the global environment will be that installation.
+you can ask <code class="docutils literal notranslate"><span class="pre">pkm</span></code> to use the global context in your commands by using the flag <code class="docutils literal notranslate"><span class="pre">-g</span></code>, for example:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install -g some_package
 </pre></div>
 </div>

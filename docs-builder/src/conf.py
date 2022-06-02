@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'utils.compile_scss',
     'utils.custom_roles',
+    'utils.generate_api_docs',
     'sphinxarg.ext',
 ]
 
@@ -47,13 +48,16 @@ add_module_names = False
 autodoc_typehints_format = "short"
 master_doc = "master"
 
+# -- Options for API generation ----------------------------------------------
+build_apis = ["pkm_cli", "pkm.api"]
+
 # -- Options for HTML output -------------------------------------------------
 
 # import sphinx_pdj_theme
 #
 html_theme = 'agogo'
 html_css_files = ["docs.css"]
-pygments_style = "native"
+pygments_style = "one-dark"
 class_roles = ["program", "package", "file", "toml-table", "toml-key", "name"]
 # htm_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
 

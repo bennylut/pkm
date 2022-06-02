@@ -1,0 +1,180 @@
+..
+	HASH:72090f4d293dadd888cc8ecdfc6ca8cc
+
+pkm\_cli.cli\_monitors \(Module\)
+#################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_packages_being_installed = []
+	_packages_being_installed_spinner = Spinner('')
+	_packages_being_installed_spinner_context = None
+	_packages_being_installed_spinner_lock = RLock()
+	_listeners = locals()
+	
+Module Functions
+================
+
+..	code-block:: python
+	
+	def with_package_install(e: PackageInstallMonitoredOp)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	e
+		-	PackageInstallMonitoredOp
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def with_external_proc_execution(e: ProcessExecutionMonitoredOp)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	e
+		-	ProcessExecutionMonitoredOp
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def with_fetch_resource(e: FetchResourceMonitoredOp)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	e
+		-	FetchResourceMonitoredOp
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def with_dependency_resolution(e: DependencyResolutionMonitoredOp)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	e
+		-	DependencyResolutionMonitoredOp
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def with_package_build(e: BuildPackageMonitoredOp)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	e
+		-	BuildPackageMonitoredOp
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def listen(verbose: bool)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	verbose
+		-	bool
+		-	No Description
+	

@@ -1,0 +1,17 @@
+..
+	HASH:e71b34739ba5b9f5a0ecacf178787118
+
+pkm\_cli.scaffold \(Package\)
+=============================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	engine <pkm_cli.scaffold.engine.rst>
+	doc_generator <pkm_cli.scaffold.doc_generator.rst>
+	

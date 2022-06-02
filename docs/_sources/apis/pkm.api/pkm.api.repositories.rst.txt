@@ -1,0 +1,19 @@
+..
+	HASH:c3a1e7c58999dd33c87d2f367354e6f2
+
+pkm.api.repositories \(Package\)
+================================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	repository_management <pkm.api.repositories.repository_management.rst>
+	repositories_configuration <pkm.api.repositories.repositories_configuration.rst>
+	repository_loader <pkm.api.repositories.repository_loader.rst>
+	repository <pkm.api.repositories.repository.rst>
+	

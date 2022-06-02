@@ -1,0 +1,12 @@
+:orphan:
+
+BuildPackageHookExecutionEvent \(Class\)
+########################################
+
+..	code-block:: python
+	
+	@dataclass
+	class BuildPackageHookExecutionEvent(MonitoredEvent)
+	
+Class Methods
+=============

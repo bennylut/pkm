@@ -1,0 +1,47 @@
+..
+	HASH:dfe4e8ad6981d461c23574a454bd8a5a
+
+pkm\_cli.scaffold.doc\_generator \(Module\)
+###########################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Functions
+================
+
+..	code-block:: python
+	
+	def generate(protopy_module_path: Path, 
+	    template_descriptor: Optional[str] = None, 
+	    command_prefix: str = 'protopy') -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	protopy_module_path
+		-	Path
+		-	No Description
+	*	-	template_descriptor
+		-	Optional[str]
+		-	No Description
+	*	-	command_prefix
+		-	str
+		-	No Description
+	
