@@ -1,0 +1,16 @@
+..
+	HASH:e19642169bd275ef41d99dc6add4eea3
+
+pkm\_cli.api.templates \(Package\)
+==================================
+
+Modules
+-------
+
+..	rst-class:: child-modules
+	
+..	toctree:: 
+	:titlesonly:
+	
+	template_runner <pkm_cli.api.templates.template_runner.rst>
+	

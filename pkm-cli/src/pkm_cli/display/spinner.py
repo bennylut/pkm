@@ -25,7 +25,7 @@ class Spinner(InformationUnit):
             r.update(text=value)
 
     @contextmanager
-    def dumb(self) -> ContextManager:
+    def poor(self) -> ContextManager:
         starttime = time()
         Display.print(f"[START] {self._description}")
         yield

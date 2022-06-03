@@ -1,0 +1,138 @@
+:orphan:
+
+TemplateRunner \(Class\)
+########################
+
+..	code-block:: python
+	
+	class TemplateRunner
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@contextmanager
+	def _load_template(self, name: str) -> ContextManager[_Template]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	name
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def run(self, template_name: str, target_dir: Path, args: List[str], 
+	    allow_overwrite: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_name
+		-	str
+		-	No Description
+	*	-	target_dir
+		-	Path
+		-	No Description
+	*	-	args
+		-	List[str]
+		-	No Description
+	*	-	allow_overwrite
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def describe(self, template_name: str) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_name
+		-	str
+		-	No Description
+	

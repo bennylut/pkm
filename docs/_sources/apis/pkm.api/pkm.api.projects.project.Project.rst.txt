@@ -537,7 +537,7 @@ Returns
 
 ..	code-block:: python
 	
-	def dev_remove(self, packages: List[str])
+	def dev_uninstall(self, packages: List[str])
 	
 Description
 -----------

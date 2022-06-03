@@ -8,7 +8,7 @@ class ProjectReport(Report):
     def __init__(self, project: Project):
         self._project = project
 
-    def display(self, dumb: bool = Display.is_dumb()):
+    def display(self, dumb: bool = Display.is_poor()):
         env = self._project.attached_environment
 
         line = "-" * 80

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from types import FunctionType
 from typing import List, Type, Union, Optional, Any, TypeVar, Generic, Callable, Tuple, Iterable, Dict
 
-from pkm.utils.commons import IllegalStateException
+from pkm.utils.commons import IllegalStateException, UnsupportedOperationException
 from pkm.utils.dicts import remove_none_values
 from pkm.utils.seqs import seq
 
@@ -143,3 +143,4 @@ def create_args_parser(
 
     main.parse_args = parse_args
     return main
+

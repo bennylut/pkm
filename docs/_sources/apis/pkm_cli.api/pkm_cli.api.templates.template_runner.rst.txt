@@ -1,0 +1,22 @@
+..
+	HASH:358bcecf14d2c7eba859945e412cacdd
+
+pkm\_cli.api.templates.template\_runner \(Module\)
+##################################################
+
+Module Fields
+=============
+
+No fields defined in module.
+
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm_cli.api.templates.template_runner.TemplateRunner>`
+	
+	..	code-block:: python
+		
+		class TemplateRunner
+		

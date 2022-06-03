@@ -11,7 +11,7 @@ class AddedRepositoriesReport(Report):
     def __init__(self, with_repo: HasAttachedRepository):
         self._with_repo = with_repo
 
-    def display(self, dumb: bool = Display.is_dumb()):
+    def display(self, dumb: bool = Display.is_poor()):
         line_sep = "-" * 80
 
         contexts = [self._with_repo]

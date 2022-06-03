@@ -1,0 +1,17 @@
+..
+	HASH:fe92855df53393d6bad95562281a38ba
+
+pkm\_cli.api \(Package\)
+========================
+
+Packages
+--------
+
+..	rst-class:: child-packages
+	
+..	toctree:: 
+	:titlesonly:
+	
+	tasks <pkm_cli.api.tasks.rst>
+	templates <pkm_cli.api.templates.rst>
+	

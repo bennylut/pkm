@@ -18,7 +18,7 @@ _PKM_THEME = Theme({
 
 class InformationUnit(Protocol):
     @abstractmethod
-    def dumb(self) -> ContextManager:
+    def poor(self) -> ContextManager:
         ...
 
     @abstractmethod
@@ -41,7 +41,8 @@ class _LiveOutput(ConsoleRenderable):
         self._requires_render = Condition()
 
         Thread(name="live output refresher", target=self._refresh_loop, daemon=True).start()
-        atexit.register(lambda: print("\x1b[?25h"))  # make sure the cursor is re-shown after python exiting
+        atexit.register(
+            lambda: print("\x1b[?25h", flush=True, end=''))  # make sure the cursor is re-shown after python exiting
 
     def _refresh_loop(self):
         empty_rendered = False
@@ -78,9 +79,9 @@ class _LiveOutput(ConsoleRenderable):
 # noinspection PyMethodMayBeStatic
 class _Display:
 
-    def __init__(self, dumb: Optional[bool] = None):
+    def __init__(self, poor: Optional[bool] = None):
         self._console = Console(theme=_PKM_THEME)
-        self._dumb = self._console.is_dumb_terminal if dumb is None else dumb
+        self._dumb = self._console.is_dumb_terminal if poor is None else poor
         self._live_output = None if self._dumb else _LiveOutput(self._console)
         self.verbose = False
 
@@ -100,13 +101,13 @@ class _Display:
     @contextmanager
     def show(self, iu: _T) -> _T:
         if self._dumb:
-            with iu.dumb():
+            with iu.poor():
                 yield iu
         else:
             with self._live_output.show(iu):
                 yield iu
 
-    def is_dumb(self) -> bool:
+    def is_poor(self) -> bool:
         return self._dumb
 
 

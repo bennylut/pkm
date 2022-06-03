@@ -16,7 +16,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="PKM Containerized Applications" href="containers.html" />
+    <link rel="next" title="Templates" href="templates.html" />
     <link rel="prev" title="Repositories" href="repositories.html" /> 
   </head><body>
     <div class="header-wrapper" role="banner">
@@ -26,7 +26,7 @@
         <div class="rel" role="navigation" aria-label="related navigation">
           <a href="repositories.html" title="Repositories"
              accesskey="P">previous</a> |
-          <a href="containers.html" title="PKM Containerized Applications"
+          <a href="templates.html" title="Templates"
              accesskey="N">next</a> |
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="repositories.html">Repository Support</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -53,7 +54,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli/pkm_cli.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
 </ul>
 
@@ -77,15 +78,10 @@
 <p>Project tasks is a pkm feature that allows you to define tasks that may assist you during your project
 developement. These tasks can be then executed using <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span> <span class="pre">&#64;task</span></code> or by attaching them to one of pkm’s commands
 (like build, install, publish etc.)</p>
-<section id="the-tasks-directory">
-<h2>The Tasks Directory<a class="headerlink" href="#the-tasks-directory" title="Permalink to this headline">¶</a></h2>
-<p>pkm looks for tasks inside your project tasks directory (if it exists) and in the “pkm_tasks” namespace package in your
-project-attached environment.</p>
-</section>
 <section id="writing-tasks">
 <h2>Writing Tasks<a class="headerlink" href="#writing-tasks" title="Permalink to this headline">¶</a></h2>
-<p>Tasks are python scripts that are found in the tasks directory or the “pkm_tasks” namespace package, the name of the
-file reflects the name of the task (without the “.py” extension).</p>
+<p>Tasks are python scripts that are found inside your project’s <span class="file">tasks</span> directory or the <span class="package">pkm_tasks</span>
+namespace package. The name of the task’s script file reflects the name of the task (without the “.py” extension).</p>
 <p>The task script must define a <code class="docutils literal notranslate"><span class="pre">run</span></code> function, which is the function that gets executed when pkm is asked to runs the
 task.</p>
 <p>for example, the following defines a task named “hello” that print “world” to the screen</p>
@@ -100,7 +96,7 @@ task.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new task &lt;task name&gt;
 </pre></div>
 </div>
-<p>The tasks directory can contain any python module, tasks can import these modules and use
+<p>The project’s <span class="file">tasks</span> directory can contain any python module, tasks can import these modules and use
 them for a common functionality.</p>
 </section>
 <section id="running-tasks">
@@ -113,8 +109,8 @@ them for a common functionality.</p>
 <p>The command will get executed inside the environment attached to the project context of the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> command, or fail
 if <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> was not called in a project context.</p>
 </section>
-<section id="requiring-task-arguments">
-<h2>Requiring Task Arguments<a class="headerlink" href="#requiring-task-arguments" title="Permalink to this headline">¶</a></h2>
+<section id="task-arguments">
+<h2>Task Arguments<a class="headerlink" href="#task-arguments" title="Permalink to this headline">¶</a></h2>
 <p>The task’s <code class="docutils literal notranslate"><span class="pre">run</span></code> function can define arguments, these will get supplied by the user in the command line</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">tasks/with_args.py</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
@@ -137,6 +133,10 @@ parameter passed by the commandline to this types.
 It does so by passing the string received in the command line to the type constructor (e.g., <code class="docutils literal notranslate"><span class="pre">arg2=int(&quot;42&quot;)</span></code> in the
 above shell snippet). This means that arguments can only be of types that support construction by single-string (e.g.,
 int, bool, str, Path or any user defined type that follows this rule)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For any argument <code class="docutils literal notranslate"><span class="pre">arg</span></code> of type <code class="docutils literal notranslate"><span class="pre">bool</span></code>, you can use <code class="docutils literal notranslate"><span class="pre">--arg</span></code> in the commandline as a syntactic sugar for <code class="docutils literal notranslate"><span class="pre">arg=True</span></code>.</p>
+</div>
 </section>
 <section id="documenting-tasks">
 <h2>Documenting tasks<a class="headerlink" href="#documenting-tasks" title="Permalink to this headline">¶</a></h2>
@@ -182,8 +182,9 @@ holds information about that project.</p>
 </dd>
 </dl>
 </section>
+</section>
 <section id="groupping-tasks">
-<h3>Groupping Tasks<a class="headerlink" href="#groupping-tasks" title="Permalink to this headline">¶</a></h3>
+<h2>Groupping Tasks<a class="headerlink" href="#groupping-tasks" title="Permalink to this headline">¶</a></h2>
 <p>If you have large number of tasks it can be convinient to group them into packages.
 for example, you can define tasks in <span class="file">tasks/printers/print_hello.py</span> and <span class="file">tasks/printers/print_word.py</span> and then call
 them by running the command</p>
@@ -192,14 +193,13 @@ them by running the command</p>
 </pre></div>
 </div>
 </section>
-</section>
 <section id="attaching-tasks-to-pkm-commands">
 <h2>Attaching Tasks to pkm Commands<a class="headerlink" href="#attaching-tasks-to-pkm-commands" title="Permalink to this headline">¶</a></h2>
 <p>You can attach tasks to be executed before or after one of pkm commands, this can be done by adding a <span class="file">before.py</span>
 or <span class="file">after.py</span> to the <span class="file">tasks/commands/path/to/command</span> directory where the path to the command is the same as the space
 seperated path to the command in the pkm cli.</p>
-<p>both <span class="file">before.py</span> and <span class="file">after.py</span> should define a <code class="docutils literal notranslate"><span class="pre">run</span></code> function with a single untyped <code class="docutils literal notranslate"><span class="pre">command</span></code> argument. this argument
-contains all the commandline flags passed to the command being executed.</p>
+<p>both <span class="file">before.py</span> and <span class="file">after.py</span> should define a <code class="docutils literal notranslate"><span class="pre">run</span></code> function with a single <code class="docutils literal notranslate"><span class="pre">command</span></code> argument
+(of type dict). this argument contains all the commandline flags passed to the command being executed.</p>
 <p>For example, to attach a task to be executed before the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">add</span></code> command, you can create the
 file <span class="file">tasks/commands/repos/add/before.py</span></p>
 <div class="literal-block-wrapper docutils container" id="id4">
@@ -227,16 +227,10 @@ file <span class="file">tasks/commands/repos/add/before.py</span></p>
 <section id="publish-and-install-3rd-party-tasks">
 <h2>Publish and Install 3rd Party Tasks<a class="headerlink" href="#publish-and-install-3rd-party-tasks" title="Permalink to this headline">¶</a></h2>
 <p>In some cases you may want to create and publish your tasks so that they can be used by other projects.
-You can create a project and add tasks to the pkm_tasks namespace package, this tasks can then be used by other projects
-that installed your project.</p>
-<p>pkm does not allow implicit command attachements by 3rd party tasks. Therefore, if your <span class="package">pkm_tasks</span> namespace package
-contains the <span class="package">commands</span> subpackage, it will be ignored by the task attachement mechanism.</p>
-<p>For your convinience, the following command creates a tasks project for you:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new tasks-project &lt;project-name&gt;
-</pre></div>
-</div>
-<p>Add your tasks to the <span class="package">pkm_tasks</span>, if published, an installing user can call these tasks with a regular <cite>pkm run</cite>
-command.</p>
+You can create a project and add tasks to the <span class="package">pkm_tasks</span> namespace-package, this tasks can then be used by
+other projects that installed your project.</p>
+<p>pkm does not allow implicit command attachements by 3rd party tasks. Therefore, if your <span class="package">pkm_tasks</span>
+namespace package contains the <span class="package">commands</span> subpackage, it will be ignored by the task attachement mechanism.</p>
 </section>
 </section>
 
@@ -256,7 +250,7 @@ command.</p>
           <div role="navigation" aria-label="related navigaton">
             <a href="repositories.html" title="Repositories"
               >previous</a> |
-            <a href="containers.html" title="PKM Containerized Applications"
+            <a href="templates.html" title="Templates"
               >next</a> |
             <a href="genindex.html" title="General Index"
               >index</a>

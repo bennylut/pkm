@@ -57,8 +57,9 @@ h4, div.document h4 {
 
 table {
 
-
     th, td { padding: 12px; }
+
+    th {text-align: left;}
 
     th:last-child {
         width: 100%;
@@ -103,6 +104,10 @@ div.content-wrapper, div.content {
     flex-grow: 1;
     display: flex;
     flex-direction: row;
+}
+
+div.bodywrapper {
+    max-width: 1300px;
 }
 
 h1 {

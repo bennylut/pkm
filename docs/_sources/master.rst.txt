@@ -7,6 +7,7 @@
     PKM Projects <projects.rst>
     Repository Support <repositories.rst>
     Project Tasks <tasks.rst>
+    Templates <templates.rst>
 
 
 ..  toctree::
@@ -20,5 +21,6 @@
     :maxdepth: 1
     :caption: API Documentation
 
-    pkm-cli API <apis/pkm_cli/pkm_cli.rst>
+    pkm-cli API <apis/pkm_cli.api/pkm_cli.api.rst>
     pkm API <apis/pkm.api/pkm.api.rst>
+

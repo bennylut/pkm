@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Templates &#8212; pkm-cli  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/agogo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/docs.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="PKM Containerized Applications" href="containers.html" />
+    <link rel="prev" title="Project Tasks" href="tasks.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="master.html">pkm-cli  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="tasks.html" title="Project Tasks"
+             accesskey="P">previous</a> |
+          <a href="containers.html" title="PKM Containerized Applications"
+             accesskey="N">next</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PKM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pkm_cli/commands.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projects.html">PKM Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repositories.html">Repository Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Templates</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="templates">
+<h1>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h1>
+<p>Templates are reusable file-system structures that are designed to help the user generate common artifacts like
+projects, environments, common files, etc.</p>
+<p>The most used template type is a “project template” which is designed to help a user to setup some common project
+structure.</p>
+<section id="writing-templates">
+<h2>Writing Templates<a class="headerlink" href="#writing-templates" title="Permalink to this headline">¶</a></h2>
+<p>pkm’s template is a directory which contains at least a <span class="file">render.py</span> file.</p>
+<p>The <span class="file">render.py</span> should contain at least a <cite>setup</cite> function which returns a dictionary containing values that will be used while generating the template</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">render.py</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="s1">&#39;my-project&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;readme_file_name&#39;</span><span class="p">:</span> <span class="s1">&#39;README.md&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;my project description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;me&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>The directory containing <span class="file">render.py</span> also contains the directory tree to be copied into the target path when generating this template.</p>
+<p>Pkm uses jinja to render its templates, the rendering happens both on the file/dir names and inside any file that ends
+with .tmpl.</p>
+<p>For example, following is a valid directory structure of a template.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>my-template/
+├── {{project_name}}
+│   ├── {{readme_file_name}}.tmpl
+│   ├── src
+│   │   └── main.py
+│   └── {{tests_dir}}
+└── render.py
+</pre></div>
+</div>
+<p>Note that we have a directory named <span class="file">{{project_name}}</span> and a file named <span class="file">{{readme_file_name}}</span>
+(yes, the file and directory names include the double-curly-braces, just as you see them here),
+This means that this template expects <span class="file">render.py</span> to return values to those variables from its <code class="docutils literal notranslate"><span class="pre">setup</span></code> function.</p>
+<p>Since the <span class="file">{{readme_file_name}}.tmpl</span> has the <code class="docutils literal notranslate"><span class="pre">tmpl</span></code> extension, its content will also be rendered using jinja.
+Here is an example content of the {{readme_file_name}} file:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">{{readme_file_name}}.tmpl</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># {{project_name}}</span>
+
+<span class="k">&gt; </span><span class="ge">Created By {{author}}</span>
+
+{{description}}
+</pre></div>
+</div>
+</div>
+<p>Using our example <span class="file">render.py</span>, the <span class="file">{{readme_file_name}}.tmpl</span> file will be named <span class="file">README.md</span> and
+its content will be</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">README.md</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># my-project</span>
+
+<span class="k">&gt; </span><span class="ge">Created By me</span>
+
+my project description
+</pre></div>
+</div>
+</div>
+<p>Next, we can see that there is a directory named <span class="file">{{tests_dir}}</span> in our template,
+by examining the <span class="file">render.py</span> file we can see that the <code class="docutils literal notranslate"><span class="pre">setup</span></code> function did not return any value
+corresponding to a <code class="docutils literal notranslate"><span class="pre">tests_dir</span></code> key, this will result in a file/directory without a name in the rendering phase
+which will cause the file/dir to not be rendered (in other words the <span class="file">{{tests_dir}}</span> directory
+will not be created).</p>
+</section>
+<section id="using-templates">
+<h2>Using Templates<a class="headerlink" href="#using-templates" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> looks for templates inside the <span class="package">pkm_templates</span> namespace-package.
+It searches for that package inside the environment it is installed in.</p>
+<p>To start template generation you can use the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">new</span></code> command. For example, using the template defined above, running:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new my-template
+</pre></div>
+</div>
+<p>will generate, inside the current directory, the directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.
+└── my-project
+    ├── README.md
+    └── src
+        └── main.py
+</pre></div>
+</div>
+</section>
+<section id="template-arguments">
+<h2>Template Arguments<a class="headerlink" href="#template-arguments" title="Permalink to this headline">¶</a></h2>
+<p>Templates can get arguments from the user in two main ways, as arguments in the commandline and interactively.</p>
+</section>
+<section id="templates-execution-life-cycle">
+<h2>Templates Execution Life-Cycle<a class="headerlink" href="#templates-execution-life-cycle" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="template-extended-builtins">
+<h2>Template Extended-Builtins<a class="headerlink" href="#template-extended-builtins" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="documenting-templates">
+<h2>Documenting Templates<a class="headerlink" href="#documenting-templates" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="groupping-templates">
+<h2>Groupping Templates<a class="headerlink" href="#groupping-templates" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="install-and-publish-templates">
+<h2>Install and Publish Templates<a class="headerlink" href="#install-and-publish-templates" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="tasks.html" title="Project Tasks"
+              >previous</a> |
+            <a href="containers.html" title="PKM Containerized Applications"
+              >next</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/templates.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Benny Lutati.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

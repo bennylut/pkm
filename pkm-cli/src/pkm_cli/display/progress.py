@@ -18,7 +18,7 @@ class Progress(InformationUnit):
         self._rich_progress_task: Any = None
 
     @contextmanager
-    def dumb(self) -> ContextManager:
+    def poor(self) -> ContextManager:
         starttime = time()
         Display.print(f"[START] {self._description}")
         yield

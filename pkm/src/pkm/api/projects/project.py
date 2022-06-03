@@ -164,17 +164,25 @@ class Project(Package, HasAttachedRepository):
             self.config.save()
         return new_version
 
-    def dev_remove(self, packages: List[str]):
+    def dev_uninstall(self, packages: List[str]):
         """
         remove and uninstall all dependencies that are related to the given list of packages
         :param packages: the list of package names to remove
         """
 
         package_names_set = set(packages)
-        project_dependencies = self._pyproject.project.dependencies or []
+        project_dependencies = self.config.project.dependencies or []
+        project_optional_deps = self.config.project.optional_dependencies or {}
+
+        def filter_dep(deps: List[Dependency]):
+            return [d for d in deps if d.package_name not in package_names_set]
+
         self._pyproject.project = replace(
             self._pyproject.project,
-            dependencies=[d for d in project_dependencies if d.package_name not in package_names_set])
+            dependencies=filter_dep(project_dependencies),
+            optional_dependencies={g: filter_dep(d) for g, d in project_optional_deps.items()}
+        )
+
         self._pyproject.save()
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
@@ -230,13 +238,15 @@ class Project(Package, HasAttachedRepository):
         new_deps_with_version = {}
 
         for package, operation in installation.compute_operations_for_target(target).items():
-            if package.name in all_deps_names:
-                newly_requested = package.name in new_deps
+            newly_requested = package.name in new_deps
 
-                # select editable mode for new install
-                if operation == PackageOperation.INSTALL:
-                    editables[package.name] = editable if newly_requested else True
-                elif operation != PackageOperation.REMOVE and newly_requested:
+            # select editable mode for new install
+            if operation == PackageOperation.INSTALL:
+                editables[package.name] = editable if newly_requested else isinstance(package, Project)
+
+            if package.name in all_deps_names:
+                # select editable mode for update
+                if operation == PackageOperation.UPDATE and newly_requested:
                     editables[package.name] = editable
 
                 # update pyproject dependency specification
@@ -412,9 +422,6 @@ class Project(Package, HasAttachedRepository):
         path = Path(path)
         pyproject = PyProjectConfiguration.load_effective(path / 'pyproject.toml', package)
         return Project(pyproject, group=group)
-
-
-
 
 
 @dataclass()

@@ -1,0 +1,153 @@
+:orphan:
+
+\_UserInteface \(Class\)
+########################
+
+..	code-block:: python
+	
+	class _UserInteface
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def print(self, msg: str)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	msg
+		-	str
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def confirm(self, prompt: str, default: bool = True) -> bool
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	prompt
+		-	str
+		-	No Description
+	*	-	default
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def ask(self, prompt: str, default: Any = '', 
+	    options: Optional[List[str]] = None, secret: bool = False, 
+	    autocomplete: bool = False, multiselect: bool = False, path: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	prompt
+		-	str
+		-	No Description
+	*	-	default
+		-	Any
+		-	No Description
+	*	-	options
+		-	Optional[List[str]]
+		-	No Description
+	*	-	secret
+		-	bool
+		-	No Description
+	*	-	autocomplete
+		-	bool
+		-	No Description
+	*	-	multiselect
+		-	bool
+		-	No Description
+	*	-	path
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def install(self, module: ModuleType)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	module
+		-	ModuleType
+		-	No Description
+	

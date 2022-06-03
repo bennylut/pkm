@@ -5,7 +5,7 @@ from pkm_cli.reports.report import Report
 
 class InstalledRepositoriesReport(Report):
 
-    def display(self, dumb: bool = Display.is_dumb()):
+    def display(self, dumb: bool = Display.is_poor()):
         line_sep = "-" * 80
         Display.print(line_sep)
         Display.print("Builtin Repositories")

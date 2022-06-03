@@ -49,7 +49,7 @@ autodoc_typehints_format = "short"
 master_doc = "master"
 
 # -- Options for API generation ----------------------------------------------
-build_apis = ["pkm_cli", "pkm.api"]
+build_apis = ["pkm_cli.api", "pkm.api"]
 
 # -- Options for HTML output -------------------------------------------------
 

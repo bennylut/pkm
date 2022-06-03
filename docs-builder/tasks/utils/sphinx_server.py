@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import shutil
 import socket
 import socketserver
 from http.server import SimpleHTTPRequestHandler
@@ -158,7 +159,9 @@ class SphinxWatcher(FileSystemEventHandler):
         self._observer.schedule(self, sphinx.srcdir, True)
         packages = getattr(sphinx.config, BUILD_API_LIST_CONFIG_KEY, [])
         for package in packages:
-            self._observer.schedule(self, str(APIGenerator.path_for(package)), True)
+            path = str(APIGenerator.path_for(package))
+            print(f"monitoring {path}")
+            self._observer.schedule(self, path, True)
 
     def start(self):
         self.sphinx.build()
@@ -191,6 +194,7 @@ class SphinxWatcher(FileSystemEventHandler):
 
     def _handle_changes(self, changes: Set[Path]):
         sphinx = self.sphinx
+        master_doc = Path(sphinx.srcdir) / f"{sphinx.config.master_doc}.rst"
         conf_path = Path(sphinx.confdir) / 'conf.py'
 
         rst_files = []
@@ -203,6 +207,8 @@ class SphinxWatcher(FileSystemEventHandler):
 
             if change.suffix == ".rst":
                 rst_files.append(change)
+                if change == master_doc:
+                    build_mode = "all_files"
                 continue
 
             build_mode = "all_files"
@@ -211,9 +217,9 @@ class SphinxWatcher(FileSystemEventHandler):
             self.sphinx = Sphinx(sphinx.srcdir, sphinx.confdir, sphinx.outdir, sphinx.doctreedir, sphinx.builder.name,
                                  parallel=sphinx.parallel)
 
-            self.sphinx.build()
+            self.sphinx.build(master_doc in changes)
         elif build_mode == "all_files":
-            self.sphinx.build()
+            self.sphinx.build(master_doc in changes)
         else:
             self.sphinx.build(filenames=[str(p) for p in rst_files])
 

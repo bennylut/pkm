@@ -1,0 +1,24 @@
+..
+	HASH:1f04c74b6ee1e639fb00c8a485ced619
+
+pkm\_cli.api.tasks.tasks\_runner \(Module\)
+###########################################
+
+Module Fields
+=============
+
+..	code-block:: python
+	
+	_EXECUTE_TASK = '\nimport importlib.util as iu\nimport json\nfrom pathlib import Path\nfrom mc import MethodCliArgs # noqa\n\ninsn = json.loads(Path(\'insn.json\').read_text())\n\ndef load_task(name):\n    name = name.replace(\'-\',\'_\')\n    try:\n        task_spec = iu.find_spec(name) or iu.find_spec(f"pkm_tasks.{name}")\n    except ModuleNotFoundError:\n        task_spec = None\n        \n    if not task_spec:\n        raise FileNotFoundError(f"no such task: {name}")\n    \n    task = iu.module_from_spec(task_spec)\n    \n    # extend builtins\n    task.run_task = run_task\n    task.project_info = insn[\'project_info\']\n        \n    task_spec.loader.exec_module(task)\n    if not callable(getattr(task, \'run\', None)):\n        raise ValueError(f"not a task: {name} (missing run function)")\n        \n    return task\n\ndef run_task(name, *args, **kwargs):\n    task = load_task(name)\n    task.run(*args, **kwargs)\n\ntask = load_task(insn[\'task\'])\nrun_function = task.run\n\nif insn[\'mode\'] == \'describe\':\n    print(task.run.__doc__ or "No Description Provided")\nelif insn[\'mode\'] == \'run-attached\':\n    run_function(insn[\'args\'])\nelse:\n    MethodCliArgs.parse(insn[\'args\']).execute(run_function)\n'
+	
+Module Classes
+==============
+
+..	container:: class-def-with-link
+	
+	:doc:`[DOC] <pkm_cli.api.tasks.tasks_runner.TasksRunner>`
+	
+	..	code-block:: python
+		
+		class TasksRunner
+		

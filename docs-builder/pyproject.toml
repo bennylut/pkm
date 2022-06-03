@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.8, <4.0"
 authors = [{ name = "bennyl" }]
 dependencies = [
-    "sphinx >=4.5.0, <5", "libsass", "pkm-cli >=0.4.44, <1", "sphinx-argparse >=0.3.1, <1", "lxml >=4.9.0, <5",
+    "sphinx >=4.5.0, <5", "libsass", "pkm-cli >=0.4.44, <1", "sphinx-argparse >=0.3.1, <1", "lxml >=4.9.0, <5", 
     "watchdog >=2.1.8, <3"]
 
 [tool.pkm.distribution]

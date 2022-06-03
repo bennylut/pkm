@@ -15,7 +15,7 @@ class PackageReport(Report):
         self._context = context
         self._dependency = Dependency.parse(dependency)
 
-    def display(self, dumb: bool = Display.is_dumb()):
+    def display(self, dumb: bool = Display.is_poor()):
         line = "-" * 80
         Display.print(line)
 

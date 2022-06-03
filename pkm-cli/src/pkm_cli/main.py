@@ -16,18 +16,17 @@ from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
-from pkm.utils.resources import ResourcePath
 from pkm_cli import cli_monitors
-from pkm_cli.utils.context import Context
+from pkm_cli.api.tasks.tasks_runner import TasksRunner
+from pkm_cli.api.templates.template_runner import TemplateRunner
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
 from pkm_cli.reports.installed_repositories_report import InstalledRepositoriesReport
 from pkm_cli.reports.package_report import PackageReport
 from pkm_cli.reports.project_report import ProjectReport
-from pkm_cli.scaffold.engine import ScaffoldingEngine
-from pkm_cli.tasks.tasks_runner import TasksRunner
 from pkm_cli.utils.clis import command, Arg, create_args_parser, Command, with_extras
+from pkm_cli.utils.context import Context
 
 context: Optional[Context] = None
 tasks: Optional[TasksRunner] = None
@@ -264,7 +263,7 @@ def remove(args: Namespace):
         if args.force:
             _remove(project.attached_environment.installation_target)
         else:
-            project.dev_remove(package_names)
+            project.dev_uninstall(package_names)
 
     def on_environment(env: Environment):
         if app_install:
@@ -310,10 +309,17 @@ def publish(args: Namespace):
     context.run(**locals())
 
 
-@command('pkm new', Arg('template'), Arg('template_args', nargs=argparse.REMAINDER))
+@command(
+    'pkm new',
+    Arg('template'), Arg(["-o", "--overwrite"], action="store_true"),
+    Arg('template_args', nargs=argparse.REMAINDER))
 def new(args: Namespace):
-    ScaffoldingEngine().render(
-        ResourcePath('pkm_cli.scaffold', f"new_{args.template}.tar.gz"), Path.cwd(), args.template_args)
+    tr = TemplateRunner()
+    if "-h" in args.template_args:
+        Display.print(tr.describe(args.template))
+    else:
+        tr.run(args.template, Path.cwd(), args.template_args, bool(args.overwrite))
+        Display.print("Template Execution Completed Successfully.")
 
 
 @command('pkm show context')

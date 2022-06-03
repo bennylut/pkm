@@ -1,0 +1,13 @@
+[project]
+name = "{{project_name}}"
+version = "{{version}}"
+description = "{{description}}"
+readme = "README.{{readme_file_ext}}"
+requires-python= "~={{required_python}}"
+authors = [{name="{{author}}"}]
+license.text = "{{license}}"
+dependencies = []
+
+[build-system]
+requires=["pkm"]
+build-backend = "pkm.api.buildsys"

@@ -4,15 +4,11 @@ Project tasks is a pkm feature that allows you to define tasks that may assist y
 developement. These tasks can be then executed using ``pkm run @task`` or by attaching them to one of pkm's commands
 (like build, install, publish etc.)
 
-The Tasks Directory
--------------------
-pkm looks for tasks inside your project tasks directory (if it exists) and in the "pkm_tasks" namespace package in your
-project-attached environment.
 
 Writing Tasks
 -------------
-Tasks are python scripts that are found in the tasks directory or the "pkm_tasks" namespace package, the name of the
-file reflects the name of the task (without the ".py" extension).
+Tasks are python scripts that are found inside your project's :file:`tasks` directory or the :package:`pkm_tasks`
+namespace package. The name of the task's script file reflects the name of the task (without the ".py" extension).
 
 The task script must define a ``run`` function, which is the function that gets executed when pkm is asked to runs the
 task.
@@ -31,7 +27,7 @@ For your conviniance, you can generate a new task using the cli
 
     $ pkm new task <task name>
 
-The tasks directory can contain any python module, tasks can import these modules and use
+The project's :file:`tasks` directory can contain any python module, tasks can import these modules and use
 them for a common functionality.
 
 Running Tasks
@@ -47,7 +43,7 @@ To execute tasks, you can use the ``pkm run`` command and give it as its first a
 The command will get executed inside the environment attached to the project context of the ``pkm run`` command, or fail
 if ``pkm run`` was not called in a project context.
 
-Requiring Task Arguments
+Task Arguments
 ------------------------
 The task's ``run`` function can define arguments, these will get supplied by the user in the command line
 
@@ -74,6 +70,9 @@ parameter passed by the commandline to this types.
 It does so by passing the string received in the command line to the type constructor (e.g., ``arg2=int("42")`` in the
 above shell snippet). This means that arguments can only be of types that support construction by single-string (e.g.,
 int, bool, str, Path or any user defined type that follows this rule)
+
+..  note::
+    For any argument ``arg`` of type ``bool``, you can use ``--arg`` in the commandline as a syntactic sugar for ``arg=True``.
 
 Documenting tasks
 -----------------
@@ -115,7 +114,8 @@ its keys are:
 :group_path: (Optional[str]): absolute path to the root of the project-group or None if this project is not part of a group.
 
 Groupping Tasks
-^^^^^^^^^^^^^^^
+----------------
+
 If you have large number of tasks it can be convinient to group them into packages.
 for example, you can define tasks in :file:`tasks/printers/print_hello.py` and :file:`tasks/printers/print_word.py` and then call
 them by running the command
@@ -132,8 +132,8 @@ You can attach tasks to be executed before or after one of pkm commands, this ca
 or :file:`after.py` to the :file:`tasks/commands/path/to/command` directory where the path to the command is the same as the space
 seperated path to the command in the pkm cli.
 
-both :file:`before.py` and :file:`after.py` should define a ``run`` function with a single untyped ``command`` argument. this argument
-contains all the commandline flags passed to the command being executed.
+both :file:`before.py` and :file:`after.py` should define a ``run`` function with a single ``command`` argument
+(of type dict). this argument contains all the commandline flags passed to the command being executed.
 
 For example, to attach a task to be executed before the ``pkm repos add`` command, you can create the
 file :file:`tasks/commands/repos/add/before.py`
@@ -164,17 +164,10 @@ To run commands without attached tasks you can use the pkm's ``--no-tasks, -nt``
 Publish and Install 3rd Party Tasks
 -----------------------------------
 In some cases you may want to create and publish your tasks so that they can be used by other projects.
-You can create a project and add tasks to the pkm_tasks namespace package, this tasks can then be used by other projects
-that installed your project.
+You can create a project and add tasks to the :package:`pkm_tasks` namespace-package, this tasks can then be used by
+other projects that installed your project.
 
-pkm does not allow implicit command attachements by 3rd party tasks. Therefore, if your :package:`pkm_tasks` namespace package
-contains the :package:`commands` subpackage, it will be ignored by the task attachement mechanism.
+pkm does not allow implicit command attachements by 3rd party tasks. Therefore, if your :package:`pkm_tasks`
+namespace package contains the :package:`commands` subpackage, it will be ignored by the task attachement mechanism.
 
-For your convinience, the following command creates a tasks project for you:
 
-..  code-block:: console
-
-    $ pkm new tasks-project <project-name>
-
-Add your tasks to the :package:`pkm_tasks`, if published, an installing user can call these tasks with a regular `pkm run`
-command.

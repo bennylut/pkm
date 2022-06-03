@@ -5,6 +5,7 @@ import hashlib
 import importlib.util as iu
 import os
 import re
+import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import reduce
@@ -469,7 +470,13 @@ class APIGenerator:
         module_hash_hex = self._source_hash(source).hex()
 
         if self._requires_rebuild(output, module_hash_hex):
-            module_ast: ast.Module = ast.parse(source.read_text())
+
+            try:
+                module_ast: ast.Module = ast.parse(source.read_text())
+            except Exception as e:  # noqa
+                warnings.warn(f"could not parse {module_name} - {e}")
+                return []
+
             module_doc = ModuleDoc.parse(module_name, module_ast)
 
             module_rst = RstBuilder().hash_marker(module_hash_hex)
@@ -566,25 +573,20 @@ class APIGenerator:
             self._sync(base_dir, package_path, target_dir)
 
 
-def on_config_inited(spx: Sphinx, *_, **__):
-    try:
-        output_directory = Path(spx.srcdir) / "apis"
-        apigen = APIGenerator()
+def generate(spx: Sphinx, *_, **__):
+    output_directory = Path(spx.srcdir) / "apis"
+    apigen = APIGenerator()
 
-        for api in getattr(spx.config, BUILD_API_LIST_CONFIG_KEY):
-            print(f"Generating api documentation for {api}")
-            api_output_directory = output_directory / api
-            api_output_directory.mkdir(exist_ok=True, parents=True)
+    for api in getattr(spx.config, BUILD_API_LIST_CONFIG_KEY):
+        print(f"Generating api documentation for {api}")
+        api_output_directory = output_directory / api
+        api_output_directory.mkdir(exist_ok=True, parents=True)
 
-            apigen.sync(api, api_output_directory)
-    except:
-        import traceback
-        traceback.print_exc()
-        raise
+        apigen.sync(api, api_output_directory)
 
 
 def setup(spx: Sphinx):
     spx.setup_extension('sphinx.ext.autodoc')
-    spx.connect('env-before-read-docs', on_config_inited)
+    spx.connect('env-before-read-docs', generate)
     spx.add_config_value(BUILD_API_LIST_CONFIG_KEY, [], True)
     return dict(parallel_read_safe=True)

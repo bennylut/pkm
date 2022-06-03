@@ -13,7 +13,7 @@ class EnvironmentReport(Report):
     def __init__(self, env: Environment):
         self._env = env
 
-    def display(self, dumb: bool = Display.is_dumb()):
+    def display(self, dumb: bool = Display.is_poor()):
         env = self._env
 
         line = "-" * 80

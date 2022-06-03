@@ -1,0 +1,238 @@
+:orphan:
+
+\_Template \(Class\)
+####################
+
+..	code-block:: python
+	
+	class _Template
+	
+Class Methods
+=============
+
+..	code-block:: python
+	
+	def __init__(self, render_spec: ModuleSpec, runner: TemplateRunner)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	render_spec
+		-	ModuleSpec
+		-	No Description
+	*	-	runner
+		-	TemplateRunner
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def describe(self) -> str
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def execute(self, target_dir: Path, cli_args: MethodCliArgs, 
+	    allow_overwrite: bool = False)
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	target_dir
+		-	Path
+		-	No Description
+	*	-	cli_args
+		-	MethodCliArgs
+		-	No Description
+	*	-	allow_overwrite
+		-	bool
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _load_ignored_files(self, template_root: Path) -> Set[Path]
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_root
+		-	Path
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _render(self, template_dir: Path, target_dir: Path, context: Mapping, 
+	    ignored_files: Set[Path])
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	template_dir
+		-	Path
+		-	No Description
+	*	-	target_dir
+		-	Path
+		-	No Description
+	*	-	context
+		-	Mapping
+		-	No Description
+	*	-	ignored_files
+		-	Set[Path]
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	def _setup(self, cli_args: MethodCliArgs, module: ModuleType) -> Mapping
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	*	-	cli_args
+		-	MethodCliArgs
+		-	No Description
+	*	-	module
+		-	ModuleType
+		-	No Description
+	
+-----------------------
+
+..	code-block:: python
+	
+	@cached_property
+	def _module(self) -> ModuleType
+	
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+	
+..	list-table:: 
+	:widths: auto
+	:header-rows: 1
+	
+	*	-	Name
+		-	Type
+		-	Description
+	*	-	self
+		-	Any
+		-	No Description
+	

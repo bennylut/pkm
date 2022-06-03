@@ -1,35 +1,39 @@
 ## RUNNING TASKS:
-- 3rd party tasks, publish and install
-- bug: when uninstalling from optional group, the dependency is not removed from the pyproject.toml
-- project group tasks support should be removed in favor of 3rd party tasks
-- remove the project-group tasks lookup
-- add support for the `pkm_tasks` namespace
-- bug: the task print function does not use Display.print and therefore has problems with text disapearing
-- after the "new" command, some indication should be made for the user that the template generated its content
-  successfully
-- documentation: document tasks argument support for flags (`--`)
-- support 3rd-party templates in `pkm_templates` namespace
+- documentation: document templates
+- simplification: configuration - remove parent
+- cmd: pkm uninstall -o (orphans)
 
 ## DONE IN THIS VERSION
-- documentation: add pkm api documentation
-- new docs-builder project that can generate pkm's documentation site
+- bug: when uninstalling from optional group, the dependency is not removed from the pyproject.toml
+- documentation: 3rd party tasks, publish and install
+- documentation: document tasks argument support for flags (`--`)
+- support 3rd-party templates in `pkm_templates` namespace
+- move to the new template runner
+- bug in both tasks and templates - optional type casting should not work - need to take the internal type
+- after the "new" command, some indication should be made for the user that the template generated its content
+  successfully
+- move tasks_runner and templates_runner to the cli-api
+- project group tasks support should be removed in favor of 3rd party tasks
+- bug: dependency of requested package never installed as editable even if found as a local project
+- add support for the `pkm_tasks` namespace
+- bug: the task print function does not use Display.print and therefore has problems with text disapearing
+- integrate a task to generate commands documentation
+- bug: doc-builder live-reload sphinx does not pickup updates to the master.rst
 
 ## BACKLOG TASKS:
+
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
-- support `pkm new tasks-project`
 - documentation: environments
 - documentation: how to work with multiprojects in pycharm
 - documentation: mostly rewrite and extend the projects documentation
 - bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
 - bug: `pkm uninstall package` can fail if other unrelated dependency in `pyproject.toml` is not installed yet
-- integrate a task to generate commands documentation
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
 - add test support (maybe extendable test engine?)
 - bug: uninstall does not delete the ".lib" directories but installer did created them
-- simplification: configuration - remove parent
 - refactor: there are several instances where dynamic args are provided as a dictionary - create DynamicArguments class
   with common functionality (may be used in repository builder, in publish credentials,etc.)
 - documentation: repositories - how to build your own
@@ -70,9 +74,7 @@
 - cmd: pkm uninstall - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - environment naming (for project for example..)
-- cmd: pkm uninstall -o (orphans)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir, l, ll
-- documentation: templates docs
 - documentation site: sidebar responsive to phones
 - toml parser/writer need unit tests
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
@@ -84,7 +86,6 @@
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - `pkm shell` support custom environment variables loading like in pipenv
 - create installation script for pkm
-- support the `pkm new notebook` usecase
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
