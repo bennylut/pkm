@@ -4,17 +4,17 @@ Version \(Class\)
 #################
 
 ..	code-block:: python
-	
-	class Version(ABC)
-	
+    
+    class Version(ABC)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def is_pre_or_dev_release(self) -> bool
-	
+    
+    @abstractmethod
+    def is_pre_or_dev_release(self) -> bool
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def is_post_release(self) -> bool
-	
+    
+    @abstractmethod
+    def is_post_release(self) -> bool
+    
 Description
 -----------
 
@@ -52,25 +52,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def is_local(self) -> bool
-	
+    
+    @abstractmethod
+    def is_local(self) -> bool
+    
 Description
 -----------
 
@@ -80,24 +80,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def without_patch(self)
-	
+    
+    def without_patch(self)
+    
 Description
 -----------
 
@@ -107,24 +107,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def without_local(self) -> 'Version'
-	
+    
+    def without_local(self) -> 'Version'
+    
 Description
 -----------
 
@@ -134,24 +134,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def __lt__(self, other: 'Version') -> bool
-	
+    
+    @classmethod
+    def parse(cls, txt: str) -> 'Version'
+    
 Description
 -----------
 
@@ -161,80 +162,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	'Version'
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@abstractmethod
-	def __eq__(self, other) -> bool
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def parse(cls, txt: str) -> 'Version'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	txt
-		-	str
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   txt
+        -   str
+        -   No Description
+    

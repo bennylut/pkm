@@ -4,18 +4,18 @@ PackageDescriptor \(Class\)
 ###########################
 
 ..	code-block:: python
-	
-	@dataclass(frozen=True)
-	class PackageDescriptor
-	
+    
+    @dataclass(frozen=True)
+    class PackageDescriptor
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@property
-	def expected_src_package_name(self) -> str
-	
+    
+    @property
+    def expected_src_package_name(self) -> str
+    
 Description
 -----------
 
@@ -27,29 +27,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the expected name of the source package that is stored in this package,
+the expected name of the source package that is stored in this package,
 
 -----------------------
 
 ..	code-block:: python
-	
-	def __post_init__(self)
-	
+    
+    def to_dependency(self) -> 'Dependency'
+    
 Description
 -----------
 
@@ -59,24 +59,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def to_dependency(self) -> 'Dependency'
-	
+    
+    def write(self) -> Dict[str, Any]
+    
 Description
 -----------
 
@@ -86,24 +86,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def write(self) -> Dict[str, Any]
-	
+    
+    @classmethod
+    def read(cls, data: Dict[str, Any]) -> 'PackageDescriptor'
+    
 Description
 -----------
 
@@ -113,25 +114,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   data
+        -   Dict[str, Any]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def read(cls, data: Dict[str, Any]) -> 'PackageDescriptor'
-	
+    
+    @staticmethod
+    def normalize_src_package_name(package_name: str) -> str
+    
 Description
 -----------
 
@@ -141,56 +145,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	data
-		-	Dict[str, Any]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   package_name
+        -   str
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@staticmethod
-	def normalize_src_package_name(package_name: str) -> str
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	package_name
-		-	str
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@staticmethod
-	def normalize_name(package_name: str) -> str
-	
+    
+    @staticmethod
+    def normalize_name(package_name: str) -> str
+    
 Description
 -----------
 
@@ -209,30 +182,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	package_name
-		-	str
-		-	 the package name to normalize
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   package_name
+        -   str
+        -    the package name to normalize
+    
 Returns
 -------
 
- the normalized name
+the normalized name
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def from_dist_name(cls, name: str) -> PackageDescriptor
-	
+    
+    @classmethod
+    def from_dist_name(cls, name: str) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -242,22 +215,22 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	 the file name
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -    the file name
+    
 Returns
 -------
 
- the resulted package descriptor
+the resulted package descriptor

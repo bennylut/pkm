@@ -1,5 +1,5 @@
 ..
-	HASH:99ddac18a5df3d112b71d4526e31bf3d
+    HASH:99ddac18a5df3d112b71d4526e31bf3d
 
 pkm.api.dependencies.dependency \(Module\)
 ##########################################
@@ -13,18 +13,18 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.dependencies.dependency.Dependency>`
-	
-	..	code-block:: python
-		
-		class Dependency
-		
+    
+    :doc:`[DOC] <pkm.api.dependencies.dependency.Dependency>`
+    
+    ..	code-block:: python
+        
+        class Dependency
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.dependencies.dependency.PEP508DependencyParser>`
-	
-	..	code-block:: python
-		
-		class PEP508DependencyParser(SimpleParser)
-		
+    
+    :doc:`[DOC] <pkm.api.dependencies.dependency.PEP508DependencyParser>`
+    
+    ..	code-block:: python
+        
+        class PEP508DependencyParser(SimpleParser)
+        

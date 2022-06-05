@@ -4,17 +4,17 @@ Record \(Class\)
 ################
 
 ..	code-block:: python
-	
-	@dataclass(frozen=True)
-	class Record
-	
+    
+    @dataclass(frozen=True)
+    class Record
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def absolute_path(self, dist_info: DistInfo) -> Path
-	
+    
+    def absolute_path(self, dist_info: DistInfo) -> Path
+    
 Description
 -----------
 
@@ -24,18 +24,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	dist_info
-		-	DistInfo
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   dist_info
+        -   DistInfo
+        -   No Description
+    

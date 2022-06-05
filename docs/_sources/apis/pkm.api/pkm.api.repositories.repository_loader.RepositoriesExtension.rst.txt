@@ -4,9 +4,9 @@ RepositoriesExtension \(Class\)
 ###############################
 
 ..	code-block:: python
-	
-	@dataclass
-	class RepositoriesExtension
-	
+    
+    @dataclass
+    class RepositoriesExtension
+    
 Class Methods
 =============

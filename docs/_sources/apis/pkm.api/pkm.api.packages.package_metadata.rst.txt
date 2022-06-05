@@ -1,5 +1,5 @@
 ..
-	HASH:15f83c65acded0c8d80676348a07e0d0
+    HASH:15f83c65acded0c8d80676348a07e0d0
 
 pkm.api.packages.package\_metadata \(Module\)
 #############################################
@@ -7,19 +7,16 @@ pkm.api.packages.package\_metadata \(Module\)
 Module Fields
 =============
 
-..	code-block:: python
-	
-	_METADATA_VERSION = '2.1'
-	_MULTI_FIELDS = {'Provides-Extra', 'Platform', 'Supported-Platform', 'Classifier', 'Requires-Dist', 'Provides-Dist', 'Obsoletes-Dist', 'Requires-External', 'Project-URL', 'Dynamic'}
-	
+No fields defined in module.
+
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package_metadata.PackageMetadata>`
-	
-	..	code-block:: python
-		
-		class PackageMetadata(FileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package_metadata.PackageMetadata>`
+    
+    ..	code-block:: python
+        
+        class PackageMetadata(FileConfiguration)
+        

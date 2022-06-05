@@ -4,8 +4,8 @@ RepositoriesConfigInheritanceMode \(Class\)
 ###########################################
 
 ..	code-block:: python
-	
-	class RepositoriesConfigInheritanceMode(Enum)
-	
+    
+    class RepositoriesConfigInheritanceMode(Enum)
+    
 Class Methods
 =============

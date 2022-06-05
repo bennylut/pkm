@@ -46,15 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="projects.html">PKM Projects</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
 </ul>
 
           <div role="search">
@@ -72,14 +68,29 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="repositories">
-<h1>Repositories<a class="headerlink" href="#repositories" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#repositories" id="id12">Repositories</a></p>
+<ul>
+<li><p><a class="reference internal" href="#context-attached-repositories" id="id13">Context-Attached Repositories</a></p></li>
+<li><p><a class="reference internal" href="#managing-repository-support" id="id14">Managing Repository Support</a></p></li>
+<li><p><a class="reference internal" href="#managing-attached-repositories" id="id15">Managing Attached Repositories</a></p></li>
+<li><p><a class="reference internal" href="#publishing-your-project-to-a-repository" id="id16">Publishing Your Project to a Repository</a></p></li>
+<li><p><a class="reference internal" href="#available-repositories" id="id17">Available Repositories</a></p></li>
+<li><p><a class="reference internal" href="#creating-your-own-repository-support" id="id18">Creating Your Own Repository Support</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="repositories">
+<h1><a class="toc-backref" href="#id12">Repositories</a><a class="headerlink" href="#repositories" title="Permalink to this headline">¶</a></h1>
 <p>Python repositories are services that holds python packages, one well known example is pypi - the PYthon Package Index.</p>
 <p>pkm has an extendable repositories mechanism, it comes with support for the most common repositories and allows you to
 install and even develop your own support for the less common ones.</p>
 <p>Finally, pkm allows you to configure repositories - both on a global level and on a context level.</p>
 <section id="context-attached-repositories">
-<h2>Context-Attached Repositories<a class="headerlink" href="#context-attached-repositories" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">Context-Attached Repositories</a><a class="headerlink" href="#context-attached-repositories" title="Permalink to this headline">¶</a></h2>
 <p>pkm chooses the repositories to use based on the context of your commands.
 When installing packages globally (using the <code class="docutils literal notranslate"><span class="pre">-g</span></code> flag) pkm uses its “global” repositories configuration to choose the
 most appropriate repository for the required package.
@@ -89,7 +100,7 @@ Unless specified otherwise, the contextual configuration inherits the global con
 <p>See the <a class="reference internal" href="#managing-attached-repositories"><span class="std std-ref">Managing Attached Repositories</span></a> for more details.</p>
 </section>
 <section id="managing-repository-support">
-<h2>Managing Repository Support<a class="headerlink" href="#managing-repository-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">Managing Repository Support</a><a class="headerlink" href="#managing-repository-support" title="Permalink to this headline">¶</a></h2>
 <p>Pkm defines an extendable repository support mechanism, you can install and develop your own repository support and then
 configure pkm to use them.</p>
 <section id="installing-new-repository-support">
@@ -120,7 +131,7 @@ configure pkm to use them.</p>
 </section>
 </section>
 <section id="managing-attached-repositories">
-<span id="id1"></span><h2>Managing Attached Repositories<a class="headerlink" href="#managing-attached-repositories" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2><a class="toc-backref" href="#id15">Managing Attached Repositories</a><a class="headerlink" href="#managing-attached-repositories" title="Permalink to this headline">¶</a></h2>
 <p>adding/removing repository support does not add any actual repository instances to pkm, to do so you need to manage your
 attached repositories (= the repositories attached to different pkm contextes).</p>
 <p>The repositories configuration is located in the file: <span class="file">repositories.toml</span>.
@@ -252,7 +263,7 @@ use the command</p>
 </section>
 </section>
 <section id="publishing-your-project-to-a-repository">
-<h2>Publishing Your Project to a Repository<a class="headerlink" href="#publishing-your-project-to-a-repository" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">Publishing Your Project to a Repository</a><a class="headerlink" href="#publishing-your-project-to-a-repository" title="Permalink to this headline">¶</a></h2>
 <p>If a configured repository supports publishing, you can use the publish command to publish your project</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm publish &lt;repo-name&gt;
 </pre></div>
@@ -272,7 +283,7 @@ You can provide those directly in the commandline</p>
 </div>
 </section>
 <section id="available-repositories">
-<h2>Available Repositories<a class="headerlink" href="#available-repositories" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id17">Available Repositories</a><a class="headerlink" href="#available-repositories" title="Permalink to this headline">¶</a></h2>
 <p>pkm comes with several types of repositories that you can use out of the box, it also has several experimental
 repositories you can install. These repositories are listed below.</p>
 <section id="file-system-repository">
@@ -412,7 +423,7 @@ repositories you can install. These repositories are listed below.</p>
 </section>
 </section>
 <section id="creating-your-own-repository-support">
-<h2>Creating Your Own Repository Support<a class="headerlink" href="#creating-your-own-repository-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Creating Your Own Repository Support</a><a class="headerlink" href="#creating-your-own-repository-support" title="Permalink to this headline">¶</a></h2>
 <p>TODO: after api documentation will be uploaded</p>
 </section>
 </section>

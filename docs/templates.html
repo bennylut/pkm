@@ -52,11 +52,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
-</ul>
 
           <div role="search">
             <h3 style="margin-top: 1.5em;">Search</h3>
@@ -73,18 +68,40 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="templates">
-<h1>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#templates" id="id13">Templates</a></p>
+<ul>
+<li><p><a class="reference internal" href="#creating-templates" id="id14">Creating Templates</a></p></li>
+<li><p><a class="reference internal" href="#using-templates" id="id15">Using Templates</a></p></li>
+<li><p><a class="reference internal" href="#template-arguments" id="id16">Template Arguments</a></p></li>
+<li><p><a class="reference internal" href="#template-extended-builtins" id="id17">Template Extended-Builtins</a></p></li>
+<li><p><a class="reference internal" href="#excluding-and-preserving-files-in-the-template" id="id18">Excluding and Preserving  Files in the Template</a></p></li>
+<li><p><a class="reference internal" href="#templates-execution-life-cycle" id="id19">Templates Execution Life-Cycle</a></p></li>
+<li><p><a class="reference internal" href="#documenting-templates" id="id20">Documenting Templates</a></p></li>
+<li><p><a class="reference internal" href="#install-and-publish-templates" id="id21">Install and Publish Templates</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="templates">
+<h1><a class="toc-backref" href="#id13">Templates</a><a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h1>
 <p>Templates are reusable file-system structures that are designed to help the user generate common artifacts like
 projects, environments, common files, etc.</p>
 <p>The most used template type is a “project template” which is designed to help a user to setup some common project
 structure.</p>
-<section id="writing-templates">
-<h2>Writing Templates<a class="headerlink" href="#writing-templates" title="Permalink to this headline">¶</a></h2>
+<section id="creating-templates">
+<h2><a class="toc-backref" href="#id14">Creating Templates</a><a class="headerlink" href="#creating-templates" title="Permalink to this headline">¶</a></h2>
+<p>For your convinience, to create a new template in the current working directory
+you can use the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">new</span> <span class="pre">template</span></code> command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new template my-template
+</pre></div>
+</div>
 <p>pkm’s template is a directory which contains at least a <span class="file">render.py</span> file.</p>
 <p>The <span class="file">render.py</span> should contain at least a <cite>setup</cite> function which returns a dictionary containing values that will be used while generating the template</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">render.py</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">render.py</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="s1">&#39;my-project&#39;</span><span class="p">,</span>
@@ -113,8 +130,8 @@ with .tmpl.</p>
 This means that this template expects <span class="file">render.py</span> to return values to those variables from its <code class="docutils literal notranslate"><span class="pre">setup</span></code> function.</p>
 <p>Since the <span class="file">{{readme_file_name}}.tmpl</span> has the <code class="docutils literal notranslate"><span class="pre">tmpl</span></code> extension, its content will also be rendered using jinja.
 Here is an example content of the {{readme_file_name}} file:</p>
-<div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-text">{{readme_file_name}}.tmpl</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">{{readme_file_name}}.tmpl</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
 <div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># {{project_name}}</span>
 
 <span class="k">&gt; </span><span class="ge">Created By {{author}}</span>
@@ -125,8 +142,8 @@ Here is an example content of the {{readme_file_name}} file:</p>
 </div>
 <p>Using our example <span class="file">render.py</span>, the <span class="file">{{readme_file_name}}.tmpl</span> file will be named <span class="file">README.md</span> and
 its content will be</p>
-<div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-text">README.md</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">README.md</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
 <div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># my-project</span>
 
 <span class="k">&gt; </span><span class="ge">Created By me</span>
@@ -142,14 +159,20 @@ which will cause the file/dir to not be rendered (in other words the <span class
 will not be created).</p>
 </section>
 <section id="using-templates">
-<h2>Using Templates<a class="headerlink" href="#using-templates" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> looks for templates inside the <span class="package">pkm_templates</span> namespace-package.
-It searches for that package inside the environment it is installed in.</p>
-<p>To start template generation you can use the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">new</span></code> command. For example, using the template defined above, running:</p>
+<h2><a class="toc-backref" href="#id15">Using Templates</a><a class="headerlink" href="#using-templates" title="Permalink to this headline">¶</a></h2>
+<p>To start template generation you can use the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">new</span> <span class="pre">&lt;template-name&gt;</span></code> command.
+Given a template name, <code class="docutils literal notranslate"><span class="pre">pkm</span></code> attempts to find a matching template in two main places</p>
+<ol class="arabic simple">
+<li><p>In the path: <code class="docutils literal notranslate"><span class="pre">template_name.replace('.',</span> <span class="pre">'/')</span></code> relative the current working directory</p></li>
+<li><p>Inside the <span class="package">pkm_templates</span> namespace-package, it searches for that package inside the environment it is installed in.</p></li>
+</ol>
+<blockquote>
+<div><p>For example, using the template defined above inside the current working directory, running:</p>
+</div></blockquote>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new my-template
 </pre></div>
 </div>
-<p>will generate, inside the current directory, the directory:</p>
+<p>will generate, inside the current directory, the directory structure:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.
 └── my-project
     ├── README.md
@@ -159,23 +182,219 @@ It searches for that package inside the environment it is installed in.</p>
 </div>
 </section>
 <section id="template-arguments">
-<h2>Template Arguments<a class="headerlink" href="#template-arguments" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">Template Arguments</a><a class="headerlink" href="#template-arguments" title="Permalink to this headline">¶</a></h2>
 <p>Templates can get arguments from the user in two main ways, as arguments in the commandline and interactively.</p>
+<section id="commandline-arguments">
+<h3>Commandline Arguments<a class="headerlink" href="#commandline-arguments" title="Permalink to this headline">¶</a></h3>
+<p>To get arguments from the commandline, you can require them as parameters to your <code class="docutils literal notranslate"><span class="pre">setup</span></code> function.
+For example, assume the following directory structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>my-template/
+├── result.tmpl
+└── render.py
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">pkm_templates/with_args.py</span><a class="headerlink" href="#id6" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">arg1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">arg2</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">optional_arg1</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="n">optional_arg2</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">result.tmpl</span><a class="headerlink" href="#id7" title="Permalink to this code">¶</a></div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>arg1 = {{arg1}}
+arg2 = {{arg2}}
+optional_arg1 = {{optional_arg1}}
+optional_arg2 = {{optional_arg2}}
+</pre></div>
+</div>
+</div>
+<p>In the above code snippet, the <span class="file">with_args</span> template setup’s function is defined to get 4 arguments,
+2 of them are optional.</p>
+<p>The user can use this template by running the command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new with_args arg1-value <span class="m">42</span> <span class="nv">optional_arg2</span><span class="o">=</span><span class="s1">&#39;value for arg2&#39;</span>
+</pre></div>
+</div>
+<p>The generated content will include the <span class="file">result</span> file containing the following text:</p>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">result</span><a class="headerlink" href="#id8" title="Permalink to this code">¶</a></div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>arg1 = arg1-value
+arg2 = 42
+optional_arg1 = 7
+optional_arg2 = value for arg2
+</pre></div>
+</div>
+</div>
+<p>The <span class="file">with_args</span> template also used type annotations to indicate the type of its arguments, pkm automatically converted the
+parameter passed by the commandline to this types.
+It does so by passing the string received in the command line to the type constructor (e.g., <code class="docutils literal notranslate"><span class="pre">arg2=int(&quot;42&quot;)</span></code> in the
+above shell snippet). This means that arguments can only be of types that support construction by single-string (e.g.,
+int, bool, str, Path or any user defined type that follows this rule)</p>
 </section>
-<section id="templates-execution-life-cycle">
-<h2>Templates Execution Life-Cycle<a class="headerlink" href="#templates-execution-life-cycle" title="Permalink to this headline">¶</a></h2>
+<section id="interactive-arguments">
+<h3>Interactive Arguments<a class="headerlink" href="#interactive-arguments" title="Permalink to this headline">¶</a></h3>
+<p>There are seveal functions that are available as part of the <span class="xref std std-ref">template-extended-builtins</span> which can be used to get
+input interactively from the user.</p>
+<p>For example, assume the following directory structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>my-template/
+├── result.tmpl
+└── render.py
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">pkm_templates/with_args.py</span><a class="headerlink" href="#id9" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Your name&quot;</span><span class="p">)</span>
+    <span class="n">likes_pkm</span> <span class="o">=</span> <span class="n">confirm</span><span class="p">(</span><span class="s2">&quot;Do you like pkm&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id10">
+<div class="code-block-caption"><span class="caption-text">result.tmpl</span><a class="headerlink" href="#id10" title="Permalink to this code">¶</a></div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>name = {{name}}
+likes_pkm = {{likes_pkm}}
+</pre></div>
+</div>
+</div>
+<p>Executing the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new my-template
+<span class="go">? Your name: Mario</span>
+<span class="go">? Do you like pkm: Yes</span>
+</pre></div>
+</div>
+<p>You can ofcours combine commandline arguments with interactive ones,
+asking the user only if they did not provide values in the commandline</p>
+<div class="literal-block-wrapper docutils container" id="id11">
+<div class="code-block-caption"><span class="caption-text">pkm_templates/with_args.py</span><a class="headerlink" href="#id11" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Your name&quot;</span><span class="p">)</span> <span class="c1"># ask only if name is not provided</span>
+    <span class="n">likes_pkm</span> <span class="o">=</span> <span class="n">confirm</span><span class="p">(</span><span class="s2">&quot;Do you like pkm&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 <section id="template-extended-builtins">
-<h2>Template Extended-Builtins<a class="headerlink" href="#template-extended-builtins" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id17">Template Extended-Builtins</a><a class="headerlink" href="#template-extended-builtins" title="Permalink to this headline">¶</a></h2>
+<p>When pkm executes a template it adds to the render-script’s builtins several functions and attributes that are usefull in the
+context of its execution. These builtins extension are listed below.</p>
+<section id="the-ask-function">
+<h3>The ask Function<a class="headerlink" href="#the-ask-function" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">secret</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">autocomplete</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">multiselect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>ask the user using the given <cite>prompt</cite>, limiting its answers using the different arguments of this function</p>
+<dl class="field-list simple">
+<dt class="field-odd">prompt</dt>
+<dd class="field-odd"><p>the prompt to show to the user</p>
+</dd>
+<dt class="field-even">default</dt>
+<dd class="field-even"><p>the default value to show to the user</p>
+</dd>
+<dt class="field-odd">options</dt>
+<dd class="field-odd"><p>limited options for the user to select from</p>
+</dd>
+<dt class="field-even">secret</dt>
+<dd class="field-even"><p>if True, the caracters the user insert will not be visible</p>
+</dd>
+<dt class="field-odd">autocomplete</dt>
+<dd class="field-odd"><p>use in combination with <cite>options</cite>, will autocomplete the user answers using the options</p>
+</dd>
+<dt class="field-even">multiselect</dt>
+<dd class="field-even"><p>use in combination with <cite>options</cite>, allow to select several options</p>
+</dd>
+<dt class="field-odd">path</dt>
+<dd class="field-odd"><p>if True, limit the user to entering a filesystem path</p>
+</dd>
+<dt class="field-even">return</dt>
+<dd class="field-even"><p>the response of the user</p>
+</dd>
+</dl>
+</section>
+<section id="the-confirm-function">
+<h3>The confirm Function<a class="headerlink" href="#the-confirm-function" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+</pre></div>
+</div>
+<p>ask the user a yes/no question</p>
+<dl class="field-list simple">
+<dt class="field-odd">prompt</dt>
+<dd class="field-odd"><p>the prompt to show to the user</p>
+</dd>
+<dt class="field-even">default</dt>
+<dd class="field-even"><p>the default to show to the user</p>
+</dd>
+<dt class="field-odd">return</dt>
+<dd class="field-odd"><p>True if the user enter yes, False otherwise</p>
+</dd>
+</dl>
+</section>
+<section id="the-target-dir-variable">
+<h3>The target_dir Variable<a class="headerlink" href="#the-target-dir-variable" title="Permalink to this headline">¶</a></h3>
+<p>The target_dir variable holds the path into which the template is asked to be rendered,
+The target_dir variable is only available inside the <code class="docutils literal notranslate"><span class="pre">setup</span></code> and <code class="docutils literal notranslate"><span class="pre">post_render</span></code> functions</p>
+</section>
+</section>
+<section id="excluding-and-preserving-files-in-the-template">
+<h2><a class="toc-backref" href="#id18">Excluding and Preserving  Files in the Template</a><a class="headerlink" href="#excluding-and-preserving-files-in-the-template" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes, your template may contain files that you want to exclude from the rendering process. You can use a
+<span class="file">.templateignore</span> file for that (just add glob patterns to it similar to .gitignore file)</p>
+<p>In other cases, your template may contain directories that you want to copy as is
+(without passing through the template engine). To do so, all you need to do is to include a
+<span class="file">.tempalatepreserve</span> file inside the directory that you want to preserve as is.</p>
+</section>
+<section id="templates-execution-life-cycle">
+<h2><a class="toc-backref" href="#id19">Templates Execution Life-Cycle</a><a class="headerlink" href="#templates-execution-life-cycle" title="Permalink to this headline">¶</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">pkm</span></code> executes a template it follows a specific life-cycle:</p>
+<ol class="arabic simple">
+<li><p>Parse commandline arguments</p></li>
+<li><p>Call the <code class="docutils literal notranslate"><span class="pre">setup</span></code> function with the parsed commandline arguments to get the rendering context</p></li>
+<li><p>Find and evaluate the <span class="file">templateignore</span> and <span class="file">templatepreserve</span> files along the template directory</p></li>
+<li><p>Render the files in the template directory using the rendering context and the ignore/preserve information into the <code class="docutils literal notranslate"><span class="pre">target_directory</span></code></p></li>
+<li><p>Call the <code class="docutils literal notranslate"><span class="pre">post_render</span></code> function in <span class="file">render.py</span> if such exists.</p></li>
+</ol>
 </section>
 <section id="documenting-templates">
-<h2>Documenting Templates<a class="headerlink" href="#documenting-templates" title="Permalink to this headline">¶</a></h2>
-</section>
-<section id="groupping-templates">
-<h2>Groupping Templates<a class="headerlink" href="#groupping-templates" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id20">Documenting Templates</a><a class="headerlink" href="#documenting-templates" title="Permalink to this headline">¶</a></h2>
+<p>To document your template write a module-level docstring, for example:</p>
+<div class="literal-block-wrapper docutils container" id="id12">
+<div class="code-block-caption"><span class="caption-text">pkm_templates/nothing.py</span><a class="headerlink" href="#id12" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This templates does absolutely nothing!</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{}</span>
+</pre></div>
+</div>
+</div>
+<p>A user can print the documentation of a template using the <code class="docutils literal notranslate"><span class="pre">-h</span></code> flag:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm new nothing -h
+<span class="go">This templates does absolutely nothing!</span>
+</pre></div>
+</div>
 </section>
 <section id="install-and-publish-templates">
-<h2>Install and Publish Templates<a class="headerlink" href="#install-and-publish-templates" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id21">Install and Publish Templates</a><a class="headerlink" href="#install-and-publish-templates" title="Permalink to this headline">¶</a></h2>
+<p>Since <code class="docutils literal notranslate"><span class="pre">pkm</span></code> searches for templates inside the <span class="package">pkm_templates</span> namespace package, you can create a project adding templates to this package and
+publish it. To avoid stepping on eachother toes, please only add templates to a sub package of <cite>pkm_templates</cite> named after your project name.</p>
+<p>Here is an example <a href="#id1"><span class="problematic" id="id2">:pacakge:`my_awsome_template`</span></a> project directory structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>my_awsome_template
+├── src
+│   └── pkm_templates
+│       └── my_awsome_template
+│           ...
+└── pyproject.toml
+</pre></div>
+</div>
+<p>Once published, a user can install <span class="package">my_awsome_template</span> via the command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm self install my_awsome_template
+</pre></div>
+</div>
 </section>
 </section>
 

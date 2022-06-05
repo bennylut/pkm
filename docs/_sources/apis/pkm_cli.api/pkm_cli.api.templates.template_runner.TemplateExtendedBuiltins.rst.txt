@@ -1,0 +1,102 @@
+:orphan:
+
+TemplateExtendedBuiltins \(Class\)
+##################################
+
+..	code-block:: python
+    
+    class TemplateExtendedBuiltins
+    
+Class Methods
+=============
+
+..	code-block:: python
+    
+    def confirm(self, prompt: str, default: bool = True) -> bool
+    
+Description
+-----------
+
+ask the user a yes/no question
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   prompt
+        -   str
+        -    the prompt to show to the user
+    *   -   default
+        -   bool
+        -    the default to show to the user
+    
+Returns
+-------
+
+True if the user enter yes, False otherwise
+
+-----------------------
+
+..	code-block:: python
+    
+    def ask(self, prompt: str, default: Any = '', 
+        options: Optional[List[str]] = None, secret: bool = False, 
+        autocomplete: bool = False, multiselect: bool = False, path: bool = False)
+    
+Description
+-----------
+
+ask the user using the given `prompt`, limiting its answers using the different arguments of this function
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   prompt
+        -   str
+        -    the prompt to show to the user
+    *   -   default
+        -   Any
+        -    the default value to show to the user
+    *   -   options
+        -   Optional[List[str]]
+        -    limited options for the user to select from
+    *   -   secret
+        -   bool
+        -    if True, the caracters the user insert will not be visible
+    *   -   autocomplete
+        -   bool
+        -    use in combination with `options`, will autocomplete the user answers using the options
+    *   -   multiselect
+        -   bool
+        -    use in combination with `options`, allow to select several options
+    *   -   path
+        -   bool
+        -    if True, limit the user to entering a filesystem path
+    
+Returns
+-------
+
+the response of the user

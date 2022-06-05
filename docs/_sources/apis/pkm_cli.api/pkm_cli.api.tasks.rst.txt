@@ -1,5 +1,5 @@
 ..
-	HASH:cb194b92e1e1543d1280c13c69369467
+    HASH:791f55431111707918934d1a3f44f724
 
 pkm\_cli.api.tasks \(Package\)
 ==============================
@@ -8,9 +8,9 @@ Modules
 -------
 
 ..	rst-class:: child-modules
-	
+    
 ..	toctree:: 
-	:titlesonly:
-	
-	tasks_runner <pkm_cli.api.tasks.tasks_runner.rst>
-	
+    :titlesonly:
+    
+    tasks_runner <pkm_cli.api.tasks.tasks_runner.rst>
+    

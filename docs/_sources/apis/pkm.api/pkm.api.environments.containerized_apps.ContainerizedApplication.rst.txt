@@ -4,17 +4,17 @@ ContainerizedApplication \(Class\)
 ##################################
 
 ..	code-block:: python
-	
-	class ContainerizedApplication
-	
+    
+    class ContainerizedApplication
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, package: InstalledPackage, 
-	    target: PackageInstallationTarget)
-	
+    
+    @cached_property
+    def app_package(self) -> InstalledPackage
+    
 Description
 -----------
 
@@ -24,31 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	InstalledPackage
-		-	No Description
-	*	-	target
-		-	PackageInstallationTarget
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def app_package(self) -> InstalledPackage
-	
+    
+    @property
+    def installation_target(self) -> PackageInstallationTarget
+    
 Description
 -----------
 
@@ -58,25 +52,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def installation_target(self) -> PackageInstallationTarget
-	
+    
+    def uninstall(self)
+    
 Description
 -----------
 
@@ -86,24 +79,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def uninstall(self)
-	
+    
+    def list_installed_plugins(self) -> List[InstalledPackage]
+    
 Description
 -----------
 
@@ -113,42 +106,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def list_installed_plugins(self) -> List[InstalledPackage]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

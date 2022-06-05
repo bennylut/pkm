@@ -6,7 +6,7 @@ from __future__ import annotations
 import inspect
 import typing
 from io import UnsupportedOperation
-from typing import List, Dict, Callable, Any, Optional, Union
+from typing import List, Dict, Callable, Any
 
 
 class MethodCliArgs:
@@ -26,7 +26,7 @@ class MethodCliArgs:
             result_ = arg_types.get(name, identity)
             if result_ == str:
                 result_ = identity
-            elif str(result_).startswith("typing.Union["): # horible hack to handle Optional...
+            elif str(result_).startswith("typing.Union["):  # horible hack to handle Optional...
                 type_args = typing.get_args(result_)
                 if len(type_args) == 2 and type_args[1].__name__ == 'NoneType':
                     result_ = type_args[0]

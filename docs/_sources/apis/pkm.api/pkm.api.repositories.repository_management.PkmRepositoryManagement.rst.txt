@@ -4,16 +4,16 @@ PkmRepositoryManagement \(Class\)
 #################################
 
 ..	code-block:: python
-	
-	class PkmRepositoryManagement(RepositoryManagement)
-	
+    
+    class PkmRepositoryManagement(RepositoryManagement)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, pkm_: Pkm)
-	
+    
+    def parent_contexts(self) -> List[HasAttachedRepository]
+    
 Description
 -----------
 
@@ -23,72 +23,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	pkm_
-		-	Pkm
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _load_attached(self) -> Repository
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def parent_contexts(self) -> List[HasAttachedRepository]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

@@ -1,5 +1,5 @@
 ..
-	HASH:fa94f8ee74438a42932c7b3a7596b5de
+    HASH:fa94f8ee74438a42932c7b3a7596b5de
 
 pkm.api.environments.environment\_introspection \(Module\)
 ##########################################################
@@ -8,27 +8,17 @@ Module Fields
 =============
 
 ..	code-block:: python
-	
-	_INTROSPECTION_CODE = "\nimport sys\nimport sysconfig\nimport json\nimport importlib.machinery\nimport platform\nimport os\nimport site\nimport struct\n\nif hasattr(sys, 'implementation'):\n    sys_implementation = {'name': sys.implementation.name, 'version': sys.implementation.version}\nelse:\n    sys_implementation = {'name': platform.python_implementation().lower()}\n\nresult = {\n    'sysconfig': {\n        'paths': sysconfig.get_paths(),\n        'paths_by_scheme': {s:sysconfig.get_paths(s) for s in sysconfig.get_scheme_names()},\n        'vars': sysconfig.get_config_vars(),\n        'platform': sysconfig.get_platform(),\n        'is_python_build': sysconfig.is_python_build(True)\n    },\n\n    'sys': {\n        'implementation': sys_implementation,\n         'version_info': sys.version_info,\n         'has_totalrefcount': hasattr(sys,'gettotalrefcount'),\n         'maxunicode': sys.maxunicode,\n         'maxsize': sys.maxsize,\n         'executable': sys.executable,\n         'platform': sys.platform\n    },\n\n    'importlib': {\n        'machinery': {\n            'EXTENSION_SUFFIXES': importlib.machinery.EXTENSION_SUFFIXES\n        }\n    },\n\n    'platform': {\n        'system': platform.system(),\n        'mac_ver': platform.mac_ver(),\n        'machine': platform.machine(),\n        'python_implementation': platform.python_implementation(),\n        'release': platform.release(),\n        'version': platform.version(),\n        'python_version_tuple': platform.python_version_tuple(),\n        'python_version': platform.python_version()\n    },\n\n    'os': {\n        'conf': {cname: os.confstr(cname) for cname in getattr(os,'confstr_names',[])},\n        'name': os.name,\n        'bits': struct.calcsize('P') * 8 \n    },\n    \n    'site': {\n        'packages': site.getsitepackages()\n    }\n}\n\nprint(json.dumps(result))\n"
-	_USER_SCHEME_BY_PLATFORM = {'Linux': 'posix_user', 'Windows': 'nt_user', 'Darwin': 'osx_framework_user'}
-	INTERPRETER_SHORT_NAMES = {'python': 'py', 'cpython': 'cp', 'pypy': 'pp', 'ironpython': 'ip', 'jython': 'jy'}
-	_EM_ARM = 40
-	_EM_386 = 3
-	_EF_ARM_ABIMASK = 4278190080
-	_EF_ARM_ABI_VER5 = 83886080
-	_EF_ARM_ABI_FLOAT_HARD = 1024
-	_PT_INTERP = 3
-	_elf_header_prefix_struct = Struct('4s5B7x')
-	_LEGACY_MANYLINUX_MAP: Dict[str, Tuple[int, ...]] = {'manylinux2014': (2, 17), 'manylinux2010': (2, 12), 'manylinux1': (2, 5)}
-	
+    
+    INTERPRETER_SHORT_NAMES = {'python': 'py', 'cpython': 'cp', 'pypy': 'pp', 'ironpython': 'ip', 'jython': 'jy'}
+    
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.environments.environment_introspection.EnvironmentIntrospection>`
-	
-	..	code-block:: python
-		
-		class EnvironmentIntrospection(Configuration)
-		
+    
+    :doc:`[DOC] <pkm.api.environments.environment_introspection.EnvironmentIntrospection>`
+    
+    ..	code-block:: python
+        
+        class EnvironmentIntrospection(Configuration)
+        

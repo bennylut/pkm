@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import Optional, Dict, List, Union, Iterable
+from typing import Optional, Dict, List, Union, Iterable, Callable, Any, cast
 
 from sphinx.application import Sphinx
 from sphinx.util.rst import escape
@@ -18,6 +18,9 @@ from sphinx.util.rst import escape
 TypeID = str
 _DOC_PARAM_RX = re.compile(":param [^:]+:.*")
 BUILD_API_LIST_CONFIG_KEY = 'build_apis'
+
+# just force they type checker to ignore input type to this function 
+ast_unparse = cast(Callable[[Any], str], ast.unparse)
 
 
 class TypesLookup:
@@ -53,10 +56,10 @@ class FieldDoc:
         if isinstance(node, ast.Assign):
             target = node.targets[0]
             if isinstance(target, ast.Tuple):
-                return [FieldDoc(ast.unparse(t), f"{ast.unparse(t)} = {ast.unparse(v)}", None)
+                return [FieldDoc(ast_unparse(t), f"{ast_unparse(t)} = {ast_unparse(v)}", None)
                         for t, v in zip(target.elts, node.value.elts)]
-            return [FieldDoc(ast.unparse(target), ast.unparse(node), None)]
-        return [FieldDoc(ast.unparse(node.target), ast.unparse(node), ast.unparse(node.annotation))]
+            return [FieldDoc(ast_unparse(target), ast_unparse(node), None)]
+        return [FieldDoc(ast_unparse(node.target), ast_unparse(node), ast_unparse(node.annotation))]
 
 
 @dataclass
@@ -88,12 +91,13 @@ class ArgumentDoc:
                 len(args.args) + len(args.posonlyargs) + len(args.kwonlyargs)
                 - len(args.defaults) - len(args.kw_defaults))
 
-        defaults.extend(ast.unparse(v) if v else None for v in args.defaults)
-        defaults.extend(ast.unparse(v) if v else None for v in args.kw_defaults)
+        defaults.extend(ast_unparse(v) if v else None for v in args.defaults)
+        defaults.extend(ast_unparse(v) if v else None for v in args.kw_defaults)
         defaults.reverse()
 
+        # noinspection PyTypeChecker
         def annotation(a: ast.arg) -> Optional[str]:
-            return ast.unparse(a.annotation) if a.annotation else None
+            return ast_unparse(a.annotation) if a.annotation else None
 
         if args.posonlyargs:
             result_args.extend(
@@ -129,8 +133,8 @@ class FuncDoc:
     @classmethod
     def parse(cls, fdef: ast.FunctionDef) -> FuncDoc:
         return FuncDoc(
-            fdef.name, [ast.unparse(it) for it in fdef.decorator_list], ArgumentDoc.parse_for(fdef),
-            ast.unparse(fdef.returns) if fdef.returns else None, DocString.parse(ast.get_docstring(fdef) or "")
+            fdef.name, [ast_unparse(it) for it in fdef.decorator_list], ArgumentDoc.parse_for(fdef),
+            ast_unparse(fdef.returns) if fdef.returns else None, DocString.parse(ast.get_docstring(fdef) or "")
         )
 
     def _build_signature(self):
@@ -172,7 +176,7 @@ class FuncDoc:
 
         if self.doc.returns:
             with rst.section("Returns"):
-                rst.paragraph(self.doc.returns[len(":return:"):])
+                rst.paragraph(self.doc.returns[len(":return:"):].strip())
 
 
 @dataclass
@@ -190,8 +194,10 @@ class ClassDoc:
             if isinstance(node, ast.FunctionDef):
                 methods.append(FuncDoc.parse(node))
 
+        methods = [m for m in methods if not m.name.startswith("_")]
+
         return ClassDoc(
-            cdef.name, [ast.unparse(it) for it in cdef.bases], [ast.unparse(it) for it in cdef.decorator_list],
+            cdef.name, [ast_unparse(it) for it in cdef.bases], [ast_unparse(it) for it in cdef.decorator_list],
             DocString.parse(ast.get_docstring(cdef, True) or ""), methods
         )
 
@@ -251,6 +257,11 @@ class ModuleDoc:
             elif isinstance(node, ast.ClassDef):
                 classes.append(ClassDoc.parse(node))
 
+        # remove private members
+        fields = [f for f in fields if not f.name.startswith("_")]
+        functions = [f for f in functions if not f.name.startswith("_")]
+        classes = [c for c in classes if not c.name.startswith("_")]
+
         return ModuleDoc(name, doc, functions, fields, classes, types)
 
     def write_to(self, rst: RstBuilder):
@@ -262,11 +273,10 @@ class ModuleDoc:
                 else:
                     rst.paragraph("No fields defined in module.")
 
-            api_functions = [f for f in self.functions if not f.name.startswith("_")]
-            if api_functions:
+            if self.functions:
                 with rst.section("Module Functions"):
                     first = True
-                    for function in api_functions:
+                    for function in self.functions:
                         if first:
                             first = False
                         else:
@@ -274,10 +284,9 @@ class ModuleDoc:
 
                         function.write_to(rst)
 
-            api_classes = [c for c in self.classes if not c.name.startswith("_")]
-            if api_classes:
+            if self.classes:
                 with rst.section("Module Classes"):
-                    for class_ in api_classes:
+                    for class_ in self.classes:
                         with rst.container('class-def-with-link'):
                             rst.lines(f":doc:`[DOC] <{self.name}.{class_.name}>`", "")
                             rst.codeblock("python", class_.signature)
@@ -350,7 +359,7 @@ class RstBuilder:
         self._indent -= 1
 
     def comment(self, comment: str) -> RstBuilder:
-        return self.lines("..", *(f"\t{line.strip()}" for line in comment.splitlines()), "")
+        return self.lines("..", *(f"    {line.strip()}" for line in comment.splitlines()), "")
 
     def directive(
             self, name: str, arg: Optional[str] = None, options: Optional[Dict[str, Optional[str]]] = None,
@@ -380,7 +389,7 @@ class RstBuilder:
         for arg in args:
             body.extend((arg.name, arg.type or "Any", doc.params.get(arg.name) or "No Description"))
 
-        prx = ["*\t-\t", "\t-\t", "\t-\t"]
+        prx = ["*   -   ", "    -   ", "    -   "]
         body_str = '\n'.join(prx[i % 3] + it for i, it in enumerate(body))
 
         self.rst_class("args-table")
@@ -396,7 +405,7 @@ class RstBuilder:
         return self.comment(f"HASH:{hash_hex}")
 
     def line(self, line: str) -> RstBuilder:
-        self._lines.append('\t' * self._indent + line)
+        self._lines.append('    ' * self._indent + line)
         return self
 
     def lines(self, *lines: str) -> RstBuilder:
@@ -455,6 +464,7 @@ class APIGenerator:
 
         return result
 
+    # noinspection PyMethodMayBeStatic
     def _requires_rebuild(self, file: Path, new_hash_hex: str):
         if file.exists():
             if (before := file.read_text().strip().splitlines()) and len(before) > 1:

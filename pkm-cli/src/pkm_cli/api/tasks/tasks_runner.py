@@ -45,11 +45,11 @@ def run_task(name, *args, **kwargs):
     task = load_task(name)
     task.run(*args, **kwargs)
 
-task = load_task(insn['task'])
-run_function = task.run
+main_task = load_task(insn['task'])
+run_function = main_task.run
 
 if insn['mode'] == 'describe':
-    print(task.run.__doc__ or "No Description Provided")
+    print(run_function.__doc__ or "No Description Provided")
 elif insn['mode'] == 'run-attached':
     run_function(insn['args'])
 else:

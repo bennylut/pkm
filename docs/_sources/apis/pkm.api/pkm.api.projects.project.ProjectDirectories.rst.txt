@@ -4,17 +4,17 @@ ProjectDirectories \(Class\)
 ############################
 
 ..	code-block:: python
-	
-	@dataclass()
-	class ProjectDirectories
-	
+    
+    @dataclass()
+    class ProjectDirectories
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def clean_dist(self, keep_versions: Optional[List[Version]] = None)
-	
+    
+    def clean_dist(self, keep_versions: Optional[List[Version]] = None)
+    
 Description
 -----------
 
@@ -24,28 +24,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	keep_versions
-		-	Optional[List[Version]]
-		-	 if given, all artifacts that relate to the versions in the given list will not be deleted
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   keep_versions
+        -   Optional[List[Version]]
+        -    if given, all artifacts that relate to the versions in the given list will not be deleted
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def create(cls, pyproject: PyProjectConfiguration) -> 'ProjectDirectories'
-	
+    
+    @classmethod
+    def create(cls, pyproject: PyProjectConfiguration) -> 'ProjectDirectories'
+    
 Description
 -----------
 
@@ -55,18 +55,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	pyproject
-		-	PyProjectConfiguration
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   pyproject
+        -   PyProjectConfiguration
+        -   No Description
+    

@@ -16,18 +16,15 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pkm_cli.api (Package)" href="apis/pkm_cli.api/pkm_cli.api.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="templates.html" /> 
+    <link rel="prev" title="Templates" href="templates.html" /> 
   </head><body>
     <div class="header-wrapper" role="banner">
       <div class="header">
         <div class="headertitle"><a
           href="master.html">pkm-cli  documentation</a></div>
         <div class="rel" role="navigation" aria-label="related navigation">
-          <a href="templates.html" title="&lt;no title&gt;"
+          <a href="templates.html" title="Templates"
              accesskey="P">previous</a> |
-          <a href="apis/pkm_cli.api/pkm_cli.api.html" title="pkm_cli.api (Package)"
-             accesskey="N">next</a> |
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a>
         </div>
@@ -46,15 +43,11 @@
 <li class="toctree-l1"><a class="reference internal" href="projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Application Containers</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
 </ul>
 
           <div role="search">
@@ -72,8 +65,22 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="pkm-containerized-applications">
-<h1>PKM Containerized Applications<a class="headerlink" href="#pkm-containerized-applications" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pkm-containerized-applications" id="id6">PKM Containerized Applications</a></p>
+<ul>
+<li><p><a class="reference internal" href="#why-is-it-needed" id="id7">Why is it needed?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-install-application-as-containerized" id="id8">How to Install Application as Containerized?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-distribute-application-as-containerized" id="id9">How to Distribute Application as Containerized</a></p></li>
+<li><p><a class="reference internal" href="#difference-from-vendoring" id="id10">Difference From Vendoring</a></p></li>
+<li><p><a class="reference internal" href="#application-plugins" id="id11">Application Plugins</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="pkm-containerized-applications">
+<h1><a class="toc-backref" href="#id6">PKM Containerized Applications</a><a class="headerlink" href="#pkm-containerized-applications" title="Permalink to this headline">¶</a></h1>
 <p><cite>pkm</cite>’s containerized applications is a special installation method for application packages. Packages installed as
 containerized applications creates their own container (think about it like a “sub environment”) inside the environment
 they are installed at. During the installation process, all the package dependencies are installed inside this
@@ -81,7 +88,7 @@ container. The installed dependencies are encapsulated in the container and does
 in the environment. The installed application itself is exposed to the main environment only by its registered script
 entrypoints.</p>
 <section id="why-is-it-needed">
-<h2>Why is it needed?<a class="headerlink" href="#why-is-it-needed" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Why is it needed?</a><a class="headerlink" href="#why-is-it-needed" title="Permalink to this headline">¶</a></h2>
 <p>Python packages comes in two main flavors</p>
 <ul class="simple">
 <li><p><strong>applications</strong> like: pip, twine, jupyterlab, poetry, pkm-cli, etc.</p></li>
@@ -101,7 +108,7 @@ points of view, they already used to install packages into their own environment
 installing a specific application in a different way.</p>
 </section>
 <section id="how-to-install-application-as-containerized">
-<h2>How to Install Application as Containerized?<a class="headerlink" href="#how-to-install-application-as-containerized" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">How to Install Application as Containerized?</a><a class="headerlink" href="#how-to-install-application-as-containerized" title="Permalink to this headline">¶</a></h2>
 <p>If you want to install an existing package as a containerized application you can run:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install --app &lt;package&gt;
 </pre></div>
@@ -119,7 +126,7 @@ by:</p>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></p>
 </section>
 <section id="how-to-distribute-application-as-containerized">
-<h2>How to Distribute Application as Containerized<a class="headerlink" href="#how-to-distribute-application-as-containerized" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">How to Distribute Application as Containerized</a><a class="headerlink" href="#how-to-distribute-application-as-containerized" title="Permalink to this headline">¶</a></h2>
 <p>You can distribute your application as a “containerized app” by adding the following to <cite>pyproject.toml</cite></p>
 <div class="literal-block-wrapper docutils container" id="id5">
 <div class="code-block-caption"><span class="caption-text">pyproject.toml</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
@@ -133,7 +140,7 @@ environment will use the containerized application installation mode. The instal
 require <code class="docutils literal notranslate"><span class="pre">pkm</span></code> to be installed on the end-user machine. It will work for any pep517 supported package manager (like pip).</p>
 </section>
 <section id="difference-from-vendoring">
-<h2>Difference From Vendoring<a class="headerlink" href="#difference-from-vendoring" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Difference From Vendoring</a><a class="headerlink" href="#difference-from-vendoring" title="Permalink to this headline">¶</a></h2>
 <p>Vendoring is the act of including 3rd party software directly in your distribution, with the main reason to avoid
 version conflicts when the dependencies are installed. While vendoring your dependencies can achieve a similar outcome
 like containerizing them, vendoring have a considerable drawback that does not happen with containerized applications.</p>
@@ -148,7 +155,7 @@ dependencies automatically</p></li>
 </ol>
 </section>
 <section id="application-plugins">
-<h2>Application Plugins<a class="headerlink" href="#application-plugins" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">Application Plugins</a><a class="headerlink" href="#application-plugins" title="Permalink to this headline">¶</a></h2>
 <p>Some applications may support plugins, which are packages that can be installed alongside the application and will be ”
 picked” and used by the application to extend its functionality. If you installed an application in a containerized
 mode, you can install/uninstall plugin packages inside its container using</p>
@@ -179,10 +186,8 @@ mode, you can install/uninstall plugin packages inside its container using</p>
       <div class="footer">
         <div class="left">
           <div role="navigation" aria-label="related navigaton">
-            <a href="templates.html" title="&lt;no title&gt;"
+            <a href="templates.html" title="Templates"
               >previous</a> |
-            <a href="apis/pkm_cli.api/pkm_cli.api.html" title="pkm_cli.api (Package)"
-              >next</a> |
             <a href="genindex.html" title="General Index"
               >index</a>
           </div>

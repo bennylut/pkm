@@ -4,16 +4,16 @@ WheelDistribution \(Class\)
 ###########################
 
 ..	code-block:: python
-	
-	class WheelDistribution(Distribution)
-	
+    
+    class WheelDistribution(Distribution)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, package: PackageDescriptor, wheel: Path)
-	
+    
+    def extract_metadata(self, env: Optional['Environment'] = None) -> PackageMetadata
+    
 Description
 -----------
 
@@ -23,30 +23,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	PackageDescriptor
-		-	No Description
-	*	-	wheel
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   Optional['Environment']
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def extract_metadata(self, env: Optional['Environment'] = None) -> PackageMetadata
-	
+    
+    @property
+    def owner_package(self) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -56,55 +54,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	Optional['Environment']
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def owner_package(self) -> PackageDescriptor
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def compute_compatibility_tags(self) -> str
-	
+    
+    def compute_compatibility_tags(self) -> str
+    
 Description
 -----------
 
@@ -114,30 +81,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the compatibility tag
+the compatibility tag
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def extract_compatibility_tags_of(cls, wheel: Path) -> str
-	
+    
+    @classmethod
+    def extract_compatibility_tags_of(cls, wheel: Path) -> str
+    
 Description
 -----------
 
@@ -147,33 +114,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	wheel
-		-	Path
-		-	 the wheel file name
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   wheel
+        -   Path
+        -    the wheel file name
+    
 Returns
 -------
 
- the compatibility tag
+the compatibility tag
 
 -----------------------
 
 ..	code-block:: python
-	
-	@staticmethod
-	def expected_wheel_file_name(project: 'Project') -> str
-	
+    
+    @staticmethod
+    def expected_wheel_file_name(project: 'Project') -> str
+    
 Description
 -----------
 
@@ -183,29 +150,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	project
-		-	'Project'
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   project
+        -   'Project'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def install_extracted_wheel(cls, package: PackageDescriptor, content: Path, 
-	    target: 'PackageInstallationTarget', 
-	    user_request: Optional[Dependency] = None, 
-	    installation_info: Optional[PackageInstallationInfo] = None, 
-	    skip_record_verification: bool = False)
-	
+    
+    @classmethod
+    def install_extracted_wheel(cls, package: PackageDescriptor, content: Path, 
+        target: 'PackageInstallationTarget', 
+        user_request: Optional[Dependency] = None, 
+        installation_info: Optional[PackageInstallationInfo] = None, 
+        skip_record_verification: bool = False)
+    
 Description
 -----------
 
@@ -215,44 +182,44 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	package
-		-	PackageDescriptor
-		-	No Description
-	*	-	content
-		-	Path
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	No Description
-	*	-	user_request
-		-	Optional[Dependency]
-		-	No Description
-	*	-	installation_info
-		-	Optional[PackageInstallationInfo]
-		-	No Description
-	*	-	skip_record_verification
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   package
+        -   PackageDescriptor
+        -   No Description
+    *   -   content
+        -   Path
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -   No Description
+    *   -   user_request
+        -   Optional[Dependency]
+        -   No Description
+    *   -   installation_info
+        -   Optional[PackageInstallationInfo]
+        -   No Description
+    *   -   skip_record_verification
+        -   bool
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install_to(self, target: 'PackageInstallationTarget', 
-	    user_request: Optional[Dependency] = None, 
-	    installation_mode: Optional[PackageInstallationInfo] = None)
-	
+    
+    def install_to(self, target: 'PackageInstallationTarget', 
+        user_request: Optional[Dependency] = None, 
+        installation_mode: Optional[PackageInstallationInfo] = None)
+    
 Description
 -----------
 
@@ -263,24 +230,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	No Description
-	*	-	user_request
-		-	Optional[Dependency]
-		-	No Description
-	*	-	installation_mode
-		-	Optional[PackageInstallationInfo]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -   No Description
+    *   -   user_request
+        -   Optional[Dependency]
+        -   No Description
+    *   -   installation_mode
+        -   Optional[PackageInstallationInfo]
+        -   No Description
+    

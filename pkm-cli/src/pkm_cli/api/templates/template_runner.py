@@ -23,12 +23,17 @@ class TemplateRunner:
 
     def __init__(self):
         self.jinja_context = SandboxedEnvironment(loader=FileSystemLoader("/"))
-        self.user_interface = _UserInteface()
+        self.user_interface = TemplateExtendedBuiltins()
 
     @contextmanager
     def _load_template(self, name: str) -> ContextManager[_Template]:
         name = name.replace('-', '_')
         renderer_name = f"{name}.render"
+
+        local_template_file = Path(*name.split("."), "render.py")
+        if local_template_file.exists():
+            yield _Template(iu.spec_from_file_location(str(local_template_file.resolve())), self)
+            return
 
         try:
             if template_spec := iu.find_spec(f"pkm_templates.{renderer_name}"):
@@ -139,7 +144,9 @@ class _Template:
         ui = self._runner.user_interface
         module = iu.module_from_spec(self._render_spec)
 
-        ui.install(module)
+        # noinspection PyProtectedMember
+        ui._install(module)
+
         self._render_spec.loader.exec_module(module)
 
         if not callable(getattr(module, 'setup', None)):
@@ -149,36 +156,52 @@ class _Template:
 
 
 # noinspection PyMethodMayBeStatic
-class _UserInteface:
-    def print(self, msg: str):
-        Display.print(msg)
+class TemplateExtendedBuiltins:
 
     def confirm(self, prompt: str, default: bool = True) -> bool:
-        r = q.confirm(prompt, default=default).ask()
+        """
+        ask the user a yes/no question
+        :param prompt: the prompt to show to the user
+        :param default: the default to show to the user
+        :return: True if the user enter yes, False otherwise
+        """
+        r = q.confirm(prompt, default=default).unsafe_ask()
         return r if isinstance(r, bool) else str(r).lower() in ('y', 'yes')
 
     def ask(self, prompt: str, default: Any = "", options: Optional[List[str]] = None,
             secret: bool = False, autocomplete: bool = False, multiselect: bool = False,
             path: bool = False):
 
+        """
+        ask the user using the given `prompt`, limiting its answers using the different arguments of this function
+        :param prompt: the prompt to show to the user
+        :param default: the default value to show to the user
+        :param options: limited options for the user to select from
+        :param secret: if True, the caracters the user insert will not be visible
+        :param autocomplete: use in combination with `options`, will autocomplete the user answers using the options
+        :param multiselect: use in combination with `options`, allow to select several options
+        :param path: if True, limit the user to entering a filesystem path
+        :return: the response of the user
+        """
+
         if options:
             options = list(options)  # ensure we have a list
             default = default or options[0]
             if multiselect:
-                return q.checkbox(prompt, choices=options, default=default).ask()
+                return q.checkbox(prompt, choices=options, default=default).unsafe_ask()
             elif autocomplete:
-                return q.autocomplete(prompt, choices=options, default=default).ask()
+                return q.autocomplete(prompt, choices=options, default=default).unsafe_ask()
             else:
-                return q.select(prompt, choices=options, default=default).ask()
+                return q.select(prompt, choices=options, default=default).unsafe_ask()
         else:
             if secret:
-                return q.password(prompt, default=default).ask()
+                return q.password(prompt, default=default).unsafe_ask()
             elif path:
-                return q.path(prompt, default=default).ask()
+                return q.path(prompt, default=default).unsafe_ask()
             else:
-                return q.text(prompt, default=default).ask()
+                return q.text(prompt, default=default).unsafe_ask()
 
-    def install(self, module: ModuleType):
+    def _install(self, module: ModuleType):
         module.ask = self.ask
         module.confirm = self.confirm
-        module.print = self.print
+        module.print = Display.print

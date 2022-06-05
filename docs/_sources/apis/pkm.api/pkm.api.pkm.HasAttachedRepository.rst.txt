@@ -4,18 +4,18 @@ HasAttachedRepository \(Class\)
 ###############################
 
 ..	code-block:: python
-	
-	class HasAttachedRepository(ABC)
-	
+    
+    class HasAttachedRepository(ABC)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@property
-	@abstractmethod
-	def repository_management(self) -> 'RepositoryManagement'
-	
+    
+    @property
+    @abstractmethod
+    def repository_management(self) -> 'RepositoryManagement'
+    
 Description
 -----------
 
@@ -25,25 +25,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def attached_repository(self) -> 'Repository'
-	
+    
+    @property
+    def attached_repository(self) -> 'Repository'
+    
 Description
 -----------
 
@@ -53,19 +53,19 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the repository that is attached to this artifact
+the repository that is attached to this artifact

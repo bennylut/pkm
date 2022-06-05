@@ -4,17 +4,17 @@ RepositoryTypeInfo \(Class\)
 ############################
 
 ..	code-block:: python
-	
-	@dataclass
-	class RepositoryTypeInfo
-	
+    
+    @dataclass
+    class RepositoryTypeInfo
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def is_builtin(self)
-	
+    
+    def is_builtin(self)
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def type_name(self) -> str
-	
+    
+    @property
+    def type_name(self) -> str
+    
 Description
 -----------
 
@@ -52,15 +52,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

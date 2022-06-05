@@ -4,16 +4,17 @@ SourceDistribution \(Class\)
 ############################
 
 ..	code-block:: python
-	
-	class SourceDistribution(Distribution)
-	
+    
+    class SourceDistribution(Distribution)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, package: PackageDescriptor, archive: Path)
-	
+    
+    @property
+    def owner_package(self) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -23,31 +24,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	PackageDescriptor
-		-	No Description
-	*	-	archive
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def owner_package(self) -> PackageDescriptor
-	
+    
+    def extract_metadata(self, env: 'Environment') -> PackageMetadata
+    
 Description
 -----------
 
@@ -57,24 +51,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   'Environment'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def extract_metadata(self, env: 'Environment') -> PackageMetadata
-	
+    
+    def install_to(self, target: PackageInstallationTarget, 
+        user_request: Optional[Dependency] = None, 
+        installation_mode: Optional[PackageInstallationInfo] = None)
+    
 Description
 -----------
 
@@ -84,56 +83,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	'Environment'
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def install_to(self, target: PackageInstallationTarget, 
-	    user_request: Optional[Dependency] = None, 
-	    installation_mode: Optional[PackageInstallationInfo] = None)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	PackageInstallationTarget
-		-	No Description
-	*	-	user_request
-		-	Optional[Dependency]
-		-	No Description
-	*	-	installation_mode
-		-	Optional[PackageInstallationInfo]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   PackageInstallationTarget
+        -   No Description
+    *   -   user_request
+        -   Optional[Dependency]
+        -   No Description
+    *   -   installation_mode
+        -   Optional[PackageInstallationInfo]
+        -   No Description
+    

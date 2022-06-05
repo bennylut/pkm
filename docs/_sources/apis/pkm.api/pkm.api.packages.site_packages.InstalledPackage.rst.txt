@@ -4,16 +4,17 @@ InstalledPackage \(Class\)
 ##########################
 
 ..	code-block:: python
-	
-	class InstalledPackage(Package)
-	
+    
+    class InstalledPackage(Package)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None)
-	
+    
+    @cached_property
+    def published_metadata(self) -> Optional['PackageMetadata']
+    
 Description
 -----------
 
@@ -23,31 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	dist_info
-		-	DistInfo
-		-	No Description
-	*	-	site
-		-	Optional[SitePackages]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def published_metadata(self) -> Optional['PackageMetadata']
-	
+    
+    @property
+    def dist_info(self) -> DistInfo
+    
 Description
 -----------
 
@@ -57,58 +52,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@property
-	def dist_info(self) -> DistInfo
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the installed package dist-info
+the installed package dist-info
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def descriptor(self) -> PackageDescriptor
-	
+    
+    @cached_property
+    def descriptor(self) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -118,25 +85,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def user_request(self) -> Optional[Dependency]
-	
+    
+    @cached_property
+    def user_request(self) -> Optional[Dependency]
+    
 Description
 -----------
 
@@ -146,32 +113,32 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the dependency that was requested by the user
+the dependency that was requested by the user
 if this package was directly requested by the user or its project
 otherwise None
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def installation_info(self) -> PackageInstallationInfo
-	
+    
+    @cached_property
+    def installation_info(self) -> PackageInstallationInfo
+    
 Description
 -----------
 
@@ -181,25 +148,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def dependencies(self, environment: 'Environment', 
-	    extras: Optional[List[str]] = None) -> List['Dependency']
-	
+    
+    def dependencies(self, environment: 'Environment', 
+        extras: Optional[List[str]] = None) -> List['Dependency']
+    
 Description
 -----------
 
@@ -209,30 +176,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	environment
-		-	'Environment'
-		-	No Description
-	*	-	extras
-		-	Optional[List[str]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   environment
+        -   'Environment'
+        -   No Description
+    *   -   extras
+        -   Optional[List[str]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_compatible_with(self, env: 'Environment') -> bool
-	
+    
+    def is_compatible_with(self, env: 'Environment') -> bool
+    
 Description
 -----------
 
@@ -242,28 +209,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	'Environment'
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   'Environment'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install_to(self, target: 'PackageInstallationTarget', 
-	    user_request: Optional['Dependency'] = None, editable: bool = False)
-	
+    
+    def install_to(self, target: 'PackageInstallationTarget', 
+        user_request: Optional['Dependency'] = None, editable: bool = False)
+    
 Description
 -----------
 
@@ -273,33 +240,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	No Description
-	*	-	user_request
-		-	Optional['Dependency']
-		-	No Description
-	*	-	editable
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -   No Description
+    *   -   user_request
+        -   Optional['Dependency']
+        -   No Description
+    *   -   editable
+        -   bool
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_in_purelib(self) -> bool
-	
+    
+    def is_in_purelib(self) -> bool
+    
 Description
 -----------
 
@@ -309,29 +276,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- True if this package is installed to purelib, False if it is installed into platlib
+True if this package is installed to purelib, False if it is installed into platlib
 
 -----------------------
 
 ..	code-block:: python
-	
-	def uninstall(self)
-	
+    
+    def uninstall(self)
+    
 Description
 -----------
 
@@ -341,15 +308,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

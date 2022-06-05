@@ -4,17 +4,17 @@ Project \(Class\)
 #################
 
 ..	code-block:: python
-	
-	class Project(Package, HasAttachedRepository)
-	
+    
+    class Project(Package, HasAttachedRepository)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, pyproject: PyProjectConfiguration, 
-	    group: Optional['ProjectGroup'] = None)
-	
+    
+    @property
+    def config(self) -> PyProjectConfiguration
+    
 Description
 -----------
 
@@ -24,64 +24,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	pyproject
-		-	PyProjectConfiguration
-		-	No Description
-	*	-	group
-		-	Optional['ProjectGroup']
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@property
-	def config(self) -> PyProjectConfiguration
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the project configuration (a.k.a., pyproject.toml)
+the project configuration (a.k.a., pyproject.toml)
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def group(self) -> Optional['ProjectGroup']
-	
+    
+    @cached_property
+    def group(self) -> Optional['ProjectGroup']
+    
 Description
 -----------
 
@@ -91,30 +57,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the project group if it belongs to such, otherwise None
+the project group if it belongs to such, otherwise None
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def environments_config(self) -> EnvironmentsConfiguration
-	
+    
+    @cached_property
+    def environments_config(self) -> EnvironmentsConfiguration
+    
 Description
 -----------
 
@@ -124,30 +90,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the environments.toml configuration (etc/pkm/environments.toml)
+the environments.toml configuration (etc/pkm/environments.toml)
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def repository_management(self) -> 'RepositoryManagement'
-	
+    
+    @cached_property
+    def repository_management(self) -> 'RepositoryManagement'
+    
 Description
 -----------
 
@@ -157,25 +123,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def path(self) -> Path
-	
+    
+    @property
+    def path(self) -> Path
+    
 Description
 -----------
 
@@ -185,31 +151,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the path to the project root (where the pyproject.toml is located) or
+the path to the project root (where the pyproject.toml is located) or
 None if this project was not loaded from a path
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def published_metadata(self) -> Optional[PackageMetadata]
-	
+    
+    @cached_property
+    def published_metadata(self) -> Optional[PackageMetadata]
+    
 Description
 -----------
 
@@ -219,25 +185,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def computed_metadata(self) -> PackageMetadata
-	
+    
+    @cached_property
+    def computed_metadata(self) -> PackageMetadata
+    
 Description
 -----------
 
@@ -247,25 +213,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def descriptor(self) -> PackageDescriptor
-	
+    
+    @property
+    def descriptor(self) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -275,25 +241,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def dependencies(self, environment: 'Environment', 
-	    extras: Optional[List[str]] = None) -> List['Dependency']
-	
+    
+    def dependencies(self, environment: 'Environment', 
+        extras: Optional[List[str]] = None) -> List['Dependency']
+    
 Description
 -----------
 
@@ -303,30 +269,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	environment
-		-	'Environment'
-		-	No Description
-	*	-	extras
-		-	Optional[List[str]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   environment
+        -   'Environment'
+        -   No Description
+    *   -   extras
+        -   Optional[List[str]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_compatible_with(self, env: 'Environment') -> bool
-	
+    
+    def is_compatible_with(self, env: 'Environment') -> bool
+    
 Description
 -----------
 
@@ -336,28 +302,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	'Environment'
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   'Environment'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install_to(self, target: PackageInstallationTarget, 
-	    user_request: Optional['Dependency'] = None, editable: bool = True)
-	
+    
+    def install_to(self, target: PackageInstallationTarget, 
+        user_request: Optional['Dependency'] = None, editable: bool = True)
+    
 Description
 -----------
 
@@ -367,34 +333,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	PackageInstallationTarget
-		-	No Description
-	*	-	user_request
-		-	Optional['Dependency']
-		-	No Description
-	*	-	editable
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   PackageInstallationTarget
+        -   No Description
+    *   -   user_request
+        -   Optional['Dependency']
+        -   No Description
+    *   -   editable
+        -   bool
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def update_at(self, target: 'PackageInstallationTarget', 
-	    user_request: Optional['Dependency'] = None, editable: bool = True)
-	
+    
+    def update_at(self, target: 'PackageInstallationTarget', 
+        user_request: Optional['Dependency'] = None, editable: bool = True)
+    
 Description
 -----------
 
@@ -404,34 +370,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	No Description
-	*	-	user_request
-		-	Optional['Dependency']
-		-	No Description
-	*	-	editable
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -   No Description
+    *   -   user_request
+        -   Optional['Dependency']
+        -   No Description
+    *   -   editable
+        -   bool
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def lock(self) -> PackagesLock
-	
+    
+    @cached_property
+    def lock(self) -> PackagesLock
+    
 Description
 -----------
 
@@ -441,30 +407,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the project lock, read more about it in `PackagesLock` documentation
+the project lock, read more about it in `PackagesLock` documentation
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def directories(self) -> 'ProjectDirectories'
-	
+    
+    @cached_property
+    def directories(self) -> 'ProjectDirectories'
+    
 Description
 -----------
 
@@ -474,30 +440,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- common project directories
+common project directories
 
 -----------------------
 
 ..	code-block:: python
-	
-	def bump_version(self, particle: str, new_name: Optional[str] = None, 
-	    save: bool = True) -> Version
-	
+    
+    def bump_version(self, particle: str, new_name: Optional[str] = None, 
+        save: bool = True) -> Version
+    
 Description
 -----------
 
@@ -507,38 +473,38 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	particle
-		-	str
-		-	 the particle of the version to bump, can be any of: major, minor, patch, a, b, rc, name
-	*	-	new_name
-		-	Optional[str]
-		-	 if `particle` equals to 'name' than the new name is taken from this argument
-	*	-	save
-		-	bool
-		-	 if true then the new configuration is saved into pyproject.toml
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   particle
+        -   str
+        -    the particle of the version to bump, can be any of: major, minor, patch, a, b, rc, name
+    *   -   new_name
+        -   Optional[str]
+        -    if `particle` equals to 'name' than the new name is taken from this argument
+    *   -   save
+        -   bool
+        -    if true then the new configuration is saved into pyproject.toml
+    
 Returns
 -------
 
- the new version after the bump
+the new version after the bump
 
 -----------------------
 
 ..	code-block:: python
-	
-	def dev_uninstall(self, packages: List[str])
-	
+    
+    def dev_uninstall(self, packages: List[str])
+    
 Description
 -----------
 
@@ -548,29 +514,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	packages
-		-	List[str]
-		-	 the list of package names to remove
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   packages
+        -   List[str]
+        -    the list of package names to remove
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def dev_install(self, new_dependencies: Optional[List['Dependency']] = None, 
-	    optional_group: Optional[str] = None, update: bool = False, 
-	    editable: bool = True)
-	
+    
+    def dev_install(self, new_dependencies: Optional[List['Dependency']] = None, 
+        optional_group: Optional[str] = None, update: bool = False, 
+        editable: bool = True)
+    
 Description
 -----------
 
@@ -580,36 +546,37 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	new_dependencies
-		-	Optional[List['Dependency']]
-		-	 if given, resolve and add these dependencies to this project and then install
-	*	-	optional_group
-		-	Optional[str]
-		-	 if not None, installs the dependencies including the ones from the given group, also, mark the newly installed dependencies as optional and add them to that group
-	*	-	update
-		-	bool
-		-	 if True, will attempt to update the given `new_dependencies`, or all the project dependencies if no `new_dependencies` are given
-	*	-	editable
-		-	bool
-		-	 if True, the new dependencies will be installed in editable mode
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   new_dependencies
+        -   Optional[List['Dependency']]
+        -    if given, resolve and add these dependencies to this project and then install
+    *   -   optional_group
+        -   Optional[str]
+        -    if not None, installs the dependencies including the ones from the given group, also, mark the newly installed dependencies as optional and add them to that group
+    *   -   update
+        -   bool
+        -    if True, will attempt to update the given `new_dependencies`, or all the project dependencies if no `new_dependencies` are given
+    *   -   editable
+        -   bool
+        -    if True, the new dependencies will be installed in editable mode
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def _reload(self)
-	
+    
+    @cached_property
+    def attached_environment(self) -> 'Environment'
+    
 Description
 -----------
 
@@ -619,57 +586,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@cached_property
-	def attached_environment(self) -> 'Environment'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the virtual environment that is attached to this project
+the virtual environment that is attached to this project
 
 -----------------------
 
 ..	code-block:: python
-	
-	def build_app_sdist(self, target_dir: Optional[Path] = None) -> Path
-	
+    
+    def build_app_sdist(self, target_dir: Optional[Path] = None) -> Path
+    
 Description
 -----------
 
@@ -679,32 +618,32 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target_dir
-		-	Optional[Path]
-		-	 the directory to put the created archive in
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target_dir
+        -   Optional[Path]
+        -    the directory to put the created archive in
+    
 Returns
 -------
 
- the path to the created archive
+the path to the created archive
 
 -----------------------
 
 ..	code-block:: python
-	
-	def build_sdist(self, target_dir: Optional[Path] = None) -> Path
-	
+    
+    def build_sdist(self, target_dir: Optional[Path] = None) -> Path
+    
 Description
 -----------
 
@@ -714,34 +653,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target_dir
-		-	Optional[Path]
-		-	 the directory to put the created archive in
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target_dir
+        -   Optional[Path]
+        -    the directory to put the created archive in
+    
 Returns
 -------
 
- the path to the created archive
+the path to the created archive
 
 -----------------------
 
 ..	code-block:: python
-	
-	def build_wheel(self, target_dir: Optional[Path] = None, 
-	    only_meta: bool = False, editable: bool = False, 
-	    target_env: Optional[Environment] = None) -> Path
-	
+    
+    def build_wheel(self, target_dir: Optional[Path] = None, 
+        only_meta: bool = False, editable: bool = False, 
+        target_env: Optional[Environment] = None) -> Path
+    
 Description
 -----------
 
@@ -751,41 +690,41 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target_dir
-		-	Optional[Path]
-		-	 directory to put the resulted wheel in
-	*	-	only_meta
-		-	bool
-		-	 if True, only builds the dist-info directory otherwise the whole wheel
-	*	-	editable
-		-	bool
-		-	 if True, a wheel for editable install will be created
-	*	-	target_env
-		-	Optional[Environment]
-		-	 the environment that this build should be compatible with, defaults to attached env
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target_dir
+        -   Optional[Path]
+        -    directory to put the resulted wheel in
+    *   -   only_meta
+        -   bool
+        -    if True, only builds the dist-info directory otherwise the whole wheel
+    *   -   editable
+        -   bool
+        -    if True, a wheel for editable install will be created
+    *   -   target_env
+        -   Optional[Environment]
+        -    the environment that this build should be compatible with, defaults to attached env
+    
 Returns
 -------
 
- path to the built artifact (directory if only_meta, wheel archive otherwise)
+path to the built artifact (directory if only_meta, wheel archive otherwise)
 
 -----------------------
 
 ..	code-block:: python
-	
-	def build(self, target_dir: Optional[Path] = None) -> List[Path]
-	
+    
+    def build(self, target_dir: Optional[Path] = None) -> List[Path]
+    
 Description
 -----------
 
@@ -795,27 +734,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target_dir
-		-	Optional[Path]
-		-	 directory to put the resulted distributions in
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target_dir
+        -   Optional[Path]
+        -    directory to put the resulted distributions in
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_pkm_project(self) -> bool
-	
+    
+    def is_pkm_project(self) -> bool
+    
 Description
 -----------
 
@@ -825,29 +764,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- True if this project is a pkm project, False otherwise
+True if this project is a pkm project, False otherwise
 
 -----------------------
 
 ..	code-block:: python
-	
-	def is_containerized_application(self) -> bool
-	
+    
+    def is_containerized_application(self) -> bool
+    
 Description
 -----------
 
@@ -857,30 +796,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- true if this project represents a containerized application project
+true if this project represents a containerized application project
 (the `tool.pkm.application` section exists)
 
 -----------------------
 
 ..	code-block:: python
-	
-	def is_built_in_default_location(self) -> bool
-	
+    
+    def is_built_in_default_location(self) -> bool
+    
 Description
 -----------
 
@@ -890,31 +829,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- True if the project default dist folder contain a build directory for the current version,
+True if the project default dist folder contain a build directory for the current version,
 False otherwise
 
 -----------------------
 
 ..	code-block:: python
-	
-	def publish(self, repository: Union[Repository, RepositoryPublisher], 
-	    auth_args: Dict[str, str], distributions_dir: Optional[Path] = None)
-	
+    
+    def publish(self, repository: Union[Repository, RepositoryPublisher], 
+        auth_args: Dict[str, str], distributions_dir: Optional[Path] = None)
+    
 Description
 -----------
 
@@ -925,36 +864,36 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	repository
-		-	Union[Repository, RepositoryPublisher]
-		-	 the repository to publish to
-	*	-	auth_args
-		-	Dict[str, str]
-		-	 authentication for this repository/publisher
-	*	-	distributions_dir
-		-	Optional[Path]
-		-	 directory containing the distributions (archives like wheels and sdists) to publish
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   repository
+        -   Union[Repository, RepositoryPublisher]
+        -    the repository to publish to
+    *   -   auth_args
+        -   Dict[str, str]
+        -    authentication for this repository/publisher
+    *   -   distributions_dir
+        -   Optional[Path]
+        -    directory containing the distributions (archives like wheels and sdists) to publish
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Union[Path, str], 
-	    package: Optional[PackageDescriptor] = None, 
-	    group: Optional['ProjectGroup'] = None) -> Project
-	
+    
+    @classmethod
+    def load(cls, path: Union[Path, str], 
+        package: Optional[PackageDescriptor] = None, 
+        group: Optional['ProjectGroup'] = None) -> Project
+    
 Description
 -----------
 
@@ -964,24 +903,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Union[Path, str]
-		-	No Description
-	*	-	package
-		-	Optional[PackageDescriptor]
-		-	No Description
-	*	-	group
-		-	Optional['ProjectGroup']
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Union[Path, str]
+        -   No Description
+    *   -   package
+        -   Optional[PackageDescriptor]
+        -   No Description
+    *   -   group
+        -   Optional['ProjectGroup']
+        -   No Description
+    

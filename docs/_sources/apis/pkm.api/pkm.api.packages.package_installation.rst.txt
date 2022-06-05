@@ -1,5 +1,5 @@
 ..
-	HASH:e00c14dab1a80f2274a80aaee332830a
+    HASH:e00c14dab1a80f2274a80aaee332830a
 
 pkm.api.packages.package\_installation \(Module\)
 #################################################
@@ -13,26 +13,26 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package_installation.PackageInstallationTarget>`
-	
-	..	code-block:: python
-		
-		class PackageInstallationTarget
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package_installation.PackageInstallationTarget>`
+    
+    ..	code-block:: python
+        
+        class PackageInstallationTarget
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package_installation.PackageOperation>`
-	
-	..	code-block:: python
-		
-		class PackageOperation(Enum)
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package_installation.PackageOperation>`
+    
+    ..	code-block:: python
+        
+        class PackageOperation(Enum)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package_installation.InstallationPlan>`
-	
-	..	code-block:: python
-		
-		class InstallationPlan
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package_installation.InstallationPlan>`
+    
+    ..	code-block:: python
+        
+        class InstallationPlan
+        

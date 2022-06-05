@@ -1,5 +1,5 @@
 ..
-	HASH:0c7542fa16c412a1660134312f4095d0
+    HASH:0c7542fa16c412a1660134312f4095d0
 
 pkm.api.pkm \(Module\)
 ######################
@@ -8,27 +8,27 @@ Module Fields
 =============
 
 ..	code-block:: python
-	
-	ENV_PKM_HOME = 'PKM_HOME'
-	pkm_home = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
-	pkm = Pkm(pkm_home)
-	
+    
+    ENV_PKM_HOME = 'PKM_HOME'
+    pkm_home = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
+    pkm = Pkm(pkm_home)
+    
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.pkm.HasAttachedRepository>`
-	
-	..	code-block:: python
-		
-		class HasAttachedRepository(ABC)
-		
+    
+    :doc:`[DOC] <pkm.api.pkm.HasAttachedRepository>`
+    
+    ..	code-block:: python
+        
+        class HasAttachedRepository(ABC)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.pkm.Pkm>`
-	
-	..	code-block:: python
-		
-		class Pkm(HasAttachedRepository)
-		
+    
+    :doc:`[DOC] <pkm.api.pkm.Pkm>`
+    
+    ..	code-block:: python
+        
+        class Pkm(HasAttachedRepository)
+        

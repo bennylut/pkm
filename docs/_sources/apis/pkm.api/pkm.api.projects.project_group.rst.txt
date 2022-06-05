@@ -1,5 +1,5 @@
 ..
-	HASH:f94347f70520d3530c533a6f18fb42ad
+    HASH:f94347f70520d3530c533a6f18fb42ad
 
 pkm.api.projects.project\_group \(Module\)
 ##########################################
@@ -13,18 +13,18 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.projects.project_group.ProjectGroup>`
-	
-	..	code-block:: python
-		
-		class ProjectGroup(HasAttachedRepository)
-		
+    
+    :doc:`[DOC] <pkm.api.projects.project_group.ProjectGroup>`
+    
+    ..	code-block:: python
+        
+        class ProjectGroup(HasAttachedRepository)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.projects.project_group.PyProjectGroupConfiguration>`
-	
-	..	code-block:: python
-		
-		class PyProjectGroupConfiguration(TomlFileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.projects.project_group.PyProjectGroupConfiguration>`
+    
+    ..	code-block:: python
+        
+        class PyProjectGroupConfiguration(TomlFileConfiguration)
+        

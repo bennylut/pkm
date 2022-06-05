@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List, Type
+from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
 
 from pkm.utils.types import Hashable, HasLessThan, StackLike
 

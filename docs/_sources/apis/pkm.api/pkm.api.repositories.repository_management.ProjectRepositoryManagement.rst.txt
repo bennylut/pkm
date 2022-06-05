@@ -4,17 +4,16 @@ ProjectRepositoryManagement \(Class\)
 #####################################
 
 ..	code-block:: python
-	
-	class ProjectRepositoryManagement(RepositoryManagement)
-	
+    
+    class ProjectRepositoryManagement(RepositoryManagement)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, project: Project, 
-	    loader: Optional[RepositoryLoader] = None)
-	
+    
+    def parent_contexts(self) -> List[HasAttachedRepository]
+    
 Description
 -----------
 
@@ -24,75 +23,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	project
-		-	Project
-		-	No Description
-	*	-	loader
-		-	Optional[RepositoryLoader]
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def parent_contexts(self) -> List[HasAttachedRepository]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _load_attached(self) -> Repository
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

@@ -197,16 +197,58 @@ div.content div.sidebar ul {
 div.document .class-def-with-link {
     display: flex;
     align-items: center;
+    margin-bottom: 12px;
 
     * {
         margin: 0;
     }
 
     a {
-        padding: 13px;
+        padding: 15px;
+        padding-bottom: 17px;
         border-width: 1px 0 1px 1px;
         border-style: solid;
         border-color: #484b52;
     }
 
+    .highlight {
+        margin: 0px;
+    }
+
+}
+
+dt:target, .highlighted {
+    background-color: #443c04;
+    color: yellow;
+}
+
+/* PAGE: RIGHT SIDE NAVIGATION */
+div.document .page-content {
+    padding: 24px;
+    float: right;
+    margin: 24px 0px 32px 32px;
+    background: #303030;
+    border: 1px solid #484b52;
+
+    .topic-title {
+        color: #a27eb9;
+        text-transform: initial;
+        font-size: 14px;
+        letter-spacing: initial;
+        margin-bottom: 12px;
+        font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
+    }
+
+    .reference {
+        color: #bcced7;
+    }
+
+    ul {
+        margin: 8px 0 8px 24px;
+    }
+
+}
+
+div.document a.toc-backref {
+    color: inherit;
 }

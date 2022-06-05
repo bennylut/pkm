@@ -4,16 +4,16 @@ VersionParser \(Class\)
 #######################
 
 ..	code-block:: python
-	
-	class VersionParser(SimpleParser)
-	
+    
+    class VersionParser(SimpleParser)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def read_version(self) -> StandardVersion
-	
+    
+    def read_version(self) -> StandardVersion
+    
 Description
 -----------
 
@@ -23,24 +23,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def _read_single_specifier(self) -> VersionSpecifier
-	
+    
+    def read_specifier(self)
+    
 Description
 -----------
 
@@ -50,42 +50,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def read_specifier(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

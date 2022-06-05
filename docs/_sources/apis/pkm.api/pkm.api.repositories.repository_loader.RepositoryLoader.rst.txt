@@ -4,16 +4,16 @@ RepositoryLoader \(Class\)
 ##########################
 
 ..	code-block:: python
-	
-	class RepositoryLoader
-	
+    
+    class RepositoryLoader
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, main_cfg: Path, http: HttpClient, workspace: Path)
-	
+    
+    def available_repository_types(self) -> Iterable[RepositoryTypeInfo]
+    
 Description
 -----------
 
@@ -23,33 +23,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	main_cfg
-		-	Path
-		-	No Description
-	*	-	http
-		-	HttpClient
-		-	No Description
-	*	-	workspace
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def available_repository_types(self) -> Iterable[RepositoryTypeInfo]
-	
+    
+    @property
+    def global_repo(self) -> Repository
+    
 Description
 -----------
 
@@ -59,25 +51,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def global_repo(self) -> Repository
-	
+    
+    def load(self, name: str, config: RepositoriesConfiguration, 
+        next_in_context: Repository) -> Repository
+    
 Description
 -----------
 
@@ -87,25 +79,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -   No Description
+    *   -   config
+        -   RepositoriesConfiguration
+        -   No Description
+    *   -   next_in_context
+        -   Repository
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def load(self, name: str, config: RepositoriesConfiguration, 
-	    next_in_context: Repository) -> Repository
-	
+    
+    def build(self, config: RepositoryInstanceConfig) -> Repository
+    
 Description
 -----------
 
@@ -115,54 +115,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	No Description
-	*	-	config
-		-	RepositoriesConfiguration
-		-	No Description
-	*	-	next_in_context
-		-	Repository
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def build(self, config: RepositoryInstanceConfig) -> Repository
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	config
-		-	RepositoryInstanceConfig
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   config
+        -   RepositoryInstanceConfig
+        -   No Description
+    

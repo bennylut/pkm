@@ -4,16 +4,16 @@ WheelFileConfiguration \(Class\)
 ################################
 
 ..	code-block:: python
-	
-	class WheelFileConfiguration(FileConfiguration)
-	
+    
+    class WheelFileConfiguration(FileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def generate_content(self) -> str
-	
+    
+    def generate_content(self) -> str
+    
 Description
 -----------
 
@@ -23,24 +23,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def validate_supported_version(self)
-	
+    
+    def validate_supported_version(self)
+    
 Description
 -----------
 
@@ -50,25 +50,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def create(cls, generator: str, purelib: bool)
-	
+    
+    @classmethod
+    def create(cls, generator: str, purelib: bool)
+    
 Description
 -----------
 
@@ -78,31 +78,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	generator
-		-	str
-		-	No Description
-	*	-	purelib
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   generator
+        -   str
+        -   No Description
+    *   -   purelib
+        -   bool
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Path)
-	
+    
+    @classmethod
+    def load(cls, path: Path)
+    
 Description
 -----------
 
@@ -112,18 +112,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    

@@ -21,9 +21,11 @@ class _ValueSignature:
             return other is None
 
         if isinstance(self._value, (List, Mapping)):
-            return type(other) == type(self._value)
+            # return type(other) == type(self._value)
+            return isinstance(other, type(self._value))
 
         return id(self._value) == id(other) or self._value == other
+
 
 _none_signature = _ValueSignature(None)
 

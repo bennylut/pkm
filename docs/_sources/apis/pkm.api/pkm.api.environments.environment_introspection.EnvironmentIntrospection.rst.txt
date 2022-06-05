@@ -4,17 +4,17 @@ EnvironmentIntrospection \(Class\)
 ##################################
 
 ..	code-block:: python
-	
-	class EnvironmentIntrospection(Configuration)
-	
+    
+    class EnvironmentIntrospection(Configuration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@property
-	def paths(self) -> Dict[str, str]
-	
+    
+    @property
+    def paths(self) -> Dict[str, str]
+    
 Description
 -----------
 
@@ -24,24 +24,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_windows_env(self) -> bool
-	
+    
+    def is_windows_env(self) -> bool
+    
 Description
 -----------
 
@@ -51,24 +51,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def user_paths(self) -> Optional[Dict[str, str]]
-	
+    
+    def user_paths(self) -> Optional[Dict[str, str]]
+    
 Description
 -----------
 
@@ -78,24 +78,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def compute_markers(self) -> Dict[str, str]
-	
+    
+    def compute_markers(self) -> Dict[str, str]
+    
 Description
 -----------
 
@@ -105,29 +105,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- pep508 environment markers
+pep508 environment markers
 
 -----------------------
 
 ..	code-block:: python
-	
-	def compatibility_score(self, tag: str) -> Optional[Comparable]
-	
+    
+    def compatibility_score(self, tag: str) -> Optional[Comparable]
+    
 Description
 -----------
 
@@ -137,34 +137,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	tag
-		-	str
-		-	 the pep425 compatibility tag
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   tag
+        -   str
+        -    the pep425 compatibility tag
+    
 Returns
 -------
 
- an opaque score object that support __le__ and __eq__ operations (read: comparable)
+an opaque score object that support __le__ and __eq__ operations (read: comparable)
 which can be treated as a score (read: higher is better)
 
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def interpreter_name(self) -> str
-	
+    
+    @property
+    def interpreter_name(self) -> str
+    
 Description
 -----------
 
@@ -174,30 +174,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the name of the interpreter as given in `sys.implementation.name`
+the name of the interpreter as given in `sys.implementation.name`
 
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def interpreter_path(self) -> str
-	
+    
+    @property
+    def interpreter_path(self) -> str
+    
 Description
 -----------
 
@@ -207,25 +207,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def interpreter_version(self) -> List[int]
-	
+    
+    @property
+    def interpreter_version(self) -> List[int]
+    
 Description
 -----------
 
@@ -235,24 +235,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def _compute_generic_abis(self) -> Iterator[str]
-	
+    
+    @property
+    def is_32bit_interpreter(self)
+    
 Description
 -----------
 
@@ -262,25 +263,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def is_32bit_interpreter(self)
-	
+    
+    @classmethod
+    def compute(cls, interpreter_path: Path) -> 'EnvironmentIntrospection'
+    
 Description
 -----------
 
@@ -290,25 +291,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   interpreter_path
+        -   Path
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def _glibc_version(self) -> Optional[StandardVersion]
-	
+    
+    @classmethod
+    def load_or_compute(cls, path: Path, interpreter_path: Path, 
+        save_if_recomputed: bool = True) -> 'EnvironmentIntrospection'
+    
 Description
 -----------
 
@@ -318,142 +323,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _compute_cpython_abis(self, py_version: Tuple[int, ...]) -> List[str]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	py_version
-		-	Tuple[int, ...]
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@cached_property
-	def _compatibility_tag_scorer(self) -> Callable[[str, str, str], Optional[HasLessThan]]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def compute(cls, interpreter_path: Path) -> 'EnvironmentIntrospection'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	interpreter_path
-		-	Path
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def load_or_compute(cls, path: Path, interpreter_path: Path, 
-	    save_if_recomputed: bool = True) -> 'EnvironmentIntrospection'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	No Description
-	*	-	interpreter_path
-		-	Path
-		-	No Description
-	*	-	save_if_recomputed
-		-	bool
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    *   -   interpreter_path
+        -   Path
+        -   No Description
+    *   -   save_if_recomputed
+        -   bool
+        -   No Description
+    

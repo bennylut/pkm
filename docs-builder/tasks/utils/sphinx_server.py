@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import multiprocessing
-import shutil
 import socket
 import socketserver
 from http.server import SimpleHTTPRequestHandler
@@ -71,6 +70,7 @@ class SphinxAutoreloadHandler(SimpleHTTPRequestHandler):
         self.output_dir = server.output_dir
         super().__init__(request, client_address, server, directory=str(server.output_dir))
 
+    # noinspection PyMethodMayBeStatic
     def rewrite_html(self, source: Path) -> bytes:
         tree = etree.fromstring(source.read_text())
         script = etree.Element("script")

@@ -1,5 +1,5 @@
 ..
-	HASH:d71ab256f12ed1c161d1797ec354a794
+    HASH:d71ab256f12ed1c161d1797ec354a794
 
 pkm.api.buildsys \(Module\)
 ###########################
@@ -13,10 +13,10 @@ Module Functions
 ================
 
 ..	code-block:: python
-	
-	@contextmanager
-	def buildsys_pkm() -> ContextManager
-	
+    
+    @contextmanager
+    def buildsys_pkm() -> ContextManager
+    
 Description
 -----------
 
@@ -25,10 +25,10 @@ Not Documented
 -----------------------
 
 ..	code-block:: python
-	
-	def build_wheel(wheel_directory: str, config_settings = None, 
-	    metadata_directory = None)
-	
+    
+    def build_wheel(wheel_directory: str, config_settings = None, 
+        metadata_directory = None)
+    
 Description
 -----------
 
@@ -38,30 +38,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	wheel_directory
-		-	str
-		-	No Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	*	-	metadata_directory
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   wheel_directory
+        -   str
+        -   No Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    *   -   metadata_directory
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def build_sdist(sdist_directory: str, config_settings = None)
-	
+    
+    def build_sdist(sdist_directory: str, config_settings = None)
+    
 Description
 -----------
 
@@ -71,27 +71,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	sdist_directory
-		-	str
-		-	No Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   sdist_directory
+        -   str
+        -   No Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def get_requires_for_build_wheel(config_settings = None)
-	
+    
+    def get_requires_for_build_wheel(config_settings = None)
+    
 Description
 -----------
 
@@ -101,25 +101,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def prepare_metadata_for_build_wheel(metadata_directory: str, 
-	    config_settings = None)
-	
+    
+    def prepare_metadata_for_build_wheel(metadata_directory: str, 
+        config_settings = None)
+    
 Description
 -----------
 
@@ -129,27 +129,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	metadata_directory
-		-	str
-		-	No Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   metadata_directory
+        -   str
+        -   No Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def get_requires_for_build_sdist(config_settings = None)
-	
+    
+    def get_requires_for_build_sdist(config_settings = None)
+    
 Description
 -----------
 
@@ -159,25 +159,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def build_editable(wheel_directory, config_settings = None, 
-	    metadata_directory = None)
-	
+    
+    def build_editable(wheel_directory, config_settings = None, 
+        metadata_directory = None)
+    
 Description
 -----------
 
@@ -187,30 +187,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	wheel_directory
-		-	Any
-		-	No Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	*	-	metadata_directory
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   wheel_directory
+        -   Any
+        -   No Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    *   -   metadata_directory
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def get_requires_for_build_editable(config_settings = None)
-	
+    
+    def get_requires_for_build_editable(config_settings = None)
+    
 Description
 -----------
 
@@ -220,25 +220,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def prepare_metadata_for_build_editable(metadata_directory, 
-	    config_settings = None)
-	
+    
+    def prepare_metadata_for_build_editable(metadata_directory, 
+        config_settings = None)
+    
 Description
 -----------
 
@@ -248,18 +248,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	metadata_directory
-		-	Any
-		-	No Description
-	*	-	config_settings
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   metadata_directory
+        -   Any
+        -   No Description
+    *   -   config_settings
+        -   Any
+        -   No Description
+    

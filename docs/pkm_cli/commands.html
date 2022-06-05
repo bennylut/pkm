@@ -46,15 +46,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../containers.html">Application Containers</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../apis/pkm.api/pkm.api.html">pkm API</a></li>
 </ul>
 
           <div role="search">
@@ -72,10 +68,24 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="cli-command-reference">
-<h1>Cli Command Reference<a class="headerlink" href="#cli-command-reference" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#cli-command-reference" id="id1">Cli Command Reference</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-main-pkm-command" id="id2">The Main <code class="docutils literal notranslate"><span class="pre">pkm</span></code> Command</a></p></li>
+<li><p><a class="reference internal" href="#contextual-commands" id="id3">Contextual Commands</a></p></li>
+<li><p><a class="reference internal" href="#package-management-commands" id="id4">Package Management Commands</a></p></li>
+<li><p><a class="reference internal" href="#project-management-commands" id="id5">Project Management Commands</a></p></li>
+<li><p><a class="reference internal" href="#repositories-management-commands" id="id6">Repositories Management Commands</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="cli-command-reference">
+<h1><a class="toc-backref" href="#id1">Cli Command Reference</a><a class="headerlink" href="#cli-command-reference" title="Permalink to this headline">¶</a></h1>
 <section id="the-main-pkm-command">
-<h2>The Main <code class="docutils literal notranslate"><span class="pre">pkm</span></code> Command<a class="headerlink" href="#the-main-pkm-command" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id2">The Main <code class="docutils literal notranslate"><span class="pre">pkm</span></code> Command</a><a class="headerlink" href="#the-main-pkm-command" title="Permalink to this headline">¶</a></h2>
 <p><p>pkm - python package management for busy developers</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONTEXT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nt</span><span class="p">]</span> <span class="p">{</span><span class="n">repos</span><span class="p">,</span><span class="n">run</span><span class="p">,</span><span class="n">shell</span><span class="p">,</span><span class="n">build</span><span class="p">,</span><span class="n">vbump</span><span class="p">,</span><span class="n">install</span><span class="p">,</span><span class="n">uninstall</span><span class="p">,</span><span class="n">publish</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="n">show</span><span class="p">,</span><span class="n">clean</span><span class="p">}</span> <span class="o">...</span>
@@ -103,7 +113,7 @@
 </section>
 </section>
 <section id="contextual-commands">
-<h2>Contextual Commands<a class="headerlink" href="#contextual-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Contextual Commands</a><a class="headerlink" href="#contextual-commands" title="Permalink to this headline">¶</a></h2>
 <p>Many of <code class="docutils literal notranslate"><span class="pre">pkm</span></code>’s commands are context dependent, for example, the command:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm install some_package
 </pre></div>
@@ -140,7 +150,7 @@ you can ask <code class="docutils literal notranslate"><span class="pre">pkm</sp
 </section>
 </section>
 <section id="package-management-commands">
-<h2>Package Management Commands<a class="headerlink" href="#package-management-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Package Management Commands</a><a class="headerlink" href="#package-management-commands" title="Permalink to this headline">¶</a></h2>
 <p>This section outlines the <code class="docutils literal notranslate"><span class="pre">pkm</span></code> sub-commands that are related to package management</p>
 <section id="pkm-install">
 <h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">install</span></code><a class="headerlink" href="#pkm-install" title="Permalink to this headline">¶</a></h3>
@@ -228,7 +238,7 @@ you can ask <code class="docutils literal notranslate"><span class="pre">pkm</sp
 </section>
 </section>
 <section id="project-management-commands">
-<h2>Project Management Commands<a class="headerlink" href="#project-management-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Project Management Commands</a><a class="headerlink" href="#project-management-commands" title="Permalink to this headline">¶</a></h2>
 <section id="pkm-build">
 <h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">build</span></code><a class="headerlink" href="#pkm-build" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">build</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
@@ -273,7 +283,7 @@ you can ask <code class="docutils literal notranslate"><span class="pre">pkm</sp
 </section>
 </section>
 <section id="repositories-management-commands">
-<h2>Repositories Management Commands<a class="headerlink" href="#repositories-management-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Repositories Management Commands</a><a class="headerlink" href="#repositories-management-commands" title="Permalink to this headline">¶</a></h2>
 <section id="pkm-repos-install">
 <h3><code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">repos</span> <span class="pre">install</span></code><a class="headerlink" href="#pkm-repos-install" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">pkm</span> <span class="n">repos</span> <span class="n">install</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="o">...</span>

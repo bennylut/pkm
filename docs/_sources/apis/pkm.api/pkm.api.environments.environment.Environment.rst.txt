@@ -4,17 +4,17 @@ Environment \(Class\)
 #####################
 
 ..	code-block:: python
-	
-	class Environment(HasAttachedRepository)
-	
+    
+    class Environment(HasAttachedRepository)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, *, 
-	    use_user_site: bool = False, zoo: Optional['EnvironmentsZoo'] = None)
-	
+    
+    @property
+    def path(self) -> Path
+    
 Description
 -----------
 
@@ -24,70 +24,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env_path
-		-	Path
-		-	No Description
-	*	-	interpreter_path
-		-	Optional[Path]
-		-	No Description
-	*	-	use_user_site
-		-	bool
-		-	No Description
-	*	-	zoo
-		-	Optional['EnvironmentsZoo']
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@property
-	def path(self) -> Path
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the path for this environment root directory
+the path for this environment root directory
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def zoo(self) -> Optional['EnvironmentsZoo']
-	
+    
+    @cached_property
+    def zoo(self) -> Optional['EnvironmentsZoo']
+    
 Description
 -----------
 
@@ -97,25 +57,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def app_containers(self) -> 'ContainerizedApplications'
-	
+    
+    @property
+    def app_containers(self) -> 'ContainerizedApplications'
+    
 Description
 -----------
 
@@ -125,25 +85,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def repository_management(self) -> 'RepositoryManagement'
-	
+    
+    @cached_property
+    def repository_management(self) -> 'RepositoryManagement'
+    
 Description
 -----------
 
@@ -153,25 +113,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def _introspection(self) -> EnvironmentIntrospection
-	
+    
+    @property
+    def name(self) -> str
+    
 Description
 -----------
 
@@ -181,25 +141,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def name(self) -> str
-	
+    
+    @cached_property
+    def installation_target(self) -> PackageInstallationTarget
+    
 Description
 -----------
 
@@ -209,25 +169,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def installation_target(self) -> PackageInstallationTarget
-	
+    
+    @cached_property
+    def interpreter_version(self) -> StandardVersion
+    
 Description
 -----------
 
@@ -237,85 +197,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __repr__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@cached_property
-	def interpreter_version(self) -> StandardVersion
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the version of the environment's python interpreter
+the version of the environment's python interpreter
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def interpreter_path(self) -> Path
-	
+    
+    @cached_property
+    def interpreter_path(self) -> Path
+    
 Description
 -----------
 
@@ -325,30 +230,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the path for the environment's python interpreter
+the path for the environment's python interpreter
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def operating_platform(self) -> 'OperatingPlatform'
-	
+    
+    @cached_property
+    def operating_platform(self) -> 'OperatingPlatform'
+    
 Description
 -----------
 
@@ -358,24 +263,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def compatibility_tag_score(self, tag: str) -> Optional[Comparable]
-	
+    
+    def compatibility_tag_score(self, tag: str) -> Optional[Comparable]
+    
 Description
 -----------
 
@@ -385,34 +290,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	tag
-		-	str
-		-	 the pep425 compatibility tag
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   tag
+        -   str
+        -    the pep425 compatibility tag
+    
 Returns
 -------
 
- an opaque score object that support __le__ and __eq__ operations (read: comparable)
+an opaque score object that support __le__ and __eq__ operations (read: comparable)
 which can be treated as a score (read: higher is better)
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def markers(self) -> Dict[str, str]
-	
+    
+    @cached_property
+    def markers(self) -> Dict[str, str]
+    
 Description
 -----------
 
@@ -422,30 +327,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- pep508 environment markers
+pep508 environment markers
 
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def site_packages(self) -> SitePackages
-	
+    
+    @cached_property
+    def site_packages(self) -> SitePackages
+    
 Description
 -----------
 
@@ -455,25 +360,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def markers_hash(self) -> str
-	
+    
+    @cached_property
+    def markers_hash(self) -> str
+    
 Description
 -----------
 
@@ -483,30 +388,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- a hash built from the environment's markers, can be used to identify instances of this environment
+a hash built from the environment's markers, can be used to identify instances of this environment
 
 -----------------------
 
 ..	code-block:: python
-	
-	@contextmanager
-	def activate(self, env: MutableMapping[str, str] = os.environ)
-	
+    
+    @contextmanager
+    def activate(self, env: MutableMapping[str, str] = os.environ)
+    
 Description
 -----------
 
@@ -516,28 +421,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	MutableMapping[str, str]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   MutableMapping[str, str]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def exec_proc(self, cmd: str, args: Optional[List[str]] = None, 
-	    env: Optional[Dict[str, str]] = None) -> NoReturn
-	
+    
+    def exec_proc(self, cmd: str, args: Optional[List[str]] = None, 
+        env: Optional[Dict[str, str]] = None) -> NoReturn
+    
 Description
 -----------
 
@@ -548,33 +453,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	cmd
-		-	str
-		-	 the command to execute
-	*	-	args
-		-	Optional[List[str]]
-		-	 list of arguments
-	*	-	env
-		-	Optional[Dict[str, str]]
-		-	 environment variables
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   cmd
+        -   str
+        -    the command to execute
+    *   -   args
+        -   Optional[List[str]]
+        -    list of arguments
+    *   -   env
+        -   Optional[Dict[str, str]]
+        -    environment variables
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess
-	
+    
+    def run_proc(self, args: List[str], **subprocess_run_kwargs) -> CompletedProcess
+    
 Description
 -----------
 
@@ -585,35 +490,35 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	args
-		-	List[str]
-		-	 the command to execute
-	*	-	subprocess_run_kwargs
-		-	Any
-		-	 any argument that is accepted by `subprocess.run` (aside from args)
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   args
+        -   List[str]
+        -    the command to execute
+    *   -   subprocess_run_kwargs
+        -   Any
+        -    any argument that is accepted by `subprocess.run` (aside from args)
+    
 Returns
 -------
 
- a `CompletedProcess` instance describing the completion of the requested process
+a `CompletedProcess` instance describing the completion of the requested process
 
 -----------------------
 
 ..	code-block:: python
-	
-	def reload(self)
-	
+    
+    def reload(self)
+    
 Description
 -----------
 
@@ -623,25 +528,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install_link(self, name: str, paths: List[Path], 
-	    imports: Optional[List[str]] = None)
-	
+    
+    def install_link(self, name: str, paths: List[Path], 
+        imports: Optional[List[str]] = None)
+    
 Description
 -----------
 
@@ -651,37 +556,37 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	No Description
-	*	-	paths
-		-	List[Path]
-		-	 the paths to add in the created link
-	*	-	imports
-		-	Optional[List[str]]
-		-	 imports to execute at runtime when reading this link (example: `imports` = ['abc'] will import the abc package when the interpreter attached to this environment gets executed and meets the created link)
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -   No Description
+    *   -   paths
+        -   List[Path]
+        -    the paths to add in the created link
+    *   -   imports
+        -   Optional[List[str]]
+        -    imports to execute at runtime when reading this link (example: `imports` = ['abc'] will import the abc package when the interpreter attached to this environment gets executed and meets the created link)
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install(self, dependencies: _DEPENDENCIES_T, 
-	    repository: Optional[Repository] = None, user_requested: bool = True, 
-	    dependencies_override: Optional[Dict[str, List[Dependency]]] = None, 
-	    editables: Optional[Dict[str, bool]] = None, 
-	    updates: Optional[List[str]] = None)
-	
+    
+    def install(self, dependencies: _DEPENDENCIES_T, 
+        repository: Optional[Repository] = None, user_requested: bool = True, 
+        dependencies_override: Optional[Dict[str, List[Dependency]]] = None, 
+        editables: Optional[Dict[str, bool]] = None, 
+        updates: Optional[List[str]] = None)
+    
 Description
 -----------
 
@@ -692,42 +597,42 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	dependencies
-		-	_DEPENDENCIES_T
-		-	No Description
-	*	-	repository
-		-	Optional[Repository]
-		-	No Description
-	*	-	user_requested
-		-	bool
-		-	No Description
-	*	-	dependencies_override
-		-	Optional[Dict[str, List[Dependency]]]
-		-	No Description
-	*	-	editables
-		-	Optional[Dict[str, bool]]
-		-	No Description
-	*	-	updates
-		-	Optional[List[str]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   dependencies
+        -   _DEPENDENCIES_T
+        -   No Description
+    *   -   repository
+        -   Optional[Repository]
+        -   No Description
+    *   -   user_requested
+        -   bool
+        -   No Description
+    *   -   dependencies_override
+        -   Optional[Dict[str, List[Dependency]]]
+        -   No Description
+    *   -   editables
+        -   Optional[Dict[str, bool]]
+        -   No Description
+    *   -   updates
+        -   Optional[List[str]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def force_remove(self, package: str)
-	
+    
+    def force_remove(self, package: str)
+    
 Description
 -----------
 
@@ -738,27 +643,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	str
-		-	 the name of the package to be removed
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   package
+        -   str
+        -    the name of the package to be removed
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def uninstall(self, packages: _PACKAGE_NAMES_T) -> Set[str]
-	
+    
+    def uninstall(self, packages: _PACKAGE_NAMES_T) -> Set[str]
+    
 Description
 -----------
 
@@ -773,28 +678,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	packages
-		-	_PACKAGE_NAMES_T
-		-	 the package names to remove
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   packages
+        -   _PACKAGE_NAMES_T
+        -    the package names to remove
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def entrypoints(self) -> Dict[str, List[EntryPoint]]
-	
+    
+    @cached_property
+    def entrypoints(self) -> Dict[str, List[EntryPoint]]
+    
 Description
 -----------
 
@@ -804,30 +709,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- all entrypoints in this environment grouped by their defined group
+all entrypoints in this environment grouped by their defined group
 
 -----------------------
 
 ..	code-block:: python
-	
-	@staticmethod
-	def is_valid(path: Path) -> bool
-	
+    
+    @staticmethod
+    def is_valid(path: Path) -> bool
+    
 Description
 -----------
 
@@ -837,30 +742,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	path
-		-	Path
-		-	 a path that may contain a python environment
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   path
+        -   Path
+        -    a path that may contain a python environment
+    
 Returns
 -------
 
- true if this path contains a python environment
+true if this path contains a python environment
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def of_interpreter(cls, interpreter: Path, site: str = 'user') -> Environment
-	
+    
+    @classmethod
+    def of_interpreter(cls, interpreter: Path, site: str = 'user') -> Environment
+    
 Description
 -----------
 
@@ -870,36 +775,36 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	interpreter
-		-	Path
-		-	 the interpreter to use
-	*	-	site
-		-	str
-		-	 control the installation site of the returned environment - acceptable values are 'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option just use the regular site, you can read about the 'user' site in documentation of `site.getusersitepackages()`
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   interpreter
+        -   Path
+        -    the interpreter to use
+    *   -   site
+        -   str
+        -    control the installation site of the returned environment - acceptable values are 'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option just use the regular site, you can read about the 'user' site in documentation of `site.getusersitepackages()`
+    
 Returns
 -------
 
- the loaded environment
+the loaded environment
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def current(cls, site: str = 'user') -> Environment
-	
+    
+    @classmethod
+    def current(cls, site: str = 'user') -> Environment
+    
 Description
 -----------
 
@@ -909,33 +814,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	site
-		-	str
-		-	 control the installation site of the returned environment - acceptable values are 'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option just use the regular site, you can read about the 'user' site in documentation of `site.getusersitepackages()`
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   site
+        -   str
+        -    control the installation site of the returned environment - acceptable values are 'user' and 'system', it is only applicable for system (read: non-virtual) environments. the 'system' option just use the regular site, you can read about the 'user' site in documentation of `site.getusersitepackages()`
+    
 Returns
 -------
 
- the loaded environment
+the loaded environment
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Union[Path, str]) -> Environment
-	
+    
+    @classmethod
+    def load(cls, path: Union[Path, str]) -> Environment
+    
 Description
 -----------
 
@@ -945,18 +850,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Union[Path, str]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Union[Path, str]
+        -   No Description
+    

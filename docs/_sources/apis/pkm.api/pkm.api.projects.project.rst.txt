@@ -1,5 +1,5 @@
 ..
-	HASH:507f0363ff057b12b86ea60e5756467f
+    HASH:507f0363ff057b12b86ea60e5756467f
 
 pkm.api.projects.project \(Module\)
 ###################################
@@ -13,18 +13,18 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.projects.project.Project>`
-	
-	..	code-block:: python
-		
-		class Project(Package, HasAttachedRepository)
-		
+    
+    :doc:`[DOC] <pkm.api.projects.project.Project>`
+    
+    ..	code-block:: python
+        
+        class Project(Package, HasAttachedRepository)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.projects.project.ProjectDirectories>`
-	
-	..	code-block:: python
-		
-		class ProjectDirectories
-		
+    
+    :doc:`[DOC] <pkm.api.projects.project.ProjectDirectories>`
+    
+    ..	code-block:: python
+        
+        class ProjectDirectories
+        

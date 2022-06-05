@@ -4,16 +4,16 @@ ContainerizedApplications \(Class\)
 ###################################
 
 ..	code-block:: python
-	
-	class ContainerizedApplications
-	
+    
+    class ContainerizedApplications
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, target: PackageInstallationTarget)
-	
+    
+    def containers(self) -> List[ContainerizedApplication]
+    
 Description
 -----------
 
@@ -23,27 +23,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	PackageInstallationTarget
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def containers(self) -> List[ContainerizedApplication]
-	
+    
+    def container_of(self, package: str) -> Optional[ContainerizedApplication]
+    
 Description
 -----------
 
@@ -53,183 +50,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   package
+        -   str
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def _target_of(self, package: str) -> PackageInstallationTarget
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	str
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def container_of(self, package: str) -> Optional[ContainerizedApplication]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	str
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@contextmanager
-	def _wrapper_project(self, app: Union[Dependency, 'Project']) -> ContextManager['Project']
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	app
-		-	Union[Dependency, 'Project']
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _install(self, app: 'Project', editable: bool = True) -> ContainerizedApplication
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	app
-		-	'Project'
-		-	No Description
-	*	-	editable
-		-	bool
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _get_or_install(self, app: Union[Dependency, Project], 
-	    editable: bool = True) -> ContainerizedApplication
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	app
-		-	Union[Dependency, Project]
-		-	No Description
-	*	-	editable
-		-	bool
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def install(self, app: Union[Dependency, Project], editable: bool = True, 
-	    update: bool = False) -> ContainerizedApplication
-	
+    
+    def install(self, app: Union[Dependency, Project], editable: bool = True, 
+        update: bool = False) -> ContainerizedApplication
+    
 Description
 -----------
 
@@ -239,28 +81,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	app
-		-	Union[Dependency, Project]
-		-	 the app to install, if not referring to a containerized project will create containerized wrapper
-	*	-	editable
-		-	bool
-		-	 if true, the installation of `app` inside the container will be in editable mode
-	*	-	update
-		-	bool
-		-	 if true, will force re-installation, even if the same version is already installed in the relevant site
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   app
+        -   Union[Dependency, Project]
+        -    the app to install, if not referring to a containerized project will create containerized wrapper
+    *   -   editable
+        -   bool
+        -    if true, the installation of `app` inside the container will be in editable mode
+    *   -   update
+        -   bool
+        -    if true, will force re-installation, even if the same version is already installed in the relevant site
+    
 Returns
 -------
 
- containerized application controller class for the performed installation
+containerized application controller class for the performed installation

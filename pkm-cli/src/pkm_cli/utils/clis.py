@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from argparse import Action, FileType, Namespace, ArgumentParser, SUPPRESS
 from copy import copy
 from dataclasses import dataclass
 from types import FunctionType
 from typing import List, Type, Union, Optional, Any, TypeVar, Generic, Callable, Tuple, Iterable, Dict
 
-from pkm.utils.commons import IllegalStateException, UnsupportedOperationException
+from pkm.utils.commons import IllegalStateException
 from pkm.utils.dicts import remove_none_values
 from pkm.utils.seqs import seq
 

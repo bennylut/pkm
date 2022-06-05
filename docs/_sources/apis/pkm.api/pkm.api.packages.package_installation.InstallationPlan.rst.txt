@@ -4,17 +4,16 @@ InstallationPlan \(Class\)
 ##########################
 
 ..	code-block:: python
-	
-	class InstallationPlan
-	
+    
+    class InstallationPlan
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, target: PackageInstallationTarget, packages: List[Package], 
-	    user_requests: Dict[str, 'Dependency'])
-	
+    
+    def selected_package(self, name: str) -> Optional[Package]
+    
 Description
 -----------
 
@@ -24,33 +23,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	PackageInstallationTarget
-		-	No Description
-	*	-	packages
-		-	List[Package]
-		-	No Description
-	*	-	user_requests
-		-	Dict[str, 'Dependency']
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def selected_package(self, name: str) -> Optional[Package]
-	
+    
+    def compute_operations_for_target(self, 
+        target: Optional[PackageInstallationTarget] = None) -> Dict[Package, PackageOperation]
+    
 Description
 -----------
 
@@ -60,58 +54,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   Optional[PackageInstallationTarget]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def compute_operations_for_target(self, 
-	    target: Optional[PackageInstallationTarget] = None) -> Dict[Package, PackageOperation]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	Optional[PackageInstallationTarget]
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def execute(self, target: Optional[PackageInstallationTarget] = None)
-	
+    
+    def execute(self, target: Optional[PackageInstallationTarget] = None)
+    
 Description
 -----------
 
@@ -121,18 +84,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	Optional[PackageInstallationTarget]
-		-	 the site in which to execute this installation
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   Optional[PackageInstallationTarget]
+        -    the site in which to execute this installation
+    

@@ -4,18 +4,18 @@ PackageSharingConfig \(Class\)
 ##############################
 
 ..	code-block:: python
-	
-	@dataclass(eq=True, frozen=True)
-	class PackageSharingConfig
-	
+    
+    @dataclass(eq=True, frozen=True)
+    class PackageSharingConfig
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@classmethod
-	def from_config(cls, cfg: Optional[Dict[str, Any]]) -> PackageSharingConfig
-	
+    
+    @classmethod
+    def from_config(cls, cfg: Optional[Dict[str, Any]]) -> PackageSharingConfig
+    
 Description
 -----------
 
@@ -25,27 +25,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	cfg
-		-	Optional[Dict[str, Any]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   cfg
+        -   Optional[Dict[str, Any]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def to_config(self) -> Dict[str, Any]
-	
+    
+    def to_config(self) -> Dict[str, Any]
+    
 Description
 -----------
 
@@ -55,15 +55,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

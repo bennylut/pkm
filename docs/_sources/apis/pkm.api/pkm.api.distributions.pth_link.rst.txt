@@ -1,5 +1,5 @@
 ..
-	HASH:23c01d1250c89345270080f59a8868ff
+    HASH:23c01d1250c89345270080f59a8868ff
 
 pkm.api.distributions.pth\_link \(Module\)
 ##########################################
@@ -13,10 +13,10 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.pth_link.PthLink>`
-	
-	..	code-block:: python
-		
-		class PthLink
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.pth_link.PthLink>`
+    
+    ..	code-block:: python
+        
+        class PthLink
+        

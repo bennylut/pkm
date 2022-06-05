@@ -4,9 +4,9 @@ PackageInstallMonitoredOp \(Class\)
 ###################################
 
 ..	code-block:: python
-	
-	@dataclass
-	class PackageInstallMonitoredOp(MonitoredOperation)
-	
+    
+    @dataclass
+    class PackageInstallMonitoredOp(MonitoredOperation)
+    
 Class Methods
 =============

@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from pkm.api.licenses import KNOWN_LICENSES
 from pkm.api.packages.package import PackageDescriptor
@@ -10,7 +9,7 @@ try:
     import pwd
 
     default_author = pwd.getpwuid(os.getuid()).pw_name
-except:
+except: # noqa
     default_author = os.environ.get('USERNAME') or 'Johon Doe'
 
 global ask

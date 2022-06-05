@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,13 +67,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="version-class">
-<h1>Version (Class)<a class="headerlink" href="#version-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#version-class" id="id11">Version (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id12">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="version-class">
+<h1><a class="toc-backref" href="#id11">Version (Class)</a><a class="headerlink" href="#version-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Version</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">is_pre_or_dev_release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
 </pre></div>
@@ -200,7 +211,8 @@
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;Version&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Version&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -210,66 +222,6 @@
 </section>
 <section id="id10">
 <h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>other</p></td>
-<td><p>‘Version’</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
-<span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
-</pre></div>
-</div>
-</section>
-<section id="id11">
-<h3>Description<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id12">
-<h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>other</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Version&#39;</span>
-</pre></div>
-</div>
-</section>
-<section id="id13">
-<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id14">
-<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>

@@ -19,7 +19,7 @@ from pkm.api.packages.site_packages import SitePackages
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
-from pkm.utils.commons import unone, NoSuchElementException, UnsupportedOperationException
+from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
 from pkm.utils.files import is_root_path
 from pkm.utils.iterators import find_first
@@ -37,6 +37,7 @@ _PACKAGE_NAMES_T = Union[str, List[str]]
 _T = TypeVar("_T")
 
 _DBG_ACTIVATED = set()
+
 
 class Environment(HasAttachedRepository):
 

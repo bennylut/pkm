@@ -6,8 +6,9 @@ from sphinx.application import Sphinx
 
 
 def add_class_role(spx: Sphinx, name: str, classes: List[str]):
+    # noinspection PyUnusedLocal
     def cls_rule(
-            name: str, rawtext: str, text: str, lineno: int, inliner: Inliner,
+            name_: str, rawtext: str, text: str, lineno: int, inliner: Inliner,
             options: Optional[Dict[str, Any]] = None, content: Optional[List[str]] = None
     ) -> Tuple[List, List[str]]:
         """
@@ -20,17 +21,17 @@ def add_class_role(spx: Sphinx, name: str, classes: List[str]):
     spx.add_role(name, cls_rule)
 
 
-def initialize_css_roles(spx: Sphinx, config):
+def initialize_css_roles(spx: Sphinx, _):
     added_roles = []
     for clsrl in spx.config.class_roles:
         if isinstance(clsrl, str):
             rl, cls = clsrl, [clsrl]
         else:
             rl, cls = clsrl[0], clsrl[1:]
-        
+
         add_class_role(spx, rl, cls)
         added_roles.append(rl)
-        
+
     print(f"class roles added: {added_roles}")
 
 

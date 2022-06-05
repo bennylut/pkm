@@ -4,17 +4,17 @@ PackageArtifact \(Class\)
 #########################
 
 ..	code-block:: python
-	
-	@dataclass(frozen=True, eq=True)
-	class PackageArtifact
-	
+    
+    @dataclass(frozen=True, eq=True)
+    class PackageArtifact
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def is_binary(self)
-	
+    
+    def is_binary(self)
+    
 Description
 -----------
 
@@ -24,15 +24,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

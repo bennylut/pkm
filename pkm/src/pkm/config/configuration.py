@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import configparser
 from abc import ABC, abstractmethod
-from copy import copy
 from pathlib import Path
-from typing import Optional, Dict, Any, List, Sequence, Mapping, Iterator, Callable, TypeVar, Tuple, Type, cast, \
+from typing import Optional, Dict, Any, List, Sequence, Mapping, Callable, TypeVar, Tuple, Type, cast, \
     MutableMapping, Generic, Iterable
 
 from pkm.config import toml
@@ -15,19 +14,14 @@ class Configuration:
 
     def __init__(
             self, *,
-            parent: Optional["Configuration"] = None,
             data: Optional[Dict[str, Any]] = None):
-        self._parent = parent
         self._data: Dict[str, Any] = data if data is not None else {}
 
     def __getitem__(self, item: Sequence[str]) -> Any:
         if isinstance(item, str):
             item = toml.key2path(item)
 
-        r = self._get(item)
-        if r is None and self._parent:
-            r = self._parent[item]
-        return r
+        return self._get(item)
 
     def __contains__(self, item: Sequence[str]):
         return self[item] is not None
@@ -43,32 +37,6 @@ class Configuration:
             r = r.get(p)
 
         return r
-
-    def _subs_chain(self) -> Iterator["Configuration"]:
-        result = []
-        r = self
-        while r is not None:
-            result.append(r)
-            r = r._parent
-
-        return reversed(result)
-
-    def collect(self, path: Sequence[str]) -> Any:
-        if isinstance(path, str):
-            path = toml.key2path(path)
-
-        result = self[path]
-        if isinstance(result, List):
-            return [it for conf in self._subs_chain() for it in (conf._get(path) or [])]
-        elif isinstance(result, Mapping):
-            return {k: v for conf in self._subs_chain() for k, v in (conf._get(path).items() or {})}
-
-        return result
-
-    def with_parent(self, new_parent: Optional["Configuration"]) -> "Configuration":
-        cp = copy(self)
-        cp._parent = new_parent
-        return cp
 
     def items(self) -> Iterable[Tuple[str, Any]]:
         return cast(Iterable[Tuple[str, Any]], self._data.items())
@@ -192,9 +160,9 @@ def computed_based_on(*based_on_keys: str) -> Callable[[Callable[[Any], _T]], _C
 
 
 class FileConfiguration(MutableConfiguration, ABC):
-    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None,
+    def __init__(self, *, path: Optional[Path],
                  data: Optional[Dict[str, Any]] = None):
-        super().__init__(parent=parent, data=data)
+        super().__init__(data=data)
         self._path = path
 
     def exists_on_disk(self) -> bool:
@@ -219,9 +187,9 @@ class FileConfiguration(MutableConfiguration, ABC):
 
 class TomlFileConfiguration(FileConfiguration):
 
-    def __init__(self, *, path: Optional[Path], parent: Optional["Configuration"] = None,
+    def __init__(self, *, path: Optional[Path],
                  data: Optional[Dict[str, Any]] = None, dumps: Optional[Callable] = None):
-        super().__init__(path=path, parent=parent, data=data)
+        super().__init__(path=path, data=data)
         self._dumps = dumps
 
     def generate_content(self) -> str:
@@ -229,9 +197,9 @@ class TomlFileConfiguration(FileConfiguration):
         return dumps(self._data)
 
     @classmethod
-    def load(cls, file: Path, parent: Optional[Configuration] = None) -> "TomlFileConfiguration":
+    def load(cls, file: Path) -> "TomlFileConfiguration":
         data, dumps = toml.load(file) if file.exists() else ({}, None)
-        return cls(path=file, parent=parent, data=data, dumps=dumps)
+        return cls(path=file, data=data, dumps=dumps)
 
 
 class InMemConfiguration(MutableConfiguration):
@@ -240,8 +208,8 @@ class InMemConfiguration(MutableConfiguration):
         pass
 
     @classmethod
-    def load(cls, data: Dict[str, Any], parent: Optional[Configuration]) -> "InMemConfiguration":
-        return cls(parent=parent, data=data)
+    def load(cls, data: Dict[str, Any]) -> "InMemConfiguration":
+        return cls(data=data)
 
 
 class _CaseSensitiveConfigParser(configparser.ConfigParser):

@@ -1,5 +1,5 @@
 ..
-	HASH:c38fb3c2c9df795d8f263c04aeb65120
+    HASH:c38fb3c2c9df795d8f263c04aeb65120
 
 pkm.api.distributions.distinfo \(Module\)
 #########################################
@@ -13,50 +13,50 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.DistInfo>`
-	
-	..	code-block:: python
-		
-		class DistInfo
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.DistInfo>`
+    
+    ..	code-block:: python
+        
+        class DistInfo
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.PackageInstallationInfo>`
-	
-	..	code-block:: python
-		
-		class PackageInstallationInfo
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.PackageInstallationInfo>`
+    
+    ..	code-block:: python
+        
+        class PackageInstallationInfo
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.EntrypointsConfiguration>`
-	
-	..	code-block:: python
-		
-		class EntrypointsConfiguration(IniFileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.EntrypointsConfiguration>`
+    
+    ..	code-block:: python
+        
+        class EntrypointsConfiguration(IniFileConfiguration)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.WheelFileConfiguration>`
-	
-	..	code-block:: python
-		
-		class WheelFileConfiguration(FileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.WheelFileConfiguration>`
+    
+    ..	code-block:: python
+        
+        class WheelFileConfiguration(FileConfiguration)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.Record>`
-	
-	..	code-block:: python
-		
-		class Record
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.Record>`
+    
+    ..	code-block:: python
+        
+        class Record
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.distinfo.RecordsFileConfiguration>`
-	
-	..	code-block:: python
-		
-		class RecordsFileConfiguration(FileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.distinfo.RecordsFileConfiguration>`
+    
+    ..	code-block:: python
+        
+        class RecordsFileConfiguration(FileConfiguration)
+        

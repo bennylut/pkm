@@ -4,17 +4,17 @@ EntrypointsConfiguration \(Class\)
 ##################################
 
 ..	code-block:: python
-	
-	class EntrypointsConfiguration(IniFileConfiguration)
-	
+    
+    class EntrypointsConfiguration(IniFileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@computed_based_on('')
-	def entrypoints(self) -> Iterable['EntryPoint']
-	
+    
+    @computed_based_on('')
+    def entrypoints(self) -> Iterable['EntryPoint']
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@entrypoints.modifier
-	def set_entrypoints(self, entries: List['EntryPoint'])
-	
+    
+    @entrypoints.modifier
+    def set_entrypoints(self, entries: List['EntryPoint'])
+    
 Description
 -----------
 
@@ -52,18 +52,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	entries
-		-	List['EntryPoint']
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   entries
+        -   List['EntryPoint']
+        -   No Description
+    

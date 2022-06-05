@@ -4,18 +4,18 @@ PackageInstallationTarget \(Class\)
 ###################################
 
 ..	code-block:: python
-	
-	@dataclass
-	class PackageInstallationTarget
-	
+    
+    @dataclass
+    class PackageInstallationTarget
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@cached_property
-	def site_packages(self) -> 'SitePackages'
-	
+    
+    @cached_property
+    def site_packages(self) -> 'SitePackages'
+    
 Description
 -----------
 
@@ -25,25 +25,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@cached_property
-	def app_containers(self) -> 'ContainerizedApplications'
-	
+    
+    @cached_property
+    def app_containers(self) -> 'ContainerizedApplications'
+    
 Description
 -----------
 
@@ -53,24 +53,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def reload(self)
-	
+    
+    def reload(self)
+    
 Description
 -----------
 
@@ -80,24 +80,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def uninstall(self, packages_to_remove: List[str]) -> Set[str]
-	
+    
+    def uninstall(self, packages_to_remove: List[str]) -> Set[str]
+    
 Description
 -----------
 
@@ -112,31 +112,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	packages_to_remove
-		-	List[str]
-		-	 the package names to remove
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   packages_to_remove
+        -   List[str]
+        -    the package names to remove
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def install(self, dependencies: List[Dependency], 
-	    repository: Optional[Repository] = None, user_requested: bool = True, 
-	    dependencies_override: Optional[Dict[str, Dependency]] = None, 
-	    editables: Optional[Dict[str, bool]] = None, 
-	    updates: Optional[List[str]] = None)
-	
+    
+    def install(self, dependencies: List[Dependency], 
+        repository: Optional[Repository] = None, user_requested: bool = True, 
+        dependencies_override: Optional[Dict[str, Dependency]] = None, 
+        editables: Optional[Dict[str, bool]] = None, 
+        updates: Optional[List[str]] = None)
+    
 Description
 -----------
 
@@ -147,42 +147,42 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	dependencies
-		-	List[Dependency]
-		-	No Description
-	*	-	repository
-		-	Optional[Repository]
-		-	No Description
-	*	-	user_requested
-		-	bool
-		-	No Description
-	*	-	dependencies_override
-		-	Optional[Dict[str, Dependency]]
-		-	No Description
-	*	-	editables
-		-	Optional[Dict[str, bool]]
-		-	No Description
-	*	-	updates
-		-	Optional[List[str]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   dependencies
+        -   List[Dependency]
+        -   No Description
+    *   -   repository
+        -   Optional[Repository]
+        -   No Description
+    *   -   user_requested
+        -   bool
+        -   No Description
+    *   -   dependencies_override
+        -   Optional[Dict[str, Dependency]]
+        -   No Description
+    *   -   editables
+        -   Optional[Dict[str, bool]]
+        -   No Description
+    *   -   updates
+        -   Optional[List[str]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def force_remove(self, package: str)
-	
+    
+    def force_remove(self, package: str)
+    
 Description
 -----------
 
@@ -193,30 +193,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	package
-		-	str
-		-	 the name of the package to be removed
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   package
+        -   str
+        -    the name of the package to be removed
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def plan_installation(self, dependencies: List[Dependency], 
-	    repository: Repository, user_requested: bool = True, 
-	    dependencies_override: Optional[Dict[str, Dependency]] = None, 
-	    updates: Optional[List[str]] = None) -> InstallationPlan
-	
+    
+    def plan_installation(self, dependencies: List[Dependency], 
+        repository: Repository, user_requested: bool = True, 
+        dependencies_override: Optional[Dict[str, Dependency]] = None, 
+        updates: Optional[List[str]] = None) -> InstallationPlan
+    
 Description
 -----------
 
@@ -228,30 +228,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	dependencies
-		-	List[Dependency]
-		-	 the dependency to install
-	*	-	repository
-		-	Repository
-		-	 the repository to fetch this dependency from, if not given will use the attached repository
-	*	-	user_requested
-		-	bool
-		-	 indicator that the user requested this dependency themselves (this will be marked on the installation as per pep376)
-	*	-	dependencies_override
-		-	Optional[Dict[str, Dependency]]
-		-	 mapping from package name into dependency that should be "forcefully" used for this package
-	*	-	updates
-		-	Optional[List[str]]
-		-	 If given, the packages listed will be updated if required and already installed
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   dependencies
+        -   List[Dependency]
+        -    the dependency to install
+    *   -   repository
+        -   Repository
+        -    the repository to fetch this dependency from, if not given will use the attached repository
+    *   -   user_requested
+        -   bool
+        -    indicator that the user requested this dependency themselves (this will be marked on the installation as per pep376)
+    *   -   dependencies_override
+        -   Optional[Dict[str, Dependency]]
+        -    mapping from package name into dependency that should be "forcefully" used for this package
+    *   -   updates
+        -   Optional[List[str]]
+        -    If given, the packages listed will be updated if required and already installed
+    

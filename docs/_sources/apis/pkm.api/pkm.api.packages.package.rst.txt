@@ -1,5 +1,5 @@
 ..
-	HASH:e34e2dbf0644ad2d83169d6690b5b514
+    HASH:e34e2dbf0644ad2d83169d6690b5b514
 
 pkm.api.packages.package \(Module\)
 ###################################
@@ -13,18 +13,18 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package.PackageDescriptor>`
-	
-	..	code-block:: python
-		
-		class PackageDescriptor
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package.PackageDescriptor>`
+    
+    ..	code-block:: python
+        
+        class PackageDescriptor
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.package.Package>`
-	
-	..	code-block:: python
-		
-		class Package(ABC)
-		
+    
+    :doc:`[DOC] <pkm.api.packages.package.Package>`
+    
+    ..	code-block:: python
+        
+        class Package(ABC)
+        

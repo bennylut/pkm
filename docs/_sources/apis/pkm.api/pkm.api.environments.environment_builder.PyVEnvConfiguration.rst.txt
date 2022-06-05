@@ -4,16 +4,16 @@ PyVEnvConfiguration \(Class\)
 #############################
 
 ..	code-block:: python
-	
-	class PyVEnvConfiguration(FileConfiguration)
-	
+    
+    class PyVEnvConfiguration(FileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def generate_content(self) -> str
-	
+    
+    def generate_content(self) -> str
+    
 Description
 -----------
 
@@ -23,25 +23,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Union[Path, str])
-	
+    
+    @classmethod
+    def load(cls, path: Union[Path, str])
+    
 Description
 -----------
 
@@ -51,18 +51,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Union[Path, str]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Union[Path, str]
+        -   No Description
+    

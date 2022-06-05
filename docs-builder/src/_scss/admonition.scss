@@ -6,6 +6,8 @@ div.document {
         padding: 2px 7px 1px 7px;
         border-left: 0.2em solid #767676;
         background: #242424;
+        display: flex;
+        flex-direction: column;
     }
 
     /* NOTE */

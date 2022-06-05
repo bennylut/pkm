@@ -1,5 +1,5 @@
 ..
-	HASH:a5161c626030b294bb7a87761a1f39f6
+    HASH:a5161c626030b294bb7a87761a1f39f6
 
 pkm.api.environments.containerized\_apps \(Module\)
 ###################################################
@@ -8,30 +8,27 @@ Module Fields
 =============
 
 ..	code-block:: python
-	
-	_CONTAINERIZED_WRAPPER_SUFFIX = '_containerized'
-	_CONTAINERIZED_WRAPPER_VERSION = '0.0.1'
-	_CONTAINERIZED_TARGET_USED_PATHS = ['purelib', 'data', 'scripts']
-	CONTAINERIZED_APP_DATA_PATH = '__container__'
-	CONTAINERIZED_APP_SITE_PATH = '__container__/site'
-	CONTAINERIZED_APP_BIN_PATH = '__container__/bin'
-	
+    
+    CONTAINERIZED_APP_DATA_PATH = '__container__'
+    CONTAINERIZED_APP_SITE_PATH = '__container__/site'
+    CONTAINERIZED_APP_BIN_PATH = '__container__/bin'
+    
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.environments.containerized_apps.ContainerizedApplication>`
-	
-	..	code-block:: python
-		
-		class ContainerizedApplication
-		
+    
+    :doc:`[DOC] <pkm.api.environments.containerized_apps.ContainerizedApplication>`
+    
+    ..	code-block:: python
+        
+        class ContainerizedApplication
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.environments.containerized_apps.ContainerizedApplications>`
-	
-	..	code-block:: python
-		
-		class ContainerizedApplications
-		
+    
+    :doc:`[DOC] <pkm.api.environments.containerized_apps.ContainerizedApplications>`
+    
+    ..	code-block:: python
+        
+        class ContainerizedApplications
+        

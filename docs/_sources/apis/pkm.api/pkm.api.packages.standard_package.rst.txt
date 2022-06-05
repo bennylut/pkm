@@ -1,5 +1,5 @@
 ..
-	HASH:4ede8e8eee943497037904e433945498
+    HASH:4ede8e8eee943497037904e433945498
 
 pkm.api.packages.standard\_package \(Module\)
 #############################################
@@ -13,18 +13,18 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.standard_package.PackageArtifact>`
-	
-	..	code-block:: python
-		
-		class PackageArtifact
-		
+    
+    :doc:`[DOC] <pkm.api.packages.standard_package.PackageArtifact>`
+    
+    ..	code-block:: python
+        
+        class PackageArtifact
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.packages.standard_package.AbstractPackage>`
-	
-	..	code-block:: python
-		
-		class AbstractPackage(Package)
-		
+    
+    :doc:`[DOC] <pkm.api.packages.standard_package.AbstractPackage>`
+    
+    ..	code-block:: python
+        
+        class AbstractPackage(Package)
+        

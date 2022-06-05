@@ -1,5 +1,5 @@
 ..
-	HASH:d14917e2c7228b8086846882fcdcc1ca
+    HASH:d14917e2c7228b8086846882fcdcc1ca
 
 pkm.api.versions \(Package\)
 ============================
@@ -8,11 +8,11 @@ Modules
 -------
 
 ..	rst-class:: child-modules
-	
+    
 ..	toctree:: 
-	:titlesonly:
-	
-	version_parser <pkm.api.versions.version_parser.rst>
-	version_specifiers <pkm.api.versions.version_specifiers.rst>
-	version <pkm.api.versions.version.rst>
-	
+    :titlesonly:
+    
+    version_parser <pkm.api.versions.version_parser.rst>
+    version_specifiers <pkm.api.versions.version_specifiers.rst>
+    version <pkm.api.versions.version.rst>
+    

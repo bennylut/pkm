@@ -4,17 +4,17 @@ StandardVersion \(Class\)
 #########################
 
 ..	code-block:: python
-	
-	@dataclass(frozen=True, repr=False)
-	class StandardVersion(Version)
-	
+    
+    @dataclass(frozen=True, repr=False)
+    class StandardVersion(Version)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def without_local(self) -> 'StandardVersion'
-	
+    
+    def without_local(self) -> 'StandardVersion'
+    
 Description
 -----------
 
@@ -24,24 +24,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def without_patch(self)
-	
+    
+    def without_patch(self)
+    
 Description
 -----------
 
@@ -51,24 +51,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def standartize(self) -> 'StandardVersion'
-	
+    
+    def standartize(self) -> 'StandardVersion'
+    
 Description
 -----------
 
@@ -78,24 +78,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def __hash__(self)
-	
+    
+    def is_pre_or_dev_release(self) -> bool
+    
 Description
 -----------
 
@@ -105,24 +105,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_pre_or_dev_release(self) -> bool
-	
+    
+    def is_post_release(self) -> bool
+    
 Description
 -----------
 
@@ -132,24 +132,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_post_release(self) -> bool
-	
+    
+    def is_local(self) -> bool
+    
 Description
 -----------
 
@@ -159,51 +159,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def is_local(self) -> bool
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def bump(self, particle: str) -> Version
-	
+    
+    def bump(self, particle: str) -> Version
+    
 Description
 -----------
 
@@ -213,116 +186,32 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	particle
-		-	str
-		-	 the particle of the version to bump, can be any of: major, minor, patch, a, b, rc
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   particle
+        -   str
+        -    the particle of the version to bump, can be any of: major, minor, patch, a, b, rc
+    
 Returns
 -------
 
- the new version after the bump
+the new version after the bump
 
 -----------------------
 
 ..	code-block:: python
-	
-	def __str__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __repr__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __le__(self, other)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def equals_to(self, other, compare_locals: bool)
-	
+    
+    def equals_to(self, other, compare_locals: bool)
+    
 Description
 -----------
 
@@ -332,30 +221,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	Any
-		-	 the version to compare to
-	*	-	compare_locals
-		-	bool
-		-	 if true, will take into consideration the local part
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   other
+        -   Any
+        -    the version to compare to
+    *   -   compare_locals
+        -   bool
+        -    if true, will take into consideration the local part
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def __eq__(self, other)
-	
+    
+    @staticmethod
+    def normalized(v1: 'StandardVersion', v2: 'StandardVersion') -> Tuple['StandardVersion', 'StandardVersion']
+    
 Description
 -----------
 
@@ -365,28 +255,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   v1
+        -   'StandardVersion'
+        -   No Description
+    *   -   v2
+        -   'StandardVersion'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@staticmethod
-	def normalized(v1: 'StandardVersion', v2: 'StandardVersion') -> Tuple['StandardVersion', 'StandardVersion']
-	
+    
+    @classmethod
+    def parse(cls, txt: str) -> 'StandardVersion'
+    
 Description
 -----------
 
@@ -396,49 +286,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	v1
-		-	'StandardVersion'
-		-	No Description
-	*	-	v2
-		-	'StandardVersion'
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def parse(cls, txt: str) -> 'StandardVersion'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	txt
-		-	str
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   txt
+        -   str
+        -   No Description
+    

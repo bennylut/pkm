@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,13 +67,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="distribution-class">
-<h1>Distribution (Class)<a class="headerlink" href="#distribution-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#distribution-class" id="id9">Distribution (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id10">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="distribution-class">
+<h1><a class="toc-backref" href="#id9">Distribution (Class)</a><a class="headerlink" href="#distribution-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Distribution</span><span class="p">(</span><span class="n">Protocol</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">owner_package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageDescriptor</span>
@@ -101,9 +112,7 @@
 </section>
 <section id="returns">
 <h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the package descriptor that this distribution belongs to</p>
-</div></blockquote>
+<p>the package descriptor that this distribution belongs to</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">install_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s1">&#39;PackageInstallationTarget&#39;</span><span class="p">,</span>
@@ -177,9 +186,7 @@
 </section>
 <section id="id5">
 <h3>Returns<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the extracted metadata</p>
-</div></blockquote>
+<p>the extracted metadata</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">package_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">distribution</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
@@ -218,9 +225,7 @@
 </section>
 <section id="id8">
 <h3>Returns<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>package that upon install will install the given distribution</p>
-</div></blockquote>
+<p>package that upon install will install the given distribution</p>
 </section>
 </section>
 </section>

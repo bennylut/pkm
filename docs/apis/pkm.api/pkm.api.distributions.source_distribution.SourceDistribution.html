@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,14 +67,25 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="sourcedistribution-class">
-<h1>SourceDistribution (Class)<a class="headerlink" href="#sourcedistribution-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#sourcedistribution-class" id="id5">SourceDistribution (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id6">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="sourcedistribution-class">
+<h1><a class="toc-backref" href="#id5">SourceDistribution (Class)</a><a class="headerlink" href="#sourcedistribution-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SourceDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="n">PackageDescriptor</span><span class="p">,</span> <span class="n">archive</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span>
+<h2><a class="toc-backref" href="#id6">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">owner_package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageDescriptor</span>
 </pre></div>
 </div>
 <section id="description">
@@ -94,19 +106,10 @@
 <td><p>Any</p></td>
 <td><p>No Description</p></td>
 </tr>
-<tr class="row-odd"><td><p>package</p></td>
-<td><p>PackageDescriptor</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-even"><td><p>archive</p></td>
-<td><p>Path</p></td>
-<td><p>No Description</p></td>
-</tr>
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">owner_package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageDescriptor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">extract_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="s1">&#39;Environment&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageMetadata</span>
 </pre></div>
 </div>
 </section>
@@ -116,31 +119,6 @@
 </section>
 <section id="id2">
 <h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">extract_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="s1">&#39;Environment&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageMetadata</span>
-</pre></div>
-</div>
-</section>
-<section id="id3">
-<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id4">
-<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -166,12 +144,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id5">
-<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<section id="id3">
+<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id6">
-<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<section id="id4">
+<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>

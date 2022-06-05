@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,14 +67,25 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="distinfo-class">
-<h1>DistInfo (Class)<a class="headerlink" href="#distinfo-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#distinfo-class" id="id59">DistInfo (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id60">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="distinfo-class">
+<h1><a class="toc-backref" href="#id59">DistInfo (Class)</a><a class="headerlink" href="#distinfo-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DistInfo</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span>
+<h2><a class="toc-backref" href="#id60">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">package_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="description">
@@ -94,21 +106,21 @@
 <td><p>Any</p></td>
 <td><p>No Description</p></td>
 </tr>
-<tr class="row-odd"><td><p>path</p></td>
-<td><p>Path</p></td>
-<td><p>No Description</p></td>
-</tr>
 </tbody>
 </table>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
+<p>the package name as can be computed from the dist-info file name. note that if the loaded dist-info
+path has non-standard, the return value of this method is undetermined</p>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
-<span class="k">def</span> <span class="nf">package_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_wheel_cfg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;WheelFileConfiguration&#39;</span>
 </pre></div>
 </div>
 </section>
 <section id="id1">
 <h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
+<p>loads and return the WHEEL configuration file</p>
 </section>
 <section id="id2">
 <h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
@@ -127,54 +139,20 @@
 </tbody>
 </table>
 </section>
-<section id="returns">
-<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the package name as can be computed from the dist-info file name. note that if the loaded dist-info</p>
-</div></blockquote>
-<p>path has non-standard, the return value of this method is undetermined</p>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_wheel_cfg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;WheelFileConfiguration&#39;</span>
-</pre></div>
-</div>
-</section>
 <section id="id3">
-<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>loads and return the WHEEL configuration file</p>
-</section>
-<section id="id4">
-<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="id5">
-<h3>Returns<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the loaded configuration file</p>
-</div></blockquote>
+<h3>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>the loaded configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">wheel_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id6">
-<h3>Description<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<section id="id4">
+<h3>Description<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id7">
-<h3>Arguments<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<section id="id5">
+<h3>Arguments<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -190,22 +168,20 @@
 </tbody>
 </table>
 </section>
-<section id="id8">
-<h3>Returns<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the WHEEL configuration file</p>
-</div></blockquote>
+<section id="id6">
+<h3>Returns<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>the path to the WHEEL configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">is_app_container</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
 </pre></div>
 </div>
 </section>
-<section id="id9">
-<h3>Description<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<section id="id7">
+<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id10">
-<h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<section id="id8">
+<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -221,22 +197,20 @@
 </tbody>
 </table>
 </section>
-<section id="id11">
-<h3>Returns<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>True if this package dist-info is marked as an app-container</p>
-</div></blockquote>
+<section id="id9">
+<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>True if this package dist-info is marked as an app-container</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_entrypoints_cfg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;EntrypointsConfiguration&#39;</span>
 </pre></div>
 </div>
 </section>
-<section id="id12">
-<h3>Description<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<section id="id10">
+<h3>Description<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <p>load and return the entry_points.txt configurate file</p>
 </section>
-<section id="id13">
-<h3>Arguments<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<section id="id11">
+<h3>Arguments<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -252,22 +226,20 @@
 </tbody>
 </table>
 </section>
-<section id="id14">
-<h3>Returns<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the loaded configuration file</p>
-</div></blockquote>
+<section id="id12">
+<h3>Returns<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>the loaded configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_installation_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PackageInstallationInfo</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
-<section id="id15">
-<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<section id="id13">
+<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id16">
-<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<section id="id14">
+<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -287,12 +259,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id17">
-<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<section id="id15">
+<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id18">
-<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<section id="id16">
+<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -316,12 +288,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id19">
-<h3>Description<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<section id="id17">
+<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <p>load and return the METADATA configuration file</p>
 </section>
-<section id="id20">
-<h3>Arguments<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<section id="id18">
+<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -337,22 +309,20 @@
 </tbody>
 </table>
 </section>
-<section id="id21">
-<h3>Returns<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the loaded configuration file</p>
-</div></blockquote>
+<section id="id19">
+<h3>Returns<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<p>the loaded configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">metadata_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id22">
-<h3>Description<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<section id="id20">
+<h3>Description<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id23">
-<h3>Arguments<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<section id="id21">
+<h3>Arguments<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -368,22 +338,20 @@
 </tbody>
 </table>
 </section>
-<section id="id24">
-<h3>Returns<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the METADATA configuration file</p>
-</div></blockquote>
+<section id="id22">
+<h3>Returns<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<p>the path to the METADATA configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_record_cfg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;RecordsFileConfiguration&#39;</span>
 </pre></div>
 </div>
 </section>
-<section id="id25">
-<h3>Description<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<section id="id23">
+<h3>Description<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <p>load and return the RECORD configuration file</p>
 </section>
-<section id="id26">
-<h3>Arguments<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<section id="id24">
+<h3>Arguments<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -399,22 +367,20 @@
 </tbody>
 </table>
 </section>
-<section id="id27">
-<h3>Returns<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the loaded configuration file</p>
-</div></blockquote>
+<section id="id25">
+<h3>Returns<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<p>the loaded configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">record_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id28">
-<h3>Description<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<section id="id26">
+<h3>Description<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id29">
-<h3>Arguments<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<section id="id27">
+<h3>Arguments<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -430,22 +396,20 @@
 </tbody>
 </table>
 </section>
-<section id="id30">
-<h3>Returns<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the RECORD configuration file</p>
-</div></blockquote>
+<section id="id28">
+<h3>Returns<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<p>the path to the RECORD configuration file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">license_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id31">
-<h3>Description<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<section id="id29">
+<h3>Description<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id32">
-<h3>Arguments<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<section id="id30">
+<h3>Arguments<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -461,22 +425,20 @@
 </tbody>
 </table>
 </section>
-<section id="id33">
-<h3>Returns<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the LICENSE file</p>
-</div></blockquote>
+<section id="id31">
+<h3>Returns<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<p>the path to the LICENSE file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installation_info_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id34">
-<h3>Description<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<section id="id32">
+<h3>Description<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id35">
-<h3>Arguments<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<section id="id33">
+<h3>Arguments<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -492,22 +454,20 @@
 </tbody>
 </table>
 </section>
-<section id="id36">
-<h3>Returns<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the pkm’s added INSTALLATION_MODE file</p>
-</div></blockquote>
+<section id="id34">
+<h3>Returns<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<p>the path to the pkm’s added INSTALLATION_MODE file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">user_requested_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </section>
-<section id="id37">
-<h3>Description<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<section id="id35">
+<h3>Description<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id38">
-<h3>Arguments<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<section id="id36">
+<h3>Arguments<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -523,23 +483,21 @@
 </tbody>
 </table>
 </section>
-<section id="id39">
-<h3>Returns<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the path to the REQUESTED marker file</p>
-</div></blockquote>
+<section id="id37">
+<h3>Returns<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<p>the path to the REQUESTED marker file</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mark_as_user_requested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Dependency</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="id40">
-<h3>Description<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<section id="id38">
+<h3>Description<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
 <p>marks the given package as a user requested one, pkm will not consider it as an orphan package if no other
 package depends on it</p>
 </section>
-<section id="id41">
-<h3>Arguments<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<section id="id39">
+<h3>Arguments<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -563,13 +521,13 @@ package depends on it</p>
 </pre></div>
 </div>
 </section>
-<section id="id42">
-<h3>Description<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
+<section id="id40">
+<h3>Description<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
 <p>remove the “user request” mark from a package, pkm will consider it as an orphan package if no other
 package depends on it</p>
 </section>
-<section id="id43">
-<h3>Arguments<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
+<section id="id41">
+<h3>Arguments<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -589,12 +547,12 @@ package depends on it</p>
 </pre></div>
 </div>
 </section>
-<section id="id44">
-<h3>Description<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<section id="id42">
+<h3>Description<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id45">
-<h3>Arguments<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<section id="id43">
+<h3>Arguments<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -610,22 +568,20 @@ package depends on it</p>
 </tbody>
 </table>
 </section>
-<section id="id46">
-<h3>Returns<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>True if this package dist-info is marked as user-requested</p>
-</div></blockquote>
+<section id="id44">
+<h3>Returns<a class="headerlink" href="#id44" title="Permalink to this headline">¶</a></h3>
+<p>True if this package dist-info is marked as user-requested</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_user_requested_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dependency</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
-<section id="id47">
-<h3>Description<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h3>
+<section id="id45">
+<h3>Description<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id48">
-<h3>Arguments<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
+<section id="id46">
+<h3>Arguments<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -646,12 +602,12 @@ package depends on it</p>
 </pre></div>
 </div>
 </section>
-<section id="id49">
-<h3>Description<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h3>
+<section id="id47">
+<h3>Description<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h3>
 <p>loads the given <cite>path</cite> as a distinfo</p>
 </section>
-<section id="id50">
-<h3>Arguments<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
+<section id="id48">
+<h3>Arguments<a class="headerlink" href="#id48" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -675,23 +631,21 @@ package depends on it</p>
 </tbody>
 </table>
 </section>
-<section id="id51">
-<h3>Returns<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the loaded distinfo</p>
-</div></blockquote>
+<section id="id49">
+<h3>Returns<a class="headerlink" href="#id49" title="Permalink to this headline">¶</a></h3>
+<p>the loaded distinfo</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">DistInfo</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
-<section id="id52">
-<h3>Description<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<section id="id50">
+<h3>Description<a class="headerlink" href="#id50" title="Permalink to this headline">¶</a></h3>
 <p>scans a path for all its standard-named dist-info children, load and yield them.</p>
 </section>
-<section id="id53">
-<h3>Arguments<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
+<section id="id51">
+<h3>Arguments<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -711,23 +665,21 @@ package depends on it</p>
 </tbody>
 </table>
 </section>
-<section id="id54">
-<h3>Returns<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>iterator over all the found dist-info children</p>
-</div></blockquote>
+<section id="id52">
+<h3>Returns<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<p>iterator over all the found dist-info children</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">expected_dir_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="s1">&#39;PackageDescriptor&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </pre></div>
 </div>
 </section>
-<section id="id55">
-<h3>Description<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
+<section id="id53">
+<h3>Description<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id56">
-<h3>Arguments<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
+<section id="id54">
+<h3>Arguments<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -747,23 +699,21 @@ package depends on it</p>
 </tbody>
 </table>
 </section>
-<section id="id57">
-<h3>Returns<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the name of the dist-info directory (last element in the path for the dist-info) that is expected to be</p>
-</div></blockquote>
-<p>created for the given package</p>
+<section id="id55">
+<h3>Returns<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h3>
+<p>the name of the dist-info directory (last element in the path for the dist-info) that is expected to be
+created for the given package</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installed_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
-<section id="id58">
-<h3>Description<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
+<section id="id56">
+<h3>Description<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id59">
-<h3>Arguments<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h3>
+<section id="id57">
+<h3>Arguments<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -779,11 +729,9 @@ package depends on it</p>
 </tbody>
 </table>
 </section>
-<section id="id60">
-<h3>Returns<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>paths to all the files that were installed to the environment via this package (taken from RECORD)</p>
-</div></blockquote>
+<section id="id58">
+<h3>Returns<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
+<p>paths to all the files that were installed to the environment via this package (taken from RECORD)</p>
 </section>
 </section>
 </section>

@@ -4,17 +4,17 @@ VersionsUnion \(Class\)
 #######################
 
 ..	code-block:: python
-	
-	@dataclass
-	class VersionsUnion(VersionSpecifier)
-	
+    
+    @dataclass
+    class VersionsUnion(VersionSpecifier)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __post_init__(self)
-	
+    
+    def allows_pre_or_dev_releases(self) -> bool
+    
 Description
 -----------
 
@@ -24,24 +24,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def __hash__(self)
-	
+    
+    def inverse(self) -> VersionSpecifier
+    
 Description
 -----------
 
@@ -51,24 +51,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def allows_pre_or_dev_releases(self) -> bool
-	
+    
+    def allows_version(self, version: Version) -> bool
+    
 Description
 -----------
 
@@ -78,24 +78,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   version
+        -   Version
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def inverse(self) -> VersionSpecifier
-	
+    
+    def union_with(self, other: VersionSpecifier) -> VersionSpecifier
+    
 Description
 -----------
 
@@ -105,24 +108,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   other
+        -   VersionSpecifier
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def allows_version(self, version: Version) -> bool
-	
+    
+    def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier
+    
 Description
 -----------
 
@@ -132,165 +138,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	version
-		-	Version
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __lt__(self, other: VersionSpecifier)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	VersionSpecifier
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __eq__(self, other: VersionSpecifier)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	VersionSpecifier
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __str__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def union_with(self, other: VersionSpecifier) -> VersionSpecifier
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	VersionSpecifier
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def intersect_with(self, other: VersionSpecifier) -> VersionSpecifier
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	other
-		-	VersionSpecifier
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   other
+        -   VersionSpecifier
+        -   No Description
+    

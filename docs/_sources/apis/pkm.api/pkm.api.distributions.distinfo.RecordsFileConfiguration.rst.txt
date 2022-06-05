@@ -4,16 +4,16 @@ RecordsFileConfiguration \(Class\)
 ##################################
 
 ..	code-block:: python
-	
-	class RecordsFileConfiguration(FileConfiguration)
-	
+    
+    class RecordsFileConfiguration(FileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def generate_content(self) -> str
-	
+    
+    def generate_content(self) -> str
+    
 Description
 -----------
 
@@ -23,25 +23,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def records(self) -> List[Record]
-	
+    
+    @property
+    def records(self) -> List[Record]
+    
 Description
 -----------
 
@@ -51,24 +51,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def save_to(self, path: Optional[Path] = None)
-	
+    
+    def save_to(self, path: Optional[Path] = None)
+    
 Description
 -----------
 
@@ -78,28 +78,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	path
-		-	Optional[Path]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   path
+        -   Optional[Path]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def sign_files(self, files: Iterable[Path], root: Path, 
-	    precomputed_hashes: Optional[Dict[str, HashSignature]] = None) -> RecordsFileConfiguration
-	
+    
+    def sign_files(self, files: Iterable[Path], root: Path, 
+        precomputed_hashes: Optional[Dict[str, HashSignature]] = None) -> RecordsFileConfiguration
+    
 Description
 -----------
 
@@ -109,38 +109,38 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	files
-		-	Iterable[Path]
-		-	 the files to sign
-	*	-	root
-		-	Path
-		-	 a root directory to sign the files relative to, when signing, the record file path will be writen relative to this root
-	*	-	precomputed_hashes
-		-	Optional[Dict[str, HashSignature]]
-		-	 dictionary containing some or all of the given files precomputed hashes, its key is the relative path from root to each of the files
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   files
+        -   Iterable[Path]
+        -    the files to sign
+    *   -   root
+        -   Path
+        -    a root directory to sign the files relative to, when signing, the record file path will be writen relative to this root
+    *   -   precomputed_hashes
+        -   Optional[Dict[str, HashSignature]]
+        -    dictionary containing some or all of the given files precomputed hashes, its key is the relative path from root to each of the files
+    
 Returns
 -------
 
- self (for chaining support)
+self (for chaining support)
 
 -----------------------
 
 ..	code-block:: python
-	
-	def sign_recursive(self, content_root: Path) -> RecordsFileConfiguration
-	
+    
+    def sign_recursive(self, content_root: Path) -> RecordsFileConfiguration
+    
 Description
 -----------
 
@@ -150,33 +150,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	content_root
-		-	Path
-		-	 the content to sign (will recursively sign all files in the content root and add their signature to the created record file)
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   content_root
+        -   Path
+        -    the content to sign (will recursively sign all files in the content root and add their signature to the created record file)
+    
 Returns
 -------
 
- self (for chaining support)
+self (for chaining support)
 
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Path) -> 'RecordsFileConfiguration'
-	
+    
+    @classmethod
+    def load(cls, path: Path) -> 'RecordsFileConfiguration'
+    
 Description
 -----------
 
@@ -186,18 +186,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    

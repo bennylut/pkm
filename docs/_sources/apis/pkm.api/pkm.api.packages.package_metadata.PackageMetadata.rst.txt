@@ -4,17 +4,17 @@ PackageMetadata \(Class\)
 #########################
 
 ..	code-block:: python
-	
-	class PackageMetadata(FileConfiguration)
-	
+    
+    class PackageMetadata(FileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@computed_based_on('Metadata-Version')
-	def metadata_version(self) -> StandardVersion
-	
+    
+    @computed_based_on('Metadata-Version')
+    def metadata_version(self) -> StandardVersion
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def package_name(self) -> str
-	
+    
+    @property
+    def package_name(self) -> str
+    
 Description
 -----------
 
@@ -52,25 +52,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def summary(self) -> Optional[str]
-	
+    
+    @property
+    def summary(self) -> Optional[str]
+    
 Description
 -----------
 
@@ -80,25 +80,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def description(self) -> Optional[str]
-	
+    
+    @property
+    def description(self) -> Optional[str]
+    
 Description
 -----------
 
@@ -108,25 +108,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('Version')
-	def package_version(self) -> Version
-	
+    
+    @computed_based_on('Version')
+    def package_version(self) -> Version
+    
 Description
 -----------
 
@@ -136,25 +136,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('Requires-Dist')
-	def dependencies(self) -> List[Dependency]
-	
+    
+    @computed_based_on('Requires-Dist')
+    def dependencies(self) -> List[Dependency]
+    
 Description
 -----------
 
@@ -164,25 +164,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@dependencies.modifier
-	def set_dependencies(self, new_dependencies: List[Dependency])
-	
+    
+    @dependencies.modifier
+    def set_dependencies(self, new_dependencies: List[Dependency])
+    
 Description
 -----------
 
@@ -192,28 +192,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	new_dependencies
-		-	List[Dependency]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   new_dependencies
+        -   List[Dependency]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('Requires-Python')
-	def required_python_spec(self) -> VersionSpecifier
-	
+    
+    @computed_based_on('Requires-Python')
+    def required_python_spec(self) -> VersionSpecifier
+    
 Description
 -----------
 
@@ -223,24 +223,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def generate_content(self) -> str
-	
+    
+    def generate_content(self) -> str
+    
 Description
 -----------
 
@@ -250,25 +250,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def from_project_config(cls, prjc: 'ProjectConfig') -> 'PackageMetadata'
-	
+    
+    @classmethod
+    def from_project_config(cls, prjc: 'ProjectConfig') -> 'PackageMetadata'
+    
 Description
 -----------
 
@@ -278,28 +278,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	prjc
-		-	'ProjectConfig'
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   prjc
+        -   'ProjectConfig'
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Path) -> 'PackageMetadata'
-	
+    
+    @classmethod
+    def load(cls, path: Path) -> 'PackageMetadata'
+    
 Description
 -----------
 
@@ -309,18 +309,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    

@@ -60,6 +60,7 @@ class _ContextualCommand:
         return True
 
 
+# noinspection PyShadowingBuiltins
 class Context:
     def __init__(self, path: Path, lookup: bool, use_global: bool, site: Optional[str]):
         self._path = path

@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,13 +67,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="repository-class">
-<h1>Repository (Class)<a class="headerlink" href="#repository-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#repository-class" id="id15">Repository (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id16">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="repository-class">
+<h1><a class="toc-backref" href="#id15">Repository (Class)</a><a class="headerlink" href="#repository-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Repository</span><span class="p">(</span><span class="n">Protocol</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
@@ -135,9 +146,7 @@
 </section>
 <section id="returns">
 <h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>list of all the packages in this repository that match the given <cite>dependency</cite></p>
-</div></blockquote>
+<p>list of all the packages in this repository that match the given <cite>dependency</cite></p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="s1">&#39;Environment&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Package</span><span class="p">]</span>
 </pre></div>
@@ -174,9 +183,7 @@
 </section>
 <section id="id5">
 <h3>Returns<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>list of all the packages that match the given <cite>package_name</cite></p>
-</div></blockquote>
+<p>list of all the packages that match the given <cite>package_name</cite></p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="nd">@abstractmethod</span>
@@ -207,9 +214,7 @@
 </section>
 <section id="id8">
 <h3>Returns<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>if this repository is ‘publishable’ returns its publisher</p>
-</div></blockquote>
+<p>if this repository is ‘publishable’ returns its publisher</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">accepted_url_protocols</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </pre></div>
@@ -238,9 +243,7 @@
 </section>
 <section id="id11">
 <h3>Returns<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>sequence of url-dependency protocols that this repository can handle</p>
-</div></blockquote>
+<p>sequence of url-dependency protocols that this repository can handle</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">accept_non_url_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
 </pre></div>
@@ -269,9 +272,7 @@
 </section>
 <section id="id14">
 <h3>Returns<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>True if this repository should be used for non url packages</p>
-</div></blockquote>
+<p>True if this repository should be used for non url packages</p>
 </section>
 </section>
 </section>

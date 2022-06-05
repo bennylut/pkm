@@ -4,17 +4,17 @@ PyProjectGroupConfiguration \(Class\)
 #####################################
 
 ..	code-block:: python
-	
-	class PyProjectGroupConfiguration(TomlFileConfiguration)
-	
+    
+    class PyProjectGroupConfiguration(TomlFileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@computed_based_on('name')
-	def name(self) -> str
-	
+    
+    @computed_based_on('name')
+    def name(self) -> str
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def path(self) -> Path
-	
+    
+    @property
+    def path(self) -> Path
+    
 Description
 -----------
 
@@ -52,25 +52,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('project-group.children')
-	def children(self) -> Tuple[Path, ...]
-	
+    
+    @computed_based_on('project-group.children')
+    def children(self) -> Tuple[Path, ...]
+    
 Description
 -----------
 
@@ -80,25 +80,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@children.modifier
-	def set_children(self, new: Iterable[Path])
-	
+    
+    @children.modifier
+    def set_children(self, new: Iterable[Path])
+    
 Description
 -----------
 
@@ -108,28 +108,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	new
-		-	Iterable[Path]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   new
+        -   Iterable[Path]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('project-group.parent')
-	def parent(self) -> Optional[Path]
-	
+    
+    @computed_based_on('project-group.parent')
+    def parent(self) -> Optional[Path]
+    
 Description
 -----------
 
@@ -139,15 +139,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

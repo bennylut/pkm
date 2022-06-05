@@ -4,16 +4,16 @@ RepositoryPublisher \(Class\)
 #############################
 
 ..	code-block:: python
-	
-	class RepositoryPublisher
-	
+    
+    class RepositoryPublisher
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, repository_name: str)
-	
+    
+    def requires_authentication(self) -> bool
+    
 Description
 -----------
 
@@ -23,56 +23,26 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	repository_name
-		-	str
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def requires_authentication(self) -> bool
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@abstractmethod
-	def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, 
-	    distribution: Path)
-	
+    
+    @abstractmethod
+    def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, 
+        distribution: Path)
+    
 Description
 -----------
 
@@ -82,24 +52,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	auth_args
-		-	Dict[str, str]
-		-	 dictionary filled with authentication data as supplied by user
-	*	-	package_meta
-		-	PackageMetadata
-		-	 metadata for the package that this distribution belongs to
-	*	-	distribution
-		-	Path
-		-	 the distribution archive (e.g., wheel, sdist)
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   auth_args
+        -   Dict[str, str]
+        -    dictionary filled with authentication data as supplied by user
+    *   -   package_meta
+        -   PackageMetadata
+        -    metadata for the package that this distribution belongs to
+    *   -   distribution
+        -   Path
+        -    the distribution archive (e.g., wheel, sdist)
+    

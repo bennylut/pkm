@@ -1,5 +1,5 @@
 ..
-	HASH:6aac0a7ebd36a7789f600671a492a35d
+    HASH:6aac0a7ebd36a7789f600671a492a35d
 
 pkm.api.dependencies \(Package\)
 ================================
@@ -8,10 +8,10 @@ Modules
 -------
 
 ..	rst-class:: child-modules
-	
+    
 ..	toctree:: 
-	:titlesonly:
-	
-	env_markers <pkm.api.dependencies.env_markers.rst>
-	dependency <pkm.api.dependencies.dependency.rst>
-	
+    :titlesonly:
+    
+    env_markers <pkm.api.dependencies.env_markers.rst>
+    dependency <pkm.api.dependencies.dependency.rst>
+    

@@ -4,17 +4,17 @@ PyProjectConfiguration \(Class\)
 ################################
 
 ..	code-block:: python
-	
-	class PyProjectConfiguration(TomlFileConfiguration)
-	
+    
+    class PyProjectConfiguration(TomlFileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@computed_based_on('tool.pkm.project')
-	def pkm_project(self) -> PkmProjectConfig
-	
+    
+    @computed_based_on('tool.pkm.project')
+    def pkm_project(self) -> PkmProjectConfig
+    
 Description
 -----------
 
@@ -24,25 +24,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('tool.pkm.application')
-	def pkm_application(self) -> Optional[PkmApplicationConfig]
-	
+    
+    @computed_based_on('tool.pkm.application')
+    def pkm_application(self) -> Optional[PkmApplicationConfig]
+    
 Description
 -----------
 
@@ -52,25 +52,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@pkm_application.modifier
-	def set_pkm_application(self, app: Optional[PkmApplicationConfig])
-	
+    
+    @pkm_application.modifier
+    def set_pkm_application(self, app: Optional[PkmApplicationConfig])
+    
 Description
 -----------
 
@@ -80,28 +80,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	app
-		-	Optional[PkmApplicationConfig]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   app
+        -   Optional[PkmApplicationConfig]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('tool.pkm.distribution')
-	def pkm_distribution(self) -> PkmDistributionConfig
-	
+    
+    @computed_based_on('tool.pkm.distribution')
+    def pkm_distribution(self) -> PkmDistributionConfig
+    
 Description
 -----------
 
@@ -111,25 +111,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@pkm_distribution.modifier
-	def set_pkm_distribution(self, distribution: PkmDistributionConfig)
-	
+    
+    @pkm_distribution.modifier
+    def set_pkm_distribution(self, distribution: PkmDistributionConfig)
+    
 Description
 -----------
 
@@ -139,28 +139,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	distribution
-		-	PkmDistributionConfig
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   distribution
+        -   PkmDistributionConfig
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('project')
-	def project(self) -> Optional[ProjectConfig]
-	
+    
+    @computed_based_on('project')
+    def project(self) -> Optional[ProjectConfig]
+    
 Description
 -----------
 
@@ -170,25 +170,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@project.modifier
-	def set_project(self, value: ProjectConfig)
-	
+    
+    @project.modifier
+    def set_project(self, value: ProjectConfig)
+    
 Description
 -----------
 
@@ -198,28 +198,28 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	value
-		-	ProjectConfig
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   value
+        -   ProjectConfig
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@computed_based_on('build-system')
-	def build_system(self) -> BuildSystemConfig
-	
+    
+    @computed_based_on('build-system')
+    def build_system(self) -> BuildSystemConfig
+    
 Description
 -----------
 
@@ -229,25 +229,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@build_system.modifier
-	def set_build_system(self, bs: BuildSystemConfig)
-	
+    
+    @build_system.modifier
+    def set_build_system(self, bs: BuildSystemConfig)
+    
 Description
 -----------
 
@@ -257,29 +257,29 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	bs
-		-	BuildSystemConfig
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   bs
+        -   BuildSystemConfig
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@classmethod
-	def load_effective(cls, pyproject_file: Path, 
-	    package: Optional[PackageDescriptor] = None) -> 'PyProjectConfiguration'
-	
+    
+    @classmethod
+    def load_effective(cls, pyproject_file: Path, 
+        package: Optional[PackageDescriptor] = None) -> 'PyProjectConfiguration'
+    
 Description
 -----------
 
@@ -290,25 +290,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	pyproject_file
-		-	Path
-		-	 the pyproject.toml to load
-	*	-	package
-		-	Optional[PackageDescriptor]
-		-	 the package that this pyproject belongs to, if given, it will be used in case of missing name and version values
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   pyproject_file
+        -   Path
+        -    the pyproject.toml to load
+    *   -   package
+        -   Optional[PackageDescriptor]
+        -    the package that this pyproject belongs to, if given, it will be used in case of missing name and version values
+    
 Returns
 -------
 
- the loaded pyproject
+the loaded pyproject

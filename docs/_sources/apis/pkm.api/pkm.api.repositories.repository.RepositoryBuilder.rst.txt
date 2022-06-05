@@ -4,87 +4,17 @@ RepositoryBuilder \(Class\)
 ###########################
 
 ..	code-block:: python
-	
-	class RepositoryBuilder(ABC)
-	
+    
+    class RepositoryBuilder(ABC)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, repo_type: str)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	repo_type
-		-	str
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def _arg(self, args: Dict[str, str], name: str, default: Optional[str] = None, 
-	    required: bool = False) -> Optional[str]
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	args
-		-	Dict[str, str]
-		-	No Description
-	*	-	name
-		-	str
-		-	No Description
-	*	-	default
-		-	Optional[str]
-		-	No Description
-	*	-	required
-		-	bool
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@abstractmethod
-	def build(self, name: str, args: Dict[str, str]) -> Repository
-	
+    
+    @abstractmethod
+    def build(self, name: str, args: Dict[str, str]) -> Repository
+    
 Description
 -----------
 
@@ -94,35 +24,35 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	 name for the created repository
-	*	-	args
-		-	Dict[str, str]
-		-	 arguments for the instance creation, may be defined by derived classes
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -    name for the created repository
+    *   -   args
+        -   Dict[str, str]
+        -    arguments for the instance creation, may be defined by derived classes
+    
 Returns
 -------
 
- the created instance
+the created instance
 
 -----------------------
 
 ..	code-block:: python
-	
-	def build_publisher(self, name: str, args: Dict[str, str]) -> Optional[RepositoryPublisher]
-	
+    
+    def build_publisher(self, name: str, args: Dict[str, str]) -> Optional[RepositoryPublisher]
+    
 Description
 -----------
 
@@ -132,21 +62,21 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	name
-		-	str
-		-	No Description
-	*	-	args
-		-	Dict[str, str]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   name
+        -   str
+        -   No Description
+    *   -   args
+        -   Dict[str, str]
+        -   No Description
+    

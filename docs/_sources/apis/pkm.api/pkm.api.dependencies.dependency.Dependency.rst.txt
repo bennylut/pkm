@@ -4,17 +4,17 @@ Dependency \(Class\)
 ####################
 
 ..	code-block:: python
-	
-	@dataclass(frozen=True, eq=True)
-	class Dependency
-	
+    
+    @dataclass(frozen=True, eq=True)
+    class Dependency
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def is_applicable_for(self, env: 'Environment', extras: List[str]) -> bool
-	
+    
+    def is_applicable_for(self, env: 'Environment', extras: List[str]) -> bool
+    
 Description
 -----------
 
@@ -24,30 +24,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	'Environment'
-		-	No Description
-	*	-	extras
-		-	List[str]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   'Environment'
+        -   No Description
+    *   -   extras
+        -   List[str]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def with_extras(self, extras: Optional[List[str]]) -> Dependency
-	
+    
+    def with_extras(self, extras: Optional[List[str]]) -> Dependency
+    
 Description
 -----------
 
@@ -57,27 +57,27 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	extras
-		-	Optional[List[str]]
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   extras
+        -   Optional[List[str]]
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def required_url(self) -> Optional[UrlVersion]
-	
+    
+    def required_url(self) -> Optional[UrlVersion]
+    
 Description
 -----------
 
@@ -87,30 +87,31 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- url version if this dependency is a "url dependency"
+url version if this dependency is a "url dependency"
 (meaning, its version specifier requires specific url), None otherwise.
 
 -----------------------
 
 ..	code-block:: python
-	
-	def __str__(self)
-	
+    
+    @classmethod
+    def parse(cls, text: str) -> 'Dependency'
+    
 Description
 -----------
 
@@ -120,73 +121,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __repr__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def parse(cls, text: str) -> 'Dependency'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	text
-		-	str
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   text
+        -   str
+        -   No Description
+    

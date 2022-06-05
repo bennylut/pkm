@@ -15,9 +15,10 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
+from pathlib import Path
 
 project = 'pkm-cli'
-copyright = '2022, Benny Lutati'
+copyright = '2022, Benny Lutati' # noqa
 author = 'Benny Lutati'
 
 # -- General configuration ---------------------------------------------------
@@ -47,6 +48,7 @@ exclude_patterns = []
 add_module_names = False
 autodoc_typehints_format = "short"
 master_doc = "master"
+rst_prolog = (Path(__file__).parent / "page-prolog.rst").read_text()
 
 # -- Options for API generation ----------------------------------------------
 build_apis = ["pkm_cli.api", "pkm.api"]

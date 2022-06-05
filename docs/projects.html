@@ -46,15 +46,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
 </ul>
 
           <div role="search">
@@ -72,10 +68,22 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="pkm-projects">
-<h1>PKM Projects<a class="headerlink" href="#pkm-projects" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pkm-projects" id="id3">PKM Projects</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-pyproject-toml-file" id="id4">The <span class="file">pyproject.toml</span> File</a></p></li>
+<li><p><a class="reference internal" href="#package-locking" id="id5">Package locking</a></p></li>
+<li><p><a class="reference internal" href="#distribution-types" id="id6">Distribution Types</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="pkm-projects">
+<h1><a class="toc-backref" href="#id3">PKM Projects</a><a class="headerlink" href="#pkm-projects" title="Permalink to this headline">¶</a></h1>
 <section id="the-pyproject-toml-file">
-<h2>The <span class="file">pyproject.toml</span> File<a class="headerlink" href="#the-pyproject-toml-file" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">The <span class="file">pyproject.toml</span> File</a><a class="headerlink" href="#the-pyproject-toml-file" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">pkm</span></code> projects follows <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0631/"><strong>PEP 631</strong></a>, <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0621/"><strong>PEP 621</strong></a>, <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0517/"><strong>PEP 517</strong></a> and <span class="target" id="index-3"></span><a class="pep reference external" href="https://peps.python.org/pep-0518/"><strong>PEP 518</strong></a>.
 It reads the project configuration from the standard <span class="file">pyproject.toml</span> file.
 <span class="program">toml</span> is a fairly human-readable format, you can learn more about it [here](<a class="reference external" href="https://toml.io/en/">https://toml.io/en/</a>).</p>
@@ -211,7 +219,7 @@ holding the contact information for the authors and maintainers</p>
 </section>
 </section>
 <section id="package-locking">
-<h2>Package locking<a class="headerlink" href="#package-locking" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Package locking</a><a class="headerlink" href="#package-locking" title="Permalink to this headline">¶</a></h2>
 <p>Package locking is a mechanism that attempts to reduce package versioning dissimilarities on multi-user projects. It
 actually sounds more complex than it is..</p>
 <div class="admonition-lets-try-to-understand-the-problem-that-it-tries-to-solve-using-an-example admonition">
@@ -233,7 +241,7 @@ operating systems or may use a different version of python, etc. Therefore, it i
 do is to make sure that you commit this file to your version control system.</p>
 </section>
 <section id="distribution-types">
-<h2>Distribution Types<a class="headerlink" href="#distribution-types" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Distribution Types</a><a class="headerlink" href="#distribution-types" title="Permalink to this headline">¶</a></h2>
 <section id="regular-library-distribution">
 <h3>Regular (library) Distribution<a class="headerlink" href="#regular-library-distribution" title="Permalink to this headline">¶</a></h3>
 <p>TODO</p>

@@ -52,11 +52,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="containers.html">Application Containers</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm_cli.api/pkm_cli.api.html">pkm-cli API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/pkm.api/pkm.api.html">pkm API</a></li>
-</ul>
 
           <div role="search">
             <h3 style="margin-top: 1.5em;">Search</h3>
@@ -73,13 +68,30 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="project-tasks">
-<h1>Project Tasks<a class="headerlink" href="#project-tasks" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#project-tasks" id="id5">Project Tasks</a></p>
+<ul>
+<li><p><a class="reference internal" href="#writing-tasks" id="id6">Writing Tasks</a></p></li>
+<li><p><a class="reference internal" href="#running-tasks" id="id7">Running Tasks</a></p></li>
+<li><p><a class="reference internal" href="#task-arguments" id="id8">Task Arguments</a></p></li>
+<li><p><a class="reference internal" href="#documenting-tasks" id="id9">Documenting tasks</a></p></li>
+<li><p><a class="reference internal" href="#task-extended-builtins" id="id10">Task Extended-Builtins</a></p></li>
+<li><p><a class="reference internal" href="#groupping-tasks" id="id11">Groupping Tasks</a></p></li>
+<li><p><a class="reference internal" href="#attaching-tasks-to-pkm-commands" id="id12">Attaching Tasks to pkm Commands</a></p></li>
+<li><p><a class="reference internal" href="#publish-and-install-3rd-party-tasks" id="id13">Publish and Install 3rd Party Tasks</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="project-tasks">
+<h1><a class="toc-backref" href="#id5">Project Tasks</a><a class="headerlink" href="#project-tasks" title="Permalink to this headline">¶</a></h1>
 <p>Project tasks is a pkm feature that allows you to define tasks that may assist you during your project
 developement. These tasks can be then executed using <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span> <span class="pre">&#64;task</span></code> or by attaching them to one of pkm’s commands
 (like build, install, publish etc.)</p>
 <section id="writing-tasks">
-<h2>Writing Tasks<a class="headerlink" href="#writing-tasks" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Writing Tasks</a><a class="headerlink" href="#writing-tasks" title="Permalink to this headline">¶</a></h2>
 <p>Tasks are python scripts that are found inside your project’s <span class="file">tasks</span> directory or the <span class="package">pkm_tasks</span>
 namespace package. The name of the task’s script file reflects the name of the task (without the “.py” extension).</p>
 <p>The task script must define a <code class="docutils literal notranslate"><span class="pre">run</span></code> function, which is the function that gets executed when pkm is asked to runs the
@@ -100,7 +112,7 @@ task.</p>
 them for a common functionality.</p>
 </section>
 <section id="running-tasks">
-<h2>Running Tasks<a class="headerlink" href="#running-tasks" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Running Tasks</a><a class="headerlink" href="#running-tasks" title="Permalink to this headline">¶</a></h2>
 <p>To execute tasks, you can use the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> command and give it as its first argument the task name prefixed with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code></p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm run @hello
 <span class="go">world</span>
@@ -110,7 +122,7 @@ them for a common functionality.</p>
 if <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> was not called in a project context.</p>
 </section>
 <section id="task-arguments">
-<h2>Task Arguments<a class="headerlink" href="#task-arguments" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">Task Arguments</a><a class="headerlink" href="#task-arguments" title="Permalink to this headline">¶</a></h2>
 <p>The task’s <code class="docutils literal notranslate"><span class="pre">run</span></code> function can define arguments, these will get supplied by the user in the command line</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">tasks/with_args.py</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
@@ -139,7 +151,7 @@ int, bool, str, Path or any user defined type that follows this rule)</p>
 </div>
 </section>
 <section id="documenting-tasks">
-<h2>Documenting tasks<a class="headerlink" href="#documenting-tasks" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">Documenting tasks</a><a class="headerlink" href="#documenting-tasks" title="Permalink to this headline">¶</a></h2>
 <p>To document your task, just add a doc-string to your <code class="docutils literal notranslate"><span class="pre">run</span></code> function. You can view the task documentation using
 the <code class="docutils literal notranslate"><span class="pre">-h,</span> <span class="pre">--help</span></code> flag of the <code class="docutils literal notranslate"><span class="pre">pkm</span> <span class="pre">run</span></code> command with the given task.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pkm run @task -h
@@ -147,7 +159,7 @@ the <code class="docutils literal notranslate"><span class="pre">-h,</span> <spa
 </div>
 </section>
 <section id="task-extended-builtins">
-<h2>Task Extended-Builtins<a class="headerlink" href="#task-extended-builtins" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Task Extended-Builtins</a><a class="headerlink" href="#task-extended-builtins" title="Permalink to this headline">¶</a></h2>
 <p>When pkm executes a task it adds to the task-script’s builtins several functions and attributes that are usefull in the
 context of task execution.
 These builtins extension are listed below.</p>
@@ -184,7 +196,7 @@ holds information about that project.</p>
 </section>
 </section>
 <section id="groupping-tasks">
-<h2>Groupping Tasks<a class="headerlink" href="#groupping-tasks" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">Groupping Tasks</a><a class="headerlink" href="#groupping-tasks" title="Permalink to this headline">¶</a></h2>
 <p>If you have large number of tasks it can be convinient to group them into packages.
 for example, you can define tasks in <span class="file">tasks/printers/print_hello.py</span> and <span class="file">tasks/printers/print_word.py</span> and then call
 them by running the command</p>
@@ -194,7 +206,7 @@ them by running the command</p>
 </div>
 </section>
 <section id="attaching-tasks-to-pkm-commands">
-<h2>Attaching Tasks to pkm Commands<a class="headerlink" href="#attaching-tasks-to-pkm-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">Attaching Tasks to pkm Commands</a><a class="headerlink" href="#attaching-tasks-to-pkm-commands" title="Permalink to this headline">¶</a></h2>
 <p>You can attach tasks to be executed before or after one of pkm commands, this can be done by adding a <span class="file">before.py</span>
 or <span class="file">after.py</span> to the <span class="file">tasks/commands/path/to/command</span> directory where the path to the command is the same as the space
 seperated path to the command in the pkm cli.</p>
@@ -225,7 +237,7 @@ file <span class="file">tasks/commands/repos/add/before.py</span></p>
 </div>
 </section>
 <section id="publish-and-install-3rd-party-tasks">
-<h2>Publish and Install 3rd Party Tasks<a class="headerlink" href="#publish-and-install-3rd-party-tasks" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">Publish and Install 3rd Party Tasks</a><a class="headerlink" href="#publish-and-install-3rd-party-tasks" title="Permalink to this headline">¶</a></h2>
 <p>In some cases you may want to create and publish your tasks so that they can be used by other projects.
 You can create a project and add tasks to the <span class="package">pkm_tasks</span> namespace-package, this tasks can then be used by
 other projects that installed your project.</p>

@@ -1,5 +1,5 @@
 ..
-	HASH:b0507e2c2155299543ad7cd906e9a6e9
+    HASH:b0507e2c2155299543ad7cd906e9a6e9
 
 pkm.api.repositories.repositories\_configuration \(Module\)
 ###########################################################
@@ -13,26 +13,26 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfigInheritanceMode>`
-	
-	..	code-block:: python
-		
-		class RepositoriesConfigInheritanceMode(Enum)
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfigInheritanceMode>`
+    
+    ..	code-block:: python
+        
+        class RepositoriesConfigInheritanceMode(Enum)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfiguration>`
-	
-	..	code-block:: python
-		
-		class RepositoriesConfiguration(TomlFileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfiguration>`
+    
+    ..	code-block:: python
+        
+        class RepositoriesConfiguration(TomlFileConfiguration)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoryInstanceConfig>`
-	
-	..	code-block:: python
-		
-		class RepositoryInstanceConfig
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoryInstanceConfig>`
+    
+    ..	code-block:: python
+        
+        class RepositoryInstanceConfig
+        

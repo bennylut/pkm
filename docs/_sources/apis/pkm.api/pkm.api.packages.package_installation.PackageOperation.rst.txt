@@ -4,8 +4,8 @@ PackageOperation \(Class\)
 ##########################
 
 ..	code-block:: python
-	
-	class PackageOperation(Enum)
-	
+    
+    class PackageOperation(Enum)
+    
 Class Methods
 =============

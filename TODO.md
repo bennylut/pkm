@@ -1,27 +1,21 @@
 ## RUNNING TASKS:
-- documentation: document templates
-- simplification: configuration - remove parent
 - cmd: pkm uninstall -o (orphans)
+- create installation script for pkm
+- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
+  project based on it, I think I also saw this possibility in conda
+- cmd: pkm uninstall - display the packages being removed
+- add the self: install, remove, update, ... commands
+- documentation: document builtin templates
 
 ## DONE IN THIS VERSION
-- bug: when uninstalling from optional group, the dependency is not removed from the pyproject.toml
-- documentation: 3rd party tasks, publish and install
-- documentation: document tasks argument support for flags (`--`)
-- support 3rd-party templates in `pkm_templates` namespace
-- move to the new template runner
-- bug in both tasks and templates - optional type casting should not work - need to take the internal type
-- after the "new" command, some indication should be made for the user that the template generated its content
-  successfully
-- move tasks_runner and templates_runner to the cli-api
-- project group tasks support should be removed in favor of 3rd party tasks
-- bug: dependency of requested package never installed as editable even if found as a local project
-- add support for the `pkm_tasks` namespace
-- bug: the task print function does not use Display.print and therefore has problems with text disapearing
-- integrate a task to generate commands documentation
-- bug: doc-builder live-reload sphinx does not pickup updates to the master.rst
+- documentation: add right bar page navigation
+- documentation: document templates
+- simplification: configuration - remove parent
+- support local file templates
+- docs-builder - hide private functions
+- bug: pkm new - cannot cancel creation - it just continues to the next question
 
 ## BACKLOG TASKS:
-
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - documentation: environments
@@ -52,26 +46,21 @@
 - cli: read about parents in argparse - may help improve code readability
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
-- feature: environment export
 - bug: generated pyc files are not getting signed
 - shell: `pkm -v` print pkm version
 - replace dependency resolution progressbar with spinner?
-- test: install project with optionals and then just install should keep optionals
 - bug: copy transaction should be used at the level of the full installation as sometimes it has to upgrade packages
   which means that they will get deleted - bypassing the copy transaction realm
 - package artifact hash validation: pypi, simple, torch
 - qof: when running in "build-sys" mode, basic monitoring should be on
 - improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
-- test pkm on os where platlib and purelib are different (centos?)
 - pkm show : print cache size, attached repository, etc.
 - repositories: pyvenv
 - cli: if building packages during dependency resolution, output is very convoluted
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - pkm show: add repositories information
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
-- bug: pkm new - cannot cancel creation - it just continues to the next question
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
-- cmd: pkm uninstall - display the packages being removed
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - environment naming (for project for example..)
 - shell aliases: p (= python x.py ... or python -m x ...), project-dir, env-dir, l, ll
@@ -85,12 +74,11 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - add some flag to disable parallelizm in installation (mainly useful for debug?)
 - `pkm shell` support custom environment variables loading like in pipenv
-- create installation script for pkm
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
-- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
-  project based on it, I think I also saw this possibility in conda
 - shell venv - alias to print environment and project in context
+- feature: namespace guard file (in a namespace package add a `.namespace` file and `pkm` will guard it to not
+  allow `__init__.py` files to be accedantly added to it)
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

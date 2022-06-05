@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,14 +67,25 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="environmentszoo-class">
-<h1>EnvironmentsZoo (Class)<a class="headerlink" href="#environmentszoo-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#environmentszoo-class" id="id21">EnvironmentsZoo (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id22">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="environmentszoo-class">
+<h1><a class="toc-backref" href="#id21">EnvironmentsZoo (Class)</a><a class="headerlink" href="#environmentszoo-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EnvironmentsZoo</span><span class="p">(</span><span class="n">HasAttachedRepository</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EnvironmentZooConfiguration</span><span class="p">)</span>
+<h2><a class="toc-backref" href="#id22">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
+<span class="k">def</span> <span class="nf">repository_management</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;RepositoryManagement&#39;</span>
 </pre></div>
 </div>
 <section id="description">
@@ -94,15 +106,10 @@
 <td><p>Any</p></td>
 <td><p>No Description</p></td>
 </tr>
-<tr class="row-odd"><td><p>cfg</p></td>
-<td><p>EnvironmentZooConfiguration</p></td>
-<td><p>No Description</p></td>
-</tr>
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">_bin_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">python</span><span class="p">:</span> <span class="n">Dependency</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
 </pre></div>
 </div>
 </section>
@@ -112,57 +119,6 @@
 </section>
 <section id="id2">
 <h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@cached_property</span>
-<span class="k">def</span> <span class="nf">repository_management</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;RepositoryManagement&#39;</span>
-</pre></div>
-</div>
-</section>
-<section id="id3">
-<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id4">
-<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">python</span><span class="p">:</span> <span class="n">Dependency</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
-</pre></div>
-</div>
-</section>
-<section id="id5">
-<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id6">
-<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -190,12 +146,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id7">
-<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<section id="id3">
+<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id8">
-<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<section id="id4">
+<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -219,12 +175,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id9">
-<h3>Description<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<section id="id5">
+<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id10">
-<h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<section id="id6">
+<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -245,12 +201,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id11">
-<h3>Description<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<section id="id7">
+<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id12">
-<h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<section id="id8">
+<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -274,12 +230,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id13">
-<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<section id="id9">
+<h3>Description<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id14">
-<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<section id="id10">
+<h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -297,20 +253,18 @@
 </section>
 <section id="returns">
 <h3>Returns<a class="headerlink" href="#returns" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>iterator iterating over the requested environments that exists in this zoo</p>
-</div></blockquote>
+<p>iterator iterating over the requested environments that exists in this zoo</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">load_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Environment</span>
 </pre></div>
 </div>
 </section>
-<section id="id15">
-<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<section id="id11">
+<h3>Description<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id16">
-<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<section id="id12">
+<h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -334,12 +288,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id17">
-<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<section id="id13">
+<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id18">
-<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<section id="id14">
+<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -367,12 +321,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id19">
-<h3>Description<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<section id="id15">
+<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id20">
-<h3>Arguments<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<section id="id16">
+<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -401,12 +355,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id21">
-<h3>Description<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<section id="id17">
+<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id22">
-<h3>Arguments<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<section id="id18">
+<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -431,12 +385,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id23">
-<h3>Description<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<section id="id19">
+<h3>Description<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <p>Not Documented</p>
 </section>
-<section id="id24">
-<h3>Arguments<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<section id="id20">
+<h3>Arguments<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>

@@ -1,5 +1,5 @@
 ..
-	HASH:ab2d6801702df7b3b8a02a7a75acf695
+    HASH:ab2d6801702df7b3b8a02a7a75acf695
 
 pkm.api.distributions.source\_distribution \(Module\)
 #####################################################
@@ -13,10 +13,10 @@ Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.distributions.source_distribution.SourceDistribution>`
-	
-	..	code-block:: python
-		
-		class SourceDistribution(Distribution)
-		
+    
+    :doc:`[DOC] <pkm.api.distributions.source_distribution.SourceDistribution>`
+    
+    ..	code-block:: python
+        
+        class SourceDistribution(Distribution)
+        

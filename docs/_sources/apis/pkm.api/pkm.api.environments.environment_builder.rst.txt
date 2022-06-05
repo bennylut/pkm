@@ -1,5 +1,5 @@
 ..
-	HASH:b0db479ae6a054d1335e3fb9065daa4a
+    HASH:b0db479ae6a054d1335e3fb9065daa4a
 
 pkm.api.environments.environment\_builder \(Module\)
 ####################################################
@@ -7,27 +7,24 @@ pkm.api.environments.environment\_builder \(Module\)
 Module Fields
 =============
 
-..	code-block:: python
-	
-	_INTERPRETER_INTROSPECTIONS: Dict[str, EnvironmentIntrospection] = {}
-	_PYVENV_SEP_RX = re.compile('\\s*=\\s*')
-	
+No fields defined in module.
+
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.environments.environment_builder.EnvironmentBuilder>`
-	
-	..	code-block:: python
-		
-		class EnvironmentBuilder
-		
+    
+    :doc:`[DOC] <pkm.api.environments.environment_builder.EnvironmentBuilder>`
+    
+    ..	code-block:: python
+        
+        class EnvironmentBuilder
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.environments.environment_builder.PyVEnvConfiguration>`
-	
-	..	code-block:: python
-		
-		class PyVEnvConfiguration(FileConfiguration)
-		
+    
+    :doc:`[DOC] <pkm.api.environments.environment_builder.PyVEnvConfiguration>`
+    
+    ..	code-block:: python
+        
+        class PyVEnvConfiguration(FileConfiguration)
+        

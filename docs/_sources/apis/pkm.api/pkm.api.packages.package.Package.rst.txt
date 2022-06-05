@@ -4,18 +4,18 @@ Package \(Class\)
 #################
 
 ..	code-block:: python
-	
-	class Package(ABC)
-	
+    
+    class Package(ABC)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@property
-	@abstractmethod
-	def descriptor(self) -> PackageDescriptor
-	
+    
+    @property
+    @abstractmethod
+    def descriptor(self) -> PackageDescriptor
+    
 Description
 -----------
 
@@ -25,18 +25,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
@@ -44,10 +44,10 @@ Returns
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def published_metadata(self) -> Optional['PackageMetadata']
-	
+    
+    @property
+    def published_metadata(self) -> Optional['PackageMetadata']
+    
 Description
 -----------
 
@@ -57,32 +57,32 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- the package provided metadata,
+the package provided metadata,
 note that this is not the "computed" metadata but instead only the information available to the
 providing repository about this package
 
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def name(self) -> str
-	
+    
+    @property
+    def name(self) -> str
+    
 Description
 -----------
 
@@ -92,25 +92,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@property
-	def version(self) -> Version
-	
+    
+    @property
+    def version(self) -> Version
+    
 Description
 -----------
 
@@ -120,26 +120,26 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def dependencies(self, environment: 'Environment', 
-	    extras: Optional[List[str]] = None) -> List['Dependency']
-	
+    
+    @abstractmethod
+    def dependencies(self, environment: 'Environment', 
+        extras: Optional[List[str]] = None) -> List['Dependency']
+    
 Description
 -----------
 
@@ -149,37 +149,37 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	environment
-		-	'Environment'
-		-	 the environment that the dependencies should be calculated against, otherwise all dependencies will be returned
-	*	-	extras
-		-	Optional[List[str]]
-		-	 the extras to include in the dependencies' calculation
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   environment
+        -   'Environment'
+        -    the environment that the dependencies should be calculated against, otherwise all dependencies will be returned
+    *   -   extras
+        -   Optional[List[str]]
+        -    the extras to include in the dependencies' calculation
+    
 Returns
 -------
 
- the list of dependencies this package has in order to be installed into the given
+the list of dependencies this package has in order to be installed into the given
 [environment] with the given [extras]
 
 -----------------------
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def is_compatible_with(self, env: 'Environment') -> bool
-	
+    
+    @abstractmethod
+    def is_compatible_with(self, env: 'Environment') -> bool
+    
 Description
 -----------
 
@@ -189,34 +189,34 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	env
-		-	'Environment'
-		-	 the environment to check
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   env
+        -   'Environment'
+        -    the environment to check
+    
 Returns
 -------
 
- true if this package can be installed given its dependencies into the given environment
+true if this package can be installed given its dependencies into the given environment
 
 -----------------------
 
 ..	code-block:: python
-	
-	@abstractmethod
-	def install_to(self, target: 'PackageInstallationTarget', 
-	    user_request: Optional['Dependency'] = None, editable: bool = True)
-	
+    
+    @abstractmethod
+    def install_to(self, target: 'PackageInstallationTarget', 
+        user_request: Optional['Dependency'] = None, editable: bool = True)
+    
 Description
 -----------
 
@@ -226,33 +226,33 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	 the information about the target to install this package into
-	*	-	user_request
-		-	Optional['Dependency']
-		-	 if this package was requested by the user, supplying this field will mark the installation as user request
-	*	-	editable
-		-	bool
-		-	 if True and able, the package will be installed in editable mode
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -    the information about the target to install this package into
+    *   -   user_request
+        -   Optional['Dependency']
+        -    if this package was requested by the user, supplying this field will mark the installation as user request
+    *   -   editable
+        -   bool
+        -    if True and able, the package will be installed in editable mode
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def uninstall(self) -> bool
-	
+    
+    def uninstall(self) -> bool
+    
 Description
 -----------
 
@@ -264,30 +264,30 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 Returns
 -------
 
- True if the package was fully removed from the installation target, False otherwise
+True if the package was fully removed from the installation target, False otherwise
 
 -----------------------
 
 ..	code-block:: python
-	
-	def update_at(self, target: 'PackageInstallationTarget', 
-	    user_request: Optional['Dependency'] = None, editable: bool = True)
-	
+    
+    def update_at(self, target: 'PackageInstallationTarget', 
+        user_request: Optional['Dependency'] = None, editable: bool = True)
+    
 Description
 -----------
 
@@ -298,78 +298,24 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	target
-		-	'PackageInstallationTarget'
-		-	 the target that contains the package to update
-	*	-	user_request
-		-	Optional['Dependency']
-		-	 if this package was requested by the user, supplying this field will mark the installation as user request
-	*	-	editable
-		-	bool
-		-	 if True, the package will be installed in editable mode, otherwise in standard copy mode
-	
------------------------
-
-..	code-block:: python
-	
-	def __str__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	def __repr__(self)
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   target
+        -   'PackageInstallationTarget'
+        -    the target that contains the package to update
+    *   -   user_request
+        -   Optional['Dependency']
+        -    if this package was requested by the user, supplying this field will mark the installation as user request
+    *   -   editable
+        -   bool
+        -    if True, the package will be installed in editable mode, otherwise in standard copy mode
+    

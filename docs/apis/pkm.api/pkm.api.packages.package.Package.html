@@ -40,6 +40,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../projects.html">PKM Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../repositories.html">Repository Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Project Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../templates.html">Templates</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
@@ -66,13 +67,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="package-class">
-<h1>Package (Class)<a class="headerlink" href="#package-class" title="Permalink to this headline">¶</a></h1>
+  <div class="contents page-content topic" id="in-this-page">
+<p class="topic-title">In This Page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#package-class" id="id21">Package (Class)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#class-methods" id="id22">Class Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="package-class">
+<h1><a class="toc-backref" href="#id21">Package (Class)</a><a class="headerlink" href="#package-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2>Class Methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id22">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PackageDescriptor</span>
@@ -130,10 +141,8 @@
 </section>
 <section id="id3">
 <h3>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the package provided metadata,</p>
-</div></blockquote>
-<p>note that this is not the “computed” metadata but instead only the information available to the
+<p>the package provided metadata,
+note that this is not the “computed” metadata but instead only the information available to the
 providing repository about this package</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
@@ -225,10 +234,8 @@ providing repository about this package</p>
 </section>
 <section id="id10">
 <h3>Returns<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>the list of dependencies this package has in order to be installed into the given</p>
-</div></blockquote>
-<p>[environment] with the given [extras]</p>
+<p>the list of dependencies this package has in order to be installed into the given
+[environment] with the given [extras]</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">is_compatible_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="s1">&#39;Environment&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
@@ -262,9 +269,7 @@ providing repository about this package</p>
 </section>
 <section id="id13">
 <h3>Returns<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>true if this package can be installed given its dependencies into the given environment</p>
-</div></blockquote>
+<p>true if this package can be installed given its dependencies into the given environment</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
 <span class="k">def</span> <span class="nf">install_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s1">&#39;PackageInstallationTarget&#39;</span><span class="p">,</span>
@@ -334,9 +339,7 @@ package but instead will remove the “user-requested” mark from it (and then 
 </section>
 <section id="id18">
 <h3>Returns<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>True if the package was fully removed from the installation target, False otherwise</p>
-</div></blockquote>
+<p>True if the package was fully removed from the installation target, False otherwise</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s1">&#39;PackageInstallationTarget&#39;</span><span class="p">,</span>
     <span class="n">user_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;Dependency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">editable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
@@ -373,56 +376,6 @@ the update may attempt a full re-installation or a smarted “fast” delta-upda
 <tr class="row-odd"><td><p>editable</p></td>
 <td><p>bool</p></td>
 <td><p>if True, the package will be installed in editable mode, otherwise in standard copy mode</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id21">
-<h3>Description<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id22">
-<h3>Arguments<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id23">
-<h3>Description<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id24">
-<h3>Arguments<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
 </tr>
 </tbody>
 </table>

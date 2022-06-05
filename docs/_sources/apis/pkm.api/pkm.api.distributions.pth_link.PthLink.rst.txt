@@ -4,17 +4,16 @@ PthLink \(Class\)
 #################
 
 ..	code-block:: python
-	
-	class PthLink
-	
+    
+    class PthLink
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	def __init__(self, path: Path, links: List[Path], 
-	    imports: Optional[List[str]] = None)
-	
+    
+    def save(self)
+    
 Description
 -----------
 
@@ -24,33 +23,25 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	 the path to the link itself
-	*	-	links
-		-	List[Path]
-		-	 collection of paths that this link should be responsible for appending to the `sys.path`
-	*	-	imports
-		-	Optional[List[str]]
-		-	 collection of imports that this link should be responsible for loading when python sites is resolved
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
 -----------------------
 
 ..	code-block:: python
-	
-	def save(self)
-	
+    
+    @classmethod
+    def load(cls, path: Path) -> 'PthLink'
+    
 Description
 -----------
 
@@ -60,46 +51,18 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
------------------------
-
-..	code-block:: python
-	
-	@classmethod
-	def load(cls, path: Path) -> 'PthLink'
-	
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-	
-..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	cls
-		-	Any
-		-	No Description
-	*	-	path
-		-	Path
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   cls
+        -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    

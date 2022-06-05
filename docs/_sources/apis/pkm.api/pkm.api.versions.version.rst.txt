@@ -1,5 +1,5 @@
 ..
-	HASH:7811ec72f4ddb3046468999ba47a32df
+    HASH:7811ec72f4ddb3046468999ba47a32df
 
 pkm.api.versions.version \(Module\)
 ###################################
@@ -8,41 +8,41 @@ Module Fields
 =============
 
 ..	code-block:: python
-	
-	VERSION_URL_RX = re.compile('((?P<repo>\\w+)\\+)?(?P<url>.*)')
-	
+    
+    VERSION_URL_RX = re.compile('((?P<repo>\\w+)\\+)?(?P<url>.*)')
+    
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.versions.version.Version>`
-	
-	..	code-block:: python
-		
-		class Version(ABC)
-		
+    
+    :doc:`[DOC] <pkm.api.versions.version.Version>`
+    
+    ..	code-block:: python
+        
+        class Version(ABC)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.versions.version.UrlVersion>`
-	
-	..	code-block:: python
-		
-		class UrlVersion(Version)
-		
+    
+    :doc:`[DOC] <pkm.api.versions.version.UrlVersion>`
+    
+    ..	code-block:: python
+        
+        class UrlVersion(Version)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.versions.version.NamedVersion>`
-	
-	..	code-block:: python
-		
-		class NamedVersion(Version)
-		
+    
+    :doc:`[DOC] <pkm.api.versions.version.NamedVersion>`
+    
+    ..	code-block:: python
+        
+        class NamedVersion(Version)
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.versions.version.StandardVersion>`
-	
-	..	code-block:: python
-		
-		class StandardVersion(Version)
-		
+    
+    :doc:`[DOC] <pkm.api.versions.version.StandardVersion>`
+    
+    ..	code-block:: python
+        
+        class StandardVersion(Version)
+        

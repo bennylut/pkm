@@ -4,17 +4,17 @@ EnvironmentZooConfiguration \(Class\)
 #####################################
 
 ..	code-block:: python
-	
-	class EnvironmentZooConfiguration(TomlFileConfiguration)
-	
+    
+    class EnvironmentZooConfiguration(TomlFileConfiguration)
+    
 Class Methods
 =============
 
 ..	code-block:: python
-	
-	@computed_based_on('package-sharing')
-	def package_sharing(self) -> PackageSharingConfig
-	
+    
+    @computed_based_on('package-sharing')
+    def package_sharing(self) -> PackageSharingConfig
+    
 Description
 -----------
 
@@ -24,15 +24,15 @@ Arguments
 ---------
 
 ..	rst-class:: args-table
-	
+    
 ..	list-table:: 
-	:widths: auto
-	:header-rows: 1
-	
-	*	-	Name
-		-	Type
-		-	Description
-	*	-	self
-		-	Any
-		-	No Description
-	
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

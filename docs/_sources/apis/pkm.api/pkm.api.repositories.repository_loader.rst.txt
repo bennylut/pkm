@@ -1,5 +1,5 @@
 ..
-	HASH:2ab0eb6fe145fc3ec97339bc54c9b68a
+    HASH:2ab0eb6fe145fc3ec97339bc54c9b68a
 
 pkm.api.repositories.repository\_loader \(Module\)
 ##################################################
@@ -8,34 +8,34 @@ Module Fields
 =============
 
 ..	code-block:: python
-	
-	REPOSITORIES_EXTENSIONS_ENTRYPOINT_GROUP = 'pkm-repositories'
-	REPOSITORIES_CONFIGURATION_PATH = 'etc/pkm/repositories.toml'
-	
+    
+    REPOSITORIES_EXTENSIONS_ENTRYPOINT_GROUP = 'pkm-repositories'
+    REPOSITORIES_CONFIGURATION_PATH = 'etc/pkm/repositories.toml'
+    
 Module Classes
 ==============
 
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoryLoader>`
-	
-	..	code-block:: python
-		
-		class RepositoryLoader
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoryLoader>`
+    
+    ..	code-block:: python
+        
+        class RepositoryLoader
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoryTypeInfo>`
-	
-	..	code-block:: python
-		
-		class RepositoryTypeInfo
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoryTypeInfo>`
+    
+    ..	code-block:: python
+        
+        class RepositoryTypeInfo
+        
 ..	container:: class-def-with-link
-	
-	:doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoriesExtension>`
-	
-	..	code-block:: python
-		
-		class RepositoriesExtension
-		
+    
+    :doc:`[DOC] <pkm.api.repositories.repository_loader.RepositoriesExtension>`
+    
+    ..	code-block:: python
+        
+        class RepositoriesExtension
+        
