@@ -1,19 +1,15 @@
 ## RUNNING TASKS:
 - cmd: pkm uninstall -o (orphans)
-- create installation script for pkm
 - create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
   project based on it, I think I also saw this possibility in conda
 - cmd: pkm uninstall - display the packages being removed
 - add the self: install, remove, update, ... commands
 - documentation: document builtin templates
 
+
 ## DONE IN THIS VERSION
-- documentation: add right bar page navigation
-- documentation: document templates
-- simplification: configuration - remove parent
-- support local file templates
-- docs-builder - hide private functions
-- bug: pkm new - cannot cancel creation - it just continues to the next question
+- create installation script for pkm
+- when searching for python interpreter, always add the current running interpreter
 
 ## BACKLOG TASKS:
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"

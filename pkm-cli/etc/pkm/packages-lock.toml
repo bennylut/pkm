@@ -15,6 +15,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "rich", version = "11.1.0"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "rich", version = "11.1.0"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "jinja2", version = "3.0.3"}
 
@@ -32,6 +36,10 @@ package = {name = "wcwidth", version = "0.2.5"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "wcwidth", version = "0.2.5"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "wcwidth", version = "0.2.5"}
 
 [[lock]]
@@ -71,6 +79,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "questionary", version = "1.10.0"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "questionary", version = "1.10.0"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "distro", version = "1.6.0"}
 
@@ -88,6 +100,10 @@ package = {name = "commonmark", version = "0.9.1"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "commonmark", version = "0.9.1"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "commonmark", version = "0.9.1"}
 
 [[lock]]
@@ -115,6 +131,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "pkm-cli", version = "0.4.44"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "pkm-cli", version = "0.4.44"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "markupsafe", version = "2.0.1"}
 
@@ -135,6 +155,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "pkm", version = "0.4.51"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "pkm", version = "0.4.55"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "colorama", version = "0.4.4"}
 
@@ -151,6 +175,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "colorama", version = "0.4.4"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "colorama", version = "0.4.4"}
+
+[[lock]]
 env_markers_hash = "7cf0490079ffb7f85f91a0a2c6b1fdd5"
 package = {name = "prompt-toolkit", version = "3.0.24"}
 
@@ -164,6 +192,10 @@ package = {name = "prompt-toolkit", version = "3.0.24"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "prompt-toolkit", version = "3.0.24"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "prompt-toolkit", version = "3.0.24"}
 
 [[lock]]
@@ -187,6 +219,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "xonsh", version = "0.12.3"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "xonsh", version = "0.12.3"}
+
+[[lock]]
 env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "Jinja2", version = "3.0.3"}
 
@@ -199,6 +235,10 @@ env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
 package = {name = "Jinja2", version = "3.0.3"}
 
 [[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
+package = {name = "Jinja2", version = "3.0.3"}
+
+[[lock]]
 env_markers_hash = "07e4e684d036503e48585cacfd48fe13"
 package = {name = "Pygments", version = "2.11.2"}
 
@@ -208,6 +248,10 @@ package = {name = "Pygments", version = "2.11.2"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "Pygments", version = "2.11.2"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "Pygments", version = "2.11.2"}
 
 [[lock]]
@@ -220,6 +264,10 @@ package = {name = "MarkupSafe", version = "2.0.1"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "MarkupSafe", version = "2.0.1"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "MarkupSafe", version = "2.0.1"}
 
 [[lock]]
@@ -236,6 +284,10 @@ package = {name = "Sphinx", version = "4.5.0"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "cffi", version = "1.15.0"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "cffi", version = "1.15.0"}
 
 [[lock]]
@@ -256,6 +308,10 @@ package = {name = "requests", version = "2.27.1"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "cryptography", version = "37.0.2"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "cryptography", version = "37.0.2"}
 
 [[lock]]
@@ -292,6 +348,10 @@ package = {name = "sphinxcontrib-qthelp", version = "1.0.3"}
 
 [[lock]]
 env_markers_hash = "79ee86e4eb9e59db4283c32cb8125ecc"
+package = {name = "pycparser", version = "2.21"}
+
+[[lock]]
+env_markers_hash = "5e42ff96d765e579f56315ee739a7e13"
 package = {name = "pycparser", version = "2.21"}
 
 [[lock]]
