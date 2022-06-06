@@ -8,12 +8,6 @@
 - documentation: document builtin templates
 
 ## DONE IN THIS VERSION
-- documentation: add right bar page navigation
-- documentation: document templates
-- simplification: configuration - remove parent
-- support local file templates
-- docs-builder - hide private functions
-- bug: pkm new - cannot cancel creation - it just continues to the next question
 
 ## BACKLOG TASKS:
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
