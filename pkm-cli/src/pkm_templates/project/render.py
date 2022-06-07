@@ -17,7 +17,7 @@ global confirm
 global target_dir
 
 
-def setup(project_name: str = None) -> dict:
+def setup(project_name: str = None, required_python: str = None) -> dict:
     project_name = project_name or ask("Project Name")
     package_name = PackageDescriptor.normalize_src_package_name(project_name)
     version = ask("Version", default="0.1.0")
@@ -26,7 +26,7 @@ def setup(project_name: str = None) -> dict:
     readme_file_ext = "md" if readme_type == 'Markdown' else 'rst'
 
     python_available_versions = [str(p.version.without_patch()) for p in pkm.repositories.installed_pythons.list()]
-    required_python = ask("Required Python Version", options=python_available_versions)
+    required_python = required_python or ask("Required Python Version", options=python_available_versions)
 
     author = ask("Author", default=default_author)
 

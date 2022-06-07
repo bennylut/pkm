@@ -1,5 +1,5 @@
 ..
-    HASH:e34e2dbf0644ad2d83169d6690b5b514
+    HASH:8d82ca9044eb93219083295792634859
 
 pkm.api.packages.package \(Module\)
 ###################################

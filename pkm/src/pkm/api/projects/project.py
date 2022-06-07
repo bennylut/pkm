@@ -91,7 +91,7 @@ class Project(Package, HasAttachedRepository):
         return self._descriptor
 
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
 
         prj = self.config.project
 
@@ -100,7 +100,7 @@ class Project(Package, HasAttachedRepository):
         else:
             all_deps = self._pyproject.project.all_dependencies
 
-        return [d for d in all_deps if d.is_applicable_for(environment, extras)]
+        return [d for d in all_deps if d.is_applicable_for(target.env, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._pyproject.project.requires_python.allows_version(env.interpreter_version)
@@ -255,14 +255,7 @@ class Project(Package, HasAttachedRepository):
                     if dep.version_spec is not AllowAllVersions:
                         spec = dep.version_spec
                     else:
-                        installed_version = package.version
-                        if isinstance(installed_version, StandardVersion):
-                            spec = StandardVersionRange(
-                                installed_version,
-                                replace(installed_version, release=(installed_version.release[0] + 1,)),
-                                True, False)
-                        else:
-                            spec = VersionMatch(installed_version)
+                        spec = package.descriptor.to_dependency(True).version_spec
 
                     new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
 

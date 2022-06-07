@@ -16,6 +16,7 @@ from pkm.api.versions.version import StandardVersion
 from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.delegations import delegate
 from pkm.utils.iterators import first_or_none, single_or_raise
 from pkm.utils.promises import Promise
@@ -74,7 +75,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         user_request = _UserRequestPackage(list(requested_deps.values()))
         installation_repo = _RemovalRepository(preinstalled_packages, user_request)
 
-        installation = resolve_dependencies(user_request.to_dependency(), self.env, installation_repo)
+        installation = resolve_dependencies(user_request.to_dependency(), self, installation_repo)
         InstallationPlan(self, installation, {}).execute()
 
         kept = {p.name for p in installation}
@@ -147,7 +148,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             user_request = _UserRequestPackage(list(new_deps.values()))
             installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
             installation = resolve_dependencies(
-                user_request.to_dependency(), self.env, installation_repo, dependencies_override)
+                user_request.to_dependency(), self, installation_repo, dependencies_override)
 
             installation_names = {i.name for i in installation}
             for preinstalled in preinstalled_packages:
@@ -163,7 +164,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             user_request = _UserRequestPackage(list(all_deps.values()))
             installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
             installation = resolve_dependencies(
-                user_request.to_dependency(), self.env, installation_repo)
+                user_request.to_dependency(), self, installation_repo)
 
         return InstallationPlan(self, installation, new_deps if user_requested else {})
 
@@ -270,7 +271,7 @@ class _UserRequestPackage(Package):
         return self._desc
 
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
         return self._request
 
     def is_compatible_with(self, env: "Environment") -> bool: return True
@@ -281,12 +282,16 @@ class _UserRequestPackage(Package):
         return Dependency(self.name, VersionMatch(self.version))
 
 
+def _norm_pname(p: str) -> str:
+    return PackageDescriptor.normalize_src_package_name(p).lower()
+
+
 class _RemovalRepository(AbstractRepository):
 
     def __init__(self, preinstalled: List[InstalledPackage], user_request: Package):
         super().__init__('removal repository')
         self._preinstalled: Dict[str, InstalledPackage] = {
-            PackageDescriptor.normalize_src_package_name(p.name).lower(): p
+            _norm_pname(p.name): p
             for p in preinstalled
         }
 
@@ -296,8 +301,29 @@ class _RemovalRepository(AbstractRepository):
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
-        match = self._preinstalled.get(PackageDescriptor.normalize_src_package_name(dependency.package_name).lower())
-        return [match] if match else []
+        match = self._preinstalled.get(_norm_pname(dependency.package_name))
+        return [_RemovalPackage(match)] if match else []
+
+
+class _RemovalPackage(Package):
+    def __init__(self, p: InstalledPackage):
+        self.package = p
+
+    @property
+    def descriptor(self) -> PackageDescriptor:
+        return self.package.descriptor
+
+    def dependencies(
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
+        sitep = target.site_packages
+        return [d for d in self.package.dependencies(target, extras) if sitep.installed_package(d.package_name)]
+
+    def is_compatible_with(self, env: "Environment") -> bool:
+        return self.package.is_compatible_with(env)
+
+    def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+                   editable: bool = True):
+        raise UnsupportedOperationException()
 
 
 @delegate(Repository, '_repo')

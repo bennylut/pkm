@@ -164,7 +164,7 @@ Arguments
 
 ..	code-block:: python
     
-    def dependencies(self, environment: 'Environment', 
+    def dependencies(self, target: 'PackageInstallationTarget', 
         extras: Optional[List[str]] = None) -> List['Dependency']
     
 Description
@@ -187,8 +187,8 @@ Arguments
     *   -   self
         -   Any
         -   No Description
-    *   -   environment
-        -   'Environment'
+    *   -   target
+        -   'PackageInstallationTarget'
         -   No Description
     *   -   extras
         -   Optional[List[str]]

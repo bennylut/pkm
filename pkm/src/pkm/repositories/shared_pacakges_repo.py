@@ -112,15 +112,15 @@ class _SharedPackage(Package):
             return None
 
     def dependencies(
-            self, environment: "Environment",
+            self, target: "PackageInstallationTarget",
             extras: Optional[List[str]] = None) -> List["Dependency"]:
 
-        if artifact := self._shared_artifact_for(environment):
+        if artifact := self._shared_artifact_for(target.env):
             deps = artifact.metadata.dependencies
         else:
-            deps = self._package.dependencies(environment)
+            deps = self._package.dependencies(target)
 
-        return [d for d in deps if d.is_applicable_for(environment, extras)]
+        return [d for d in deps if d.is_applicable_for(target.env, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._package.is_compatible_with(env)

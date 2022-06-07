@@ -198,7 +198,7 @@ providing repository about this package</p>
 </table>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@abstractmethod</span>
-<span class="k">def</span> <span class="nf">dependencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="s1">&#39;Environment&#39;</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">dependencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s1">&#39;PackageInstallationTarget&#39;</span><span class="p">,</span>
     <span class="n">extras</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Dependency&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -221,9 +221,9 @@ providing repository about this package</p>
 <td><p>Any</p></td>
 <td><p>No Description</p></td>
 </tr>
-<tr class="row-odd"><td><p>environment</p></td>
-<td><p>‘Environment’</p></td>
-<td><p>the environment that the dependencies should be calculated against, otherwise all dependencies will be returned</p></td>
+<tr class="row-odd"><td><p>target</p></td>
+<td><p>‘PackageInstallationTarget’</p></td>
+<td><p>the target that the dependencies should be calculated against</p></td>
 </tr>
 <tr class="row-even"><td><p>extras</p></td>
 <td><p>Optional[List[str]]</p></td>

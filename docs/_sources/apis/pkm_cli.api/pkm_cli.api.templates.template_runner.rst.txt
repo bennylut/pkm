@@ -1,5 +1,5 @@
 ..
-    HASH:ef6ddc438361d8f128d0e6887a1f6f5a
+    HASH:85fa81b60ff45ea66e7adac1013c1c73
 
 pkm\_cli.api.templates.template\_runner \(Module\)
 ##################################################
@@ -19,12 +19,4 @@ Module Classes
     ..	code-block:: python
         
         class TemplateRunner
-        
-..	container:: class-def-with-link
-    
-    :doc:`[DOC] <pkm_cli.api.templates.template_runner.TemplateExtendedBuiltins>`
-    
-    ..	code-block:: python
-        
-        class TemplateExtendedBuiltins
         

@@ -1,13 +1,16 @@
 ## RUNNING TASKS:
-- cmd: pkm uninstall -o (orphans)
-- create installation script for pkm
-- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
-  project based on it, I think I also saw this possibility in conda
 - cmd: pkm uninstall - display the packages being removed
 - add the self: install, remove, update, ... commands
 - documentation: document builtin templates
+- improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
+  - `with config.mutate(save)...`
 
 ## DONE IN THIS VERSION
+- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
+  project based on it, I think I also saw this possibility in conda
+- bug: `pkm uninstall package` can fail if other unrelated dependency in `pyproject.toml` is not installed yet
+- cmd: pkm uninstall-orphans
+- templates - support nested templates
 
 ## BACKLOG TASKS:
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
@@ -16,7 +19,6 @@
 - documentation: how to work with multiprojects in pycharm
 - documentation: mostly rewrite and extend the projects documentation
 - bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
-- bug: `pkm uninstall package` can fail if other unrelated dependency in `pyproject.toml` is not installed yet
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
@@ -31,10 +33,8 @@
   and git)
 - refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
 - refactoring: rename version specifiers according to pep440
-- cli consider moving install and remove into a "save" paradigm instead of '-o' use `-s` or `-S where`
 - clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
   metadata (as defined in PEP 459).
-- qof: ability to specify max cache size
 - simplification: remove the coerced dependnecies and package names support in env install/remove
 - enhancement: delegation should also support abstract properties
 - cli: read about parents in argparse - may help improve code readability
@@ -47,7 +47,6 @@
   which means that they will get deleted - bypassing the copy transaction realm
 - package artifact hash validation: pypi, simple, torch
 - qof: when running in "build-sys" mode, basic monitoring should be on
-- improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
 - pkm show : print cache size, attached repository, etc.
 - repositories: pyvenv
 - cli: if building packages during dependency resolution, output is very convoluted

@@ -133,7 +133,7 @@ Arguments
 
 ..	code-block:: python
     
-    def install_to(self, target: PackageInstallationTarget, 
+    def install_to(self, target: 'PackageInstallationTarget', 
         user_request: Optional['Dependency'] = None, editable: bool = False)
     
 Description
@@ -157,7 +157,7 @@ Arguments
         -   Any
         -   No Description
     *   -   target
-        -   PackageInstallationTarget
+        -   'PackageInstallationTarget'
         -   No Description
     *   -   user_request
         -   Optional['Dependency']
@@ -170,7 +170,7 @@ Arguments
 
 ..	code-block:: python
     
-    def dependencies(self, environment: 'Environment', 
+    def dependencies(self, target: 'PackageInstallationTarget', 
         extras: Optional[List[str]] = None) -> List['Dependency']
     
 Description
@@ -193,8 +193,8 @@ Arguments
     *   -   self
         -   Any
         -   No Description
-    *   -   environment
-        -   'Environment'
+    *   -   target
+        -   'PackageInstallationTarget'
         -   No Description
     *   -   extras
         -   Optional[List[str]]

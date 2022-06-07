@@ -9,7 +9,6 @@ from pkm.api.distributions.distinfo import PackageInstallationInfo
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -18,6 +17,7 @@ from pkm.utils.types import Comparable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package_installation import PackageInstallationTarget
 
 
 @dataclass(frozen=True, eq=True)
@@ -102,7 +102,7 @@ class AbstractPackage(Package):
         """
 
     def install_to(
-            self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
+            self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
             editable: bool = False):
 
         with PackageInstallMonitoredOp(self.descriptor):
@@ -126,9 +126,9 @@ class AbstractPackage(Package):
         return artifact_path
 
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
-        all_deps = self._unfiltered_dependencies(environment)
-        return [d for d in all_deps if d.is_applicable_for(environment, extras)]
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
+        all_deps = self._unfiltered_dependencies(target.env)
+        return [d for d in all_deps if d.is_applicable_for(target.env, extras)]
 
     def _unfiltered_dependencies(self, environment: "Environment") -> List["Dependency"]:
         artifact = self.best_artifact_for(environment)

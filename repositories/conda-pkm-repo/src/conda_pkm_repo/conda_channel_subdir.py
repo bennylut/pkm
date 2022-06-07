@@ -217,11 +217,11 @@ class CondaSubdirPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return PackageDescriptor(self.pname, Version.parse(self._ver))
 
-    def dependencies(self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
-        artifact = self._best_artifact_for(environment)
+    def dependencies(self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
+        artifact = self._best_artifact_for(target.env)
         if not artifact:
             raise UnsupportedOperationException("asking for dependencies for unsupported environment")
-        return artifact.dependencies(environment, extras)
+        return artifact.dependencies(target.env, extras)
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._best_artifact_for(env) is not None

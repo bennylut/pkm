@@ -1,3 +1,4 @@
+from __future__ import annotations
 import shutil
 from pathlib import Path
 from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
@@ -9,6 +10,8 @@ from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.sequences import pop_or_none
+from pkm.utils.sets import try_add
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -42,7 +45,7 @@ class SitePackages:
         return self._platlib
 
     @cached_property
-    def _name_to_packages(self) -> Dict[str, "InstalledPackage"]:
+    def _name_to_packages(self) -> Dict[str, InstalledPackage]:
         result: Dict[str, InstalledPackage] = {}
         self._scan_packages(self._purelib, result)
         self._scan_packages(self._platlib, result)
@@ -52,18 +55,40 @@ class SitePackages:
     def normalize_package_name(package_name: str) -> str:
         return PackageDescriptor.normalize_src_package_name(package_name).lower()
 
-    def _scan_packages(self, site: Path, result: Dict[str, "InstalledPackage"]):
+    def _scan_packages(self, site: Path, result: Dict[str, InstalledPackage]):
         if not site.exists():
             return
 
         for di in DistInfo.scan(site):
             result[self.normalize_package_name(di.package_name)] = InstalledPackage(di, self)
 
-    def installed_packages(self) -> Iterable["InstalledPackage"]:
+    def installed_packages(self) -> Iterable[InstalledPackage]:
         return self._name_to_packages.values()
 
-    def installed_package(self, package_name: str) -> Optional["InstalledPackage"]:
+    def installed_package(self, package_name: str) -> Optional[InstalledPackage]:
         return self._name_to_packages.get(self.normalize_package_name(package_name))
+
+    def find_requested_packages(self) -> List[InstalledPackage]:
+        return [r for r in self.installed_packages() if r.user_request is not None]
+
+    def find_orphan_packages(self) -> Iterable[InstalledPackage]:
+        installed = self.installed_packages()
+        requested = [p for p in installed if p.user_request is not None]
+        orphans = {self.normalize_package_name(p.name): p for p in installed}
+        done = set()
+
+        while next_ := pop_or_none(requested):
+            name = self.normalize_package_name(next_.name)
+            if not try_add(done, name):
+                continue
+
+            orphans.pop(name, None)
+
+            requested.extend(
+                i for d in next_.published_metadata.dependencies
+                if (i := self.installed_package(d.package_name)) is not None)
+
+        return orphans.values()
 
     def reload(self):
         clear_cached_properties(self)
@@ -74,6 +99,7 @@ def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Option
         return stored_request
     elif dist_info.is_user_requested():
         return Dependency(metadata.package_name, VersionMatch(metadata.package_version))
+    return None
 
 
 class InstalledPackage(Package):
@@ -113,9 +139,9 @@ class InstalledPackage(Package):
         return self._dist_info.load_installation_info() or PackageInstallationInfo()
 
     def dependencies(
-            self, environment: "Environment", extras: Optional[List[str]] = None) -> List["Dependency"]:
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
         all_deps = self.published_metadata.dependencies
-        return [d for d in all_deps if d.is_applicable_for(environment, extras)]
+        return [d for d in all_deps if d.is_applicable_for(target.env, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self.published_metadata.required_python_spec.allows_version(env.interpreter_version)

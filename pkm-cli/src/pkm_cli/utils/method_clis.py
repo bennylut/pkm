@@ -5,16 +5,34 @@ from __future__ import annotations
 
 import inspect
 import typing
+from abc import ABC, abstractmethod
 from io import UnsupportedOperation
-from typing import List, Dict, Callable, Any
+from typing import List, Dict, Callable, Any, Protocol
 
 
-class MethodCliArgs:
+class MethodArgs(ABC):
+
+    @abstractmethod
+    def invoke(self, mtd: Callable) -> Any:
+        ...
+
+
+class SimpleMethodArgs(MethodArgs):
+
+    def __init__(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
+    def invoke(self, mtd: Callable) -> Any:
+        return mtd(*self._args, **self._kwargs)
+
+
+class CliMethodArgs(MethodArgs):
     def __init__(self, args: List[str], kwargs: Dict[str, str]):
         self._args = args
         self._kwargs = kwargs
 
-    def execute(self, method: Callable) -> Any:
+    def invoke(self, method: Callable) -> Any:
         arg_types = typing.get_type_hints(method)
         arg_names = inspect.getfullargspec(method).args
         named_args = zip(self._args, arg_names)
@@ -38,7 +56,7 @@ class MethodCliArgs:
         return method(*parsed_args, **parsed_kwargs)
 
     @classmethod
-    def parse(cls, args: List[str]) -> MethodCliArgs:
+    def parse(cls, args: List[str]) -> CliMethodArgs:
         a, k = [], {}
         for arg in args:
 

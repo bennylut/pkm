@@ -70,7 +70,7 @@ Arguments
 
 ..	code-block:: python
     
-    def install_to(self, target: PackageInstallationTarget, 
+    def install_to(self, target: 'PackageInstallationTarget', 
         user_request: Optional[Dependency] = None, 
         installation_mode: Optional[PackageInstallationInfo] = None)
     
@@ -95,7 +95,7 @@ Arguments
         -   Any
         -   No Description
     *   -   target
-        -   PackageInstallationTarget
+        -   'PackageInstallationTarget'
         -   No Description
     *   -   user_request
         -   Optional[Dependency]

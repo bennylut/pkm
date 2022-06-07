@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
-from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import VersionMatch
+from pkm.api.versions.version import Version, StandardVersion
+from pkm.api.versions.version_specifiers import VersionMatch, StandardVersionRange
 from pkm.utils.commons import UnsupportedOperationException
 
 if TYPE_CHECKING:
@@ -35,9 +35,19 @@ class PackageDescriptor:
     def __post_init__(self):
         super().__setattr__('name', PackageDescriptor.normalize_name(self.name).replace('_', '-'))
 
-    def to_dependency(self) -> "Dependency":
+    def to_dependency(self, generalize: bool = False) -> "Dependency":
         from pkm.api.dependencies.dependency import Dependency
-        return Dependency(self.name, VersionMatch(self.version))
+
+        spec = VersionMatch(self.version)
+        if generalize:
+            installed_version = self.version
+            if isinstance(installed_version, StandardVersion):
+                spec = StandardVersionRange(
+                    installed_version,
+                    replace(installed_version, release=(installed_version.release[0] + 1,)),
+                    True, False)
+
+        return Dependency(self.name, spec)
 
     def write(self) -> Dict[str, Any]:
         return {
@@ -115,11 +125,10 @@ class Package(ABC):
 
     @abstractmethod
     def dependencies(
-            self, environment: "Environment",
+            self, target: "PackageInstallationTarget",
             extras: Optional[List[str]] = None) -> List["Dependency"]:
         """
-        :param environment: the environment that the dependencies should be calculated against,
-            otherwise all dependencies will be returned
+        :param target: the target that the dependencies should be calculated against
         :param extras: the extras to include in the dependencies' calculation
         :return: the list of dependencies this package has in order to be installed into the given
         [environment] with the given [extras]

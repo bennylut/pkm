@@ -15,17 +15,17 @@ from pkm.utils.promises import Promise
 from pkm.utils.sequences import single_or_raise
 
 if TYPE_CHECKING:
-    from pkm.api.environments.environment import Environment
+    from pkm.api.packages.package_installation import PackageInstallationTarget
     from pkm.api.repositories.repository import Repository
 
 
-def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository",
+def resolve_dependencies(root: Dependency, target: "PackageInstallationTarget", repo: "Repository",
                          dependency_overrides: Optional[Dict[str, Dependency]] = None) -> List[Package]:
     """
     transform the give input into pubgrub's dependency resolution problem, use pubgrub to
      solve the transformed problem and transform its output to list of packages
     :param root: the root package to resolve dependencies for
-    :param env: the environment that all dependencies should be compatible with
+    :param target: the target that all dependencies should be compatible with
     :param repo: repository to locate dependencies
     :param dependency_overrides: package to dependency mapping that is used to override some of the dependencies
            e.g., when a dependency: x==v found (anywhere in the resolution graph) and `dependency_overrides` contains
@@ -33,7 +33,7 @@ def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository
     :return: the list of packages that are required to be installed so that the `root` dependency works correctly
     """
 
-    problem = _PkmPackageInstallationProblem(env, repo, root, dependency_overrides)
+    problem = _PkmPackageInstallationProblem(target, repo, root, dependency_overrides)
     solver = Solver(problem, _Pkg.of(root))
     solution: Dict[_Pkg, Version] = solver.solve()
 
@@ -50,9 +50,9 @@ def resolve_dependencies(root: Dependency, env: "Environment", repo: "Repository
 
 class _PkmPackageInstallationProblem(Problem):
 
-    def __init__(self, env: "Environment", repo: "Repository", root: Dependency,
+    def __init__(self, target: "PackageInstallationTarget", repo: "Repository", root: Dependency,
                  dependency_overrides: Optional[Dict[str, Dependency]] = None):
-        self._env = env
+        self._target = target
         self._repo = repo
         self._root = root
         self._dependency_overrides = dependency_overrides or {}
@@ -65,7 +65,7 @@ class _PkmPackageInstallationProblem(Problem):
 
     def _prefetch(self, package: _Pkg) -> Promise[List[Package]]:
         return get_or_put(self._prefetched_packages, package,
-                          lambda: Promise.execute(self._threads, self._repo.list, package.name, self._env))
+                          lambda: Promise.execute(self._threads, self._repo.list, package.name, self._target.env))
 
     def get_dependencies(self, package: _Pkg, version: Version) -> List[Term]:
         descriptor = PackageDescriptor(package.name, version)
@@ -73,10 +73,10 @@ class _PkmPackageInstallationProblem(Problem):
         try:
             if isinstance(version, UrlVersion) and descriptor not in self.opened_packages:
                 self.opened_packages[descriptor] = single_or_raise(
-                    self._repo.match(f"{package} @ {version}", self._env))
+                    self._repo.match(f"{package} @ {version}", self._target.env))
 
             dependencies = self.opened_packages[descriptor] \
-                .dependencies(self._env, package.extras)
+                .dependencies(self._target, package.extras)
 
             for d in dependencies:
                 if not d.required_url():
@@ -91,7 +91,7 @@ class _PkmPackageInstallationProblem(Problem):
             result.append(Term(replace(package, extras=None), VersionMatch(version)))
 
         for d in dependencies:
-            if d.is_applicable_for(self._env, package.extras):
+            if d.is_applicable_for(self._target.env, package.extras):
                 if o := self._dependency_overrides.get(d.package_name):
                     result.append(Term(_Pkg.of(o), o.version_spec))
                 else:
@@ -103,7 +103,7 @@ class _PkmPackageInstallationProblem(Problem):
         all_packages = self._prefetch(package).result()
         # packages = [p for p in all_packages if p.is_compatible_with(self._env)]
         # make versions unique
-        packages = list({p.version: p for p in all_packages if p.is_compatible_with(self._env)}.values())
+        packages = list({p.version: p for p in all_packages if p.is_compatible_with(self._target.env)}.values())
 
         for package in packages:
             self.opened_packages[replace(package.descriptor, name=package.descriptor.name.lower())] = package
@@ -111,7 +111,7 @@ class _PkmPackageInstallationProblem(Problem):
         return cast(List[StandardVersion], [p.version for p in packages if isinstance(p.version, StandardVersion)])
 
     def has_version(self, package: _Pkg, version: Version) -> bool:
-        return bool(self._repo.match(Dependency(package.name, VersionMatch(version), package.extras), self._env))
+        return bool(self._repo.match(Dependency(package.name, VersionMatch(version), package.extras), self._target.env))
 
 
 @dataclass(frozen=True, eq=True)

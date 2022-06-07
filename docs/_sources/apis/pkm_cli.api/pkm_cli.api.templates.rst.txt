@@ -1,5 +1,5 @@
 ..
-    HASH:3b70509a0c616af5c150ef1096e72d24
+    HASH:51e70d6f80f4eca287fad359edc45e0d
 
 pkm\_cli.api.templates \(Package\)
 ==================================

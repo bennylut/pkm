@@ -70,20 +70,20 @@
   <div class="contents page-content topic" id="in-this-page">
 <p class="topic-title">In This Page</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#sitepackages-class" id="id13">SitePackages (Class)</a></p>
+<li><p><a class="reference internal" href="#sitepackages-class" id="id17">SitePackages (Class)</a></p>
 <ul>
-<li><p><a class="reference internal" href="#class-methods" id="id14">Class Methods</a></p></li>
+<li><p><a class="reference internal" href="#class-methods" id="id18">Class Methods</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <section id="sitepackages-class">
-<h1><a class="toc-backref" href="#id13">SitePackages (Class)</a><a class="headerlink" href="#sitepackages-class" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id17">SitePackages (Class)</a><a class="headerlink" href="#sitepackages-class" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SitePackages</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2><a class="toc-backref" href="#id14">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">all_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -186,7 +186,7 @@
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installed_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s1">&#39;InstalledPackage&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installed_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">InstalledPackage</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
@@ -211,7 +211,7 @@
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installed_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;InstalledPackage&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">installed_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">InstalledPackage</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
@@ -240,7 +240,7 @@
 </tbody>
 </table>
 <hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">find_requested_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">InstalledPackage</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
@@ -250,6 +250,56 @@
 </section>
 <section id="id12">
 <h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">find_orphan_packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">InstalledPackage</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id14">
+<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id16">
+<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>

@@ -27,6 +27,8 @@ def _lookup_project(path: Path) -> Optional[Project]:
 def _lookup_env(path: Path) -> Optional[Environment]:
     if (path / 'pyvenv.cfg').exists():
         return Environment(path)
+    if prj := _lookup_project(path):
+        return prj.attached_environment
 
 
 def _lookup_env_zoo(path: Path) -> Optional[EnvironmentsZoo]:
@@ -115,7 +117,7 @@ class Context:
             elif on_missing:
                 on_missing()
             else:
-                raise UnsupportedOperationException("could not execute operation")
+                raise UnsupportedOperationException("could not execute operation on current context")
 
     @classmethod
     def of(cls, args: Namespace):

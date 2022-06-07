@@ -62,7 +62,7 @@ class DummyPackage(Package):
         self._desc = PackageDescriptor(name, Version.parse(version))
 
     def dependencies(
-            self, environment: "Environment",
+            self, target: "PackageInstallationTarget",
             extras: Optional[List[str]] = None) -> List["Dependency"]:
         return []
 

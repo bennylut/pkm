@@ -137,7 +137,7 @@ Arguments
 ..	code-block:: python
     
     @abstractmethod
-    def dependencies(self, environment: 'Environment', 
+    def dependencies(self, target: 'PackageInstallationTarget', 
         extras: Optional[List[str]] = None) -> List['Dependency']
     
 Description
@@ -160,9 +160,9 @@ Arguments
     *   -   self
         -   Any
         -   No Description
-    *   -   environment
-        -   'Environment'
-        -    the environment that the dependencies should be calculated against, otherwise all dependencies will be returned
+    *   -   target
+        -   'PackageInstallationTarget'
+        -    the target that the dependencies should be calculated against
     *   -   extras
         -   Optional[List[str]]
         -    the extras to include in the dependencies' calculation

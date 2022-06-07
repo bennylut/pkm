@@ -118,9 +118,9 @@ class _GitPackageWrapper(Package):
         return self._project.descriptor
 
     def dependencies(
-            self, environment: "Environment",
+            self, target: "PackageInstallationTarget",
             extras: Optional[List[str]] = None) -> List["Dependency"]:
-        return self._project.dependencies(environment, extras)
+        return self._project.dependencies(target, extras)
 
     def is_compatible_with(self, env: "Environment") -> bool:
         return self._project.is_compatible_with(env)

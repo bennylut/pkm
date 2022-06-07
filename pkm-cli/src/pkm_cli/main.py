@@ -19,6 +19,7 @@ from pkm.utils.processes import execvpe
 from pkm_cli import cli_monitors
 from pkm_cli.api.tasks.tasks_runner import TasksRunner
 from pkm_cli.api.templates.template_runner import TemplateRunner
+from pkm_cli.cotrollers.env_controller import EnvController
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
@@ -230,6 +231,16 @@ def install(args: Namespace):
                 updates = [d.package_name for d in dependencies] if args.update else None
                 editables = {d.package_name: editable for d in dependencies}
                 target.install(dependencies, updates=updates, editables=editables)
+
+    context.run(**locals())
+
+
+@command(
+    "pkm uninstall-orphans",
+    Arg(["-a", "--app"], action='store_true', help="uninstall orphans in containerized package"))
+def uninstall_orphans(args: Namespace):
+    def on_environment(env: Environment):
+        EnvController(env).uninstall_orphans(args.app)
 
     context.run(**locals())
 

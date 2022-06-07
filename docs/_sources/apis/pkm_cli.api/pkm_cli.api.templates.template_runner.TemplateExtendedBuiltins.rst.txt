@@ -12,6 +12,69 @@ Class Methods
 
 ..	code-block:: python
     
+    def run_template(self, template_name: str, *args, **kwargs)
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   template_name
+        -   str
+        -   No Description
+    *   -   args
+        -   Any
+        -   No Description
+    *   -   kwargs
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
+    def target_dir(self) -> Path
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
     def confirm(self, prompt: str, default: bool = True) -> bool
     
 Description

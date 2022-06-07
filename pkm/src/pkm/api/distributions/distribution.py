@@ -79,9 +79,9 @@ class _DistributionPackage(Package):
         return meta
 
     def dependencies(
-            self, environment: "Environment",
+            self, target: "PackageInstallationTarget",
             extras: Optional[List[str]] = None) -> List["Dependency"]:
-        return [d for d in self.published_metadata.dependencies if d.is_applicable_for(environment, extras)]
+        return [d for d in self.published_metadata.dependencies if d.is_applicable_for(target.env, extras)]
 
     def is_compatible_with(self, env: "Environment") -> bool:
         from pkm.api.distributions.wheel_distribution import WheelDistribution

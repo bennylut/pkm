@@ -16,14 +16,13 @@ from pkm.utils.commons import UnsupportedOperationException, IllegalStateExcepti
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm_cli.display.display import Display
-from pkm_cli.utils.method_clis import MethodCliArgs
+from pkm_cli.utils.method_clis import CliMethodArgs, MethodArgs, SimpleMethodArgs
 
 
 class TemplateRunner:
 
     def __init__(self):
         self.jinja_context = SandboxedEnvironment(loader=FileSystemLoader("/"))
-        self.user_interface = TemplateExtendedBuiltins()
 
     @contextmanager
     def _load_template(self, name: str) -> ContextManager[_Template]:
@@ -46,7 +45,7 @@ class TemplateRunner:
 
     def run(self, template_name: str, target_dir: Path, args: List[str], allow_overwrite: bool = False):
         with self._load_template(template_name) as template:
-            template.execute(target_dir, MethodCliArgs.parse(args), allow_overwrite)
+            template.execute(target_dir, CliMethodArgs.parse(args), allow_overwrite)
 
     def describe(self, template_name: str) -> str:
         with self._load_template(template_name) as template:
@@ -59,17 +58,18 @@ class _Template:
     def __init__(self, render_spec: ModuleSpec, runner: TemplateRunner):
         self._render_spec = render_spec
         self._runner = runner
+        self._builtins = _TemplateExtendedBuiltins(self._runner)
         self._template_dir = Path(self._render_spec.origin).parent
 
     def describe(self) -> str:
         module = self._module
         return module.__doc__ or f"No Description Provided for template '{self._template_dir.name}'"
 
-    def execute(self, target_dir: Path, cli_args: MethodCliArgs, allow_overwrite: bool = False):
+    def execute(self, target_dir: Path, args: MethodArgs, allow_overwrite: bool = False):
         module = self._module
-        module.target_dir = target_dir
+        self._builtins.install_execution(module, target_dir, allow_overwrite)
 
-        context = self._setup(cli_args, module)
+        context = self._setup(args, module)
         ignored_files = self._load_ignored_files(self._template_dir)
         if allow_overwrite:
             self._render(self._template_dir, target_dir, context, ignored_files)
@@ -78,7 +78,7 @@ class _Template:
                 self._render(self._template_dir, tdir, context, ignored_files)
                 for file in tdir.rglob("*"):
                     relative_file = file.relative_to(tdir)
-                    if (target_file := target_dir / relative_file).exists():
+                    if (target_file := target_dir / relative_file).exists() and not target_file.is_dir():
                         raise IOError(f"file already exists: {target_file}")
 
                 shutil.copytree(tdir, target_dir, dirs_exist_ok=True)
@@ -131,9 +131,9 @@ class _Template:
             else:
                 shutil.copy(template_child, target_child)
 
-    def _setup(self, cli_args: MethodCliArgs, module: ModuleType) -> Mapping:
+    def _setup(self, args: MethodArgs, module: ModuleType) -> Mapping:
         setup_function = module.setup
-        result = cli_args.execute(setup_function)
+        result = args.invoke(setup_function)
         if not isinstance(result, Mapping):
             raise IllegalStateException(
                 f"invalid return value from template setup function (dict is required, got {type(result)})")
@@ -141,11 +141,10 @@ class _Template:
 
     @cached_property
     def _module(self) -> ModuleType:
-        ui = self._runner.user_interface
         module = iu.module_from_spec(self._render_spec)
 
         # noinspection PyProtectedMember
-        ui._install(module)
+        self._builtins.install_base(module)
 
         self._render_spec.loader.exec_module(module)
 
@@ -156,7 +155,17 @@ class _Template:
 
 
 # noinspection PyMethodMayBeStatic
-class TemplateExtendedBuiltins:
+class _TemplateExtendedBuiltins:
+
+    def __init__(self, runner: TemplateRunner):
+        self._runner = runner
+        self._target_dir = None
+        self._allow_overwrite = None
+
+    def render_template(self, name: str, *args, **kwargs):
+        # noinspection PyProtectedMember
+        with self._runner._load_template(name) as t:
+            t.execute(self._target_dir, SimpleMethodArgs(*args, **kwargs), self._allow_overwrite)
 
     def confirm(self, prompt: str, default: bool = True) -> bool:
         """
@@ -201,7 +210,14 @@ class TemplateExtendedBuiltins:
             else:
                 return q.text(prompt, default=default).unsafe_ask()
 
-    def _install(self, module: ModuleType):
+    def install_base(self, module: ModuleType):
         module.ask = self.ask
         module.confirm = self.confirm
         module.print = Display.print
+
+    def install_execution(self, module: ModuleType, target_dir: Path, allow_overwrite: bool):
+        self._target_dir = target_dir
+        self._allow_overwrite = allow_overwrite
+
+        module.render_template = self.render_template
+        module.target_dir = target_dir
