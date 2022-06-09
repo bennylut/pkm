@@ -14,6 +14,7 @@ from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.versions.version import Version
 from pkm.utils.archives import extract_archive
 from pkm.utils.files import temp_dir, path_to, CopyTransaction
 from pkm.utils.hashes import HashSignature, stream
@@ -38,18 +39,19 @@ class CondaDistribution(Distribution):
         dist_info = DistInfo.load(dist_info_path)
 
         wheel = dist_info.load_wheel_cfg()
-        wheel["Wheel-Version"] = "1.0"
-        wheel["Generator"] = "conda-pkm-repo"
-        wheel["Root-Is-Purelib"] = "true"
+
+        wheel.version = Version.parse("1.0")
+        wheel.generator = "conda-pkm-repo"
+        wheel.root_is_purelib = True
         wheel.save()
 
         self._generate_default_metadata(dist_info.load_metadata_cfg()).save()
 
     def _generate_default_metadata(self, metadata: Optional[PackageMetadata] = None) -> PackageMetadata:
-        metadata = metadata or PackageMetadata(path=None)
-        metadata["Metadata-Version"] = "2.1"
-        metadata["Name"] = self.owner_package.name
-        metadata["Version"] = str(self.owner_package.version)
+        metadata = metadata or PackageMetadata()
+        metadata.metadata_version = Version.parse("2.1")
+        metadata.package_name = self.owner_package.name
+        metadata.package_version = self.owner_package.version
         return metadata
 
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional[Dependency] = None,

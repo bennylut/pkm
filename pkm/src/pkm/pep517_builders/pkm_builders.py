@@ -132,15 +132,15 @@ class _BuildContext:
         dst.mkdir(exist_ok=True, parents=True)
         project_config: ProjectConfig = self.pyproject.project
 
-        PackageMetadata.from_project_config(project_config).save_to(di.metadata_path())
+        PackageMetadata.from_project_config(project_config).save(di.metadata_path())
         di.license_path().write_text(
             project_config.license_content())
 
         # TODO: probably later we will want to add the version of pkm in the generator..
-        WheelFileConfiguration.create(generator="pkm", purelib=True).save_to(di.wheel_path())
+        WheelFileConfiguration.create(generator="pkm", purelib=True).save(di.wheel_path())
 
         entrypoints = di.load_entrypoints_cfg()
-        entrypoints.entrypoints = [e for entries in self.pyproject.project.entry_points.values() for e in entries]
+        entrypoints.entrypoints = self.pyproject.project.all_entrypoints()
         entrypoints.save()
 
         return di

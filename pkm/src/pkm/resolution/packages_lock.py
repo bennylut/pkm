@@ -2,31 +2,29 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Iterable
+from typing import List, Dict, Optional, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.repositories.repository import AbstractRepository, Repository
-from pkm.config.configuration import TomlFileConfiguration
+from pkm.config.configclass import config, ConfigFile, config_field
+from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.commons import unone
 from pkm.utils.iterators import groupby
 
 
 @dataclass
+@config
 class _LockedVersion:
     env_markers_hash: str
     package: PackageDescriptor
 
-    def write(self) -> Dict[str, Any]:
-        return {
-            'env_markers_hash': self.env_markers_hash,
-            'package': self.package.write(),
-        }
 
-    @classmethod
-    def read(cls, data: Dict[str, Any]) -> "_LockedVersion":
-        return _LockedVersion(data['env_markers_hash'], PackageDescriptor.read(data['package']))
+@dataclass
+@config(io=TomlConfigIO())
+class _PackageLockConfig(ConfigFile):
+    locks: List[_LockedVersion] = config_field(key="lock")
 
 
 class PackagesLock:
@@ -116,10 +114,8 @@ class PackagesLock:
         if not lock_file:
             raise FileNotFoundError('lock file is not given')
 
-        configuration = TomlFileConfiguration.load(lock_file)
-        locks = [lp.write() for locks_by_name in self._locked_packages.values() for lp in locks_by_name]
-        configuration['lock'] = locks
-        configuration.save()
+        _PackageLockConfig(locks=[lp for locks_by_name in self._locked_packages.values() for lp in locks_by_name]) \
+            .save(lock_file)
 
     def sort_packages_by_lock_preference(self, env: Environment, packages: List[Package]) -> List[Package]:
         if packages:
@@ -136,9 +132,8 @@ class PackagesLock:
         :return: the loaded lock
         """
 
-        configuration = TomlFileConfiguration.load(lock_file)
-        locked_packages = [_LockedVersion.read(lp) for lp in (configuration['lock'] or [])]
-        return PackagesLock(locked_packages, lock_file)
+        configuration = _PackageLockConfig.load(lock_file)
+        return PackagesLock(configuration.locks, lock_file)
 
 
 class LockPrioritizingRepository(AbstractRepository):

@@ -1,59 +1,37 @@
 from __future__ import annotations
+
 import re
+from collections import defaultdict
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import List, Optional, Union, Dict, Mapping, Any, Iterator
+from typing import List, Optional, Union, Dict, Mapping, Any, Iterator, Type
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import VersionSpecifier, StandardVersionRange, AllowAllVersions
-from pkm.config.configuration import TomlFileConfiguration, computed_based_on
-from pkm.resolution.pubgrub import MalformedPackageException
-from pkm.utils.commons import unone
-from pkm.utils.dicts import remove_none_values, without_keys
-from pkm.utils.files import path_to
+from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.config.configclass import config, config_field, ConfigFieldCodec, ConfigCodec, ConfigFile
+from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.properties import cached_property
-from pkm.utils.sequences import strs
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class BuildSystemConfig:
-    requirements: List[Dependency]
-    build_backend: str
-    backend_path: Optional[List[str]]
-
-    def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            'requires': [str(d) for d in self.requirements] if self.requirements else None,
-            'build-backend': self.build_backend,
-            'backend-path': self.backend_path
-        })
-
-    @classmethod
-    def from_config(cls, cfg: Dict[str, Any]) -> "BuildSystemConfig":
-        requirements = [Dependency.parse(dep) for dep in (cfg.get('requires') or [])]
-        build_backend = cfg.get('build-backend')
-        backend_path = cfg.get('backend-path')
-
-        return BuildSystemConfig(requirements, build_backend, backend_path)
+    requirements: List[Dependency] = config_field(
+        key='requires',
+        default_factory=lambda: [Dependency.parse('setuptools'), Dependency.parse('wheel'), Dependency.parse('pip')])
+    build_backend: str = config_field(key='build-backend', default='setuptools.build_meta:__legacy__')
+    backend_path: List[str] = config_field(key='backend-path')
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class ContactInfo:
-    name: Optional[str] = None
-    email: Optional[str] = None
-
-    @classmethod
-    def from_config(cls, contact: Dict[str, Any]) -> "ContactInfo":
-        return cls(**contact)
-
-    def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            'name': self.name, 'email': self.email
-        })
+    name: str = None
+    email: str = None
 
 
 def _entrypoints_from_config(group: str, ep: Dict[str, str]) -> List[EntryPoint]:
@@ -69,64 +47,56 @@ PKM_DIST_CFG_TYPE_CAPP = "cnt-app"
 PKM_DIST_CFG_TYPE_NONE = "none"
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class PkmDistributionConfig:
     type: str  # lib, cnt-app
 
-    def to_config(self) -> Dict[str, Any]:
-        return {**self.__dict__}
 
-    @classmethod
-    def from_config(cls, cfg: Dict[str, Any]) -> PkmDistributionConfig:
-        return cls(**cfg)
-
-
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class PkmApplicationConfig:
     containerized: bool
-
     dependencies: List[Dependency]
-    dependency_overwrites: Dict[str, Dependency]
-    exposed_packages: List[str]
-
-    def to_config(self) -> Dict[str, Any]:
-        return {
-            'containerized': self.containerized,
-            'dependencies': strs(self.dependencies),
-            'dependency-overwrites': {p: str(d) for p, d in self.dependency_overwrites.items()},
-            'exposed-packages': self.exposed_packages
-        }
-
-    @classmethod
-    def from_config(cls, config: Dict[str, Any]):
-        return cls(
-            config.get('containerized', False),
-            [Dependency.parse(it) for it in unone(config.get('dependencies'), list)],
-            {pk: Dependency.parse(dep) for pk, dep in unone(config.get('dependency-overwrites'), dict).items()},
-            unone(config.get('exposed-packages'), list)
-        )
+    dependency_overwrites: Dict[str, Dependency] = config_field(key='dependency-overwrites')
+    exposed_packages: List[str] = config_field(key='exposed-packages')
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class PkmProjectConfig:
     packages: Optional[List[str]] = None
     group: Optional[str] = None  # TODO: remove group and use conventions only?
 
-    def to_config(self) -> Dict[str, Any]:
-        return remove_none_values({
-            'packages': self.packages,
-            'group': self.group
-        })
 
-    @classmethod
-    def from_config(cls, config: Optional[Dict[str, Any]]) -> Optional["PkmProjectConfig"]:
-        if not config:
-            return PkmProjectConfig()
+class _TextOrFileConfigFieldCodec(ConfigFieldCodec):
 
-        return PkmProjectConfig(**config)
+    def __init__(self, allows_raw_text: bool):
+        self._allows_raw_text = allows_raw_text
+
+    def parse(self, parent: ConfigCodec, type_: Type, v: Any) -> Union[Path, str, None]:
+        if self._allows_raw_text and isinstance(v, str):
+            return v
+
+        if not isinstance(v, Mapping):
+            raise ValueError(f"malformed value: {v}")
+
+        if 'text' in v:
+            return v['text']
+        else:
+            return Path(v['file'])
+
+    def unparse(self, parent: ConfigCodec, type_: Type, v: Union[Path, str, None]) -> Any:
+        if isinstance(v, Path):
+            return {'file': v}
+        elif self._allows_raw_text:
+            return v
+        else:
+            return {'text': v}
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(eq=True)
+@config
 class ProjectConfig:
     """
     the project config as described in
@@ -138,34 +108,50 @@ class ProjectConfig:
     # The version of the project as supported by PEP 440.
     version: Version
     # The summary description of the project.
-    description: Optional[str]
-    # The actual text or Path to a text file containing the full description of this project.
-    readme: Union[Path, str, None]
-    # The Python version requirements of the project.
-    requires_python: Optional[Union[StandardVersionRange, AllowAllVersions]]
-    # The project licence identifier or path to the actual licence file
-    license: Union[str, Path, None]
+    description: str
     # The people or organizations considered to be the "authors" of the project.
-    authors: Optional[List[ContactInfo]]
+    authors: List[ContactInfo]
     # similar to "authors", exact meaning is open to interpretation.
-    maintainers: Optional[List[ContactInfo]]
+    maintainers: List[ContactInfo]
     # The keywords for the project.
-    keywords: Optional[List[str]]
+    keywords: List[str]
     # Trove classifiers (https://pypi.org/classifiers/) which apply to the project.
-    classifiers: Optional[List[str]]
+    classifiers: List[str]
     # A mapping of URLs where the key is the URL label and the value is the URL itself.
-    urls: Optional[Dict[str, str]]
-    # list of entry points, following https://packaging.python.org/en/latest/specifications/entry-points/.
-    entry_points: Optional[Dict[str, List[EntryPoint]]]
-    # The dependencies of the project.
-    dependencies: Optional[List[Dependency]]
-    # The optional dependencies of the project, grouped by the 'extra' name that provides them.
-    optional_dependencies: Dict[str, List[Dependency]]
+    urls: Dict[str, str]
     # a list of field names (from the above fields), each field name that appears in this list means that the absense of
     # data in the corresponding field means that a user tool provides it dynamically
-    dynamic: Optional[List[str]]
+    dynamic: List[str]
+    # The Python version requirements of the project.
+    requires_python: VersionSpecifier = config_field(key="requires-python")
+    # The dependencies of the project.
+    dependencies: List[Dependency] = config_field(default_factory=list)
+    # The optional dependencies of the project, grouped by the 'extra' name that provides them.
+    optional_dependencies: Dict[str, List[Dependency]] = config_field(key="optional-dependencies", default_factory=dict)
+    # The actual text or Path to a text file containing the full description of this project.
+    readme: Union[Path, str, None] = config_field(codec=_TextOrFileConfigFieldCodec(True))
+    # The project licence identifier or path to the actual licence file
+    license: Union[str, Path, None] = config_field(codec=_TextOrFileConfigFieldCodec(False))
+    # list of entry points, following https://packaging.python.org/en/latest/specifications/entry-points/.
+    _entry_points: Dict[str, Dict[str, str]] = config_field(key="entry-points", default_factory=dict)
+    _scripts: Dict[str, str] = config_field(key="scripts", default_factory=dict)
+    _gui_scripts: Dict[str, str] = config_field(key="gui-scripts", default_factory=dict)
 
-    all_fields: Dict[str, Any]
+    leftovers = config_field(leftover=True)
+
+    # all_fields: Dict[str, Any]
+
+    @cached_property
+    def entry_points(self) -> Mapping[str, List[EntryPoint]]:
+        result: Dict[str, List[EntryPoint]] = defaultdict(list)
+        if self._entry_points:
+            result.update({g: _entrypoints_from_config(g, eps) for g, eps in self.entry_points.values()})
+        if self._scripts:
+            result['scripts'].extend(_entrypoints_from_config('scripts', self._scripts))
+        if self._gui_scripts:
+            result['gui-scripts'].extend(_entrypoints_from_config('gui-scripts', self._gui_scripts))
+
+        return result
 
     def all_entrypoints(self) -> List[EntryPoint]:
         if not self.entry_points:
@@ -240,180 +226,20 @@ class ProjectConfig:
 
         return self.license.read_text()
 
-    def to_config(self, project_path: Optional[Path] = None) -> Dict[str, Any]:
-        project_path = project_path or Path.cwd()
-        readme_value = None
-        if self.readme:
-            readme_value = self.readme if isinstance(self.readme, str) \
-                else {'file': str(path_to(project_path, self.readme))}
 
-        ep: Dict[str, List[EntryPoint]] = self.entry_points or {}
-        ep_no_scripts: Dict[str, List[EntryPoint]] = without_keys(
-            ep, EntryPoint.G_CONSOLE_SCRIPTS, EntryPoint.G_GUI_SCRIPTS)
-
-        optional_dependencies = {
-            extra: [str(d) for d in deps]
-            for extra, deps in self.optional_dependencies.items()
-        } if self.optional_dependencies else None
-
-        license_ = None
-        if self.license:
-            license_ = {'file': self.license} if isinstance(self.license, Path) else {'text': self.license}
-
-        project = {
-            **self.all_fields,
-            'name': self.name, 'version': str(self.version), 'description': self.description,
-            'readme': readme_value, 'requires-python': str(self.requires_python) if self.requires_python else None,
-            'license': license_, 'authors': [c.to_config() for c in self.authors] if self.authors is not None else None,
-            'maintainers': [c.to_config() for c in self.maintainers] if self.maintainers is not None else None,
-            'keywords': self.keywords, 'classifiers': self.classifiers, 'urls': self.urls,
-            'scripts': _entrypoints_to_config(
-                ep[EntryPoint.G_CONSOLE_SCRIPTS]) if EntryPoint.G_CONSOLE_SCRIPTS in ep else None,
-            'gui-scripts': _entrypoints_to_config(
-                ep[EntryPoint.G_GUI_SCRIPTS]) if EntryPoint.G_GUI_SCRIPTS in ep else None,
-            'entry-points': {group: _entrypoints_to_config(entries)
-                             for group, entries in ep_no_scripts.items()} if ep_no_scripts else None,
-            'dependencies': [str(d) for d in self.dependencies] if self.dependencies else None,
-            'optional-dependencies': optional_dependencies, 'dynamic': self.dynamic
-        }
-
-        return remove_none_values(project)
-
-    @classmethod
-    def from_config(cls, config: Dict[str, Any], project_path: Optional[Path] = None) -> "ProjectConfig":
-        project_path = project_path or Path.cwd()
-
-        version = Version.parse(config['version'])
-
-        # decide the readme value
-        readme = None
-        if readme_entry := config.get('readme'):
-            if isinstance(readme_entry, Mapping):
-                if readme_file := readme_entry.get('file'):
-                    readme = project_path / readme_file
-                else:
-                    readme = str(readme_entry['text'])
-            else:
-                readme = str(readme_entry)
-
-        requires_python = VersionSpecifier.parse(config['requires-python']) \
-            if 'requires-python' in config else AllowAllVersions
-
-        license_ = None
-        if license_table := config.get('license'):
-            license_ = (project_path / license_table['file']) if 'file' in license_table else str(license_table['text'])
-
-        authors = None
-        if authors_array := config.get('authors'):
-            authors = [ContactInfo.from_config(a) for a in authors_array]
-
-        maintainers = None
-        if maintainers_array := config.get('maintainers'):
-            maintainers = [ContactInfo.from_config(a) for a in maintainers_array]
-
-        entry_points = {}
-        if scripts_table := config.get('scripts'):
-            entry_points[EntryPoint.G_CONSOLE_SCRIPTS] = _entrypoints_from_config(
-                EntryPoint.G_CONSOLE_SCRIPTS, scripts_table)
-
-        if gui_scripts_table := config.get('gui-scripts'):
-            entry_points[EntryPoint.G_GUI_SCRIPTS] = _entrypoints_from_config(
-                EntryPoint.G_GUI_SCRIPTS, gui_scripts_table)
-
-        if entry_points_tables := config.get('entry-points'):
-            entry_points.update({
-                group: _entrypoints_from_config(group, entries)
-                for group, entries in entry_points_tables.items()
-            })
-
-        dependencies = None
-        if dependencies_array := config.get('dependencies'):
-            dependencies = [Dependency.parse(it) for it in dependencies_array]
-
-        optional_dependencies = {}
-        if optional_dependencies_table := config.get('optional-dependencies'):
-            optional_dependencies = {
-                extra: [Dependency.parse(it) for it in deps]
-                for extra, deps in optional_dependencies_table.items()
-            }
-
-        return ProjectConfig(
-            name=config['name'], version=version, description=config.get('description'), readme=readme,
-            requires_python=requires_python, license=license_, authors=authors, maintainers=maintainers,
-            keywords=config.get('keywords'), classifiers=config.get('classifiers'), urls=config.get('urls'),
-            entry_points=entry_points, dependencies=dependencies, optional_dependencies=optional_dependencies,
-            dynamic=config.get('dynamic'), all_fields=config)
+_LEGACY_PROJECT_DYNAMIC = [
+    'description', 'readme', 'requires-python', 'license', 'authors', 'maintainers', 'keywords',
+    'classifiers', 'urls', 'scripts', 'gui-scripts', 'entry-points', 'dependencies', 'optional-dependencies']
 
 
-_LEGACY_BUILDSYS = {
-    'requires': ['setuptools', 'wheel', 'pip', 'cython'],
-    'build-backend': 'setuptools.build_meta:__legacy__'
-}
-
-_LEGACY_PROJECT = {
-    'dynamic': [
-        'description', 'readme', 'requires-python', 'license', 'authors', 'maintainers', 'keywords',
-        'classifiers', 'urls', 'scripts', 'gui-scripts', 'entry-points', 'dependencies', 'optional-dependencies']}
-
-
-class PyProjectConfiguration(TomlFileConfiguration):
-    # here due to pycharm bug https://youtrack.jetbrains.com/issue/PY-47698
+@config(io=TomlConfigIO())
+class PyProjectConfiguration(ConfigFile):
     project: ProjectConfig
-    pkm_project: PkmProjectConfig
-    build_system: BuildSystemConfig
-    pkm_application: PkmApplicationConfig
-    pkm_distribution: PkmDistributionConfig
-
-    @computed_based_on("tool.pkm.project")
-    def pkm_project(self) -> PkmProjectConfig:
-        return PkmProjectConfig.from_config(self['tool.pkm.project'])
-
-    @computed_based_on("tool.pkm.application")
-    def pkm_application(self) -> Optional[PkmApplicationConfig]:
-        if app_config := self['tool.pkm.application']:
-            return PkmApplicationConfig.from_config(app_config)
-        return None
-
-    @pkm_application.modifier
-    def set_pkm_application(self, app: Optional[PkmApplicationConfig]):
-        if app is None:
-            del self['tool.pkm.application']
-        else:
-            self['tool.pkm.application'] = app.to_config()
-
-    @computed_based_on("tool.pkm.distribution")
-    def pkm_distribution(self) -> PkmDistributionConfig:
-        if dist_config := self['tool.pkm.distribution']:
-            return PkmDistributionConfig.from_config(dist_config)
-
-        return PkmDistributionConfig(PKM_DIST_CFG_TYPE_LIB)
-
-    @pkm_distribution.modifier
-    def set_pkm_distribution(self, distribution: PkmDistributionConfig):
-        self['tool.pkm.distribution'] = distribution.to_config()
-
-    @computed_based_on("project")
-    def project(self) -> Optional[ProjectConfig]:
-        project_path = self._path.parent if self._path else None
-
-        project: Dict[str, Any] = self['project']
-        if project is None:
-            return None
-
-        return ProjectConfig.from_config(project, project_path)
-
-    @project.modifier
-    def set_project(self, value: ProjectConfig):
-        project_path = self.path and self.path.parent
-        self['project'] = value.to_config(project_path)
-
-    @computed_based_on("build-system")
-    def build_system(self) -> BuildSystemConfig:
-        return BuildSystemConfig.from_config(self['build-system'])
-
-    @build_system.modifier
-    def set_build_system(self, bs: BuildSystemConfig):
-        self['build-system'] = bs.to_config()
+    pkm_project: PkmProjectConfig = config_field(key="tool.pkm.project")
+    build_system: BuildSystemConfig = config_field(key="build-system", default_factory=BuildSystemConfig)
+    pkm_application: PkmApplicationConfig = config_field(key="tool.pkm.application")
+    pkm_distribution: PkmDistributionConfig = config_field(key="tool.pkm.distribution")
+    _leftovers = config_field(leftover=True)
 
     @classmethod
     def load_effective(cls, pyproject_file: Path,
@@ -429,28 +255,11 @@ class PyProjectConfiguration(TomlFileConfiguration):
         pyproject = PyProjectConfiguration.load(pyproject_file)
         source_tree = pyproject_file.parent
 
-        # ensure build-system:
-        if pyproject['build-system'] is None:
-            if not (source_tree / 'setup.py').exists():
-                package_info = str(pyproject_file.parent) if not package else f"{package.name} {package.version}"
-                raise MalformedPackageException(f"cannot infer build system for package: {package_info}")
-
-            pyproject['build-system'] = _LEGACY_BUILDSYS
-
-        if pyproject['build-system.requires'] is None:
-            pyproject['build-system.requires'] = []
-
-        if pyproject['build-system.build-backend'] is None:
-            pyproject['build-system.build-backend'] = _LEGACY_BUILDSYS['build-backend']
-            pyproject['build-system.requires'] = list(
-                {*_LEGACY_BUILDSYS['requires'], *pyproject['build-system.requires']})
-
         # ensure project:
-        if not pyproject['project']:
-            pyproject['project'] = {
-                **_LEGACY_PROJECT,
-                'name': (package or source_tree).name,
-                'version': str(package.version) if package else 'unknown_version'}
+        if not pyproject.project:
+            pyproject.project = ProjectConfig(
+                dynamic=_LEGACY_PROJECT_DYNAMIC, name=(package or source_tree).name,
+                version=package.version if package else Version.parse('unknown_version'))
 
-        pyproject['project.name'] = PackageDescriptor.normalize_name(pyproject['project.name'])
+        pyproject.project.name = PackageDescriptor.normalize_name(pyproject.project.name)
         return pyproject

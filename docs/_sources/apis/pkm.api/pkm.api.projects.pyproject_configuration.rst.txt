@@ -1,5 +1,5 @@
 ..
-    HASH:f39979158d02ffd0b0962b848c211187
+    HASH:5e9cc462f6a8d48d14c98a5cec22b840
 
 pkm.api.projects.pyproject\_configuration \(Module\)
 ####################################################
@@ -70,5 +70,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class PyProjectConfiguration(TomlFileConfiguration)
+        class PyProjectConfiguration(ConfigFile)
         

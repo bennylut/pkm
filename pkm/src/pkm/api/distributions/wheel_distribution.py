@@ -5,11 +5,11 @@ import warnings
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional, TYPE_CHECKING, List, Dict
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo, RecordsFileConfiguration
+from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo, RecordsFileConfiguration, Record
 from pkm.api.distributions.distribution import Distribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -93,7 +93,7 @@ class WheelDistribution(Distribution):
 
         entrypoints = dist_info.load_entrypoints_cfg().entrypoints
 
-        site_packages = Path(target.purelib if wheel_file['Root-Is-Purelib'] == 'true' else target.platlib)
+        site_packages = Path(target.purelib if wheel_file.root_is_purelib else target.platlib)
 
         records_file: RecordsFileConfiguration = dist_info.load_record_cfg()
         if not skip_record_verification:
@@ -144,7 +144,7 @@ class WheelDistribution(Distribution):
             new_record_file = new_dist_info.load_record_cfg()
 
             precomputed_hashes = {
-                r.file: r.hash_signature for r in records_file.records
+                r.file: r.hash_signature for r in records_file.records if r.hash_signature
             } if not skip_record_verification else None
             new_record_file.sign_files(ct.copied_files, site_packages, precomputed_hashes)
 
@@ -171,8 +171,9 @@ class WheelDistribution(Distribution):
             if not installation_mode.compatibility_tag:
                 installation_mode = replace(
                     installation_mode, compatibility_tag=WheelDistribution.extract_compatibility_tags_of(self._wheel))
-                WheelDistribution.install_extracted_wheel(self._package, tmp_path, target, user_request,
-                                                          installation_mode)
+
+            WheelDistribution.install_extracted_wheel(
+                self._package, tmp_path, target, user_request, installation_mode)
 
 
 def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInfo:
@@ -186,18 +187,18 @@ def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInf
 
 
 def _verify_records(dist_info: DistInfo, content: Path, records_file: RecordsFileConfiguration):
-    if not records_file.exists():
+    if not records_file.path.exists():
         raise InstallationException(
             f"Unsigned wheel for package {dist_info.package_name} (no RECORD file found in dist-info)")
 
     # check that the records hash match
-    record_by_path = {r.file: r for r in records_file.records}
+    record_by_path: Dict[str, Record] = {r.file: r for r in records_file.records}
     for file in content.rglob("*"):
         if file.is_dir():
             continue
 
         path = str(path_to(content, file))
-        if record := record_by_path.get(path):
+        if (record := record_by_path.get(path)) and record.hash_signature:
             if not record.hash_signature.validate_against(file):
                 if any(it.name.endswith('.dist-info') for it in file.parents):
                     warnings.warn(f"mismatch hash signature for {file}")

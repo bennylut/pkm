@@ -1,5 +1,5 @@
 ..
-    HASH:15f83c65acded0c8d80676348a07e0d0
+    HASH:e46cd1b2dad1da7770f92aeb2e3aee07
 
 pkm.api.packages.package\_metadata \(Module\)
 #############################################
@@ -14,9 +14,17 @@ Module Classes
 
 ..	container:: class-def-with-link
     
+    :doc:`[DOC] <pkm.api.packages.package_metadata.PackageMetadataIO>`
+    
+    ..	code-block:: python
+        
+        class PackageMetadataIO(ConfigIO)
+        
+..	container:: class-def-with-link
+    
     :doc:`[DOC] <pkm.api.packages.package_metadata.PackageMetadata>`
     
     ..	code-block:: python
         
-        class PackageMetadata(FileConfiguration)
+        class PackageMetadata(ConfigFile)
         

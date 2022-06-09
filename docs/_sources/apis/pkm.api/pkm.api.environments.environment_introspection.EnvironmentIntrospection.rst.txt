@@ -5,7 +5,7 @@ EnvironmentIntrospection \(Class\)
 
 ..	code-block:: python
     
-    class EnvironmentIntrospection(Configuration)
+    class EnvironmentIntrospection
     
 Class Methods
 =============

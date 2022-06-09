@@ -7,7 +7,7 @@ import inspect
 import typing
 from abc import ABC, abstractmethod
 from io import UnsupportedOperation
-from typing import List, Dict, Callable, Any, Protocol
+from typing import List, Dict, Callable, Any
 
 
 class MethodArgs(ABC):

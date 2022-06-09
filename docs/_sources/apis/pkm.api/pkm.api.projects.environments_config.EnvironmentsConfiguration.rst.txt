@@ -5,34 +5,8 @@ EnvironmentsConfiguration \(Class\)
 
 ..	code-block:: python
     
-    class EnvironmentsConfiguration(TomlFileConfiguration)
+    @config(io=TomlConfigIO())
+    class EnvironmentsConfiguration(ConfigFile)
     
 Class Methods
 =============
-
-..	code-block:: python
-    
-    @computed_based_on('attached-env')
-    def attached_env(self) -> Optional[AttachedEnvironmentConfig]
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   self
-        -   Any
-        -   No Description
-    

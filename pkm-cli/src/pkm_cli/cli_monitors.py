@@ -106,8 +106,9 @@ def with_dependency_resolution(e: DependencyResolutionMonitoredOp):
 
 
 def with_package_build(e: BuildPackageMonitoredOp):
-    def on_build_step(bse: BuildPackageHookExecutionEvent):
-        Display.print(f"executing PEP517 build hook: {bse.hook}")
+    if Display.verbose:
+        def on_build_step(bse: BuildPackageHookExecutionEvent):
+            Display.print(f"executing PEP517 build hook: {bse.hook}")
 
     with e.listen(**locals()), Display.show(Spinner(f"building package: {e.package.name} {e.package.version}")):
         yield

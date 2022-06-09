@@ -104,7 +104,7 @@ Arguments
 
 ..	code-block:: python
     
-    def build(self, config: RepositoryInstanceConfig) -> Repository
+    def build(self, name: str, config: RepositoryInstanceConfig) -> Repository
     
 Description
 -----------
@@ -125,6 +125,9 @@ Arguments
         -   Description
     *   -   self
         -   Any
+        -   No Description
+    *   -   name
+        -   str
         -   No Description
     *   -   config
         -   RepositoryInstanceConfig

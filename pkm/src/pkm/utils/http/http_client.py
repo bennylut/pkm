@@ -15,7 +15,8 @@ from threading import Lock
 from typing import Deque, Dict, Type, Optional, cast, Any, ContextManager, IO, Union, Iterable
 from urllib.parse import urlsplit
 
-from pkm.config.configuration import TomlFileConfiguration
+from pkm.config.configclass import ConfigFile, config, config_field
+from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.commons import Closeable, IllegalStateException
 from pkm.utils.dicts import get_or_put
 from pkm.utils.http.cache_directive import TF_HTTP, CacheDirective
@@ -193,6 +194,15 @@ class _ConnectionPool(Closeable):
 
 
 @dataclass
+@config(io=TomlConfigIO())
+class FetchInfoConfig(ConfigFile):
+    etag: str = None
+    fetch_time: str = config_field(key="fetch-time")
+    hash: Dict[str, str] = config_field(default_factory=dict)
+    other_fields = config_field(leftover=True)
+
+
+@dataclass
 class FetchedResource:
     fetch_info: Path
     data: Path
@@ -220,13 +230,13 @@ class FetchedResource:
             return json.load(inp)
 
     @cached_property
-    def fetch_info_data(self) -> TomlFileConfiguration:
-        return TomlFileConfiguration.load(self.fetch_info)
+    def fetch_info_data(self) -> FetchInfoConfig:
+        return FetchInfoConfig.load(self.fetch_info)
 
     def is_hash_valid(self, hash_function: str, hash_hex_value: str):
 
         fetch_info = self.fetch_info_data
-        fetch_hash = fetch_info[f'hash.{hash_function}']
+        fetch_hash = fetch_info.hash.get(hash_function)
 
         if not fetch_hash:
             hash_ = hashlib.new(hash_function)
@@ -238,7 +248,7 @@ class FetchedResource:
                     hash_.update(next_)
 
             fetch_hash = hash_.hexdigest()
-            fetch_info[f'hash.{hash_function}'] = fetch_hash
+            fetch_info.hash[hash_function] = fetch_hash
             fetch_info.save()
 
         return fetch_hash == hash_hex_value
@@ -256,9 +266,11 @@ class FetchedResource:
             last_modified = rheaders.get('last-modified', rheaders.get('date'))
 
             # noinspection PyPropertyAccess
-            fetch_info = self.fetch_info_data = TomlFileConfiguration(path=self.fetch_info)
-            fetch_info['fetch-time'] = last_modified or datetime.utcnow().strftime(TF_HTTP)
-            fetch_info['etag'] = rheaders.get("etag") or ''
+            fetch_info = self.fetch_info_data = FetchInfoConfig()
+            fetch_info.path = self.fetch_info
+
+            fetch_info.fetch_time = last_modified or datetime.utcnow().strftime(TF_HTTP)
+            fetch_info.etag = rheaders.get("etag") or ''
 
             fetch_info.save()
         except:  # noqa
@@ -403,7 +415,7 @@ class HttpClient:
                     def _fetch() -> Optional[FetchedResource]:
                         headers = {}
                         cache_files = self._resource_files_of(parsed_url)
-                        fetch_info = TomlFileConfiguration.load(
+                        fetch_info = FetchInfoConfig.load(
                             cache_files.fetch_info)  # TODO: maybe add the response headers
                         _add_standard_headers(headers)
 

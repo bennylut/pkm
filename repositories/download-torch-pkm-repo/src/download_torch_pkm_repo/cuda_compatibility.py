@@ -5,15 +5,15 @@ import subprocess
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Iterator
 
 from pkm.api.pkm import pkm
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from pkm.config.configuration import TomlFileConfiguration
+from pkm.config import toml
 from pkm.utils.properties import cached_property
 from pkm.utils.resources import ResourcePath
-from download_torch_pkm_repo.utils.html import BasicDomParser
+from download_torch_pkm_repo.utils.html import BasicDomParser, Element
 
 
 @dataclass
@@ -75,7 +75,7 @@ class CudaCompatibilityTable:
             with ResourcePath("pkm_torch_repository.resources", "cuda-compatibilities.toml").use() as resources:
                 return cls.load(resources)
 
-        config_backup = TomlFileConfiguration.load(config_file)
+        config_backup, _ = toml.load(config_file)
         specs = []
 
         try:
@@ -84,7 +84,7 @@ class CudaCompatibilityTable:
             extractor = BasicDomParser()
             extractor.feed(data.read_text())
 
-            compatibility_table_rows = extractor.dom.select(
+            compatibility_table_rows: Iterator[Element] = extractor.dom.select(
                 lambda it: it.attrs.get('id') == 'cuda-major-component-versions__table-cuda-toolkit-driver-versions',
                 lambda it: it.tag == 'tbody',
                 lambda it: it.tag == 'tr'
@@ -99,9 +99,9 @@ class CudaCompatibilityTable:
                 ))
 
             config_backup["version-spec"] = [spec.to_config() for spec in specs]
-            config_backup.save()
+            config_file.write_text(toml.dumps(config_backup))
 
-        except Exception: # noqa
+        except Exception:  # noqa
             warnings.warn("could not update cuda compatibility table, will use old known compatibility specs versions")
             specs = [_CudaVersionSpec.from_config(spec) for spec in config_backup["version-spec"]]
 

@@ -1,5 +1,5 @@
 ..
-    HASH:0c7542fa16c412a1660134312f4095d0
+    HASH:594ea2344f862020add9ae5d9dec6882
 
 pkm.api.pkm \(Module\)
 ######################
@@ -11,7 +11,7 @@ Module Fields
     
     ENV_PKM_HOME = 'PKM_HOME'
     pkm_home = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
-    pkm = Pkm(pkm_home)
+    pkm: Pkm = Pkm(pkm_home)
     
 Module Classes
 ==============

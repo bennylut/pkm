@@ -1,4 +1,5 @@
-from pkm.api.environments.environment import Environment
+from pkm.api.dependencies.dependency import Dependency
+from pkm.api.projects.project import Project
 
-e = Environment.load("/home/bennyl/projects/pkm-new/pkm-cli/.venv")
-print(e.site_packages.find_orphan_packages())
+p = Project.load("/home/bennyl/projects/pkm-new/workspace/xxx_prj")
+p.dev_install([Dependency.parse("poetry")])

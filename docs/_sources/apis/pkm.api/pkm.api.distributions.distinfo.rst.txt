@@ -1,5 +1,5 @@
 ..
-    HASH:c38fb3c2c9df795d8f263c04aeb65120
+    HASH:6eac13b09314ab31db807d17c6ecbebd
 
 pkm.api.distributions.distinfo \(Module\)
 #########################################
@@ -26,7 +26,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class PackageInstallationInfo
+        class PackageInstallationInfo(ConfigFile)
         
 ..	container:: class-def-with-link
     
@@ -34,7 +34,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class EntrypointsConfiguration(IniFileConfiguration)
+        class EntrypointsConfiguration(ConfigFile)
         
 ..	container:: class-def-with-link
     
@@ -42,7 +42,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class WheelFileConfiguration(FileConfiguration)
+        class WheelFileConfiguration(ConfigFile)
         
 ..	container:: class-def-with-link
     
@@ -58,5 +58,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class RecordsFileConfiguration(FileConfiguration)
+        class RecordsFileConfiguration(ConfigFile)
         

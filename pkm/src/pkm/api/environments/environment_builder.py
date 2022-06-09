@@ -1,16 +1,17 @@
-import os
 import re
 import shutil
+import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.pkm import pkm
-from pkm.config.configuration import FileConfiguration
-import sys
-
+from pkm.api.versions.version import Version
+from pkm.config.configclass import ConfigFile, config, config_field
+from pkm.config.configfiles import WheelFileConfigIO
 from pkm.utils.commons import NoSuchElementException
 
 _INTERPRETER_INTROSPECTIONS: Dict[str, EnvironmentIntrospection] = {}
@@ -27,7 +28,7 @@ class EnvironmentBuilder:
         if not python_versions:
             raise NoSuchElementException("could not find installed python interpreter "
                                          f"that match the given dependency: {interpreter}")
-        python_versions[0].install_to(result)
+        python_versions[0].install_to(result.installation_target)
         return result
 
     @staticmethod
@@ -38,17 +39,18 @@ class EnvironmentBuilder:
             raise FileExistsError(f"{env_path} already exists")
 
         ispc = _introspection_for(interpreter_path)
-        sys_platform = ispc['sys.platform']
+        sys_platform = ispc['sys']['platform']
         is_windows = ispc.is_windows_env()
-        sys_vinfo = ispc['sys.version_info']
+        sys_vinfo = ispc['sys']['version_info']
 
         env_path.mkdir(parents=True, exist_ok=True)
 
         # prepare pyvenv.cfg
         pyvenvcfg = PyVEnvConfiguration.load(env_path / 'pyvenv.cfg')
-        pyvenvcfg['home'] = str(interpreter_path.parent)
-        pyvenvcfg['version'] = '.'.join(str(it) for it in sys_vinfo[:3])
-        pyvenvcfg['include-system-site-packages'] = 'false'
+
+        pyvenvcfg.home = interpreter_path.parent
+        pyvenvcfg.version = Version.parse('.'.join(str(it) for it in sys_vinfo[:3]))
+        pyvenvcfg.include_system_site_packages = False
         pyvenvcfg.save()
 
         # build relevant directories
@@ -64,7 +66,7 @@ class EnvironmentBuilder:
         for path in (bin_path, include_path, site_packages_path):
             path.mkdir(exist_ok=True, parents=True)
 
-        if not ispc.is_32bit_interpreter and ispc['os.name'] == 'posix' and sys_platform != 'darwin':
+        if not ispc.is_32bit_interpreter and ispc['os']['name'] == 'posix' and sys_platform != 'darwin':
             (env_path / 'lib64').symlink_to(env_path / 'lib')
 
         # copy needed files
@@ -75,7 +77,7 @@ class EnvironmentBuilder:
                 if (python_file := python_dir / file_name).exists():
                     shutil.copy(python_file, bin_path / file_name)
 
-            if ispc['sysconfig.is_python_build']:
+            if ispc['sysconfig']['is_python_build']:
                 # copy init.tcl
                 if init_tcl := next(python_dir.rglob("**/init.tcl"), None):
                     target_init_tcl = env_path / str(init_tcl.relative_to(python_dir))
@@ -99,18 +101,10 @@ def _introspection_for(interpreter_path: Path) -> EnvironmentIntrospection:
     return intro
 
 
-class PyVEnvConfiguration(FileConfiguration):
-
-    def generate_content(self) -> str:
-        return os.linesep.join(f"{k} = {v}" for k, v in self._data.items())
-
-    @classmethod
-    def load(cls, path: Union[Path, str]):
-        path = Path(path)
-
-        if not path.exists():
-            return PyVEnvConfiguration(path=path, data={})
-
-        data = {(kv := _PYVENV_SEP_RX.split(line))[0]: kv[1]
-                for line in path.read_text().splitlines(keepends=False)}
-        return PyVEnvConfiguration(path=path, data=data)
+@dataclass
+@config(io=WheelFileConfigIO())
+class PyVEnvConfiguration(ConfigFile):
+    home: Path
+    version: Version
+    include_system_site_packages: bool = config_field(key="include-system-site-packages")
+    _leftovers = config_field(leftover=True)

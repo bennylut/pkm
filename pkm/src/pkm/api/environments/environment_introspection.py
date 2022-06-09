@@ -7,10 +7,9 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from struct import Struct
-from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable
+from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable, Any
 
 from pkm.api.versions.version import StandardVersion
-from pkm.config.configuration import Configuration
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
@@ -89,7 +88,13 @@ _USER_SCHEME_BY_PLATFORM = {
 
 
 # noinspection PyRedundantParentheses
-class EnvironmentIntrospection(Configuration):
+class EnvironmentIntrospection:
+
+    def __init__(self, data: Dict[str, Any]):
+        self._data = data
+
+    def __getitem__(self, item):
+        return self._data[item]
 
     @property
     def paths(self) -> Dict[str, str]:

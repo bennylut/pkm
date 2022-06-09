@@ -5,7 +5,8 @@ Record \(Class\)
 
 ..	code-block:: python
     
-    @dataclass(frozen=True)
+    @dataclass
+    @config
     class Record
     
 Class Methods

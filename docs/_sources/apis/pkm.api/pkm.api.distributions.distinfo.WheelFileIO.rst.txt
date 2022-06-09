@@ -1,21 +1,18 @@
 :orphan:
 
-EntrypointsConfiguration \(Class\)
-##################################
+WheelFileIO \(Class\)
+#####################
 
 ..	code-block:: python
     
-    @dataclass
-    @config(io=INIConfigIO())
-    class EntrypointsConfiguration(ConfigFile)
+    class WheelFileIO(ConfigIO)
     
 Class Methods
 =============
 
 ..	code-block:: python
     
-    @cached_property
-    def entrypoints(self) -> Iterable[EntryPoint]
+    def write(self, path: Path, data: _RAW_CONFIG_T)
     
 Description
 -----------
@@ -36,14 +33,19 @@ Arguments
         -   Description
     *   -   self
         -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    *   -   data
+        -   _RAW_CONFIG_T
         -   No Description
     
 -----------------------
 
 ..	code-block:: python
     
-    @entrypoints.setter
-    def entrypoints(self, entrypoints)
+    def read(self, path: Path) -> _RAW_CONFIG_T
     
 Description
 -----------
@@ -65,7 +67,7 @@ Arguments
     *   -   self
         -   Any
         -   No Description
-    *   -   entrypoints
-        -   Any
+    *   -   path
+        -   Path
         -   No Description
     

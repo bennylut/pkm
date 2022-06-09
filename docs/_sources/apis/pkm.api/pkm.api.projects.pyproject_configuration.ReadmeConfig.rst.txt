@@ -1,0 +1,11 @@
+:orphan:
+
+ReadmeConfig \(Class\)
+######################
+
+..	code-block:: python
+    
+    class ReadmeConfig(Stringable)
+    
+Class Methods
+=============

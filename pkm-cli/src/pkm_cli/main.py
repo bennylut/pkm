@@ -195,7 +195,7 @@ def install(args: Namespace):
                 contex.repository_management.register_bindings([d.package_name for d in dependencies], repo)
                 args.force = True
         elif repo_type := args.unnamed_repo:
-            instance_config = RepositoryInstanceConfig(repo_type, None, None, getattr(args, 'unnamed_repo_extras', {}))
+            instance_config = RepositoryInstanceConfig(repo_type, True, getattr(args, 'unnamed_repo_extras', {}))
             contex.repository_management.register_bindings([d.package_name for d in dependencies], instance_config)
             args.force = True
 

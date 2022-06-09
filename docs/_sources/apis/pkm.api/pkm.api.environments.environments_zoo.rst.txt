@@ -1,5 +1,5 @@
 ..
-    HASH:31937764aa4b409af43189804cafd18e
+    HASH:addb5d9a347c92309ed5f9fa4292d411
 
 pkm.api.environments.environments\_zoo \(Module\)
 #################################################
@@ -34,5 +34,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class EnvironmentZooConfiguration(TomlFileConfiguration)
+        class EnvironmentZooConfiguration(ConfigFile)
         

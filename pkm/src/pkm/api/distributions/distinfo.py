@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-import csv
 import json
-import os
-import re
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING, Any
+from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING, Type
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
-from pkm.config.configuration import IniFileConfiguration, FileConfiguration, computed_based_on
+from pkm.config.configclass import config, config_field, ConfigFile, ConfigFieldCodec, ConfigCodec
+from pkm.config.configfiles import INIConfigIO, JsonConfigIO, WheelFileConfigIO, CSVConfigIO
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
@@ -67,7 +65,7 @@ class DistInfo:
 
     def load_installation_info(self) -> Optional[PackageInstallationInfo]:
         if self.installation_info_path().exists():
-            return PackageInstallationInfo.from_config(json.loads(self.installation_info_path().read_text()))
+            return PackageInstallationInfo.load(self.installation_info_path())
         return None
 
     def save_installation_info(self, installation_mode: PackageInstallationInfo):
@@ -193,77 +191,70 @@ class DistInfo:
         yield self.record_path()
 
 
-@dataclass(frozen=True, eq=True)
-class PackageInstallationInfo:
-    containerized: bool = False
-    editable: bool = False
-    compatibility_tag: str = ""
-
-    def to_config(self) -> Dict[str, Any]:
-        return {**self.__dict__}
-
-    @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> PackageInstallationInfo:
-        return PackageInstallationInfo(**config)
+@dataclass
+@config(io=JsonConfigIO())
+class PackageInstallationInfo(ConfigFile):
+    containerized: bool = config_field(default=False)
+    editable: bool = config_field(default=False)
+    compatibility_tag: str = config_field(default="")
 
 
-class EntrypointsConfiguration(IniFileConfiguration):
-    entrypoints: List["EntryPoint"]
+@dataclass
+@config(io=INIConfigIO())
+class EntrypointsConfiguration(ConfigFile):
+    _data = config_field(leftover=True)
 
-    @computed_based_on("")
-    def entrypoints(self) -> Iterable["EntryPoint"]:
-
+    @cached_property
+    def entrypoints(self) -> Iterable[EntryPoint]:
         result: List[EntryPoint] = []
 
-        for group_name, group in self.items():
+        for group_name, group in self._data.items():
             for entry_point, object_ref in group.items():
                 result.append(EntryPoint(group_name, entry_point, ObjectReference.parse(object_ref)))
 
         return result
 
-    @entrypoints.modifier
-    def set_entrypoints(self, entries: List["EntryPoint"]):
+    @entrypoints.setter
+    def entrypoints(self, entrypoints):
         self._data.clear()
-        by_group: Dict[str, List[EntryPoint]] = groupby(entries, key=lambda e: e.group)
+        by_group: Dict[str, List[EntryPoint]] = groupby(entrypoints, key=lambda e: e.group)
         new_data = {group: {e.name: e.ref for e in entries} for group, entries in by_group.items()}
         self._data.update(new_data)
 
 
-class WheelFileConfiguration(FileConfiguration):
-
-    def generate_content(self) -> str:
-        return os.linesep.join(f'{k}: {v}' for k, v in self._data.items())
+@dataclass
+@config(io=WheelFileConfigIO())
+class WheelFileConfiguration(ConfigFile):
+    version: Version = config_field(key='Wheel-Version', default=Version.parse("1.0"))
+    generator: str = config_field(key="Generator", default="")
+    root_is_purelib: bool = config_field(key="Root-Is-Purelib", default=True)
+    _leftovers = config_field(leftover=True)
 
     def validate_supported_version(self):
-        wv = Version.parse(self['Wheel-Version'] or 'unprovided')
-        if not isinstance(wv, StandardVersion):
-            raise UnsupportedOperationException(f"unknown wheel version: {wv}")
+        if not isinstance(self.version, StandardVersion):
+            raise UnsupportedOperationException(f"unknown wheel version: {self.version}")
 
-        if wv.release[0] != 1:
-            raise UnsupportedOperationException(f"unsupported wheel version: {wv}")
-        if wv.release[1] != 0:
-            print(f'advanced wheel version: {wv} detected, will be treated as version 1.0')
+        if self.version.release[0] != 1:
+            raise UnsupportedOperationException(f"unsupported wheel version: {self.version}")
+        if self.version.release[1] != 0:
+            print(f'advanced wheel version: {self.version} detected, will be treated as version 1.0')
 
     @classmethod
     def create(cls, generator: str, purelib: bool):
-        return cls(path=None, data={
-            'Wheel-Version': '1.0',
-            'Generator': generator,
-            'Root-Is-Purelib': 'true' if purelib else 'false'
-        })
-
-    @classmethod
-    def load(cls, path: Path):
-        if not path.exists():
-            return cls(path=path, data={})
-
-        seperator_rx = re.compile("\\s*:\\s*")
-        lines = (line.strip() for line in path.read_text().splitlines())
-        kvs = (seperator_rx.split(kv) for kv in lines if kv)
-        return cls(path=path, data={kv[0]: kv[1] for kv in kvs})
+        return WheelFileConfiguration(Version.parse("1.0"), generator, purelib)
 
 
-@dataclass(frozen=True)
+class _RecordHashsignatureCodec(ConfigFieldCodec):
+
+    def parse(self, parent: ConfigCodec, type_: Type, v: str) -> Optional[HashSignature]:
+        return None if not v else HashSignature.parse_urlsafe_base64_nopad_encoded(v)
+
+    def unparse(self, parent: ConfigCodec, type_: Type, v: Optional[HashSignature]) -> str:
+        return '' if not v else str(v)
+
+
+@dataclass
+@config
 class Record:
     file: str
     hash_signature: HashSignature
@@ -273,24 +264,11 @@ class Record:
         return resolve_relativity(Path(self.file), dist_info.path).resolve()
 
 
-class RecordsFileConfiguration(FileConfiguration):
-
-    def generate_content(self) -> str:
-        raise UnsupportedOperationException()
-
-    @property
-    def records(self) -> List[Record]:
-        return self['records']
-
-    def save_to(self, path: Optional[Path] = None):
-        path = path or self.path
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        with path.open('w+', newline='') as new_record_fd:
-            r: Record
-            csv.writer(new_record_fd).writerows(
-                (str(r.file), str(r.hash_signature), r.length)
-                for r in self['records'])
+@config(io=CSVConfigIO(
+    "file", "hash_signature", "length",
+    codec=ConfigCodec({HashSignature: _RecordHashsignatureCodec()})))
+class RecordsFileConfiguration(ConfigFile):
+    records: List[Record] = config_field(default_factory=list)
 
     def sign_files(self, files: Iterable[Path], root: Path,
                    precomputed_hashes: Optional[Dict[str, HashSignature]] = None) -> RecordsFileConfiguration:
@@ -336,20 +314,3 @@ class RecordsFileConfiguration(FileConfiguration):
         :return: self (for chaining support)
         """
         return self.sign_files(content_root.rglob("*"), content_root)
-
-    @classmethod
-    def load(cls, path: Path) -> "RecordsFileConfiguration":
-        records = []
-
-        if path.exists():
-            with path.open('r', newline='') as records_fd:
-                for record in csv.reader(records_fd):
-                    file, hash_sig, length = record
-                    if hash_sig:
-                        records.append(Record(
-                            str(Path(file)),  # wrapping in path and then str so that os dependent path will be used
-                            HashSignature.parse_urlsafe_base64_nopad_encoded(hash_sig),
-                            int(length),
-                        ))
-
-        return RecordsFileConfiguration(data={'records': records}, path=path)

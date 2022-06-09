@@ -70,110 +70,31 @@
   <div class="contents page-content topic" id="in-this-page">
 <p class="topic-title">In This Page</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#recordsfileconfiguration-class" id="id12">RecordsFileConfiguration (Class)</a></p>
+<li><p><a class="reference internal" href="#recordsfileconfiguration-class" id="id4">RecordsFileConfiguration (Class)</a></p>
 <ul>
-<li><p><a class="reference internal" href="#class-methods" id="id13">Class Methods</a></p></li>
+<li><p><a class="reference internal" href="#class-methods" id="id5">Class Methods</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <section id="recordsfileconfiguration-class">
-<h1><a class="toc-backref" href="#id12">RecordsFileConfiguration (Class)</a><a class="headerlink" href="#recordsfileconfiguration-class" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RecordsFileConfiguration</span><span class="p">(</span><span class="n">FileConfiguration</span><span class="p">)</span>
+<h1><a class="toc-backref" href="#id4">RecordsFileConfiguration (Class)</a><a class="headerlink" href="#recordsfileconfiguration-class" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@config</span><span class="p">(</span><span class="n">io</span><span class="o">=</span><span class="n">CSVConfigIO</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">,</span> <span class="s1">&#39;hash_signature&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="n">ConfigCodec</span><span class="p">({</span><span class="n">HashSignature</span><span class="p">:</span> <span class="n">_RecordHashsignatureCodec</span><span class="p">()})))</span>
+<span class="k">class</span> <span class="nc">RecordsFileConfiguration</span><span class="p">(</span><span class="n">ConfigFile</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2><a class="toc-backref" href="#id13">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
-</pre></div>
-</div>
-<section id="description">
-<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="arguments">
-<h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">records</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Record</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="id1">
-<h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id2">
-<h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">save_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id3">
-<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id4">
-<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>path</p></td>
-<td><p>Optional[Path]</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
+<h2><a class="toc-backref" href="#id5">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sign_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span> <span class="n">root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">precomputed_hashes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">HashSignature</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecordsFileConfiguration</span>
 </pre></div>
 </div>
-</section>
-<section id="id5">
-<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
 <p>add to the records in this file the signatures for the given <cite>files</cite></p>
 </section>
-<section id="id6">
-<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<section id="arguments">
+<h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -209,12 +130,12 @@
 </pre></div>
 </div>
 </section>
-<section id="id7">
-<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<section id="id1">
+<h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>add to the records in this file the signatures for files inside the <cite>content_root</cite></p>
 </section>
-<section id="id8">
-<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<section id="id2">
+<h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
@@ -234,39 +155,9 @@
 </tbody>
 </table>
 </section>
-<section id="id9">
-<h3>Returns<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<section id="id3">
+<h3>Returns<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>self (for chaining support)</p>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;RecordsFileConfiguration&#39;</span>
-</pre></div>
-</div>
-</section>
-<section id="id10">
-<h3>Description<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id11">
-<h3>Arguments<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>cls</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>path</p></td>
-<td><p>Path</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
 </section>
 </section>
 </section>

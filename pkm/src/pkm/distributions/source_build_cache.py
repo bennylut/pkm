@@ -82,7 +82,7 @@ class SourceBuildCache:
             else:
                 if not metadata_file.exists():
                     metadata = WheelDistribution(dist.owner_package, output).extract_metadata()
-                    metadata.save_to(metadata_file)
+                    metadata.save(metadata_file)
 
                 cached_output = cache_dir / output.name
                 cache_dir.mkdir(parents=True, exist_ok=True)

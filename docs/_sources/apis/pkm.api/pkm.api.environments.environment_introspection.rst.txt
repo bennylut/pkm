@@ -1,5 +1,5 @@
 ..
-    HASH:fa94f8ee74438a42932c7b3a7596b5de
+    HASH:8f034d2652f7c3f188b9cc346591f881
 
 pkm.api.environments.environment\_introspection \(Module\)
 ##########################################################
@@ -20,5 +20,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class EnvironmentIntrospection(Configuration)
+        class EnvironmentIntrospection
         

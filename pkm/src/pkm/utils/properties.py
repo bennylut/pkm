@@ -3,6 +3,8 @@ from threading import RLock
 
 from typing import TypeVar, Callable, Any, Dict
 
+from pkm.utils.commons import UnsupportedOperationException
+
 _T = TypeVar("_T")
 
 
@@ -15,6 +17,7 @@ class cached_property:
         self.__doc__ = func.__doc__
         self._mutation_lock = RLock()
         self._instance_locks: Dict[int, RLock] = {}
+        self._setter = None
 
     def __set_name__(self, owner, name):
         self._attr = f"_cached_{name}"
@@ -51,10 +54,23 @@ class cached_property:
             try:
                 return getattr(instance, self._attr)
             except AttributeError:
-                self._compute(instance)
+                ...
+            self._compute(instance)
+
+    def setter(self, func: _T) -> _T:
+        self._setter = func
+        return self
 
     def __set__(self, instance, value: _T):
-        setattr(instance, self._attr, value)
+        if instance is None:
+            raise UnsupportedOperationException()
+
+        if self._setter:
+            self._setter(instance, value)
+            if hasattr(instance, self._attr):
+                delattr(instance, self._attr)
+        else:
+            setattr(instance, self._attr, value)
 
     def __delete__(self, instance):
         if hasattr(instance, self._attr):

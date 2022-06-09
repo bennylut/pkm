@@ -1,5 +1,5 @@
 ..
-    HASH:b0507e2c2155299543ad7cd906e9a6e9
+    HASH:edcd1d4fdfbf905465f44f01a9e7cc95
 
 pkm.api.repositories.repositories\_configuration \(Module\)
 ###########################################################
@@ -22,17 +22,17 @@ Module Classes
         
 ..	container:: class-def-with-link
     
-    :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfiguration>`
-    
-    ..	code-block:: python
-        
-        class RepositoriesConfiguration(TomlFileConfiguration)
-        
-..	container:: class-def-with-link
-    
     :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoryInstanceConfig>`
     
     ..	code-block:: python
         
         class RepositoryInstanceConfig
+        
+..	container:: class-def-with-link
+    
+    :doc:`[DOC] <pkm.api.repositories.repositories_configuration.RepositoriesConfiguration>`
+    
+    ..	code-block:: python
+        
+        class RepositoriesConfiguration(ConfigFile)
         

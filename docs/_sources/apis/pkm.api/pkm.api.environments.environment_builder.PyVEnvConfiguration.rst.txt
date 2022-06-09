@@ -5,64 +5,9 @@ PyVEnvConfiguration \(Class\)
 
 ..	code-block:: python
     
-    class PyVEnvConfiguration(FileConfiguration)
+    @dataclass
+    @config(io=WheelFileConfigIO())
+    class PyVEnvConfiguration(ConfigFile)
     
 Class Methods
 =============
-
-..	code-block:: python
-    
-    def generate_content(self) -> str
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   self
-        -   Any
-        -   No Description
-    
------------------------
-
-..	code-block:: python
-    
-    @classmethod
-    def load(cls, path: Union[Path, str])
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   cls
-        -   Any
-        -   No Description
-    *   -   path
-        -   Union[Path, str]
-        -   No Description
-    

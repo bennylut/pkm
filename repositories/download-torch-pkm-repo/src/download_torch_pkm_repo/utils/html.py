@@ -20,7 +20,7 @@ class Element:
         nodes = [self]
 
         while nodes:
-            node = nodes.pop()
+            node: Element = nodes.pop()
 
             if match(node):
                 yield node

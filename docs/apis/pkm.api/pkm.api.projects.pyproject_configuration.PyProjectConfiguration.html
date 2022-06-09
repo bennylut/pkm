@@ -70,282 +70,33 @@
   <div class="contents page-content topic" id="in-this-page">
 <p class="topic-title">In This Page</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#pyprojectconfiguration-class" id="id19">PyProjectConfiguration (Class)</a></p>
+<li><p><a class="reference internal" href="#pyprojectconfiguration-class" id="id1">PyProjectConfiguration (Class)</a></p>
 <ul>
-<li><p><a class="reference internal" href="#class-methods" id="id20">Class Methods</a></p></li>
+<li><p><a class="reference internal" href="#class-methods" id="id2">Class Methods</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <section id="pyprojectconfiguration-class">
-<h1><a class="toc-backref" href="#id19">PyProjectConfiguration (Class)</a><a class="headerlink" href="#pyprojectconfiguration-class" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">PyProjectConfiguration</span><span class="p">(</span><span class="n">TomlFileConfiguration</span><span class="p">)</span>
+<h1><a class="toc-backref" href="#id1">PyProjectConfiguration (Class)</a><a class="headerlink" href="#pyprojectconfiguration-class" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@config</span><span class="p">(</span><span class="n">io</span><span class="o">=</span><span class="n">TomlConfigIO</span><span class="p">())</span>
+<span class="k">class</span> <span class="nc">PyProjectConfiguration</span><span class="p">(</span><span class="n">ConfigFile</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2><a class="toc-backref" href="#id20">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@computed_based_on</span><span class="p">(</span><span class="s1">&#39;tool.pkm.project&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">pkm_project</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PkmProjectConfig</span>
-</pre></div>
-</div>
-<section id="description">
-<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="arguments">
-<h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@computed_based_on</span><span class="p">(</span><span class="s1">&#39;tool.pkm.application&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">pkm_application</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PkmApplicationConfig</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="id1">
-<h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id2">
-<h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pkm_application</span><span class="o">.</span><span class="n">modifier</span>
-<span class="k">def</span> <span class="nf">set_pkm_application</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PkmApplicationConfig</span><span class="p">])</span>
-</pre></div>
-</div>
-</section>
-<section id="id3">
-<h3>Description<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id4">
-<h3>Arguments<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>app</p></td>
-<td><p>Optional[PkmApplicationConfig]</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@computed_based_on</span><span class="p">(</span><span class="s1">&#39;tool.pkm.distribution&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">pkm_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PkmDistributionConfig</span>
-</pre></div>
-</div>
-</section>
-<section id="id5">
-<h3>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id6">
-<h3>Arguments<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pkm_distribution</span><span class="o">.</span><span class="n">modifier</span>
-<span class="k">def</span> <span class="nf">set_pkm_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distribution</span><span class="p">:</span> <span class="n">PkmDistributionConfig</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id7">
-<h3>Description<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id8">
-<h3>Arguments<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>distribution</p></td>
-<td><p>PkmDistributionConfig</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@computed_based_on</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ProjectConfig</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="id9">
-<h3>Description<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id10">
-<h3>Arguments<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@project</span><span class="o">.</span><span class="n">modifier</span>
-<span class="k">def</span> <span class="nf">set_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">ProjectConfig</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id11">
-<h3>Description<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id12">
-<h3>Arguments<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>value</p></td>
-<td><p>ProjectConfig</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@computed_based_on</span><span class="p">(</span><span class="s1">&#39;build-system&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">build_system</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BuildSystemConfig</span>
-</pre></div>
-</div>
-</section>
-<section id="id13">
-<h3>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id14">
-<h3>Arguments<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@build_system</span><span class="o">.</span><span class="n">modifier</span>
-<span class="k">def</span> <span class="nf">set_build_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">:</span> <span class="n">BuildSystemConfig</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id15">
-<h3>Description<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
-<p>Not Documented</p>
-</section>
-<section id="id16">
-<h3>Arguments<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
-<table class="colwidths-auto args-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Name</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>self</p></td>
-<td><p>Any</p></td>
-<td><p>No Description</p></td>
-</tr>
-<tr class="row-odd"><td><p>bs</p></td>
-<td><p>BuildSystemConfig</p></td>
-<td><p>No Description</p></td>
-</tr>
-</tbody>
-</table>
-<hr class="docutils" />
+<h2><a class="toc-backref" href="#id2">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">load_effective</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pyproject_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">package</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PackageDescriptor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;PyProjectConfiguration&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="id17">
-<h3>Description<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
 <p>load the effective pyproject file (with missing essential values filled with their legacy values)
 for example, if no build-system is available, this method will fill in the legacy build-system</p>
 </section>
-<section id="id18">
-<h3>Arguments<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<section id="arguments">
+<h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
 <table class="colwidths-auto args-table docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>

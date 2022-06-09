@@ -1,4 +1,3 @@
-from dataclasses import replace
 from pathlib import Path
 
 from pkm.api.environments.environment import Environment
@@ -21,9 +20,7 @@ def setup(project_name: str = None, env_path: Path = None) -> dict:
 
     project = Project.load(target_dir / project_name)
     pyprj = project.config
-    pyprj.project = replace(
-        pyprj.project,
-        dependencies=[p.descriptor.to_dependency(True) for p in env.site_packages.find_requested_packages()])
+    pyprj.project.dependencies = [p.descriptor.to_dependency(True) for p in env.site_packages.find_requested_packages()]
     pyprj.save()
 
     environments_toml = project.environments_config.path.relative_to(project.path.parent)

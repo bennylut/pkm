@@ -112,7 +112,7 @@ class AbstractPackage(Package):
                 if not hashsig.validate_against(artifact_path):
                     raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
-            installation_mode = PackageInstallationInfo(False, editable)
+            installation_mode = PackageInstallationInfo(containerized=False, editable=editable)
             if artifact.is_binary():
                 WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
             else:

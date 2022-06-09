@@ -1,21 +1,18 @@
 :orphan:
 
-EntrypointsConfiguration \(Class\)
-##################################
+PackageMetadataIO \(Class\)
+###########################
 
 ..	code-block:: python
     
-    @dataclass
-    @config(io=INIConfigIO())
-    class EntrypointsConfiguration(ConfigFile)
+    class PackageMetadataIO(ConfigIO)
     
 Class Methods
 =============
 
 ..	code-block:: python
     
-    @cached_property
-    def entrypoints(self) -> Iterable[EntryPoint]
+    def write(self, path: Path, data: Dict[str, Any])
     
 Description
 -----------
@@ -36,14 +33,19 @@ Arguments
         -   Description
     *   -   self
         -   Any
+        -   No Description
+    *   -   path
+        -   Path
+        -   No Description
+    *   -   data
+        -   Dict[str, Any]
         -   No Description
     
 -----------------------
 
 ..	code-block:: python
     
-    @entrypoints.setter
-    def entrypoints(self, entrypoints)
+    def read(self, path: Path) -> Dict[str, Any]
     
 Description
 -----------
@@ -65,7 +67,7 @@ Arguments
     *   -   self
         -   Any
         -   No Description
-    *   -   entrypoints
-        -   Any
+    *   -   path
+        -   Path
         -   No Description
     

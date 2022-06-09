@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Union, Optional, Tuple, List, TYPE_CHECKING
+from typing import Iterable, Union, Optional, List, TYPE_CHECKING
 
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH
 from pkm.api.projects.project import Project
-from pkm.config.configuration import TomlFileConfiguration, computed_based_on
-from pkm.utils.files import path_to, ensure_exists, resolve_relativity
+from pkm.config.configclass import config, ConfigFile, config_field
+from pkm.config.configfiles import TomlConfigIO
+from pkm.utils.files import ensure_exists, resolve_relativity
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
 
@@ -24,8 +25,8 @@ class ProjectGroup(HasAttachedRepository):
     the project group is configured by the pyproject-group.toml configuration file
     """
 
-    def __init__(self, config: "PyProjectGroupConfiguration", parent: Optional[ProjectGroup] = None):
-        self._config = config
+    def __init__(self, config_: "PyProjectGroupConfiguration", parent: Optional[ProjectGroup] = None):
+        self._config = config_
         self.path = self._config.path.parent
         if parent:
             self.parent = parent  # noqa
@@ -68,7 +69,7 @@ class ProjectGroup(HasAttachedRepository):
         :return: the child projects (or project groups) defined in this group
         """
         result = []
-        for child in self._config.children:
+        for child in self._config.resolved_children:
             if (child / 'pyproject.toml').exists():
                 result.append(Project.load(child, group=self))
             elif (child / 'pyproject-group.toml').exists:
@@ -99,7 +100,7 @@ class ProjectGroup(HasAttachedRepository):
         """
 
         project_path = project if isinstance(project, Path) else project.path
-        self._config.children = (*self._config.children, project_path)
+        self._config.children.append(project_path)
         self._config.save()
 
     def remove(self, project: Union[str, Path]):
@@ -112,7 +113,8 @@ class ProjectGroup(HasAttachedRepository):
 
         project = project.resolve()
 
-        self._config.children = tuple(p for p in self._config.children if p != project)
+        self._config.children = [
+            p for p, rp in zip(self._config.children, self._config.resolved_children) if rp != project]
         self._config.save()
 
     def build_all(self):
@@ -131,7 +133,7 @@ class ProjectGroup(HasAttachedRepository):
         for path_parent in path.parents:
             if (parent_config_file := (path_parent / 'pyproject-group.toml')).exists():
                 parent_config = PyProjectGroupConfiguration.load(parent_config_file)
-                if any(child == path for child in parent_config.children):
+                if any(child == path for child in parent_config.resolved_children):
                     return ProjectGroup(parent_config)
         return None
 
@@ -141,7 +143,7 @@ class ProjectGroup(HasAttachedRepository):
         :param project: the project to get the project group for
         :return: the project group if such defined
         """
-        if group := project.config.pkm_project.group:
+        if (pkm_project := project.config.pkm_project) and (group := pkm_project.group):
             return ProjectGroup(PyProjectGroupConfiguration.load(resolve_relativity(Path(group), project.path)))
         return cls._find_parent(project.path)
 
@@ -163,49 +165,16 @@ class ProjectGroup(HasAttachedRepository):
         return (path / 'pyproject-group.toml').exists()
 
 
-class PyProjectGroupConfiguration(TomlFileConfiguration):
-
-    @computed_based_on("name")
-    def name(self) -> str:
-        return self['name'] or self._path.parent.name
+@config(io=TomlConfigIO())
+class PyProjectGroupConfiguration(ConfigFile):
+    _name: str = config_field(key="name")
+    children: List[Path] = config_field(default_factory=list)
+    parent: Path = None
 
     @property
-    def path(self) -> Path:
-        return self._path
+    def resolved_children(self) -> Iterable[Path]:
+        return (self.path.joinpath(it).resolve() for it in self.children)
 
-    @computed_based_on("project-group.children")
-    def children(self) -> Tuple[Path, ...]:
-        if not (children := self["project-group.children"]):
-            return tuple()
-
-        root = self.path.parent
-        result = []
-        for path in children:
-            path = Path(path)
-            if path.is_absolute():
-                result.append(path.resolve())
-            else:
-                result.append((root / path).resolve())
-
-        return tuple(result)
-
-    @children.modifier
-    def set_children(self, new: Iterable[Path]):
-        root = self.path.parent
-        result = []
-        for path in new:
-            if path.is_absolute():
-                result.append(str(path_to(root, path)))
-            else:
-                result.append(str(path))
-
-        self["project-group.children"] = result
-
-    @computed_based_on("project-group.parent")
-    def parent(self) -> Optional[Path]:
-        if parent := self["project-group.parent"]:
-            path = Path(parent)
-            if path.is_absolute():
-                return path.resolve()
-            return (self.path.parent / path).resolve()
-        return None
+    @property
+    def name(self) -> str:
+        return self._name or self.path.parent.name

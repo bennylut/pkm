@@ -5,37 +5,12 @@ WheelFileConfiguration \(Class\)
 
 ..	code-block:: python
     
-    class WheelFileConfiguration(FileConfiguration)
+    @dataclass
+    @config(io=WheelFileConfigIO())
+    class WheelFileConfiguration(ConfigFile)
     
 Class Methods
 =============
-
-..	code-block:: python
-    
-    def generate_content(self) -> str
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   self
-        -   Any
-        -   No Description
-    
------------------------
 
 ..	code-block:: python
     
@@ -94,36 +69,5 @@ Arguments
         -   No Description
     *   -   purelib
         -   bool
-        -   No Description
-    
------------------------
-
-..	code-block:: python
-    
-    @classmethod
-    def load(cls, path: Path)
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   cls
-        -   Any
-        -   No Description
-    *   -   path
-        -   Path
         -   No Description
     

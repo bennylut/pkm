@@ -134,4 +134,4 @@ def _default_home_directory():
 
 
 pkm_home = os.environ.get(ENV_PKM_HOME) or _default_home_directory()
-pkm = Pkm(pkm_home)
+pkm: Pkm = Pkm(pkm_home)

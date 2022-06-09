@@ -126,7 +126,7 @@ class Environment(HasAttachedRepository):
 
         return OperatingPlatform(
             os=emarkers["platform_system"].lower(),
-            os_bits=ispc['os.bits'],
+            os_bits=ispc['os']['bits'],
             machine=emarkers["platform_machine"].lower(),
             python_version=self.interpreter_version,
             python_implementation=emarkers["platform_python_implementation"].lower(),
@@ -288,7 +288,7 @@ class Environment(HasAttachedRepository):
 
         for package in self.site_packages.installed_packages():
             for ep in package.dist_info.load_entrypoints_cfg().entrypoints:
-                groups[ep.group].append(replace(ep, containing_package=package))
+                groups[ep.group].append(replace(ep, containing_package=package.descriptor))
 
         return groups
 

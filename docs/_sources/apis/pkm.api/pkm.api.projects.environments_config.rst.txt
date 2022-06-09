@@ -1,5 +1,5 @@
 ..
-    HASH:344607e00a601a34af1f3085977a456b
+    HASH:c6279b178508051494864feba164ec8a
 
 pkm.api.projects.environments\_config \(Module\)
 ################################################
@@ -28,5 +28,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class EnvironmentsConfiguration(TomlFileConfiguration)
+        class EnvironmentsConfiguration(ConfigFile)
         

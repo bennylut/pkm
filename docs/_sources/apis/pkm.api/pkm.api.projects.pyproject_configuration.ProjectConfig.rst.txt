@@ -5,11 +5,40 @@ ProjectConfig \(Class\)
 
 ..	code-block:: python
     
-    @dataclass(frozen=True, eq=True)
+    @dataclass(eq=True)
+    @config
     class ProjectConfig
     
 Class Methods
 =============
+
+..	code-block:: python
+    
+    @cached_property
+    def entry_points(self) -> Mapping[str, List[EntryPoint]]
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
 
 ..	code-block:: python
     
@@ -237,70 +266,5 @@ Arguments
         -   Description
     *   -   self
         -   Any
-        -   No Description
-    
------------------------
-
-..	code-block:: python
-    
-    def to_config(self, project_path: Optional[Path] = None) -> Dict[str, Any]
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   self
-        -   Any
-        -   No Description
-    *   -   project_path
-        -   Optional[Path]
-        -   No Description
-    
------------------------
-
-..	code-block:: python
-    
-    @classmethod
-    def from_config(cls, config: Dict[str, Any], 
-        project_path: Optional[Path] = None) -> 'ProjectConfig'
-    
-Description
------------
-
-Not Documented
-
-Arguments
----------
-
-..	rst-class:: args-table
-    
-..	list-table:: 
-    :widths: auto
-    :header-rows: 1
-    
-    *   -   Name
-        -   Type
-        -   Description
-    *   -   cls
-        -   Any
-        -   No Description
-    *   -   config
-        -   Dict[str, Any]
-        -   No Description
-    *   -   project_path
-        -   Optional[Path]
         -   No Description
     

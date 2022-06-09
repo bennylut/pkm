@@ -205,7 +205,7 @@ class CondaSubdirPackage(Package):
             a: (tag_score, a.build_number())
             for a in self.artifacts
             if (tag_score := env.compatibility_tag_score(a.compatibility_tag)) is not None
-               and all(d.version_spec is not RestrictAllVersions for d in a.dependencies(env, [])) # noqa
+               and all(d.version_spec is not RestrictAllVersions for d in a.dependencies(env, []))  # noqa
         }
 
         if not scored_artifacts:
@@ -217,7 +217,8 @@ class CondaSubdirPackage(Package):
     def descriptor(self) -> PackageDescriptor:
         return PackageDescriptor(self.pname, Version.parse(self._ver))
 
-    def dependencies(self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
+    def dependencies(
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
         artifact = self._best_artifact_for(target.env)
         if not artifact:
             raise UnsupportedOperationException("asking for dependencies for unsupported environment")

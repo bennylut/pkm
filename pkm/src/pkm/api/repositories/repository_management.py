@@ -53,7 +53,7 @@ class RepositoryManagement(ABC):
             contexes.extend((it.repository_management for it in context.parent_contexts()))
             for repo_config in context.defined_repositories():
                 if repo_config.name == name:
-                    result = self._publishers[name] = self._loader.build(repo_config).publisher
+                    result = self._publishers[name] = self._loader.build(name, repo_config).publisher
                     return result
 
         raise NoSuchElementException(f"repository: {name} could not be found")
@@ -84,22 +84,21 @@ class RepositoryManagement(ABC):
         clear_cached_properties(self)
 
     def add_repository(self, name: str, builder: str, args: Dict[str, str], bind_only: bool = False):
-        config = RepositoryInstanceConfig(builder, bind_only, name, args)
+        config = RepositoryInstanceConfig(builder, bind_only, args)
 
         # the following line act a s a safeguard before the add operation,
         # if it fails the actual addition will not take place
-        self._loader.build(config)
+        self._loader.build(name, config)
 
-        self.configuration.repositories = [
-            *self.configuration.repositories, config]
+        self.configuration.repos[name] = config
 
         self._update_config()
 
-    def defined_repositories(self) -> List[RepositoryInstanceConfig]:
-        return self.configuration.repositories
+    def defined_repositories(self) -> Iterable[RepositoryInstanceConfig]:
+        return self.configuration.repos.values()
 
     def remove_repository(self, name: str):
-        self.configuration.repositories = [repo for repo in self.configuration.repositories if repo.name != name]
+        self.configuration.repos.pop(name, None)
         self.configuration.package_bindings = {
             p: r for p, r in self.configuration.package_bindings.items() if r != name}
         self._update_config()
@@ -149,7 +148,7 @@ class ZooRepositoryManagement(RepositoryManagement):
         self.zoo = zoo
 
     def parent_contexts(self) -> List[HasAttachedRepository]:
-        return pkm
+        return [pkm]
 
     def _load_attached(self) -> Repository:
         repo = self._loader.global_repo
@@ -197,7 +196,7 @@ class ProjectRepositoryManagement(RepositoryManagement):
         else:
             repo = _ProjectsRepository.create('project-repository', [self.project], repo)
 
-        if self.configuration.exists():
+        if self.configuration.path.exists():
             repo = self._loader.load("project-configured-repository", self.configuration, repo)
 
         repo = LockPrioritizingRepository(

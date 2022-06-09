@@ -172,7 +172,7 @@ Arguments
 
 ..	code-block:: python
     
-    def defined_repositories(self) -> List[RepositoryInstanceConfig]
+    def defined_repositories(self) -> Iterable[RepositoryInstanceConfig]
     
 Description
 -----------

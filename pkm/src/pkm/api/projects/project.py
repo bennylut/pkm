@@ -18,7 +18,7 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Pkm
     PKM_DIST_CFG_TYPE_LIB, PkmApplicationConfig, PKM_DIST_CFG_TYPE_CAPP, PKM_DIST_CFG_TYPE_NONE
 from pkm.api.repositories.repository import Repository, RepositoryPublisher
 from pkm.api.versions.version import StandardVersion, Version, NamedVersion
-from pkm.api.versions.version_specifiers import StandardVersionRange, VersionMatch, AllowAllVersions
+from pkm.api.versions.version_specifiers import AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
@@ -114,7 +114,8 @@ class Project(Package, HasAttachedRepository):
             wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(
-                target, user_request, PackageInstallationInfo(self.is_containerized_application(), editable))
+                target, user_request,
+                PackageInstallationInfo(containerized=self.is_containerized_application(), editable=editable))
 
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
                   editable: bool = True):
@@ -159,7 +160,7 @@ class Project(Package, HasAttachedRepository):
 
             new_version = version.bump(particle)
 
-        self.config.project = replace(self.config.project, version=new_version)
+        self.config.project.version = new_version
         if save:
             self.config.save()
         return new_version
@@ -177,12 +178,8 @@ class Project(Package, HasAttachedRepository):
         def filter_dep(deps: List[Dependency]):
             return [d for d in deps if d.package_name not in package_names_set]
 
-        self._pyproject.project = replace(
-            self._pyproject.project,
-            dependencies=filter_dep(project_dependencies),
-            optional_dependencies={g: filter_dep(d) for g, d in project_optional_deps.items()}
-        )
-
+        self._pyproject.project.dependencies = filter_dep(project_dependencies)
+        self._pyproject.project.optional_dependencies = {g: filter_dep(d) for g, d in project_optional_deps.items()}
         self._pyproject.save()
 
         # fix installation metadata of the project by reinstalling it (without dependencies)
@@ -306,7 +303,7 @@ class Project(Package, HasAttachedRepository):
         cnt_app_prj = Project.load(self.path)
         cnt_app_prj.config.pkm_distribution = PkmDistributionConfig(PKM_DIST_CFG_TYPE_LIB)
         cnt_app_prj.config.pkm_application = PkmApplicationConfig(True, self.config.project.dependencies, {}, [])
-        cnt_app_prj.config.project = replace(cnt_app_prj.config.project, dependencies=[])
+        cnt_app_prj.config.project.dependencies = []
         return cnt_app_prj.build_sdist(target_dir)
 
     def build_sdist(self, target_dir: Optional[Path] = None) -> Path:
@@ -445,7 +442,7 @@ class ProjectDirectories:
     @classmethod
     def create(cls, pyproject: PyProjectConfiguration) -> "ProjectDirectories":
         project_path = pyproject.path.parent
-        packages_relative = pyproject.pkm_project.packages
+        packages_relative = pyproject.pkm_project.packages if pyproject.pkm_project else None
         if packages_relative:
             packages = [project_path / p for p in packages_relative]
         else:
@@ -471,7 +468,6 @@ def _update_dependencies(
     else:
         save_dependencies += list(new_deps.values())
 
-    config.project = replace(
-        config.project,
-        dependencies=save_dependencies, optional_dependencies=save_optional_dependencies)
+    config.project.dependencies = save_dependencies
+    config.project.optional_dependencies = save_optional_dependencies
     config.save()

@@ -1,5 +1,5 @@
 ..
-    HASH:b0db479ae6a054d1335e3fb9065daa4a
+    HASH:476e794e734755237832ff96478b99f8
 
 pkm.api.environments.environment\_builder \(Module\)
 ####################################################
@@ -26,5 +26,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class PyVEnvConfiguration(FileConfiguration)
+        class PyVEnvConfiguration(ConfigFile)
         

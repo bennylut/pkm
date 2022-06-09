@@ -1,18 +1,16 @@
 ## RUNNING TASKS:
-- cmd: pkm uninstall - display the packages being removed
-- add the self: install, remove, update, ... commands
-- documentation: document builtin templates
-- improve configuration infra - somehow reduce the boilerplate code that is needed in order to add new configuration
-  - `with config.mutate(save)...`
 
 ## DONE IN THIS VERSION
-- create pyproject from environment - usecase: user already has an environment that he worked on and want to have a
-  project based on it, I think I also saw this possibility in conda
-- bug: `pkm uninstall package` can fail if other unrelated dependency in `pyproject.toml` is not installed yet
-- cmd: pkm uninstall-orphans
-- templates - support nested templates
+- improve configuration infra - reduce the boilerplate code that is needed in order to add new configuration
+- cached properties now support computed setter
+- move all configuration to the new framework and delete the old one
 
 ## BACKLOG TASKS:
+- documentation: document builtin templates
+- add the self: install, remove, update, ... commands
+- cmd: pkm uninstall - display the packages being removed
+- performance: package installation can happen in a different process instead of a different thread (check on allen)
+- bug: running in pycharm debug with listen on - show almost nothing 
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - documentation: environments

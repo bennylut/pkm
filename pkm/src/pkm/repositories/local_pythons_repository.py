@@ -17,6 +17,7 @@ from pkm.api.versions.version import Version
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
 
+
 class InstalledPythonsRepository(AbstractRepository):
 
     def __init__(self):
@@ -79,7 +80,8 @@ class LocalInterpreterPackage(Package):
         self._interpreter = interpreter
         self._desc = desc
 
-    def dependencies(self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
+    def dependencies(
+            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
         return []
 
     @property
@@ -110,7 +112,7 @@ def _interpreters_in_path() -> Set[Path]:
         if _PYTHON_EXEC_RX.fullmatch(file.name.lower()) and is_executable(file):
             try:
                 return file.resolve()
-            except: # noqa
+            except:  # noqa
                 pass
         return None
 

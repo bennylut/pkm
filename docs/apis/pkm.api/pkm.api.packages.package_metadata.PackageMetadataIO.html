@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Record (Class) &#8212; pkm-cli  documentation</title>
+    <title>PackageMetadataIO (Class) &#8212; pkm-cli  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/docs.css" />
@@ -70,23 +70,21 @@
   <div class="contents page-content topic" id="in-this-page">
 <p class="topic-title">In This Page</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#record-class" id="id1">Record (Class)</a></p>
+<li><p><a class="reference internal" href="#packagemetadataio-class" id="id3">PackageMetadataIO (Class)</a></p>
 <ul>
-<li><p><a class="reference internal" href="#class-methods" id="id2">Class Methods</a></p></li>
+<li><p><a class="reference internal" href="#class-methods" id="id4">Class Methods</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
-<section id="record-class">
-<h1><a class="toc-backref" href="#id1">Record (Class)</a><a class="headerlink" href="#record-class" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
-<span class="nd">@config</span>
-<span class="k">class</span> <span class="nc">Record</span>
+<section id="packagemetadataio-class">
+<h1><a class="toc-backref" href="#id3">PackageMetadataIO (Class)</a><a class="headerlink" href="#packagemetadataio-class" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">PackageMetadataIO</span><span class="p">(</span><span class="n">ConfigIO</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
-<h2><a class="toc-backref" href="#id2">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">absolute_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist_info</span><span class="p">:</span> <span class="n">DistInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span>
+<h2><a class="toc-backref" href="#id4">Class Methods</a><a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 </pre></div>
 </div>
 <section id="description">
@@ -107,8 +105,41 @@
 <td><p>Any</p></td>
 <td><p>No Description</p></td>
 </tr>
-<tr class="row-odd"><td><p>dist_info</p></td>
-<td><p>DistInfo</p></td>
+<tr class="row-odd"><td><p>path</p></td>
+<td><p>Path</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-even"><td><p>data</p></td>
+<td><p>Dict[str, Any]</p></td>
+<td><p>No Description</p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h3>Description<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Not Documented</p>
+</section>
+<section id="id2">
+<h3>Arguments<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto args-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>self</p></td>
+<td><p>Any</p></td>
+<td><p>No Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>path</p></td>
+<td><p>Path</p></td>
 <td><p>No Description</p></td>
 </tr>
 </tbody>
@@ -136,7 +167,7 @@
           </div>
           <div role="note" aria-label="source link">
               <br/>
-              <a href="../../_sources/apis/pkm.api/pkm.api.distributions.distinfo.Record.rst.txt"
+              <a href="../../_sources/apis/pkm.api/pkm.api.packages.package_metadata.PackageMetadataIO.rst.txt"
                 rel="nofollow">Show Source</a>
           </div>
         </div>

@@ -3,16 +3,16 @@ from __future__ import annotations
 import os
 import shutil
 from contextlib import contextmanager
-from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterator, List, Dict, Any, TYPE_CHECKING
+from typing import Iterator, List, Dict, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.pkm import HasAttachedRepository
-from pkm.config.configuration import TomlFileConfiguration, computed_based_on
+from pkm.config.configclass import config, config_field, ConfigFile
+from pkm.config.configfiles import TomlConfigIO
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import is_relative_to
@@ -121,25 +121,13 @@ class EnvironmentsZoo(HasAttachedRepository):
         return (path / "env-zoo.toml").exists()
 
 
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=True)
+@config
 class PackageSharingConfig:
     enabled: bool = True
-    exclude: Optional[List[str]] = None
-
-    @classmethod
-    def from_config(cls, cfg: Optional[Dict[str, Any]]) -> PackageSharingConfig:
-        if not cfg:
-            return PackageSharingConfig()
-
-        return PackageSharingConfig(**cfg)
-
-    def to_config(self) -> Dict[str, Any]:
-        return copy(self.__dict__)
+    exclude: List[str] = config_field(default_factory=list)
 
 
-class EnvironmentZooConfiguration(TomlFileConfiguration):
+@config(io=TomlConfigIO())
+class EnvironmentZooConfiguration(ConfigFile):
     package_sharing: PackageSharingConfig
-
-    @computed_based_on("package-sharing")
-    def package_sharing(self) -> PackageSharingConfig:
-        return PackageSharingConfig(self["package-sharing"])

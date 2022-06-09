@@ -34,7 +34,7 @@ class EnvironmentReport(Report):
         }
 
         for p in package_info.values():
-            dependencies = p.package.dependencies(env)
+            dependencies = p.package.dependencies(env.installation_target)
             for d in dependencies:
                 norm_package_name = SitePackages.normalize_package_name(d.package_name)
                 if q := package_info.get(norm_package_name):

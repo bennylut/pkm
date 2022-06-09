@@ -63,7 +63,7 @@ class PyPiRepository(AbstractRepository):
                 if dependency.version_spec.allows_version(version):
                     packages.append(PypiPackage(
                         PackageDescriptor(dependency.package_name, version),
-                        relevant_artifacts, self, PackageMetadata(path=None, data=package_info)
+                        relevant_artifacts, self, PackageMetadata.from_config(package_info)
                     ))
 
         return packages

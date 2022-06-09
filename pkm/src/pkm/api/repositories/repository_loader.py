@@ -89,8 +89,8 @@ class RepositoryLoader:
         package_search_list = []
         binding_only_repositories = set()
 
-        for definition in config.repositories:
-            instance = self.build(definition)
+        for name, definition in config.repos.items():
+            instance = self.build(name, definition)
             package_search_list.append(instance)
             if definition.bind_only:
                 binding_only_repositories.add(definition.name)
@@ -105,7 +105,9 @@ class RepositoryLoader:
             if isinstance(binding, str):
                 package_binding[package] = binding
             else:
-                binding = self.build(RepositoryInstanceConfig.from_config(f'_unnamed_repo_for_{package}', binding))
+                type_ = binding.pop('type')
+                binding = self.build(
+                    name, RepositoryInstanceConfig(type=type_, bind_only=True, args=binding))
                 binding_only_repositories.add(binding.name)
                 package_search_list.append(binding)
                 package_binding[package] = binding.name
@@ -117,11 +119,11 @@ class RepositoryLoader:
 
         return _CompositeRepository(name, package_search_list, binding_only_repositories, package_binding)
 
-    def build(self, config: RepositoryInstanceConfig) -> Repository:
+    def build(self, name: str, config: RepositoryInstanceConfig) -> Repository:
         if not (cached := self._cached_instances.get(config)):
             if not (builder := self._builders.get(config.type)):
                 raise KeyError(f"unknown repository type: {config.type}")
-            cached = builder.build(config.name, config.args)
+            cached = builder.build(name, config.args)
             self._cached_instances[config] = cached
 
         return cached
