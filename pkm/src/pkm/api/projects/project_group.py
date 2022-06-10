@@ -9,6 +9,7 @@ from pkm.api.projects.project import Project
 from pkm.config.configclass import config, ConfigFile, config_field
 from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.files import ensure_exists, resolve_relativity
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class ProjectGroup(HasAttachedRepository):
+class ProjectGroup(HasAttachedRepository, IPCPackable):
     """
     project group, like the name implies, is a group of projects
     the projects are related to themselves in a parent/children manner,
@@ -30,6 +31,12 @@ class ProjectGroup(HasAttachedRepository):
         self.path = self._config.path.parent
         if parent:
             self.parent = parent  # noqa
+
+    def __getstate__(self):
+        return [self._config, self.parent]
+
+    def __setstate__(self, state):
+        return self.__init__(*state)
 
     @property
     def config(self) -> "PyProjectGroupConfiguration":

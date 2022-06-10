@@ -16,6 +16,7 @@ from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import path_to, resolve_relativity
 from pkm.utils.hashes import HashSignature
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property
 
@@ -23,10 +24,16 @@ if TYPE_CHECKING:
     from pkm.api.packages.package import PackageDescriptor
 
 
-class DistInfo:
+class DistInfo(IPCPackable):
 
     def __init__(self, path: Path):
         self.path = path
+
+    def __getstate__(self):
+        return [self.path]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @cached_property
     def package_name(self):

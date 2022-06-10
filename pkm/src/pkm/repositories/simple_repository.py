@@ -6,11 +6,13 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
+from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.http.cache_directive import CacheDirective
-from pkm.utils.http.http_client import HttpClient, Url
+from pkm.utils.http.http_client import Url
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import groupby
 from pkm.utils.strings import endswith_any, without_suffix
 
@@ -20,9 +22,8 @@ class SimpleRepository(AbstractRepository):
     implementation of pep503 simple repository
     """
 
-    def __init__(self, name: str, http_client: HttpClient, url: str):
+    def __init__(self, name: str, url: str):
         super().__init__(name)
-        self._http_client = http_client
         self._url = url
         self._base_url = Url.parse(url).connection_part()
         self._packages: Dict[str, Dict[str, Package]] = {}  # name -> version -> package
@@ -30,7 +31,7 @@ class SimpleRepository(AbstractRepository):
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         if not (version_to_package := self._packages.get(dependency.package_name)):
-            data = self._http_client.fetch_resource(f"{self._url}/{dependency.package_name}").data
+            data = pkm.httpclient.fetch_resource(f"{self._url}/{dependency.package_name}").data
             extractor = _HtmlArtifactsExtractor(self._base_url)
             extractor.feed(data.read_text())
 
@@ -40,7 +41,6 @@ class SimpleRepository(AbstractRepository):
 
             version_to_package = {
                 version_str: _SimplePackage(
-                    self._http_client,
                     PackageDescriptor(dependency.package_name, Version.parse(version_str)),
                     version_artifacts)
 
@@ -97,24 +97,28 @@ class _HtmlArtifactsExtractor(HTMLParser):
                 self.artifacts.append(PackageArtifact(text, requires_python, {'url': url}))
 
 
-class _SimplePackage(AbstractPackage):
-    def __init__(self, http_client: HttpClient, descriptor: PackageDescriptor,
-                 artifacts: List[PackageArtifact]):
+class _SimplePackage(AbstractPackage, IPCPackable):
+
+    def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact]):
         super().__init__(descriptor, artifacts)
-        self._http_client = http_client
+
+    def __getstate__(self):
+        return [self.descriptor, self._artifacts]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
-        return self._http_client.fetch_resource(
+        return pkm.httpclient.fetch_resource(
             artifact.other_info['url'], CacheDirective.allways(),
             resource_name=f"{self.name} {self.version}"
         ).data
 
 
 class SimpleRepositoryBuilder(RepositoryBuilder):
-    def __init__(self, http_client: HttpClient):
+    def __init__(self):
         super().__init__("simple")
-        self._http_client = http_client
 
     def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
         url = self._arg(args, 'url', required=True)
-        return SimpleRepository(name or url, self._http_client, str(url).rstrip('/'))
+        return SimpleRepository(name or url, str(url).rstrip('/'))

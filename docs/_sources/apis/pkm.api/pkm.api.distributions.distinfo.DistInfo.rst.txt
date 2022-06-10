@@ -5,7 +5,7 @@ DistInfo \(Class\)
 
 ..	code-block:: python
     
-    class DistInfo
+    class DistInfo(IPCPackable)
     
 Class Methods
 =============

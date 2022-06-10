@@ -1,0 +1,120 @@
+:orphan:
+
+ContainerizedApplication \(Class\)
+##################################
+
+..	code-block:: python
+    
+    class ContainerizedApplication
+    
+Class Methods
+=============
+
+..	code-block:: python
+    
+    @cached_property
+    def app_package(self) -> InstalledPackage
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
+    @property
+    def installation_target(self) -> PackageInstallationTarget
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
+    def uninstall(self)
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
+    def list_installed_plugins(self) -> List[InstalledPackage]
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    

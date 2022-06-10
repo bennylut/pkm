@@ -1,0 +1,134 @@
+:orphan:
+
+PackageContainer \(Class\)
+##########################
+
+..	code-block:: python
+    
+    class PackageContainer
+    
+Class Methods
+=============
+
+..	code-block:: python
+    
+    @cached_property
+    def containerized_package(self) -> InstalledPackage
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+Returns
+-------
+
+the (main) package that contained in this container
+
+-----------------------
+
+..	code-block:: python
+    
+    @property
+    def installation_target(self) -> PackageInstallationTarget
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+Returns
+-------
+
+this container installation target
+
+-----------------------
+
+..	code-block:: python
+    
+    def uninstall(self)
+    
+Description
+-----------
+
+uninstall this container - removing it from the hosting environment
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+-----------------------
+
+..	code-block:: python
+    
+    def list_installed_plugins(self) -> List[InstalledPackage]
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+Returns
+-------
+
+list of all user installed packages that are not the main containerized

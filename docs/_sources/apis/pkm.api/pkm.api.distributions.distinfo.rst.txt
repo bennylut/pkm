@@ -1,5 +1,5 @@
 ..
-    HASH:6eac13b09314ab31db807d17c6ecbebd
+    HASH:7de46c674973bf12bbfa3ef96fd71065
 
 pkm.api.distributions.distinfo \(Module\)
 #########################################
@@ -18,7 +18,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class DistInfo
+        class DistInfo(IPCPackable)
         
 ..	container:: class-def-with-link
     

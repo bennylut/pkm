@@ -2,7 +2,8 @@ from threading import RLock
 
 from time import sleep
 
-from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
+from pkm.api.packages.package_installation import PackageOperation
+from pkm.api.packages.package_monitors import PackageOperationMonitoredOp
 from pkm.api.pkm import pkm
 from pkm.api.distributions.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.resolution.resolution_monitor import DependencyResolutionMonitoredOp, DependencyResolutionIterationEvent, \
@@ -22,11 +23,12 @@ _packages_being_installed_spinner_context = None
 _packages_being_installed_spinner_lock = RLock()
 
 
-def with_package_install(e: PackageInstallMonitoredOp):
+# TODO: should be transformed into an information unit
+def with_package_install(e: PackageOperationMonitoredOp):
     global _packages_being_installed_spinner_context
 
     def update_description():
-        description = f"Installing Packages: {','.join(f'{p.name} {p.version}' for p in _packages_being_installed[:3])}"
+        description = f"Handling Packages: {','.join(f'{p.name} {p.version}' for p in _packages_being_installed[:3])}"
         if (l := len(_packages_being_installed)) > 3:
             description += f" and {l - 3} more..."
         _packages_being_installed_spinner.description = description

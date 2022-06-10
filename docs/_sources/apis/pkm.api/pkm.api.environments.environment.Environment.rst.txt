@@ -5,7 +5,7 @@ Environment \(Class\)
 
 ..	code-block:: python
     
-    class Environment(HasAttachedRepository)
+    class Environment(HasAttachedRepository, IPCPackable)
     
 Class Methods
 =============
@@ -74,7 +74,7 @@ Arguments
 ..	code-block:: python
     
     @property
-    def app_containers(self) -> 'ContainerizedApplications'
+    def app_containers(self) -> 'PackageContainers'
     
 Description
 -----------
@@ -731,7 +731,7 @@ all entrypoints in this environment grouped by their defined group
 ..	code-block:: python
     
     @staticmethod
-    def is_valid(path: Path) -> bool
+    def is_venv_path(path: Path) -> bool
     
 Description
 -----------

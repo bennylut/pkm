@@ -1,0 +1,34 @@
+..
+    HASH:8bb52871c9a2e12715cb285a67a84863
+
+pkm.api.environments.package\_containers \(Module\)
+###################################################
+
+Module Fields
+=============
+
+..	code-block:: python
+    
+    CONTAINERIZED_APP_DATA_PATH = '__container__'
+    CONTAINERIZED_APP_SITE_PATH = '__container__/site'
+    CONTAINERIZED_APP_BIN_PATH = '__container__/bin'
+    
+Module Classes
+==============
+
+..	container:: class-def-with-link
+    
+    :doc:`[DOC] <pkm.api.environments.package_containers.PackageContainer>`
+    
+    ..	code-block:: python
+        
+        class PackageContainer
+        
+..	container:: class-def-with-link
+    
+    :doc:`[DOC] <pkm.api.environments.package_containers.PackageContainers>`
+    
+    ..	code-block:: python
+        
+        class PackageContainers
+        

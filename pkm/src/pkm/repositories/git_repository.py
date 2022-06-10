@@ -11,6 +11,7 @@ from pkm.api.repositories.repository import AbstractRepository
 from pkm.api.versions.version import NamedVersion
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.http.http_client import Url
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.processes import monitored_run
 from pkm.utils.properties import cached_property
@@ -108,10 +109,16 @@ class GitRepository(AbstractRepository):
         return [_GitPackageWrapper(project)]
 
 
-class _GitPackageWrapper(Package):
+class _GitPackageWrapper(Package, IPCPackable):
 
     def __init__(self, project: Project):
         self._project = project
+
+    def __getstate__(self):
+        return [self._project]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @property
     def descriptor(self) -> PackageDescriptor:

@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import TypeVar, Optional, Callable, Type, Union
+from typing import TypeVar, Optional, Callable, Type, Union, ContextManager
 
 _T = TypeVar("_T")
 # noinspection PyTypeChecker

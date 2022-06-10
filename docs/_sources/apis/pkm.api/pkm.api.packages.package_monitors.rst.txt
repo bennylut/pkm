@@ -1,5 +1,5 @@
 ..
-    HASH:47699444a19de33a3e845fdd597f5196
+    HASH:4627cbf230c6c0b26c85bc82164625b1
 
 pkm.api.packages.package\_monitors \(Module\)
 #############################################
@@ -14,9 +14,9 @@ Module Classes
 
 ..	container:: class-def-with-link
     
-    :doc:`[DOC] <pkm.api.packages.package_monitors.PackageInstallMonitoredOp>`
+    :doc:`[DOC] <pkm.api.packages.package_monitors.PackageOperationMonitoredOp>`
     
     ..	code-block:: python
         
-        class PackageInstallMonitoredOp(MonitoredOperation)
+        class PackageOperationMonitoredOp(MonitoredOperation)
         

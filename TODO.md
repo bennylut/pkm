@@ -1,15 +1,20 @@
 ## RUNNING TASKS:
-
+- bug: uninstall does not delete the ".lib" directories but installer did created them
+- content information (author and maintainer) name and email should be validated before publishing,
+    - should use the email.utils.formataddr
+ 
 ## DONE IN THIS VERSION
-- improve configuration infra - reduce the boilerplate code that is needed in order to add new configuration
-- cached properties now support computed setter
-- move all configuration to the new framework and delete the old one
+- add some flag to disable parallelizm in installation (mainly useful for debug)
+- performance: package installation can happen in a different process instead of a different thread (check on allen)
+- shell: `pkm -v` print pkm version
+- shell: `pkm -p` run pkm with profiling information
+- add the self: install, remove, update, ... commands
+
 
 ## BACKLOG TASKS:
+- pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - documentation: document builtin templates
-- add the self: install, remove, update, ... commands
 - cmd: pkm uninstall - display the packages being removed
-- performance: package installation can happen in a different process instead of a different thread (check on allen)
 - bug: running in pycharm debug with listen on - show almost nothing 
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
@@ -21,9 +26,6 @@
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
 - add test support (maybe extendable test engine?)
-- bug: uninstall does not delete the ".lib" directories but installer did created them
-- refactor: there are several instances where dynamic args are provided as a dictionary - create DynamicArguments class
-  with common functionality (may be used in repository builder, in publish credentials,etc.)
 - documentation: repositories - how to build your own
 - add git repository type
 - pkm shell should be moved into its own project (optionally automatically installed when requested)
@@ -35,11 +37,9 @@
   metadata (as defined in PEP 459).
 - simplification: remove the coerced dependnecies and package names support in env install/remove
 - enhancement: delegation should also support abstract properties
-- cli: read about parents in argparse - may help improve code readability
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
 - bug: generated pyc files are not getting signed
-- shell: `pkm -v` print pkm version
 - replace dependency resolution progressbar with spinner?
 - bug: copy transaction should be used at the level of the full installation as sometimes it has to upgrade packages
   which means that they will get deleted - bypassing the copy transaction realm
@@ -48,7 +48,6 @@
 - pkm show : print cache size, attached repository, etc.
 - repositories: pyvenv
 - cli: if building packages during dependency resolution, output is very convoluted
-- pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - pkm show: add repositories information
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
@@ -58,12 +57,7 @@
 - documentation site: sidebar responsive to phones
 - toml parser/writer need unit tests
 - pubgrub - introduce package opening cost (package that needs download in order to be open can cost like its size)
-- content information (author and maintainer) name and email should be validated before publishing,
-    - name can be whatever can be put as a name, before an email, in RFC #822 and not contain commas
-    - email should be a valid email address
-    - see also https://jkorpela.fi/rfc/822addr.html and https://www.python.org/dev/peps/pep-0621/#authors-maintainers
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
-- add some flag to disable parallelizm in installation (mainly useful for debug?)
 - `pkm shell` support custom environment variables loading like in pipenv
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)

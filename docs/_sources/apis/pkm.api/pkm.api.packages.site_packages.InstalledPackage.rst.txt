@@ -5,7 +5,7 @@ InstalledPackage \(Class\)
 
 ..	code-block:: python
     
-    class InstalledPackage(Package)
+    class InstalledPackage(Package, IPCPackable)
     
 Class Methods
 =============

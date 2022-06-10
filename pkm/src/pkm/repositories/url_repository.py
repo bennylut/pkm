@@ -8,6 +8,7 @@ from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository
 from pkm.utils.http.http_client import Url
+from pkm.utils.ipc import IPCPackable
 
 
 class UrlRepository(AbstractRepository):
@@ -25,12 +26,19 @@ class UrlRepository(AbstractRepository):
         return [UrlPackage(PackageDescriptor(dependency.package_name, vurl), vurl.url)]
 
 
-class UrlPackage(AbstractPackage):
+class UrlPackage(AbstractPackage, IPCPackable):
+
     def __init__(self, desc: PackageDescriptor, url: str):
         purl = Url.parse(url)
         file_name = Path(purl.path).name
         super().__init__(desc, [PackageArtifact(file_name)])
         self._url = url
+
+    def __getstate__(self):
+        return [self.descriptor, self._url]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
         return pkm.httpclient.fetch_resource(str(self._url)).data

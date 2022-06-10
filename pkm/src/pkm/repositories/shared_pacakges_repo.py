@@ -16,6 +16,7 @@ from pkm.api.repositories.repository import AbstractRepository, Repository
 from pkm.distributions.executables import Executables
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import CopyTransaction, is_empty_directory, is_relative_to
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import first_or_none
 
 
@@ -89,6 +90,9 @@ class _SharedPackage(Package):
         self._package = package
         self._shared_path = shared_path
 
+        if isinstance(package, IPCPackable):
+            self.__getstate__ = self._getstate
+
         if shared_path.exists():
             self._artifacts = [
                 _SharedPackageArtifact(artifact, PackageMetadata.load(artifact / "dist-info/METADATA"), artifact.name)
@@ -96,6 +100,12 @@ class _SharedPackage(Package):
             ]
         else:
             self._artifacts = []
+
+    def _getstate(self):
+        return [self._package, self._shared_path]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @property
     def descriptor(self) -> PackageDescriptor:

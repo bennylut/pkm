@@ -62,7 +62,7 @@ class SourceBuildCache:
             project = Project.load(sdir, dist.owner_package)
             odir = tdir / 'output'
 
-            try:
+            try:  # TODO: why not project.build?
                 output = ext_build.build_wheel(
                     project, odir, only_meta=metadata, editable=False, target_env=target.env)
             except BuildError as e:

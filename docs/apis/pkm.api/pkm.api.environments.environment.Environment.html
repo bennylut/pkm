@@ -79,7 +79,7 @@
 </div>
 <section id="environment-class">
 <h1><a class="toc-backref" href="#id61">Environment (Class)</a><a class="headerlink" href="#environment-class" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Environment</span><span class="p">(</span><span class="n">HasAttachedRepository</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Environment</span><span class="p">(</span><span class="n">HasAttachedRepository</span><span class="p">,</span> <span class="n">IPCPackable</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="class-methods">
@@ -140,7 +140,7 @@
 </table>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">app_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ContainerizedApplications&#39;</span>
+<span class="k">def</span> <span class="nf">app_containers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;PackageContainers&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -767,7 +767,7 @@ as a result of this step.</p>
 <p>all entrypoints in this environment grouped by their defined group</p>
 <hr class="docutils" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@staticmethod</span>
-<span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+<span class="k">def</span> <span class="nf">is_venv_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
 </pre></div>
 </div>
 </section>

@@ -163,6 +163,8 @@ class WheelDistribution(Distribution):
         Implementation of wheel installer based on PEP427
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
         """
+
+        print(f"DBG: RUNNING INSTALLATION ON {self._package} ")
         with temp_dir() as tmp_path:
             extract_archive(self._wheel, tmp_path)
             if not installation_mode:

@@ -9,6 +9,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.files import is_empty_directory, is_relative_to
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import try_add
@@ -18,12 +19,19 @@ if TYPE_CHECKING:
     from pkm.api.packages.package_installation import PackageInstallationTarget
 
 
-class SitePackages:
+class SitePackages(IPCPackable):
+
     def __init__(self, env: "Environment", purelib: Path, platlib: Path):
 
         self._purelib = purelib
         self._platlib = platlib
         self.env = env
+
+    def __getstate__(self):
+        return [self.env, self._purelib, self._platlib]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     def all_sites(self) -> Iterator[Path]:
         yield self._purelib
@@ -102,12 +110,18 @@ def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Option
     return None
 
 
-class InstalledPackage(Package):
+class InstalledPackage(Package, IPCPackable):
 
     def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None):
 
         self._dist_info = dist_info
         self.site = site
+
+    def __getstate__(self):
+        return [self._dist_info, self.site]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @cached_property
     def published_metadata(self) -> Optional["PackageMetadata"]:

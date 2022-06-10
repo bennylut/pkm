@@ -16,17 +16,24 @@ from pkm.config.configfiles import TomlConfigIO
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import is_relative_to
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class EnvironmentsZoo(HasAttachedRepository):
+class EnvironmentsZoo(HasAttachedRepository, IPCPackable):
 
     def __init__(self, cfg: EnvironmentZooConfiguration):
         self.config = cfg
         self.path = cfg.path.parent
+
+    def __getstate__(self):
+        return [self.config.path]
+
+    def __setstate__(self, state):
+        self.__init__(EnvironmentZooConfiguration.load(state[0]))
 
     @property
     def _bin_path(self) -> Path:
@@ -73,14 +80,14 @@ class EnvironmentsZoo(HasAttachedRepository):
         :return: iterator iterating over the requested environments that exists in this zoo
         """
         for e_path in self.path.iterdir():
-            if Environment.is_valid(e_path):
+            if Environment.is_venv_path(e_path):
                 yield Environment(e_path, zoo=self)
 
     def load_environment(self, name: str) -> Environment:
         if not (e_path := self.path / name).exists():
             raise NoSuchElementException(f"environment named {name} could not be found in this zoo")
 
-        if not Environment.is_valid(e_path):
+        if not Environment.is_venv_path(e_path):
             raise ValueError(f"directory {e_path} does not contains a valid environment")
 
         return Environment(e_path, zoo=self)

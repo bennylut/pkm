@@ -1,5 +1,5 @@
 ..
-    HASH:81c70f9f2935ff656efe28a1ca978317
+    HASH:af5d339681cdccf7b893a4202122e0d3
 
 pkm.api.packages.site\_packages \(Module\)
 ##########################################
@@ -18,7 +18,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class SitePackages
+        class SitePackages(IPCPackable)
         
 ..	container:: class-def-with-link
     
@@ -26,5 +26,5 @@ Module Classes
     
     ..	code-block:: python
         
-        class InstalledPackage(Package)
+        class InstalledPackage(Package, IPCPackable)
         

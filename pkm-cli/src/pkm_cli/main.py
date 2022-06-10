@@ -1,7 +1,11 @@
 import argparse
+import cProfile
 import os
+import pstats
 from argparse import Namespace, ArgumentParser
+from contextlib import contextmanager
 from pathlib import Path
+from pstats import SortKey
 from typing import List, Optional, Dict
 
 import sys
@@ -14,12 +18,14 @@ from pkm.api.pkm import pkm, HasAttachedRepository
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.processes import execvpe
 from pkm_cli import cli_monitors
 from pkm_cli.api.tasks.tasks_runner import TasksRunner
 from pkm_cli.api.templates.template_runner import TemplateRunner
 from pkm_cli.cotrollers.env_controller import EnvController
+from pkm_cli.cotrollers.self_controller import SelfController
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
@@ -38,6 +44,37 @@ def _cli_container() -> PackageInstallationTarget:
     if pkm_container := global_env.app_containers.container_of('pkm-cli'):
         return pkm_container.installation_target
     return global_env.installation_target
+
+
+@command('pkm self version')
+def self_version(args: Namespace):
+    SelfController().print_version()
+
+
+@command('pkm self update', Arg(["-s", "--version-spec"], default="*"))
+def self_update(args: Namespace):
+    SelfController().update(VersionSpecifier.parse(args.version_spec))
+
+
+@command(
+    'pkm self install',
+    Arg(["-u", "--update"], action='store_true', help="update the given packages if already installed"),
+    Arg(["-m", "--mode"], required=False, default='editable', choices=['editable', 'copy'],
+        help="choose the installation mode for the requested packages."),
+    Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
+def self_install(args: Namespace):
+    dependencies = [Dependency.parse(d) for d in args.packages]
+    SelfController().install_plugins(dependencies, editable=args.mode == 'editable', update=args.update)
+
+
+@command(
+    'pkm self uninstall',
+    Arg(["-f", "--force"], action="store_true",
+        help="remove the requested packages even if they are dependant of other packages, "
+             "will not remove any other packages or update pyproject"),
+    Arg('package_names', nargs=argparse.REMAINDER, help="the packages to remove"))
+def self_uninstall(args: Namespace):
+    SelfController().uninstall_plugin(args.package_names, force=args.force)
 
 
 @command('pkm repos install', Arg(["-u", "--update"], action="store_true"), Arg('names', nargs=argparse.REMAINDER))
@@ -387,7 +424,19 @@ def prepare_parser() -> ArgumentParser:
     pkm_parser.add_argument('-c', '--context', help="path to the context to run this command under")
     pkm_parser.add_argument('-g', '--global-context', action='store_true', help="use the global environment context")
     pkm_parser.add_argument('-nt', '--no-tasks', action='store_true', help="dont run command-attached tasks")
+    pkm_parser.add_argument('-p', '--profile', action='store_true', help="run with cprofiler and print results")
+
     return pkm_parser
+
+
+@contextmanager
+def profile(args: Namespace):
+    if args.profile:
+        with cProfile.Profile() as pr:
+            yield
+            pstats.Stats(pr).strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(20)
+    else:
+        yield
 
 
 def main(args: Optional[List[str]] = None):
@@ -397,27 +446,29 @@ def main(args: Optional[List[str]] = None):
     pkm_parser = prepare_parser()
 
     pargs = pkm_parser.parse_args(args)
-    cli_monitors.listen('verbose' in pargs and pargs.verbose)
-    context = Context.of(pargs)
+    with profile(pargs):
 
-    if 'func' in pargs:
-        def with_tasks(p: Project):
-            global tasks
-            tasks = TasksRunner(p)
-            with tasks.run_attached(Command.of(pargs.func), pargs):
+        cli_monitors.listen('verbose' in pargs and pargs.verbose)
+        context = Context.of(pargs)
+
+        if 'func' in pargs:
+            def with_tasks(p: Project):
+                global tasks
+                tasks = TasksRunner(p)
+                with tasks.run_attached(Command.of(pargs.func), pargs):
+                    pargs.func(pargs)
+
+            def without_tasks():
                 pargs.func(pargs)
 
-        def without_tasks():
-            pargs.func(pargs)
-
-        if pargs.no_tasks:
-            without_tasks()
+            if pargs.no_tasks:
+                without_tasks()
+            else:
+                context.run(on_project=with_tasks, on_missing=without_tasks, silent=True)
         else:
-            context.run(on_project=with_tasks, on_missing=without_tasks, silent=True)
-    else:
-        pkm_parser.print_help()
+            pkm_parser.print_help()
 
-    Display.print("")
+    Display.print("", newline=False)
 
 
 if __name__ == "__main__":

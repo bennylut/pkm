@@ -6,6 +6,7 @@ from pkm.api.distributions.distinfo import PackageInstallationInfo
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.utils.ipc import IPCPackable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -61,11 +62,17 @@ class Distribution(Protocol):
         return _DistributionPackage(SourceDistribution(desc, distribution))
 
 
-class _DistributionPackage(Package):
+class _DistributionPackage(Package, IPCPackable):
 
     def __init__(self, dist: Distribution):
         self._dist = dist
         self._env_hash_to_metadata: Dict[str, PackageMetadata] = {}
+
+    def __getstate__(self):
+        return [self._dist]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @property
     def descriptor(self) -> PackageDescriptor:

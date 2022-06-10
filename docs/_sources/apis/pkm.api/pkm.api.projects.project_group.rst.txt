@@ -1,5 +1,5 @@
 ..
-    HASH:efb75d0ac9652c5b416cf39939ff7baf
+    HASH:81b5ee7df43680258a3bac53b2215827
 
 pkm.api.projects.project\_group \(Module\)
 ##########################################
@@ -18,7 +18,7 @@ Module Classes
     
     ..	code-block:: python
         
-        class ProjectGroup(HasAttachedRepository)
+        class ProjectGroup(HasAttachedRepository, IPCPackable)
         
 ..	container:: class-def-with-link
     

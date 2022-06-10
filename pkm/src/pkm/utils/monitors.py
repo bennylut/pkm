@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Type, Dict, Optional, Generator
 
 from pkm.utils.dicts import get_or_put
+from pkm.utils.promises import Promise
 from pkm.utils.properties import cached_property
 from pkm.utils.strings import startswith_any
 
@@ -139,7 +140,21 @@ class MonitoredOperation(_Monitor):
     def __exit__(self, exc_type, exc_val, exc_tb):
         cb = self._callback
 
-        if exc_type:
+        if exc_val:
             cb and cb.fail_method and cb.fail_method(self, exc_val)
 
         cb and cb.leave_method and cb.leave_method(self)
+
+    def with_async(self, promise: Promise) -> Promise:
+        self.__enter__()
+
+        def exit_callback(promise_: Promise):
+            try:
+                result = promise_.result(False)
+                self.__exit__(None, None, None)
+                return result
+            except BaseException as e:
+                self.__exit__(type(e), e, None)
+                raise e
+
+        return promise.when_completed(exit_callback)

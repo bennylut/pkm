@@ -10,7 +10,6 @@ from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
     AttachedEnvironmentConfig
@@ -22,6 +21,7 @@ from pkm.api.versions.version_specifiers import AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class Project(Package, HasAttachedRepository):
+class Project(Package, HasAttachedRepository, IPCPackable):
 
     def __init__(self, pyproject: PyProjectConfiguration, group: Optional["ProjectGroup"] = None):
         self._path = pyproject.path.absolute().parent
@@ -39,6 +39,12 @@ class Project(Package, HasAttachedRepository):
         self._descriptor = pyproject.project.package_descriptor()
         if group:
             self.group = group  # noqa
+
+    def __getstate__(self):
+        return [self._pyproject, self.group]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @property
     def config(self) -> PyProjectConfiguration:
@@ -110,7 +116,7 @@ class Project(Package, HasAttachedRepository):
             editable: bool = True):
 
         from pkm.api.distributions.wheel_distribution import WheelDistribution
-        with temp_dir() as tdir, PackageInstallMonitoredOp(self.descriptor):
+        with temp_dir() as tdir:
             wheel = self.build_wheel(tdir, editable=editable, target_env=target.env)
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(
@@ -286,7 +292,7 @@ class Project(Package, HasAttachedRepository):
         from pkm.api.environments.environment import Environment
         from pkm.api.dependencies.dependency import Dependency
 
-        if not Environment.is_valid(env_path):
+        if not Environment.is_venv_path(env_path):
             if env_path.exists():
                 shutil.rmtree(env_path)
 

@@ -10,7 +10,7 @@ global render_template
 
 def setup(project_name: str = None, env_path: Path = None) -> dict:
     env_path = env_path or Path(ask("Path to Environment", path=True))
-    if not Environment.is_valid(env_path):
+    if not Environment.is_venv_path(env_path):
         raise ValueError(f"path: {env_path} does not lead to a valid environment")
 
     env = Environment.load(env_path)

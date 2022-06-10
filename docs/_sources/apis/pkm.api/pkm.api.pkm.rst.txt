@@ -1,5 +1,5 @@
 ..
-    HASH:594ea2344f862020add9ae5d9dec6882
+    HASH:643a5c6a502f2e86dd8c98022900c7fe
 
 pkm.api.pkm \(Module\)
 ######################
@@ -16,6 +16,14 @@ Module Fields
 Module Classes
 ==============
 
+..	container:: class-def-with-link
+    
+    :doc:`[DOC] <pkm.api.pkm.PkmGlobalFlags>`
+    
+    ..	code-block:: python
+        
+        class PkmGlobalFlags(ConfigFile)
+        
 ..	container:: class-def-with-link
     
     :doc:`[DOC] <pkm.api.pkm.HasAttachedRepository>`

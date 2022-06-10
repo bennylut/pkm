@@ -21,7 +21,7 @@ from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
-from pkm.utils.files import is_root_path
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -29,7 +29,7 @@ from pkm.utils.types import Comparable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environments_zoo import EnvironmentsZoo
-    from pkm.api.environments.containerized_apps import ContainerizedApplications
+    from pkm.api.environments.package_containers import PackageContainers
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 _DEPENDENCIES_T = Union[Dependency, str, List[Union[Dependency, str]]]
@@ -39,7 +39,7 @@ _T = TypeVar("_T")
 _DBG_ACTIVATED = set()
 
 
-class Environment(HasAttachedRepository):
+class Environment(HasAttachedRepository, IPCPackable):
 
     def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, *,
                  use_user_site: bool = False, zoo: Optional["EnvironmentsZoo"] = None):
@@ -49,6 +49,12 @@ class Environment(HasAttachedRepository):
 
         if zoo:
             self.zoo = zoo  # noqa
+
+    def __getstate__(self):
+        return [[self._env_path, self._interpreter_path], {'use_user_site': self._use_user_site, 'zoo': self.zoo}]
+
+    def __setstate__(self, state):
+        self.__init__(*state[0], **state[1])
 
     @property
     def path(self) -> Path:
@@ -65,7 +71,7 @@ class Environment(HasAttachedRepository):
         return None
 
     @property
-    def app_containers(self) -> "ContainerizedApplications":
+    def app_containers(self) -> "PackageContainers":
         return self.installation_target.app_containers
 
     @cached_property
@@ -75,7 +81,7 @@ class Environment(HasAttachedRepository):
 
     @cached_property
     def _introspection(self) -> EnvironmentIntrospection:
-        if is_root_path(self._env_path):
+        if not Environment.is_venv_path(self._env_path):  # system environment
             return EnvironmentIntrospection.compute(self.interpreter_path)
         return EnvironmentIntrospection.load_or_compute(
             self._env_path / 'etc/pkm/env_introspection.json', self.interpreter_path, True)
@@ -293,7 +299,7 @@ class Environment(HasAttachedRepository):
         return groups
 
     @staticmethod
-    def is_valid(path: Path) -> bool:
+    def is_venv_path(path: Path) -> bool:
         """
         :param path: a path that may contain a python environment
         :return: true if this path contains a python environment
@@ -314,7 +320,7 @@ class Environment(HasAttachedRepository):
         if (interpreter.parent.parent / "pyvenv.cfg").exists():
             return cls(interpreter.parent.parent, interpreter)
         else:  # this is a system environment
-            return cls(Path("/"), interpreter, use_user_site=site == 'user')
+            return cls(interpreter.resolve().parent, interpreter, use_user_site=site == 'user')
 
     @classmethod
     def current(cls, site: str = "user") -> Environment:

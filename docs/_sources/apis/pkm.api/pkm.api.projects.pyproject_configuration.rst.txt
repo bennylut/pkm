@@ -1,5 +1,5 @@
 ..
-    HASH:5e9cc462f6a8d48d14c98a5cec22b840
+    HASH:d830171e86f38a0a56a3a4e9e5067454
 
 pkm.api.projects.pyproject\_configuration \(Module\)
 ####################################################

@@ -1,21 +1,18 @@
 [project]
 name = "pkm-cli"
-version = "0.4.44"
+version = "0.4.48"
 description = "Command line interface for PKM"
-readme = "README.md"
-requires-python = ">=3.8, <4.0"
 authors = [{ name = "bennyl" }]
-license.text = "MIT License"
+requires-python = ">=3.8, <4.0"
 dependencies = [
     "questionary", "pkm", "jinja2", "xonsh", "pygments", "prompt-toolkit", "setproctitle;sys_platform != 'win32'", 
     "rich >=11.1.0, <12", "cryptography >=37.0.2, <38"]
+readme = "README.md"
+license.text = "MIT License"
 
 [project.scripts]
 pkm = "pkm_cli.main:main"
 
-[tool.pkm.distribution]
-type = 'cnt-app'
-
 [build-system]
-requires = ['pkm >= 0.4.23']
+requires = ["pkm >=0.4.23"]
 build-backend = "pkm.api.buildsys"

@@ -5,7 +5,7 @@ ProjectGroup \(Class\)
 
 ..	code-block:: python
     
-    class ProjectGroup(HasAttachedRepository)
+    class ProjectGroup(HasAttachedRepository, IPCPackable)
     
 Class Methods
 =============

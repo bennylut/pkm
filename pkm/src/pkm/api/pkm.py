@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pkm.config.configclass import config, config_field, ConfigFile
+from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.files import mkdir
 from pkm.utils.http.http_client import HttpClient
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -27,6 +29,13 @@ class _PkmRepositories:
     pypi: "Repository"
     main: "Repository"
     installed_pythons: "InstalledPythonsRepository"
+
+
+@dataclass
+@config(io=TomlConfigIO())
+class PkmGlobalFlags(ConfigFile):
+    #: can be: "proc", "thread", "none"
+    package_installation_parallelizm: str = config_field(key="package-installation-parallelizm", default="proc")
 
 
 class HasAttachedRepository(ABC):
@@ -50,6 +59,7 @@ class Pkm(HasAttachedRepository):
     def __init__(self, home: Path):
         self.threads = ThreadPoolExecutor()
         self._home = home
+        self.global_flags = PkmGlobalFlags.load(home / 'etc/pkm/global_flags.toml')
 
     @cached_property
     def home(self) -> Path:
@@ -81,7 +91,6 @@ class Pkm(HasAttachedRepository):
 
         return RepositoryLoader(
             repo_config,
-            self.httpclient,
             self.home / 'repos')
 
     @cached_property

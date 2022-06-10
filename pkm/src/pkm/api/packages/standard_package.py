@@ -10,7 +10,6 @@ from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.api.packages.package_monitors import PackageInstallMonitoredOp
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.hashes import HashSignature
 from pkm.utils.types import Comparable
@@ -105,18 +104,17 @@ class AbstractPackage(Package):
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
             editable: bool = False):
 
-        with PackageInstallMonitoredOp(self.descriptor):
-            artifact = self.best_artifact_for(target.env)
-            artifact_path = self._get_or_retrieve_artifact_path(artifact)
-            if hashsig := artifact.hash_sig:
-                if not hashsig.validate_against(artifact_path):
-                    raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
+        artifact = self.best_artifact_for(target.env)
+        artifact_path = self._get_or_retrieve_artifact_path(artifact)
+        if hashsig := artifact.hash_sig:
+            if not hashsig.validate_against(artifact_path):
+                raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
-            installation_mode = PackageInstallationInfo(containerized=False, editable=editable)
-            if artifact.is_binary():
-                WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
-            else:
-                SourceDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
+        installation_mode = PackageInstallationInfo(containerized=False, editable=editable)
+        if artifact.is_binary():
+            WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
+        else:
+            SourceDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
 
     def _get_or_retrieve_artifact_path(self, artifact: PackageArtifact):
         if not (artifact_path := self._path_per_artifact_id.get(id(artifact))):

@@ -16,7 +16,6 @@ from pkm.repositories.file_repository import FileRepository
 from pkm.repositories.pypi_repository import PypiRepositoryBuilder
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
-from pkm.utils.http.http_client import HttpClient
 from pkm.utils.iterators import first_or_none
 
 REPOSITORIES_EXTENSIONS_ENTRYPOINT_GROUP = "pkm-repositories"
@@ -24,7 +23,7 @@ REPOSITORIES_CONFIGURATION_PATH = "etc/pkm/repositories.toml"
 
 
 class RepositoryLoader:
-    def __init__(self, main_cfg: Path, http: HttpClient, workspace: Path):
+    def __init__(self, main_cfg: Path, workspace: Path):
 
         from pkm.api.environments.environment import Environment
         from pkm.repositories.simple_repository import SimpleRepositoryBuilder
@@ -37,7 +36,7 @@ class RepositoryLoader:
 
         self._builders: Dict[str, RepositoryBuilder] = {
             b.repo_type: b for b in (
-                SimpleRepositoryBuilder(http),
+                SimpleRepositoryBuilder(),
                 FileSystemRepositoryBuilder(),
                 pypi_builder
             )

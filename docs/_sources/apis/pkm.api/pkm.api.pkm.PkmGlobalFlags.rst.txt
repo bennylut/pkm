@@ -1,0 +1,13 @@
+:orphan:
+
+PkmGlobalFlags \(Class\)
+########################
+
+..	code-block:: python
+    
+    @dataclass
+    @config(io=TomlConfigIO())
+    class PkmGlobalFlags(ConfigFile)
+    
+Class Methods
+=============

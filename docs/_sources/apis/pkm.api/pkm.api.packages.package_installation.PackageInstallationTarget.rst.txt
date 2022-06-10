@@ -42,7 +42,7 @@ Arguments
 ..	code-block:: python
     
     @cached_property
-    def app_containers(self) -> 'ContainerizedApplications'
+    def app_containers(self) -> 'PackageContainers'
     
 Description
 -----------

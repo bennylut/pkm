@@ -88,7 +88,7 @@ class _TextOrFileConfigFieldCodec(ConfigFieldCodec):
 
     def unparse(self, parent: ConfigCodec, type_: Type, v: Union[Path, str, None]) -> Any:
         if isinstance(v, Path):
-            return {'file': v}
+            return {'file': str(v)}
         elif self._allows_raw_text:
             return v
         else:

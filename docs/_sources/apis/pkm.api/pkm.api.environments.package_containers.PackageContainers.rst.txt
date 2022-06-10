@@ -1,0 +1,118 @@
+:orphan:
+
+PackageContainers \(Class\)
+###########################
+
+..	code-block:: python
+    
+    class PackageContainers
+    
+Class Methods
+=============
+
+..	code-block:: python
+    
+    def containers(self) -> List[PackageContainer]
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    
+Returns
+-------
+
+list of all package containers that are installed in the according installation target
+
+-----------------------
+
+..	code-block:: python
+    
+    def container_of(self, package: str) -> Optional[PackageContainer]
+    
+Description
+-----------
+
+Not Documented
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   package
+        -   str
+        -    the package to look for container of
+    
+Returns
+-------
+
+the package container if this package was installed into a container, None otherwise
+
+-----------------------
+
+..	code-block:: python
+    
+    def install(self, app: Union[Dependency, Project], editable: bool = True, 
+        update: bool = False) -> PackageContainer
+    
+Description
+-----------
+
+installs the given app in its own containerized environment
+
+Arguments
+---------
+
+..	rst-class:: args-table
+    
+..	list-table:: 
+    :widths: auto
+    :header-rows: 1
+    
+    *   -   Name
+        -   Type
+        -   Description
+    *   -   self
+        -   Any
+        -   No Description
+    *   -   app
+        -   Union[Dependency, Project]
+        -    the app to install, if not referring to a containerized project will create containerized wrapper
+    *   -   editable
+        -   bool
+        -    if true, the installation of `app` inside the container will be in editable mode
+    *   -   update
+        -   bool
+        -    if true, will force re-installation, even if the same version is already installed in the relevant site
+    
+Returns
+-------
+
+containerized application controller class for the performed installation

@@ -5,7 +5,7 @@ SitePackages \(Class\)
 
 ..	code-block:: python
     
-    class SitePackages
+    class SitePackages(IPCPackable)
     
 Class Methods
 =============

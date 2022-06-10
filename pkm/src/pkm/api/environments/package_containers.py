@@ -33,13 +33,16 @@ CONTAINERIZED_APP_SITE_PATH = "__container__/site"
 CONTAINERIZED_APP_BIN_PATH = "__container__/bin"
 
 
-class ContainerizedApplication:
+class PackageContainer:
     def __init__(self, package: InstalledPackage, target: PackageInstallationTarget):
         self.package = package
         self._target = target
 
     @cached_property
-    def app_package(self) -> InstalledPackage:
+    def containerized_package(self) -> InstalledPackage:
+        """
+        :return: the (main) package that contained in this container
+        """
         site = self._target.site_packages
         result = None
         if self.package.name.endswith(_CONTAINERIZED_WRAPPER_SUFFIX):
@@ -49,24 +52,41 @@ class ContainerizedApplication:
 
     @property
     def installation_target(self) -> PackageInstallationTarget:
+        """
+        :return: this container installation target
+        """
         return self._target
 
     def uninstall(self):
+        """
+        uninstall this container - removing it from the hosting environment
+        """
         self.package.uninstall()
 
     def list_installed_plugins(self) -> List[InstalledPackage]:
+        """
+        :return: list of all user installed packages that are not the main containerized
+        """
         return [it
                 for it in self._target.site_packages.installed_packages()
                 if it.dist_info.is_user_requested() and it.name != self.package.name]
 
 
-class ContainerizedApplications:
+class PackageContainers:
+    """
+    controller class for package containers that resides in a given installation target
+    """
+
     def __init__(self, target: PackageInstallationTarget):
         self._target = target
 
-    def containers(self) -> List[ContainerizedApplication]:
+    def containers(self) -> List[PackageContainer]:
+        """
+        :return: list of all package containers that are installed in the according installation target
+        """
+
         return [
-            ContainerizedApplication(it, self._target_of(it.name))
+            PackageContainer(it, self._target_of(it.name))
             for it in self._target.site_packages.installed_packages()
             if it.dist_info.is_app_container()]
 
@@ -78,13 +98,17 @@ class ContainerizedApplications:
 
         return replace(self._target, platlib=app_site, purelib=app_site, scripts=app_bin, data=app_data)
 
-    def container_of(self, package: str) -> Optional[ContainerizedApplication]:
+    def container_of(self, package: str) -> Optional[PackageContainer]:
+        """
+        :param package: the package to look for container of
+        :return: the package container if this package was installed into a container, None otherwise
+        """
+
         spacks = self._target.site_packages
         package_cnt = package + _CONTAINERIZED_WRAPPER_SUFFIX
         if (cnt := spacks.installed_package(package)) or (cnt := spacks.installed_package(package_cnt)):
             if cnt.dist_info.is_app_container():
-                return ContainerizedApplication(cnt, self._target_of(cnt.name))
-            raise ValueError(f"installed package: {cnt.descriptor} is not containerized")
+                return PackageContainer(cnt, self._target_of(cnt.name))
         return None
 
     @contextmanager
@@ -115,7 +139,7 @@ class ContainerizedApplications:
             yield Project.load(tdir)
 
     def _install(
-            self, app: "Project", editable: bool = True) -> ContainerizedApplication:
+            self, app: "Project", editable: bool = True) -> PackageContainer:
 
         contained_target = self._target_of(app.name)
         app_dir = Path(contained_target.purelib).parent.parent
@@ -209,20 +233,20 @@ class ContainerizedApplications:
         self._target.site_packages.reload()
         return self.container_of(app.name)
 
-    def _get_or_install(self, app: Union[Dependency, Project], editable: bool = True) -> ContainerizedApplication:
+    def _get_or_install(self, app: Union[Dependency, Project], editable: bool = True) -> PackageContainer:
         dep = app
         if isinstance(dep, Project):
             dep = app.descriptor.to_dependency()
 
         if (container := self.container_of(dep.package_name)) \
-                and dep.version_spec.allows_version(container.app_package.version):
+                and dep.version_spec.allows_version(container.containerized_package.version):
             return container
 
         return self.install(app, editable, True)
 
     def install(
             self, app: Union[Dependency, Project], editable: bool = True, update: bool = False
-    ) -> ContainerizedApplication:
+    ) -> PackageContainer:
         """
         installs the given app in its own containerized environment
         :param app: the app to install, if not referring to a containerized project will create containerized wrapper

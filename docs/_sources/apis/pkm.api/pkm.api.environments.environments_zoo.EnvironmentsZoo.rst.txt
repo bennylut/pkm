@@ -5,7 +5,7 @@ EnvironmentsZoo \(Class\)
 
 ..	code-block:: python
     
-    class EnvironmentsZoo(HasAttachedRepository)
+    class EnvironmentsZoo(HasAttachedRepository, IPCPackable)
     
 Class Methods
 =============

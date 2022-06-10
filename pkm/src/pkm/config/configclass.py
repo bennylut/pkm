@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TypeVar, Dict, Any, Type, Generic, List, Mapping, Optional, Callable, Protocol
 
 from pkm.utils.commons import NoSuchElementException, UnsupportedOperationException
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import clear_cached_properties
 
 _T = TypeVar("_T")
@@ -29,8 +30,16 @@ class Stringable(Protocol):
 
 
 # noinspection PyShadowingNames
-class ConfigFile(ABC):
+class ConfigFile(ABC, IPCPackable):
     _path: Path
+
+    def __getstate__(self):
+        return [self.to_config(), self.path]
+
+    def __setstate__(self, state):
+        cls = type(self)
+        cls._io().codec.parse(state[0], cls, self)
+        self.path = state[1]
 
     def save(self, path: Path = None):
         path = path or self.path
@@ -65,8 +74,10 @@ class ConfigFile(ABC):
         return result
 
     @classmethod
-    def from_config(cls, config: _RAW_CONFIG_T) -> ConfigFile:
-        return cls._io().codec.parse(config, cls)
+    def from_config(cls, config: _RAW_CONFIG_T, path: Optional[Path] = None) -> ConfigFile:
+        result = cls._io().codec.parse(config, cls)
+        result.path = path
+        return result
 
 
 class ConfigFieldCodec(Generic[_T]):

@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING
+from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING, Any
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.package_metadata import PackageMetadata
+from pkm.api.packages.package_monitors import PackageOperationMonitoredOp
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.repositories.repository import Repository, AbstractRepository
@@ -18,13 +19,14 @@ from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.delegations import delegate
-from pkm.utils.iterators import first_or_none, single_or_raise
-from pkm.utils.promises import Promise
+from pkm.utils.ipc import IPCPackable, ProcessPoolExecutor
+from pkm.utils.iterators import first_or_none
+from pkm.utils.promises import Promise, await_all_promises
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
-    from pkm.api.environments.containerized_apps import ContainerizedApplications
+    from pkm.api.environments.package_containers import PackageContainers
 
 
 @dataclass
@@ -45,9 +47,9 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         return SitePackages(self.env, Path(self.purelib), Path(self.platlib))
 
     @cached_property
-    def app_containers(self) -> "ContainerizedApplications":
-        from pkm.api.environments.containerized_apps import ContainerizedApplications
-        return ContainerizedApplications(self)
+    def app_containers(self) -> "PackageContainers":
+        from pkm.api.environments.package_containers import PackageContainers
+        return PackageContainers(self)
 
     def reload(self):
         clear_cached_properties(self)
@@ -238,27 +240,70 @@ class InstallationPlan:
         editables = self.editables or {}
         site = target.site_packages
 
-        promises: List[Promise] = []
+        tasks: List[_PackageOperationTask] = []
 
         for package, operation in operations.items():
-            editable = editables.get(package.name)
-            if operation == PackageOperation.INSTALL:
-                promises.append(Promise.execute(
-                    pkm.threads, package.install_to, target, editable=bool(editable),
-                    user_request=self.user_requests.get(package.name)))
-            elif operation == PackageOperation.UPDATE:
-                if editable is None:
-                    editable = site.installed_package(package.name).installation_info.editable
-                promises.append(Promise.execute(
-                    pkm.threads, package.update_at, target, editable=editable,
-                    user_request=self.user_requests.get(package.name)))
-            elif operation == PackageOperation.REMOVE:
-                promises.append(Promise.execute(pkm.threads, package.uninstall))
+            if operation == PackageOperation.SKIP:
+                continue
 
-        for promise in promises:
-            promise.result()
+            editable = editables.get(package.name)
+            user_request = self.user_requests.get(package.name)
+            if editable is None and operation == PackageOperation.UPDATE:
+                editable = site.installed_package(package.name).installation_info.editable
+            tasks.append(_PackageOperationTask(package, operation, editable, user_request, target))
+
+        parallelizm = pkm.global_flags.package_installation_parallelizm
+        threads = pkm.threads if parallelizm != "none" else None
+
+        if parallelizm == "proc" and sum(1 for it in tasks if it.can_be_multiprocessesd()) > 1:
+            print("DBG: using processes to install")
+            with ProcessPoolExecutor() as procpool:
+                await_all_promises([task.execute(threads, procpool) for task in tasks])
+        else:
+            print("DBG: using threads to install")
+            await_all_promises([task.execute(threads, None) for task in tasks])
+        # await_all_promises([task.execute(pkm.threads, None) for task in tasks])
 
         site.reload()
+
+
+class _PackageOperationTask:
+    def __init__(self, package: Package, operation: PackageOperation, editable: bool,
+                 user_request: Optional[Dependency], target: PackageInstallationTarget):
+        self._package = package
+        self._operation = operation
+        self._editable = editable
+        self._user_request = user_request
+        self._target = target
+
+    def can_be_multiprocessesd(self):
+        return isinstance(self._package, IPCPackable)
+
+    def execute(self, threadpool: ThreadPoolExecutor, procpool: Optional[ProcessPoolExecutor]) -> Promise:
+        operation, editable, user_request, package, target = \
+            self._operation, self._editable, self._user_request, self._package, self._target
+
+        executor = procpool if self.can_be_multiprocessesd() and procpool else threadpool
+
+        promise = None
+        if operation == PackageOperation.INSTALL:
+            promise = Promise.execute(
+                executor, _po_execute, package, "install_to", target, editable=editable, user_request=user_request)
+
+        elif operation == PackageOperation.UPDATE:
+            promise = Promise.execute(
+                executor, _po_execute, package, "update_at", target, editable=editable, user_request=user_request)
+        elif operation == PackageOperation.REMOVE:
+            promise = Promise.execute(executor, _po_execute, package, "uninstall")
+
+        if not promise:
+            raise UnsupportedOperationException(f"unsupported package operation {self._operation}")
+
+        return PackageOperationMonitoredOp(package.descriptor, operation).with_async(promise)
+
+
+def _po_execute(package: Package, mtd: str, *args, **kwargs) -> Any:
+    return getattr(package, mtd)(*args, **kwargs)
 
 
 class _UserRequestPackage(Package):
@@ -305,9 +350,16 @@ class _RemovalRepository(AbstractRepository):
         return [_RemovalPackage(match)] if match else []
 
 
-class _RemovalPackage(Package):
+class _RemovalPackage(Package, IPCPackable):
+
     def __init__(self, p: InstalledPackage):
         self.package = p
+
+    def __getstate__(self):
+        return [self.package]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @property
     def descriptor(self) -> PackageDescriptor:
@@ -346,8 +398,7 @@ class _InstallationRepository(Repository, ABC):
             return [self._user_request]
 
         if installed := self._installed_packages.get(dependency.package_name):
-            installed = _UpdatableInstalledPackage(installed, self._repo)
-
+            # installed = _UpdatableInstalledPackage(installed, self._repo)
             if self._limit_to_installed:
                 return [installed]
 
@@ -357,24 +408,25 @@ class _InstallationRepository(Repository, ABC):
 
         return packages
 
-
-@delegate(Package, '_installed')
-class _UpdatableInstalledPackage(Package, ABC):
-    def __init__(self, installed: InstalledPackage, repo: Repository):
-        self._installed = installed
-        self.repo = repo
-
-    @property
-    def descriptor(self) -> PackageDescriptor:
-        return self._installed.descriptor
-
-    @property
-    def published_metadata(self) -> Optional["PackageMetadata"]:
-        return self._installed.published_metadata
-
-    def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                  editable: bool = True):
-        new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency(), target.env))
-        user_request = self._installed.user_request if user_request is None else user_request
-        self._installed.uninstall()
-        new_ver.install_to(target, user_request=user_request, editable=editable)
+#
+# @delegate(Package, '_installed')
+# class _UpdatableInstalledPackage(Package, ABC):
+#     def __init__(self, installed: InstalledPackage, repo: Repository):
+#         self._installed = installed
+#         self.repo = repo
+#
+#     @property
+#     def descriptor(self) -> PackageDescriptor:
+#         return self._installed.descriptor
+#
+#     @property
+#     def published_metadata(self) -> Optional["PackageMetadata"]:
+#         return self._installed.published_metadata
+#
+#     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+#                   editable: bool = True):
+#         print(f"DBG: HHHHHHHHHHHHEEEEEEEEEERRRRRRRRREEEEEEEEEEE{self._installed}\n\n")
+#         new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency(), target.env))
+#         user_request = self._installed.user_request if user_request is None else user_request
+#         self._installed.uninstall()
+#         new_ver.install_to(target, user_request=user_request, editable=editable)

@@ -5,7 +5,7 @@ Project \(Class\)
 
 ..	code-block:: python
     
-    class Project(Package, HasAttachedRepository)
+    class Project(Package, HasAttachedRepository, IPCPackable)
     
 Class Methods
 =============

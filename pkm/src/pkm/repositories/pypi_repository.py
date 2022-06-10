@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.wheel_distribution import InstallationException
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
@@ -18,16 +19,23 @@ from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
 from pkm.utils.io_streams import chunks
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import cached_property
 
 
-class PyPiRepository(AbstractRepository):
+class PyPiRepository(AbstractRepository, IPCPackable):
 
     def __init__(self, name: str, fetch_url: str, publish_url: Optional[str]):
         super().__init__(name)
         self._http = pkm.httpclient
         self._fetch_url = fetch_url
         self._publish_url = publish_url
+
+    def __getstate__(self):
+        return [self.name, self._fetch_url, self._publish_url]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     @cached_property
     def publisher(self) -> Optional["RepositoryPublisher"]:
@@ -43,7 +51,7 @@ class PyPiRepository(AbstractRepository):
                                 resource_name=f"matching packages for {dependency}") \
                 .read_data_as_json()
         except HttpException as e:
-            raise NoSuchElementException(
+            raise InstallationException(
                 f"package: '{dependency.package_name}' could not be retrieved from repository: '{self.name}'") from e
 
         package_info: Dict[str, Any] = {k.replace('_', '-').title(): v for k, v in json['info'].items()}
@@ -70,13 +78,19 @@ class PyPiRepository(AbstractRepository):
 
 
 # noinspection PyProtectedMember
-class PypiPackage(AbstractPackage):
+class PypiPackage(AbstractPackage, IPCPackable):
 
     def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact], repo: PyPiRepository,
                  metadata: PackageMetadata):
 
         super().__init__(descriptor, artifacts, metadata)
         self._repo = repo
+
+    def __getstate__(self):
+        return [self.descriptor, self._artifacts, self._repo, self._published_metadata]
+
+    def __setstate__(self, state):
+        self.__init__(*state)
 
     def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
         url = artifact.other_info.get('url')
