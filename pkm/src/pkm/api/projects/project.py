@@ -127,7 +127,7 @@ class Project(Package, HasAttachedRepository, IPCPackable):
                   editable: bool = True):
         # fast alternative for application to be installed without passing through wheels
         if self.is_containerized_application():
-            target.app_containers.install(self, editable)
+            target.package_containers.install(self, editable)
         else:
             super(Project, self).update_at(target, user_request, editable)
 
@@ -234,7 +234,10 @@ class Project(Package, HasAttachedRepository, IPCPackable):
 
         target = self.attached_environment.installation_target
         installation = target.plan_installation(
-            [project_dependency], repository, updates=new_deps_names if update else None)
+            [project_dependency], repository,
+            updates=new_deps_names if update else None,
+            unspecified_spec_packages=[d.package_name for d in new_deps.values() if d.version_spec is AllowAllVersions]
+        )
 
         all_deps_names = set(d.package_name for d in self.config.project.all_dependencies)
         editables = installation.editables = {}
@@ -290,14 +293,13 @@ class Project(Package, HasAttachedRepository, IPCPackable):
             env_path = cfg.zoo / self.name
 
         from pkm.api.environments.environment import Environment
-        from pkm.api.dependencies.dependency import Dependency
 
         if not Environment.is_venv_path(env_path):
             if env_path.exists():
                 shutil.rmtree(env_path)
 
             return EnvironmentBuilder.create_matching(
-                env_path, Dependency('python', self.config.project.requires_python))
+                env_path, self.config.project.requires_python or AllowAllVersions)
         return Environment(env_path)
 
     def build_app_sdist(self, target_dir: Optional[Path] = None) -> Path:

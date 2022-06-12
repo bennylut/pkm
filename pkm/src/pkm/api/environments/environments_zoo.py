@@ -11,6 +11,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.pkm import HasAttachedRepository
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.config.configclass import config, config_field, ConfigFile
 from pkm.config.configfiles import TomlConfigIO
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
@@ -44,7 +45,7 @@ class EnvironmentsZoo(HasAttachedRepository, IPCPackable):
         from pkm.api.repositories.repository_management import ZooRepositoryManagement
         return ZooRepositoryManagement(self)
 
-    def create_environment(self, name: str, python: Dependency) -> Environment:
+    def create_environment(self, name: str, python: VersionSpecifier) -> Environment:
 
         if (env_path := self.path / name).exists():
             raise FileExistsError(f"environment with name: {name} already exists in the zoo")

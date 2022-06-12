@@ -102,12 +102,9 @@ class WheelDistribution(Distribution):
         with CopyTransaction() as ct:
             for d in content.iterdir():
                 if d.is_dir():
-                    if d.suffix == '.data':
+                    if _is_valid_data_dir(d, target):
                         for k in d.iterdir():
-                            if not (target_path := getattr(target, k.name, None)):
-                                raise InstallationException(
-                                    f'wheel contains data entry with unsupported key: {k.name}')
-
+                            target_path = getattr(target, k.name)
                             if k.name == 'scripts':
                                 ct.copy_tree(
                                     k, Path(target_path),
@@ -164,7 +161,6 @@ class WheelDistribution(Distribution):
         as described in: https://packaging.python.org/en/latest/specifications/binary-distribution-format/
         """
 
-        print(f"DBG: RUNNING INSTALLATION ON {self._package} ")
         with temp_dir() as tmp_path:
             extract_archive(self._wheel, tmp_path)
             if not installation_mode:
@@ -176,6 +172,10 @@ class WheelDistribution(Distribution):
 
             WheelDistribution.install_extracted_wheel(
                 self._package, tmp_path, target, user_request, installation_mode)
+
+
+def _is_valid_data_dir(data_dir: Path, target: "PackageInstallationTarget") -> bool:
+    return data_dir.suffix == '.data' and all(hasattr(target, k.name) for k in data_dir.iterdir())
 
 
 def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInfo:

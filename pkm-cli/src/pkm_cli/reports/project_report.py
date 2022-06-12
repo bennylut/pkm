@@ -38,9 +38,13 @@ class ProjectReport(Report):
             Display.print("[h1]Dependencies[/]")
             Display.print(line)
             for dependency in dependencies:
-                Display.print(
-                    f"- {dependency} | "
-                    f"Installed: {env.site_packages.installed_package(dependency.package_name).version}")
+                installed = env.site_packages.installed_package(dependency.package_name)
+                msg = f"- {dependency} | "
+                if installed:
+                    msg += f"Installed: {installed.version}"
+                else:
+                    msg += "Not Installed"
+                Display.print(msg)
             Display.print(line)
 
         Display.print("[h1]Lock[/] (for attached env signature)")

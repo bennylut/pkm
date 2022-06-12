@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
 from dataclasses import dataclass, replace
@@ -128,8 +129,10 @@ class PartialSolution:
 
     def requiering_decision(self, package: PKG):
         decision_level = self._required_packages[package]
-        return next(acc for acc in self._decisions.values()
-                    if acc.decision_level == decision_level)
+        result = next((acc for acc in self._decisions.values() if acc.decision_level == decision_level), None)
+        assert result, f"requiring decision could not be found for package {package} " \
+                       f"- no decider for level {decision_level}"
+        return result
 
     def backtrack(self, decision_level: int):
         # print(f"backtrack to decision_level: {decision_level}")
@@ -738,7 +741,7 @@ class Solver(Generic[PKG_T]):
 
         if minor_adjustment_dlevel >= 0 \
                 and self._solution.requirement_decision_level(package) <= minor_adjustment_dlevel:
-            # print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
+            print(f"applying minor adjusments heuristic - backtracking to {minor_adjustment_dlevel}")
             self._solution.backtrack(minor_adjustment_dlevel)
             return True
 
@@ -796,9 +799,9 @@ class Solver(Generic[PKG_T]):
             try:
                 version.fetch_dependencies_info(self._problem)
             except MalformedPackageException:
-                import traceback
-                traceback.print_exc()
-                print(f"version: {version} discovered to be malformed")
+                # import traceback
+                # traceback.print_exc()
+                warnings.warn(f"package: {version} discovered to be malformed")
                 continue  # retry with another version
             break
 
@@ -807,12 +810,14 @@ class Solver(Generic[PKG_T]):
         assignment: Assignment = self._solution.make_assignment(Term(package, VersionMatch(version.version)), None)
         assignments = self._solution.assignments_by_package
         assignments[package].append(assignment)
-        # print(f"checking if we can still assign {version} after the new incompatibilities: {incompatibilities}")
+        # print(f"checking if we can still assign {version} after its new incompatibilities")
         conflicts = list(filter(lambda it: it.check_satisfaction(self._solution).is_full(), incompatibilities))
         assignments[package].pop()
 
         if conflicts and self._attempt_minor_adjustments(package, conflicts):
             conflicts = []
+            # rebuilding assignmenr: decision level might have changed due to the minor adjustments
+            assignment = self._solution.make_assignment(Term(package, VersionMatch(version.version)), None)
 
         if not conflicts:
             # print("we can!")

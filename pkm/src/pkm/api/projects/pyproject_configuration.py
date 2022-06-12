@@ -11,7 +11,7 @@ from pkm.api.dependencies.env_markers import EnvironmentMarker
 from pkm.api.distributions.distinfo import EntryPoint, ObjectReference
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version
-from pkm.api.versions.version_specifiers import VersionSpecifier
+from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions
 from pkm.config.configclass import config, config_field, ConfigFieldCodec, ConfigCodec, ConfigFile
 from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.properties import cached_property
@@ -108,22 +108,22 @@ class ProjectConfig:
     # The version of the project as supported by PEP 440.
     version: Version
     # The summary description of the project.
-    description: str
+    description: str = None
     # The people or organizations considered to be the "authors" of the project.
-    authors: List[ContactInfo]
+    authors: List[ContactInfo] = None
     # similar to "authors", exact meaning is open to interpretation.
-    maintainers: List[ContactInfo]
+    maintainers: List[ContactInfo] = None
     # The keywords for the project.
-    keywords: List[str]
+    keywords: List[str] = None
     # Trove classifiers (https://pypi.org/classifiers/) which apply to the project.
-    classifiers: List[str]
+    classifiers: List[str] = None
     # A mapping of URLs where the key is the URL label and the value is the URL itself.
-    urls: Dict[str, str]
+    urls: Dict[str, str] = None
     # a list of field names (from the above fields), each field name that appears in this list means that the absense of
     # data in the corresponding field means that a user tool provides it dynamically
-    dynamic: List[str]
+    dynamic: List[str] = None
     # The Python version requirements of the project.
-    requires_python: VersionSpecifier = config_field(key="requires-python")
+    requires_python: VersionSpecifier = config_field(key="requires-python", default=AllowAllVersions)
     # The dependencies of the project.
     dependencies: List[Dependency] = config_field(default_factory=list)
     # The optional dependencies of the project, grouped by the 'extra' name that provides them.
@@ -165,7 +165,7 @@ class ProjectConfig:
                       optional-dependencies and not optional_dependencies)
         :return: True if the field is marked as dynamic, False otherwise
         """
-        return self.all_fields.get(field) is None and bool(d := self.dynamic) and field in d  # noqa
+        return (d := self.dynamic) and field in d  # noqa
 
     @cached_property
     def all_dependencies(self) -> List[Dependency]:

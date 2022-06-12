@@ -35,7 +35,6 @@ class SourceBuildCache:
         return self._get_or_build(env.installation_target, dist, 'metadata')
 
     def _get_or_build(self, target: PackageInstallationTarget, dist: SourceDistribution, artifact: str) -> Any:
-
         base_cache_dir = self.workspace / _normalize(dist.owner_package.name) / \
                          _normalize(str(dist.owner_package.version)) / \
                          target.env.markers_hash
@@ -59,7 +58,9 @@ class SourceBuildCache:
         with temp_dir() as tdir:
             extract_archive(dist.archive, tdir)
             sdir = single_or_raise(tdir.iterdir())
-            project = Project.load(sdir, dist.owner_package)
+            project: Project = Project.load(sdir, dist.owner_package)
+            # noinspection PyPropertyAccess
+            project.attached_environment = target.env
             odir = tdir / 'output'
 
             try:  # TODO: why not project.build?

@@ -115,7 +115,6 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
 
     dist = 'editable_wheel' if editable else 'metadata' if only_meta else 'wheel'
     with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir, _cycle_detection(project):
-
         pyproject = project.config
         buildsys: BuildSystemConfig = pyproject.build_system
         build_packages_repo = project.attached_repository
@@ -159,7 +158,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
 
         if wheel_output.status == 'success':
             return target_dir / wheel_output.result
-        raise BuildError("build backend did not produced expected wheel")
+        raise BuildError(f"build backend did not produced expected wheel (project={project.name} {project.version})")
 
 
 @dataclass

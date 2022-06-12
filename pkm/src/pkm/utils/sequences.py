@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
 
-from pkm.utils.types import Hashable, HasLessThan, StackLike
+from pkm.utils.types import Hashable, StackLike, Comparable
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
@@ -22,7 +22,7 @@ def startswith(sq: Sequence[_T], prefix: Sequence[_T]) -> bool:
     return all(s == p for s, p in zip(sq, prefix))
 
 
-def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], HasLessThan]]) -> int:
+def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], Comparable]]) -> int:
     if key is None:
         okey = seq.__getitem__
     else:
@@ -32,7 +32,7 @@ def argmin(seq: Sequence[_T], key: Optional[Callable[[_T], HasLessThan]]) -> int
     return min(range(len(seq)), key=okey)
 
 
-def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], HasLessThan]]) -> int:
+def argmax(seq: Sequence[_T], key: Optional[Callable[[_T], Comparable]]) -> int:
     if key is None:
         okey = seq.__getitem__
     else:
@@ -95,5 +95,3 @@ def pop_or_none(stack: StackLike[_T]) -> Optional[_T]:
     if len(stack) > 0:
         return stack.pop()
     return None
-
-

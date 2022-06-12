@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from pkm.api.versions.version import Version
 from pkm.utils.monitors import MonitoredOperation, MonitoredEvent
-from pkm.utils.types import MeasurableIterable
+from pkm.utils.types import MeasuredIterable
 
 
 @dataclass
@@ -15,8 +15,8 @@ class DependencyResolutionMonitoredOp(MonitoredOperation):
 
 @dataclass
 class DependencyResolutionIterationEvent(MonitoredEvent):
-    packages_completed: MeasurableIterable[str]
-    packages_requested: MeasurableIterable[str]
+    packages_completed: MeasuredIterable[str]
+    packages_requested: MeasuredIterable[str]
     current_package: Any
 
 

@@ -47,7 +47,7 @@ class Executables:
         :param is_gui: if True, and in windows platform, will create a "gui" script, defaults to False.
         :return: path to the created executable
         """
-
+        target_dir.mkdir(exist_ok=True, parents=True)
         if env.operating_platform.has_windows_os():
             return build_windows_script_launcher(env, target_dir, file_name, script, is_gui)
         else:

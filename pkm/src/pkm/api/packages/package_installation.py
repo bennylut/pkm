@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from _ast import Set
 from abc import ABC
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING, Any
+from time import perf_counter
+from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -14,14 +16,15 @@ from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.repositories.repository import Repository, AbstractRepository
 from pkm.api.versions.version import StandardVersion
-from pkm.api.versions.version_specifiers import VersionMatch
+from pkm.api.versions.version_specifiers import VersionMatch, StandardVersionRange, AllowAllVersions
 from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.delegations import delegate
-from pkm.utils.ipc import IPCPackable, ProcessPoolExecutor
+from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import first_or_none
-from pkm.utils.promises import Promise, await_all_promises
+from pkm.utils.multiproc import ProcessPoolExecutor
+from pkm.utils.promises import Promise, await_all_promises_or_cancel
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -47,7 +50,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         return SitePackages(self.env, Path(self.purelib), Path(self.platlib))
 
     @cached_property
-    def app_containers(self) -> "PackageContainers":
+    def package_containers(self) -> "PackageContainers":
         from pkm.api.environments.package_containers import PackageContainers
         return PackageContainers(self)
 
@@ -101,7 +104,9 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             return  # nothing to do...
 
         repository = repository or self.env.attached_repository
-        plan = self.plan_installation(dependencies, repository, user_requested, dependencies_override, updates)
+        plan = self.plan_installation(
+            dependencies, repository, user_requested, dependencies_override, updates
+        )
         plan.editables = editables
         plan.execute()
 
@@ -117,7 +122,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
     def plan_installation(
             self, dependencies: List[Dependency], repository: Repository,
             user_requested: bool = True, dependencies_override: Optional[Dict[str, Dependency]] = None,
-            updates: Optional[List[str]] = None
+            updates: Optional[List[str]] = None, unspecified_spec_packages: Optional[List[str]] = None
     ) -> InstallationPlan:
         """
         plan but does not install an installation for the given dependencies.
@@ -130,6 +135,9 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             (this will be marked on the installation as per pep376)
         :param dependencies_override: mapping from package name into dependency that should be "forcefully"
             used for this package
+        :param unspecified_spec_packages: when installing, the user may give some packages with unspecified version spec
+                so that the system should attempt to find the best version to install for these packages,
+                you can and should provide these here, the planner uses this information to better plan the installation
         :param updates: If given, the packages listed will be updated if required and already installed
         """
 
@@ -138,6 +146,9 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         updates = set(updates or [])
         preinstalled_packages = [p for p in self.site_packages.installed_packages() if p.name not in updates]
         pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
+        unspecified_spec_packages = \
+            unspecified_spec_packages or [d.package_name for d in dependencies if d.version_spec is AllowAllVersions]
+        unspecified_spec_packages = set(unspecified_spec_packages)
 
         new_deps = {d.package_name: d for d in dependencies}
         all_deps = {**pre_requested_deps, **new_deps}
@@ -147,8 +158,10 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
 
         try:
             # first we try the fast path: only adding packages without updating
+            # but requiring latest matching versions of new user requested packages
             user_request = _UserRequestPackage(list(new_deps.values()))
-            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, True)
+            installation_repo = _InstallationRepository(
+                repository, preinstalled_packages, user_request, unspecified_spec_packages, True)
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo, dependencies_override)
 
@@ -164,7 +177,8 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         if run_slow_path:
             # if we cannot we try the slow path in which we allow preinstalled packages dependencies to be updated
             user_request = _UserRequestPackage(list(all_deps.values()))
-            installation_repo = _InstallationRepository(repository, preinstalled_packages, user_request, False)
+            installation_repo = _InstallationRepository(
+                repository, preinstalled_packages, user_request, unspecified_spec_packages, False)
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo)
 
@@ -256,13 +270,11 @@ class InstallationPlan:
         threads = pkm.threads if parallelizm != "none" else None
 
         if parallelizm == "proc" and sum(1 for it in tasks if it.can_be_multiprocessesd()) > 1:
-            print("DBG: using processes to install")
-            with ProcessPoolExecutor() as procpool:
-                await_all_promises([task.execute(threads, procpool) for task in tasks])
+            procpool = pkm.processes
+            await_all_promises_or_cancel([task.execute(threads, procpool) for task in tasks])
+
         else:
-            print("DBG: using threads to install")
-            await_all_promises([task.execute(threads, None) for task in tasks])
-        # await_all_promises([task.execute(pkm.threads, None) for task in tasks])
+            await_all_promises_or_cancel([task.execute(threads, None) for task in tasks])
 
         site.reload()
 
@@ -302,8 +314,8 @@ class _PackageOperationTask:
         return PackageOperationMonitoredOp(package.descriptor, operation).with_async(promise)
 
 
-def _po_execute(package: Package, mtd: str, *args, **kwargs) -> Any:
-    return getattr(package, mtd)(*args, **kwargs)
+def _po_execute(package: Package, mtd: str, *args, **kwargs):
+    getattr(package, mtd)(*args, **kwargs)
 
 
 class _UserRequestPackage(Package):
@@ -382,12 +394,13 @@ class _RemovalPackage(Package, IPCPackable):
 class _InstallationRepository(Repository, ABC):
     def __init__(
             self, repo: Repository, installed_packages: List[InstalledPackage], user_request: Package,
-            limit_to_installed: bool):
+            unspecified_spec_packages: Set[str], fast_plan_mode: bool):
 
         assert repo, "no repository provided"
         self._user_request = user_request
         self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
-        self._limit_to_installed = limit_to_installed
+        self._fast_plan_mode = fast_plan_mode
+        self._unspecified_spec_packages = unspecified_spec_packages
         self._repo = repo
 
     def match(self, dependency: Union["Dependency", str], env: Environment) -> List[Package]:
@@ -399,12 +412,20 @@ class _InstallationRepository(Repository, ABC):
 
         if installed := self._installed_packages.get(dependency.package_name):
             # installed = _UpdatableInstalledPackage(installed, self._repo)
-            if self._limit_to_installed:
+            if self._fast_plan_mode:
                 return [installed]
 
         packages = self._repo.match(dependency, env)
         if installed:
             packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
+        elif self._fast_plan_mode and dependency.package_name in self._unspecified_spec_packages:
+            max_version_package = max(packages, key=lambda it: it.version)
+            if not isinstance(max_version_package.version, StandardVersion):
+                unspecified_limit = VersionMatch(max_version_package.version)
+            else:
+                unspecified_limit = StandardVersionRange.create_range(
+                    min_=max_version_package.version.without_patch(), includes_min=True)
+            packages = [p for p in packages if unspecified_limit.allows_version(p.version)]
 
         return packages
 
@@ -425,7 +446,6 @@ class _InstallationRepository(Repository, ABC):
 #
 #     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
 #                   editable: bool = True):
-#         print(f"DBG: HHHHHHHHHHHHEEEEEEEEEERRRRRRRRREEEEEEEEEEE{self._installed}\n\n")
 #         new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency(), target.env))
 #         user_request = self._installed.user_request if user_request is None else user_request
 #         self._installed.uninstall()

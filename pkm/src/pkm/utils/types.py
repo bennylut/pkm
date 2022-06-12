@@ -2,35 +2,65 @@ from __future__ import annotations
 
 import sys
 import typing
+from abc import abstractmethod
 from typing import Any, TypeVar, Protocol, Iterator
 
 _T = TypeVar("_T")
+_U = TypeVar("_U")
 
 
-class MeasurableIterable(Protocol[_T]):
+class MeasuredIterable(Protocol[_T]):
+    @abstractmethod
     def __len__(self) -> int: ...
 
+    @abstractmethod
     def __iter__(self) -> Iterator[_T]: ...
 
 
-class StackLike(MeasurableIterable[_T], Protocol[_T]):
+class StackLike(MeasuredIterable[_T], Protocol[_T]):
+    @abstractmethod
     def pop(self) -> _T: ...
 
 
-class HasLessThan(Protocol):
-    def __lt__(self, __other: Any) -> bool: ...
-
-
 class Comparable(Protocol):
+    @abstractmethod
     def __lt__(self, __other: Any) -> bool: ...
 
+    @abstractmethod
     def __eq__(self, other: Any) -> bool: ...
 
 
 class Hashable(Protocol):
+    @abstractmethod
     def __hash__(self): ...
 
+    @abstractmethod
     def __eq__(self, other): ...
+
+
+# function types
+class Runnable(Protocol):
+    @abstractmethod
+    def __call__(self) -> None:
+        ...
+
+
+class Consumer(Protocol[_T]):
+    @abstractmethod
+    def __call__(self, inpt: _T) -> None:
+        ...
+
+
+class Supplier(Protocol[_T]):
+    @abstractmethod
+    def __call__(self) -> _T:
+        ...
+
+
+class Mapper(Protocol[_T, _U]):
+    @abstractmethod
+    def __call__(self, inpt: _T) -> _U:
+        ...
 
 
 # Credits: some of the following type helpers are taken directly from typing_extensions

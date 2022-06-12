@@ -11,11 +11,12 @@ from pkm.config.configclass import config, config_field, ConfigFile
 from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.files import mkdir
 from pkm.utils.http.http_client import HttpClient
+from pkm.utils.multiproc import ProcessPoolExecutor
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.resources import ResourcePath
 
 if TYPE_CHECKING:
-    from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
+    from pkm.api.environments.installed_pythons_locator import InstalledPythonsLocator
     from pkm.api.repositories.repository import Repository
     from pkm.api.repositories.repository_loader import RepositoryLoader
     from pkm.distributions.source_build_cache import SourceBuildCache
@@ -28,7 +29,6 @@ ENV_PKM_HOME = "PKM_HOME"
 class _PkmRepositories:
     pypi: "Repository"
     main: "Repository"
-    installed_pythons: "InstalledPythonsRepository"
 
 
 @dataclass
@@ -58,8 +58,14 @@ class Pkm(HasAttachedRepository):
 
     def __init__(self, home: Path):
         self.threads = ThreadPoolExecutor()
+        self.processes = ProcessPoolExecutor()
         self._home = home
         self.global_flags = PkmGlobalFlags.load(home / 'etc/pkm/global_flags.toml')
+
+    @cached_property
+    def installed_pythons(self) -> "InstalledPythonsLocator":
+        from pkm.api.environments.installed_pythons_locator import InstalledPythonsLocator
+        return InstalledPythonsLocator()
 
     @cached_property
     def home(self) -> Path:
@@ -95,12 +101,10 @@ class Pkm(HasAttachedRepository):
 
     @cached_property
     def repositories(self) -> _PkmRepositories:
-        from pkm.repositories.local_pythons_repository import InstalledPythonsRepository
 
         return _PkmRepositories(
             self.repository_loader.pypi,
             self.repository_loader.global_repo,
-            InstalledPythonsRepository(),
         )
 
     def clean_cache(self):

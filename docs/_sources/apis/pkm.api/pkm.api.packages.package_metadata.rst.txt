@@ -1,5 +1,5 @@
 ..
-    HASH:e46cd1b2dad1da7770f92aeb2e3aee07
+    HASH:e00224e12ff933b583f0255cf99b8f47
 
 pkm.api.packages.package\_metadata \(Module\)
 #############################################

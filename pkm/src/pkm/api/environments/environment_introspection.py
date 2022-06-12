@@ -4,7 +4,9 @@ import json
 import os
 import re
 import subprocess
+import warnings
 from dataclasses import dataclass
+from json import JSONDecodeError
 from pathlib import Path
 from struct import Struct
 from typing import Iterator, Tuple, List, Optional, Dict, IO, Callable, Any
@@ -13,7 +15,7 @@ from pkm.api.versions.version import StandardVersion
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
 from pkm.utils.sequences import index_of_or_none
-from pkm.utils.types import HasLessThan, Comparable
+from pkm.utils.types import Comparable
 
 _INTROSPECTION_CODE = """
 import sys
@@ -231,7 +233,7 @@ class EnvironmentIntrospection:
         return abis
 
     @cached_property
-    def _compatibility_tag_scorer(self) -> Callable[[str, str, str], Optional[HasLessThan]]:
+    def _compatibility_tag_scorer(self) -> Callable[[str, str, str], Optional[Comparable]]:
 
         # some of the code for compatibility tags scoring is based on `packaging::tags` module
         # but instead of output list of tags which requires us to know external information about the version history of
@@ -328,7 +330,7 @@ class EnvironmentIntrospection:
 
         # precomputation done. now for creating the scorer
 
-        def scorer(ipt: str, abi: str, plt: str) -> Optional[HasLessThan]:
+        def scorer(ipt: str, abi: str, plt: str) -> Optional[Comparable]:
             score_components = []
 
             # check abi compatibility
@@ -398,7 +400,12 @@ class EnvironmentIntrospection:
             cls, path: Path, interpreter_path: Path,
             save_if_recomputed: bool = True) -> "EnvironmentIntrospection":
 
-        data = json.loads(path.read_text()) if path.exists() else {}
+        try:
+            data = json.loads(path.read_text()) if path.exists() else {}
+        except JSONDecodeError:
+            warnings.warn("env introspection is curropted, rebuilding it")
+            data = {}
+
         current_introspection_sentinal = hash((_INTROSPECTION_CODE, str(interpreter_path.absolute())))
         if (introspection_sentinal := data.get('introspection')) \
                 and introspection_sentinal == current_introspection_sentinal:

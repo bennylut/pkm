@@ -41,15 +41,16 @@ def with_package_install(e: PackageOperationMonitoredOp):
 
         update_description()
 
-    yield
+    try:
+        yield
+    finally:
+        with _packages_being_installed_spinner_lock:
+            _packages_being_installed.remove(e.package)
 
-    with _packages_being_installed_spinner_lock:
-        _packages_being_installed.remove(e.package)
-
-        if not _packages_being_installed:
-            _packages_being_installed_spinner_context.__exit__(None, None, None)
-        else:
-            update_description()
+            if not _packages_being_installed:
+                _packages_being_installed_spinner_context.__exit__(None, None, None)
+            else:
+                update_description()
 
 
 def with_external_proc_execution(e: ProcessExecutionMonitoredOp):

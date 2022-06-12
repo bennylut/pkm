@@ -7,6 +7,7 @@ from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentM
 from pkm.api.versions.version import UrlVersion
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionMatch, AllowAllVersions
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.parsers import SimpleParser
 
 if TYPE_CHECKING:
@@ -27,6 +28,9 @@ class Dependency:
     version_spec: VersionSpecifier = AllowAllVersions
     extras: Optional[List[str]] = None
     env_marker: Optional[EnvironmentMarker] = None
+
+    def __post_init__(self):
+        assert self.version_spec, "dependency must contain a version specifier"
 
     def is_applicable_for(self, env: "Environment", extras: List[str]) -> bool:
         return self.env_marker is None or self.env_marker.evaluate_on(env, extras or [])

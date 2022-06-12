@@ -10,6 +10,7 @@ from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.pkm import pkm
 from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.config.configclass import ConfigFile, config, config_field
 from pkm.config.configfiles import WheelFileConfigIO
 from pkm.utils.commons import NoSuchElementException
@@ -21,18 +22,29 @@ _PYVENV_SEP_RX = re.compile("\\s*=\\s*")
 class EnvironmentBuilder:
 
     @staticmethod
-    def create_matching(env_path: Path, interpreter: Dependency) -> Environment:
-        result = Environment(env_path)
-
-        python_versions = pkm.repositories.installed_pythons.match(interpreter, result)
+    def create_matching(env_path: Path, spec: VersionSpecifier) -> Environment:
+        """
+        attempt to find the best installed python intepreter that match the given `spec` and creates an environment
+        based on it
+        :param env_path: the path to create the environment at
+        :param spec: the required interpreter spec
+        :return: the created environment
+        """
+        python_versions = pkm.installed_pythons.match(spec)
         if not python_versions:
             raise NoSuchElementException("could not find installed python interpreter "
-                                         f"that match the given dependency: {interpreter}")
-        python_versions[0].install_to(result.installation_target)
-        return result
+                                         f"that match the given spec: {spec}")
+
+        return EnvironmentBuilder.create(env_path, python_versions[0].interpreter)
 
     @staticmethod
     def create(env_path: Path, interpreter_path: Path = Path(sys.executable)) -> Environment:
+        """
+        creates a new virtual-environment in the given `env_path` based on the given `interpreter_path`
+        :param env_path: the path where the create the new environment
+        :param interpreter_path: the interpreter to use for the environment
+        :return: the created environment
+        """
         interpreter_path = interpreter_path.absolute()
 
         if env_path.exists():

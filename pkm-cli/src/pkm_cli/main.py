@@ -315,7 +315,7 @@ def remove(args: Namespace):
 
     def on_environment(env: Environment):
         if app_install:
-            if container := env.installation_target.app_containers.container_of(package_names[0]):
+            if container := env.installation_target.package_containers.container_of(package_names[0]):
                 if len(package_names) == 1:
                     container.uninstall()
                 else:

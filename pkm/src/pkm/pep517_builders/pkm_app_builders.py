@@ -37,7 +37,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None,
         tenv = EnvironmentBuilder.create(tdir / "env", interpreter_path)
         target = tenv.installation_target
 
-        target.app_containers.install(project, editable=editable)
+        target.package_containers.install(project, editable=editable)
 
         # build the actual wheel
         wheel_path = target_dir / WheelDistribution.expected_wheel_file_name(project)

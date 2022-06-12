@@ -85,8 +85,17 @@ def temp_dir() -> ContextManager[Path]:
     :return:
     """
 
-    with TemporaryDirectory() as tdir:
-        yield Path(tdir)
+    # sadly, I cannot use the TemporaryDirectory() context manager due to this bug: https://bugs.python.org/issue35144
+    path = Path(mkdtemp())
+    try:
+        yield path
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
+
+    # with TemporaryDirectory() as tdir:
+    #     yield Path(tdir)
+
+
 
 
 def extension_of(path: Path) -> str:

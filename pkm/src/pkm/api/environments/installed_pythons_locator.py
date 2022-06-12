@@ -1,39 +1,33 @@
+from __future__ import annotations
+
 import os.path
 import platform
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import List, Optional, Set, Union
+from typing import List, Optional, Set
 
-from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.environments.environment_builder import EnvironmentBuilder
-from pkm.api.packages.package import PackageDescriptor, Package
-from pkm.api.packages.package_installation import PackageInstallationTarget
-from pkm.api.repositories.repository import AbstractRepository
+from pkm.api.packages.package import PackageDescriptor
 from pkm.api.versions.version import Version
+from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.properties import cached_property
 from pkm.utils.systems import is_executable
 
 
-class InstalledPythonsRepository(AbstractRepository):
-
-    def __init__(self):
-        super().__init__('local-pythons')
-
-    def list(self, package_name: str = 'python', env: Environment = None) -> List[Package]:
-        return super().list(package_name, env)
+class InstalledPythonsLocator:
 
     @cached_property
-    def _interpreters(self) -> List["LocalInterpreterPackage"]:
-        result: List[LocalInterpreterPackage] = []
+    def all_installed(self) -> List[InstalledInterpreter]:
+        result: List[InstalledInterpreter] = []
         executeables_matched: Set[Path] = set()
 
         # add current interpreter
         current_interpreter_path = Path(sys.executable)
-        current_interpreter = LocalInterpreterPackage(
+        current_interpreter = InstalledInterpreter(
             current_interpreter_path, PackageDescriptor("python", Version.parse(platform.python_version())))
         executeables_matched.add(current_interpreter_path)
         result.append(current_interpreter)
@@ -56,7 +50,7 @@ class InstalledPythonsRepository(AbstractRepository):
 
                 executeables_matched.add(executable)
 
-                result.append(LocalInterpreterPackage(
+                result.append(InstalledInterpreter(
                     executable,
                     PackageDescriptor("python", Version.parse(version_str.strip()))))
 
@@ -67,38 +61,28 @@ class InstalledPythonsRepository(AbstractRepository):
 
         return sorted(result, key=lambda p: p.version, reverse=True)
 
-    def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
-        return [
-            p
-            for p in self._interpreters
-            if dependency.version_spec.allows_version(p.version)]
+    def match(self, version_spec: VersionSpecifier) -> List[InstalledInterpreter]:
+        result = [
+            p for p in self.all_installed
+            if version_spec.allows_version(p.version)]
+
+        result.sort(key=lambda v: v.version, reverse=True)
+        return result
 
 
-class LocalInterpreterPackage(Package):
+@dataclass
+class InstalledInterpreter:
 
     def __init__(self, interpreter: Path, desc: PackageDescriptor):
-        self._interpreter = interpreter
-        self._desc = desc
-
-    def dependencies(
-            self, target: "PackageInstallationTarget", extras: Optional[List[str]] = None) -> List["Dependency"]:
-        return []
+        self.interpreter = interpreter
+        self.descriptor = desc
 
     @property
-    def descriptor(self) -> PackageDescriptor:
-        return self._desc
-
-    def is_compatible_with(self, env: Environment):
-        return True
+    def version(self) -> Version:
+        return self.descriptor.version
 
     def to_environment(self) -> Environment:
-        return Environment(env_path=self._interpreter.parent, interpreter_path=self._interpreter)
-
-    def install_to(
-            self, target: Union["PackageInstallationTarget", Environment], user_request: Optional["Dependency"] = None,
-            editable: bool = False):
-        env_dir = target.path if isinstance(target, Environment) else target.env.path
-        EnvironmentBuilder.create(env_dir, self._interpreter.absolute())
+        return Environment(env_path=self.interpreter.parent, interpreter_path=self.interpreter)
 
 
 _OS = platform.system()

@@ -16,6 +16,7 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Pkm
     BuildSystemConfig
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
 from pkm.api.repositories.repository_loader import REPOSITORIES_CONFIGURATION_PATH
+from pkm.api.versions.version import Version
 from pkm.distributions.executables import Executables
 from pkm.pep517_builders.pkm_builders import build_wheel
 from pkm.repositories.file_system_repository import FILE_SYSTEM_REPOSITORY_TYPE
@@ -127,14 +128,14 @@ class PackageContainers:
                 repocfg.save()
                 app = app.descriptor.to_dependency()
 
-            pyprj.project = ProjectConfig.from_config({
-                'name': app.package_name + _CONTAINERIZED_WRAPPER_SUFFIX,
-                'version': _CONTAINERIZED_WRAPPER_VERSION,
-            })
+            pyprj.project = ProjectConfig(
+                name=app.package_name + _CONTAINERIZED_WRAPPER_SUFFIX,
+                version=Version.parse(_CONTAINERIZED_WRAPPER_VERSION)
+            )
 
             pyprj.build_system = BuildSystemConfig([], "pkm_containerized", ["."])
-
             pyprj.pkm_application = PkmApplicationConfig(True, [app], {}, [app.package_name])
+
             pyprj.save()
             yield Project.load(tdir)
 
@@ -211,6 +212,16 @@ class PackageContainers:
             app_entrypoints.entrypoints = entrypoints
             app_entrypoints.save()
 
+            # submit container registration hooks
+            container_registration_script = app_dir / "register_container.py"
+            container_registration_script.write_text(_register_container_script(app.name))
+            ct.touch(container_registration_script)
+
+            container_registration_pth = Path(
+                self._target.purelib) / f"register_{app.descriptor.expected_src_package_name}_container.pth"
+            container_registration_pth.write_text(_register_container_import_hook(app_dir.name))
+            ct.touch(container_registration_pth)
+
             dist_info.save_installation_info(PackageInstallationInfo(containerized=True, editable=False))
             ct.touch(dist_info.installation_info_path())
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
@@ -273,26 +284,51 @@ def _entrypoints_script(epoints: List[EntryPoint]):
         return f"def {epn}():del sys.modules[__package__];" \
                f"import {ref.module_path};" \
                f"{ref.module_path}.{ref.object_path}()"
-
-    return dedent(f"""
-
-    # setting up the application container
-    import site 
+    prolog = dedent("""
     import sys
-    import os
-    from pathlib import Path
-
-    container_path = Path(__file__).parent
-    site.addsitedir(str(container_path / '__container__/site'))
-    sys.path.insert(1, sys.path.pop())
-
-    old_path = os.environ['PATH']
-    new_path = str(container_path / '{CONTAINERIZED_APP_BIN_PATH}')
-    if old_path:
-        new_path = new_path + os.pathsep + old_path
-    os.environ['PATH'] = new_path
+    from .register_container import register
     
-    sys.prefix = str(container_path/'{CONTAINERIZED_APP_DATA_PATH}')
+    register()
+    
+    """)
+    return prolog + os.linesep.join([define_epfunc(ep) for ep in epoints])
 
-    # defining entry points 
-    """) + os.linesep.join([define_epfunc(ep) for ep in epoints])
+
+def _register_container_script(name: str) -> str:
+    return dedent(f"""
+    registered = False
+    
+    def register():
+        global registered
+        if registered:
+            return
+        registered = True
+        
+        os.environ["PKM_PACKAGE_CONTAINER"] = "{name}"
+    
+        import site
+        import sys
+        from pathlib import Path
+    
+        container_path = Path(__file__).parent
+        container_site = str(container_path / '{CONTAINERIZED_APP_SITE_PATH}')
+        site.addsitedir(container_site)
+        sys.path.insert(1, sys.path.pop())
+    
+        old_path = os.environ.get('PATH')
+        path = str(container_path / '{CONTAINERIZED_APP_BIN_PATH}')
+        if old_path:
+            path = (path + os.pathsep + old_path) if path not in old_path else old_path
+        os.environ['PATH'] = path
+    
+        sys.prefix = str(container_path / '{CONTAINERIZED_APP_DATA_PATH}')
+    
+    import os
+    ppc = os.environ.get("PKM_PACKAGE_CONTAINER")
+    if ppc == "{name}":
+        register()
+    """)
+
+
+def _register_container_import_hook(app_package: str) -> str:
+    return f"import {app_package}.register_container"

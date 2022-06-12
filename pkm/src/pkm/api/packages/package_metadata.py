@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.parser import Parser
@@ -41,7 +42,10 @@ class PackageMetadataIO(ConfigIO):
                 for item in value:
                     msg[key] = item
             else:
-                msg[key] = value
+                try:
+                    msg[key] = value
+                except BaseException:
+                    warnings.warn(f"malformed metadata key,value ({key}")
 
         if payload := data.get("Description"):
             msg.set_payload(payload)
