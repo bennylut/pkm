@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TypeVar, Dict, Any, Type, Generic, List, Mapping, Optional, Callable, Protocol
 
 from pkm.utils.commons import NoSuchElementException, UnsupportedOperationException
+from pkm.utils.enums import enum_value_of
 from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import clear_cached_properties
 
@@ -171,19 +172,14 @@ _ParsableFieldCodec = _ParsableFieldCodec()
 
 class _EnumFieldCodec(ConfigFieldCodec):
 
-    def __init__(self):
-        self._enum_constants: Dict[Type, Dict[str, Any]] = {}
-
-    def enum_constants_for(self, enum: Type[Enum]):
-        if not (result := self._enum_constants[enum]):
-            self._enum_constants[enum] = result = {c.name: c for c in enum}
-        return result
-
     def parse(self, parent: ConfigCodec, type_: Type[Enum], v: Any) -> _T:
-        return self.enum_constants_for(type_)[v]
+        return enum_value_of(type_, v)
 
     def unparse(self, parent: ConfigCodec, type_: Type, v: _T) -> Any:
-        return v.name()
+        return v.name
+
+
+_EnumFieldCodec = _EnumFieldCodec()
 
 
 class _ComplexFieldCodec(ConfigFieldCodec):
@@ -223,7 +219,7 @@ def _common_codecs() -> Dict[Type, ConfigFieldCodec]:
     _COMMON_CODECS = {
         str: _IDFieldCodec, int: _IDFieldCodec, bool: _IDFieldCodec, dict: _DictFieldCodec(), list: _ListFieldCodec(),
         Path: StringableFieldCodec, Version: _ParsableFieldCodec, Dependency: _ParsableFieldCodec,
-        VersionSpecifier: _ParsableFieldCodec, Enum: _EnumFieldCodec(), Any: _IDFieldCodec,
+        VersionSpecifier: _ParsableFieldCodec, Any: _IDFieldCodec,
         PackageDescriptor: config_field_codec(PackageDescriptor.read, lambda v: v.write())}
 
     _common_codecs = lambda: _COMMON_CODECS  # noqa
@@ -288,6 +284,12 @@ class ConfigCodec:
         return ConfigCodec({**self._field_codecs, **field_codecs})
 
     def field_codec_for_or_none(self, type_: Type) -> Optional[ConfigFieldCodec]:
+        try:
+            if issubclass(type_, Enum):
+                return _EnumFieldCodec
+        except Exception:  # noqa
+            pass
+
         while type_:
             if not (result := self._field_codecs.get(type_) or _common_codecs().get(type_)):
                 if hasattr(type_, _CONFIG_SCHEMA_FIELD):

@@ -6,7 +6,7 @@ from dataclasses import replace, dataclass
 from typing import Dict, Any, Optional, List, cast, Tuple
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import PackageInstallationInfo
+from pkm.api.packages.package_installation_info import PackageInstallationInfo, StoreMode
 from pkm.api.environments.environment import Environment, OperatingPlatform
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -228,7 +228,7 @@ class CondaSubdirPackage(Package):
         return self._best_artifact_for(env) is not None
 
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                   editable: bool = True):
+                   store_mode: StoreMode = StoreMode.AUTO):
         artifact: CondaSubdirPackageArtifact = self._best_artifact_for(target.env)
         if not artifact:
             raise UnsupportedOperationException("asking to install inside unsupported environment")
@@ -236,4 +236,5 @@ class CondaSubdirPackage(Package):
         url = f"{artifact.container.channel}/{artifact.container.subdir}/{artifact.artifact}"
         artifact_path = pkm.httpclient.fetch_resource(url).data
         dist = CondaDistribution(self.descriptor, artifact_path)
-        dist.install_to(target, user_request, PackageInstallationInfo(compatibility_tag=artifact.compatibility_tag))
+        dist.install_to(target, user_request, PackageInstallationInfo(
+            compatibility_tag=artifact.compatibility_tag, store_mode=StoreMode.COPY))

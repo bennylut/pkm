@@ -44,8 +44,8 @@ class PackageMetadataIO(ConfigIO):
             else:
                 try:
                     msg[key] = value
-                except BaseException:
-                    warnings.warn(f"malformed metadata key,value ({key}")
+                except Exception as e:
+                    warnings.warn(f"malformed metadata key,value ({key}={value}) | {e}, ignoring it")
 
         if payload := data.get("Description"):
             msg.set_payload(payload)

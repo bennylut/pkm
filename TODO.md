@@ -1,8 +1,15 @@
 ## RUNNING TASKS:
+
+## DONE IN THIS VERSION
+- change editable mode to 3 state enum
+- drop pkm shell
+- bugs: in many places a dictionary from package name to something is used, these places are vulnerable to package
+  aliasing mistakes, make a standard package_key value to be used in all these places 
+
+## BACKLOG TASKS:
 - bug: uninstall does not delete the ".lib" directories but installer did created them
 - content information (author and maintainer) name and email should be validated before publishing,
     - should use the email.utils.formataddr
-- drop pkm shell
 - refactoring - rename pkm show to pkm reports, support `pkm report {report_type}`
 - `pkm show *` should also show containerized applications
 - `pkm show context` should changed for a simple `pkm show`
@@ -10,15 +17,7 @@
 - pkm show: add repositories information
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
 - `pkm run` support custom environment variables loading like in pipenv
-
-## DONE IN THIS VERSION
-- refactor: installd-python-locator simplified and is not a repository anymore 
-- enhance the legacy builds robustness
-- bug: pubgrub minor adjustments - might assign in incorrect decision level
-- bug: containerized-packages-spowned python processes was able to escape the container
-- new multiprocess executor implementation with auto scaling and cancelation support
-
-## BACKLOG TASKS:
+- bug: installing installed package should make it user requested but it does not
 - replace copy-transaction with "temp-env" install and then sync to actual env if successfull (this should be made
   outside of the package control, by the installer itself)
 - need to implement my own process pool executor - with better cancel support + interprocess monitoring support
@@ -28,7 +27,7 @@
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - documentation: document builtin templates
 - cmd: pkm uninstall - display the packages being removed
-- bug: running in pycharm debug with listen on - show almost nothing
+- bug: running in dumb terminal log almost nothing
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - documentation: environments

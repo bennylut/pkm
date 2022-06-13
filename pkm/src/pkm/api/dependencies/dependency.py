@@ -7,12 +7,12 @@ from pkm.api.dependencies.env_markers import PEP508EnvMarkerParser, EnvironmentM
 from pkm.api.versions.version import UrlVersion
 from pkm.api.versions.version_parser import VersionParser
 from pkm.api.versions.version_specifiers import VersionSpecifier, VersionMatch, AllowAllVersions
-from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.parsers import SimpleParser
+from pkm.utils.properties import cached_property
+from pkm.api.packages.package import PackageDescriptor
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
-    from pkm.api.packages.package import PackageDescriptor
 
 
 @dataclass(frozen=True, eq=True)
@@ -28,6 +28,10 @@ class Dependency:
     version_spec: VersionSpecifier = AllowAllVersions
     extras: Optional[List[str]] = None
     env_marker: Optional[EnvironmentMarker] = None
+
+    @cached_property
+    def package_name_key(self) -> str:
+        return PackageDescriptor.package_name_key(self.package_name)
 
     def __post_init__(self):
         assert self.version_spec, "dependency must contain a version specifier"

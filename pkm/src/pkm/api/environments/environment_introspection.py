@@ -402,8 +402,8 @@ class EnvironmentIntrospection:
 
         try:
             data = json.loads(path.read_text()) if path.exists() else {}
-        except JSONDecodeError:
-            warnings.warn("env introspection is curropted, rebuilding it")
+        except JSONDecodeError as err:
+            warnings.warn(f"env introspection is corrupted, rebuilding it: {err}")
             data = {}
 
         current_introspection_sentinal = hash((_INTROSPECTION_CODE, str(interpreter_path.absolute())))

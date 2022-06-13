@@ -45,6 +45,8 @@ class _ContextualCommand:
 
     # noinspection PyCallingNonCallable
     def execute(self, path: Path, print_: Callable[[str], None]):
+        path = path.resolve()
+
         if (on_project := self.on_project) and (project := _lookup_project(path)):
             print_(f"using project context: {project.path}")
             on_project(project)

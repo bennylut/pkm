@@ -25,7 +25,7 @@ def setup(project_name: str = None, required_python: str = None) -> dict:
     readme_type = ask("Readme type", options=['Markdown', "reStructuredText"], default="Markdown")
     readme_file_ext = "md" if readme_type == 'Markdown' else 'rst'
 
-    python_available_versions = [str(p.version.without_patch()) for p in pkm.repositories.installed_pythons.list()]
+    python_available_versions = [str(p.version.without_patch()) for p in pkm.installed_pythons.all_installed]
     required_python = required_python or ask("Required Python Version", options=python_available_versions)
 
     author = ask("Author", default=default_author)

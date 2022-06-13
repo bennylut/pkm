@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environment_builder import EnvironmentBuilder
@@ -37,7 +38,7 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None,
         tenv = EnvironmentBuilder.create(tdir / "env", interpreter_path)
         target = tenv.installation_target
 
-        target.package_containers.install(project, editable=editable)
+        target.package_containers.install(project, store_mode=StoreMode.from_editable_flag(editable))
 
         # build the actual wheel
         wheel_path = target_dir / WheelDistribution.expected_wheel_file_name(project)

@@ -5,10 +5,11 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
+from pkm.api.distributions.distinfo import DistInfo
+from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
-from pkm.api.packages.package_installation import PackageInstallationTarget, PackageOperation
+from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
@@ -113,7 +114,9 @@ class Project(Package, HasAttachedRepository, IPCPackable):
 
     def install_to(
             self, target: PackageInstallationTarget, user_request: Optional["Dependency"] = None,
-            editable: bool = True):
+            store_mode: StoreMode = StoreMode.AUTO):
+
+        editable = store_mode != StoreMode.COPY
 
         from pkm.api.distributions.wheel_distribution import WheelDistribution
         with temp_dir() as tdir:
@@ -121,15 +124,17 @@ class Project(Package, HasAttachedRepository, IPCPackable):
             distribution = WheelDistribution(self.descriptor, wheel)
             distribution.install_to(
                 target, user_request,
-                PackageInstallationInfo(containerized=self.is_containerized_application(), editable=editable))
+                PackageInstallationInfo(
+                    containerized=self.is_containerized_application(),
+                    store_mode=StoreMode.EDITABLE if editable else StoreMode.COPY))
 
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                  editable: bool = True):
+                  store_mode: StoreMode = StoreMode.AUTO):
         # fast alternative for application to be installed without passing through wheels
         if self.is_containerized_application():
-            target.package_containers.install(self, editable)
+            target.package_containers.install(self, store_mode)
         else:
-            super(Project, self).update_at(target, user_request, editable)
+            super(Project, self).update_at(target, user_request, store_mode)
 
     @cached_property
     def lock(self) -> PackagesLock:
@@ -197,7 +202,7 @@ class Project(Package, HasAttachedRepository, IPCPackable):
 
     def dev_install(
             self, new_dependencies: Optional[List["Dependency"]] = None,
-            optional_group: Optional[str] = None, update: bool = False, editable: bool = True):
+            optional_group: Optional[str] = None, update: bool = False, store_mode: StoreMode = StoreMode.AUTO):
         """
         install the dependencies of this project to its assigned environments
         :param new_dependencies: if given, resolve and add these dependencies to this project and then install
@@ -205,7 +210,7 @@ class Project(Package, HasAttachedRepository, IPCPackable):
            also, mark the newly installed dependencies as optional and add them to that group
         :param update: if True, will attempt to update the given `new_dependencies`,
            or all the project dependencies if no `new_dependencies` are given
-        :param editable: if True, the new dependencies will be installed in editable mode
+        :param store_mode: controls the way the new packages will be stored in the attached environment
         """
 
         deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
@@ -228,7 +233,8 @@ class Project(Package, HasAttachedRepository, IPCPackable):
 
         # should probably submit the optionals
         self.update_at(
-            self.attached_environment.installation_target, editable=True, user_request=project_dependency)
+            self.attached_environment.installation_target, store_mode=StoreMode.EDITABLE,
+            user_request=project_dependency)
 
         new_deps_names = list(new_deps.keys())
 
@@ -240,21 +246,13 @@ class Project(Package, HasAttachedRepository, IPCPackable):
         )
 
         all_deps_names = set(d.package_name for d in self.config.project.all_dependencies)
-        editables = installation.editables = {}
+        installation.store_modes = {package_name: store_mode for package_name in new_deps_names}
         new_deps_with_version = {}
 
         for package, operation in installation.compute_operations_for_target(target).items():
             newly_requested = package.name in new_deps
 
-            # select editable mode for new install
-            if operation == PackageOperation.INSTALL:
-                editables[package.name] = editable if newly_requested else isinstance(package, Project)
-
             if package.name in all_deps_names:
-                # select editable mode for update
-                if operation == PackageOperation.UPDATE and newly_requested:
-                    editables[package.name] = editable
-
                 # update pyproject dependency specification
                 if newly_requested:
                     dep = new_deps[package.name]

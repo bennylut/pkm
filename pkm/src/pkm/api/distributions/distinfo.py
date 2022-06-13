@@ -7,10 +7,11 @@ from pathlib import Path
 from typing import Optional, List, Iterable, Dict, Iterator, TYPE_CHECKING, Type
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.config.configclass import config, config_field, ConfigFile, ConfigFieldCodec, ConfigCodec
-from pkm.config.configfiles import INIConfigIO, JsonConfigIO, WheelFileConfigIO, CSVConfigIO
+from pkm.config.configfiles import INIConfigIO, WheelFileConfigIO, CSVConfigIO
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
@@ -36,12 +37,20 @@ class DistInfo(IPCPackable):
         self.__init__(*state)
 
     @cached_property
-    def package_name(self):
+    def package_name_by_dirname(self):
         """
         :return: the package name as can be computed from the dist-info file name. note that if the loaded dist-info
          path has non-standard, the return value of this method is undetermined
         """
         return self.path.name.split("-")[0]
+
+    @cached_property
+    def package_version_by_dirname(self):
+        """
+        :return: the package name as can be computed from the dist-info file name. note that if the loaded dist-info
+         path has non-standard, the return value of this method is undetermined
+        """
+        return Version.parse(self.path.name.split("-")[1])
 
     def load_wheel_cfg(self) -> "WheelFileConfiguration":
         """
@@ -196,14 +205,6 @@ class DistInfo(IPCPackable):
             yield file
 
         yield self.record_path()
-
-
-@dataclass
-@config(io=JsonConfigIO())
-class PackageInstallationInfo(ConfigFile):
-    containerized: bool = config_field(default=False)
-    editable: bool = config_field(default=False)
-    compatibility_tag: str = config_field(default="")
 
 
 @dataclass

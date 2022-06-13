@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Optional, Dict, Set
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import PackageInstallationInfo, DistInfo
+from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.distributions.distribution import Distribution
+from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.distributions.wheel_distribution import InstallationException
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import PackageDescriptor

@@ -1,8 +1,7 @@
-from pkm.api.environments.environment_builder import EnvironmentBuilder
-from pkm.api.dependencies.dependency import Dependency
-from pkm.api.pkm import pkm
 from pathlib import Path
 
+from pkm.api.environments.environment_builder import EnvironmentBuilder
+from pkm.api.pkm import pkm
 from pkm.api.versions.version_specifiers import VersionSpecifier
 
 global ask

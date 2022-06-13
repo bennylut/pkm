@@ -4,7 +4,7 @@ import os
 import shutil
 from contextlib import contextmanager
 from pathlib import Path
-from tempfile import TemporaryDirectory, mkdtemp
+from tempfile import mkdtemp
 from typing import Optional, Callable, ContextManager, Iterator, List, Set
 
 from pkm.utils.commons import UnsupportedOperationException
@@ -94,8 +94,6 @@ def temp_dir() -> ContextManager[Path]:
 
     # with TemporaryDirectory() as tdir:
     #     yield Path(tdir)
-
-
 
 
 def extension_of(path: Path) -> str:

@@ -13,7 +13,6 @@ from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilde
 from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
-from pkm.utils.commons import NoSuchElementException
 from pkm.utils.http.auth import BasicAuthentication
 from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException

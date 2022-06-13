@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Any, Dict, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import PackageInstallationInfo
+from pkm.api.packages.package_installation_info import PackageInstallationInfo, StoreMode
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -102,15 +102,16 @@ class AbstractPackage(Package):
 
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = False):
+            store_mode: StoreMode = StoreMode.AUTO):
 
+        store_mode = StoreMode.COPY if store_mode == StoreMode.AUTO else store_mode
         artifact = self.best_artifact_for(target.env)
         artifact_path = self._get_or_retrieve_artifact_path(artifact)
         if hashsig := artifact.hash_sig:
             if not hashsig.validate_against(artifact_path):
                 raise ValueError(f"Security Risk: invalid hash for {self.descriptor}")
 
-        installation_mode = PackageInstallationInfo(containerized=False, editable=editable)
+        installation_mode = PackageInstallationInfo(containerized=False, store_mode=store_mode)
         if artifact.is_binary():
             WheelDistribution(self.descriptor, artifact_path).install_to(target, user_request, installation_mode)
         else:

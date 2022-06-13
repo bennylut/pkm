@@ -5,9 +5,11 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass, replace
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.versions.version import Version, StandardVersion
 from pkm.api.versions.version_specifiers import VersionMatch, StandardVersionRange
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -21,6 +23,10 @@ class PackageDescriptor:
     name: str
     version: Version
 
+    @cached_property
+    def name_key(self) -> str:
+        return PackageDescriptor.package_name_key(self.name)
+
     @property
     def expected_src_package_name(self) -> str:
         """
@@ -33,6 +39,8 @@ class PackageDescriptor:
         return PackageDescriptor.normalize_src_package_name(self.name)
 
     def __post_init__(self):
+        assert self.name and self.version, "both package name and version must be given"
+
         super().__setattr__('name', PackageDescriptor.normalize_name(self.name).replace('_', '-'))
 
     def to_dependency(self, generalize: bool = False) -> "Dependency":
@@ -58,6 +66,10 @@ class PackageDescriptor:
     @classmethod
     def read(cls, data: Dict[str, Any]) -> "PackageDescriptor":
         return cls(data['name'], Version.parse(data['version']))
+
+    @staticmethod
+    def package_name_key(package_name: str) -> str:
+        return PackageDescriptor.normalize_src_package_name(package_name).lower()
 
     @staticmethod
     def normalize_src_package_name(package_name: str) -> str:
@@ -120,6 +132,10 @@ class Package(ABC):
         return self.descriptor.name
 
     @property
+    def name_key(self) -> str:
+        return self.descriptor.name_key
+
+    @property
     def version(self) -> Version:
         return self.descriptor.version
 
@@ -144,13 +160,14 @@ class Package(ABC):
     @abstractmethod
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = True):
+            store_mode: StoreMode = StoreMode.AUTO):
         """
         installs this package into the given `env`
         :param target: the information about the target to install this package into
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param editable: if True and able, the package will be installed in editable mode
+        :param store_mode: decide the way the package is stored in the site
+               (editable = by reference, copy, auto = editable if package installed from source otherwise false)
         """
 
     def uninstall(self) -> bool:
@@ -165,20 +182,21 @@ class Package(ABC):
 
     # TODO: move implementation to AbstractPackage
     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                  editable: bool = True):
+                  store_mode: StoreMode = StoreMode.AUTO):
         """
         attempt to update the package from a version installed at the given target to this version
         the update may attempt a full re-installation or a smarted "fast" delta-update like installation
         :param target: the target that contains the package to update
         :param user_request: if this package was requested by the user,
                supplying this field will mark the installation as user request
-        :param editable: if True, the package will be installed in editable mode, otherwise in standard copy mode
+        :param store_mode: decide the way the package is stored in the site
+               (editable = by reference, copy, auto = editable if package installed from source otherwise false)
         """
         if preinstalled := target.site_packages.installed_package(self.name):
             user_request = user_request or preinstalled.user_request
             preinstalled.uninstall()
 
-        self.install_to(target, user_request, editable=editable)
+        self.install_to(target, user_request, store_mode=store_mode)
 
     def __str__(self):
         return f"{self.name} {self.version}"

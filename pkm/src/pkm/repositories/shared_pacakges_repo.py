@@ -6,6 +6,7 @@ from typing import List, Optional, Set, Iterator, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
@@ -137,11 +138,11 @@ class _SharedPackage(Package):
 
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = False):
+            store_mode: StoreMode = StoreMode.AUTO):
         if shared := self._shared_artifact_for(target.env):
             _link_shared(self.descriptor, shared, target)
         else:
-            self._package.install_to(target, user_request, editable)
+            self._package.install_to(target, user_request, store_mode)
             if shared := _move_to_shared(self._package.descriptor, target, self._shared_path):
                 _link_shared(self.descriptor, shared, target)
 

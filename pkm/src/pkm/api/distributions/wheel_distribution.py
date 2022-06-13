@@ -9,8 +9,9 @@ from typing import Optional, TYPE_CHECKING, List, Dict
 from zipfile import ZipFile
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo, RecordsFileConfiguration, Record
+from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration, Record
 from pkm.api.distributions.distribution import Distribution
+from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import StandardVersion
@@ -191,7 +192,7 @@ def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInf
 def _verify_records(dist_info: DistInfo, content: Path, records_file: RecordsFileConfiguration):
     if not records_file.path.exists():
         raise InstallationException(
-            f"Unsigned wheel for package {dist_info.package_name} (no RECORD file found in dist-info)")
+            f"Unsigned wheel for package {dist_info.package_name_by_dirname} (no RECORD file found in dist-info)")
 
     # check that the records hash match
     record_by_path: Dict[str, Record] = {r.file: r for r in records_file.records}

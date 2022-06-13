@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import shutil
 from pathlib import Path
 from typing import Optional, List, Dict, Iterable, TYPE_CHECKING, Iterator
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
+from pkm.api.distributions.distinfo import DistInfo
 from pkm.api.packages.package import Package, PackageDescriptor
+from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.files import is_empty_directory, is_relative_to
@@ -59,22 +61,22 @@ class SitePackages(IPCPackable):
         self._scan_packages(self._platlib, result)
         return result
 
-    @staticmethod
-    def normalize_package_name(package_name: str) -> str:
-        return PackageDescriptor.normalize_src_package_name(package_name).lower()
+    # @staticmethod
+    # def normalize_package_name(package_name: str) -> str:
+    #     return PackageDescriptor.normalize_src_package_name(package_name).lower()
 
     def _scan_packages(self, site: Path, result: Dict[str, InstalledPackage]):
         if not site.exists():
             return
 
         for di in DistInfo.scan(site):
-            result[self.normalize_package_name(di.package_name)] = InstalledPackage(di, self)
+            result[PackageDescriptor.package_name_key(di.package_name_by_dirname)] = InstalledPackage(di, self)
 
     def installed_packages(self) -> Iterable[InstalledPackage]:
         return self._name_to_packages.values()
 
     def installed_package(self, package_name: str) -> Optional[InstalledPackage]:
-        return self._name_to_packages.get(self.normalize_package_name(package_name))
+        return self._name_to_packages.get(PackageDescriptor.package_name_key(package_name))
 
     def find_requested_packages(self) -> List[InstalledPackage]:
         return [r for r in self.installed_packages() if r.user_request is not None]
@@ -82,11 +84,11 @@ class SitePackages(IPCPackable):
     def find_orphan_packages(self) -> Iterable[InstalledPackage]:
         installed = self.installed_packages()
         requested = [p for p in installed if p.user_request is not None]
-        orphans = {self.normalize_package_name(p.name): p for p in installed}
+        orphans = {p.name_key: p for p in installed}
         done = set()
 
         while next_ := pop_or_none(requested):
-            name = self.normalize_package_name(next_.name)
+            name = next_.name_key
             if not try_add(done, name):
                 continue
 
@@ -134,9 +136,15 @@ class InstalledPackage(Package, IPCPackable):
         """
         return self._dist_info
 
+    def reload(self):
+        clear_cached_properties(self)
+
     @cached_property
     def descriptor(self) -> PackageDescriptor:
         meta = self.published_metadata
+        if not (meta.package_name and meta.package_version):
+            return PackageDescriptor(self.dist_info.package_name_by_dirname, self._dist_info.package_version_by_dirname)
+
         return PackageDescriptor(meta.package_name, meta.package_version)
 
     @cached_property
@@ -162,7 +170,7 @@ class InstalledPackage(Package, IPCPackable):
 
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = False):
+            store_mode: StoreMode = StoreMode.AUTO):
         if target.site_packages != self.site:
             raise NotImplemented()  # maybe re-mark user request?
 
@@ -170,13 +178,21 @@ class InstalledPackage(Package, IPCPackable):
         """
         :return: True if this package is installed to purelib, False if it is installed into platlib
         """
-
         return is_relative_to(self.dist_info.path, self.site.purelib_path)
+
+    def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+                  store_mode: StoreMode = StoreMode.AUTO):
+
+        if user_request:
+            self.dist_info.mark_as_user_requested(user_request)
+        else:
+            self.dist_info.unmark_as_user_requested()
 
     def uninstall(self):
         """
         uninstall this package from its site packages
         """
+
         parents_to_check = set()
         for installed_file in self._dist_info.installed_files():
             installed_file.unlink(missing_ok=True)

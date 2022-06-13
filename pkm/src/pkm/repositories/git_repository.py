@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional, cast, TYPE_CHECKING, Iterable
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.projects.project import Project
@@ -134,5 +135,5 @@ class _GitPackageWrapper(Package, IPCPackable):
 
     def install_to(
             self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-            editable: bool = False):
-        return self._project.install_to(target, user_request, editable=editable)
+            store_mode: StoreMode = StoreMode.AUTO):
+        return self._project.install_to(target, user_request, store_mode=store_mode)

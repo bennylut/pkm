@@ -4,7 +4,6 @@ from download_torch_pkm_repo.cuda_compatibility import CudaCompatibilityTable
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
-from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
 from pkm.api.versions.version import StandardVersion
 from pkm.repositories.simple_repository import SimpleRepository
@@ -17,7 +16,7 @@ class DownloadTorchRepository(AbstractRepository):
             self, name: str, allow_cpu: bool,
             compatible_cuda_versions: List[StandardVersion]):
         super().__init__(name)
-        self._simple_repo = SimpleRepository('torch', pkm.httpclient, "https://download.pytorch.org/whl")
+        self._simple_repo = SimpleRepository('torch', "https://download.pytorch.org/whl")
 
         self._compatible_locals = {
             f"cu{''.join(str(r) for r in v.release)}"

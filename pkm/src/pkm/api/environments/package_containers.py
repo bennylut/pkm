@@ -6,7 +6,8 @@ from textwrap import dedent
 from typing import List, Union, Optional, ContextManager, Dict
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.distributions.distinfo import DistInfo, PackageInstallationInfo
+from pkm.api.distributions.distinfo import DistInfo
+from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -140,8 +141,9 @@ class PackageContainers:
             yield Project.load(tdir)
 
     def _install(
-            self, app: "Project", editable: bool = True) -> PackageContainer:
+            self, app: "Project", store_mode: StoreMode = StoreMode.AUTO) -> PackageContainer:
 
+        editable = store_mode != StoreMode.COPY
         contained_target = self._target_of(app.name)
         app_dir = Path(contained_target.purelib).parent.parent
 
@@ -159,12 +161,12 @@ class PackageContainers:
             contained_target.install(
                 app_config.dependencies, dependencies_override=app_config.dependency_overwrites,
                 repository=app.attached_repository,
-                editables={d.package_name: editable for d in app_config.dependencies},
+                store_mode={d.package_name: store_mode for d in app_config.dependencies},
                 updates=[d.package_name for d in app_config.dependencies])
 
             WheelDistribution(app.descriptor, build_wheel(app, tdir / "whl", editable=editable)) \
                 .install_to(contained_target, app.descriptor.to_dependency(),
-                            PackageInstallationInfo(editable=editable))
+                            PackageInstallationInfo(store_mode=StoreMode.EDITABLE if editable else StoreMode.COPY))
 
             contained_site.reload()
 
@@ -222,7 +224,7 @@ class PackageContainers:
             container_registration_pth.write_text(_register_container_import_hook(app_dir.name))
             ct.touch(container_registration_pth)
 
-            dist_info.save_installation_info(PackageInstallationInfo(containerized=True, editable=False))
+            dist_info.save_installation_info(PackageInstallationInfo(containerized=True, store_mode=StoreMode.COPY))
             ct.touch(dist_info.installation_info_path())
             ct.touch(dist_info.user_requested_path(), True)  # mark as user requested
 
@@ -244,7 +246,8 @@ class PackageContainers:
         self._target.site_packages.reload()
         return self.container_of(app.name)
 
-    def _get_or_install(self, app: Union[Dependency, Project], editable: bool = True) -> PackageContainer:
+    def _get_or_install(self, app: Union[Dependency, Project],
+                        store_mode: StoreMode = StoreMode.AUTO) -> PackageContainer:
         dep = app
         if isinstance(dep, Project):
             dep = app.descriptor.to_dependency()
@@ -253,28 +256,28 @@ class PackageContainers:
                 and dep.version_spec.allows_version(container.containerized_package.version):
             return container
 
-        return self.install(app, editable, True)
+        return self.install(app, store_mode, True)
 
     def install(
-            self, app: Union[Dependency, Project], editable: bool = True, update: bool = False
+            self, app: Union[Dependency, Project], store_mode: StoreMode = StoreMode.AUTO, update: bool = False
     ) -> PackageContainer:
         """
         installs the given app in its own containerized environment
         :param app: the app to install, if not referring to a containerized project will create containerized wrapper
-        :param editable: if true, the installation of `app` inside the container will be in editable mode
+        :param store_mode: affect the store mode of the `app` inside the container
         :param update: if true, will force re-installation,
             even if the same version is already installed in the relevant site
         :return: containerized application controller class for the performed installation
         """
 
         if not update:
-            return self._get_or_install(app, editable)
+            return self._get_or_install(app, store_mode)
 
         if isinstance(app, Project) and app.is_containerized_application():
-            return self._install(app, editable)
+            return self._install(app, store_mode)
 
         with self._wrapper_project(app) as prj:
-            return self.install(prj, editable, True)
+            return self.install(prj, store_mode, True)
 
 
 def _entrypoints_script(epoints: List[EntryPoint]):
@@ -284,6 +287,7 @@ def _entrypoints_script(epoints: List[EntryPoint]):
         return f"def {epn}():del sys.modules[__package__];" \
                f"import {ref.module_path};" \
                f"{ref.module_path}.{ref.object_path}()"
+
     prolog = dedent("""
     import sys
     from .register_container import register

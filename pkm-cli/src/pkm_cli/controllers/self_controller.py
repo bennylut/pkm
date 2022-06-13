@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.package_containers import PackageContainer
 from pkm.api.packages.package import Package
@@ -29,10 +30,12 @@ class SelfController:
         Display.print(f"global environment: {self.global_environment.path}")
         Display.print(f"home path: {pkm.home}")
 
-    def install_plugins(self, dependencies: List[Dependency], editable: Optional[bool] = None, update: bool = False):
-        editables = {d.package_name: editable for d in dependencies} if editable else None
+    def install_plugins(
+            self, dependencies: List[Dependency], store_mode: StoreMode = StoreMode.AUTO, update: bool = False):
+
+        store_modes = {d.package_name: store_mode for d in dependencies}
         updates = [d.package_name for d in dependencies] if update else None
-        self._installation_target.install(dependencies, editables=editables, updates=updates)
+        self._installation_target.install(dependencies, store_mode=store_modes, updates=updates)
 
     def uninstall_plugin(self, packages: List[str], force: bool = False):
         if force:

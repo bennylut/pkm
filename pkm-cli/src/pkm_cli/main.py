@@ -11,6 +11,7 @@ from typing import List, Optional, Dict
 import sys
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package_installation import PackageInstallationTarget
@@ -20,12 +21,13 @@ from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.enums import enum_value_of
 from pkm.utils.processes import execvpe
 from pkm_cli import cli_monitors
 from pkm_cli.api.tasks.tasks_runner import TasksRunner
 from pkm_cli.api.templates.template_runner import TemplateRunner
-from pkm_cli.cotrollers.env_controller import EnvController
-from pkm_cli.cotrollers.self_controller import SelfController
+from pkm_cli.controllers.env_controller import EnvController
+from pkm_cli.controllers.self_controller import SelfController
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
@@ -46,6 +48,7 @@ def _cli_container() -> PackageInstallationTarget:
     return global_env.installation_target
 
 
+# noinspection PyUnusedLocal
 @command('pkm self version')
 def self_version(args: Namespace):
     SelfController().print_version()
@@ -64,7 +67,8 @@ def self_update(args: Namespace):
     Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
 def self_install(args: Namespace):
     dependencies = [Dependency.parse(d) for d in args.packages]
-    SelfController().install_plugins(dependencies, editable=args.mode == 'editable', update=args.update)
+    store_mode = enum_value_of(StoreMode, args.mode.upper())
+    SelfController().install_plugins(dependencies, store_mode=store_mode, update=args.update)
 
 
 @command(
@@ -155,26 +159,6 @@ def run(args: Namespace):
 
 
 # noinspection PyUnusedLocal
-@command('pkm shell', Arg(["-e", '--execute'], required=False, nargs=argparse.REMAINDER))
-def shell(args: Namespace):
-    def on_environment(env: Environment):
-        with env.activate():
-            if execution := args.execute:
-                sys.exit(execvpe(execution[0], execution[1:], os.environ))
-
-            import xonsh.main
-            sys.exit(xonsh.main.main([]))
-
-    def on_project(project: Project):
-        on_environment(project.attached_environment)
-
-    def on_free_context():
-        on_environment(Environment.current())
-
-    context.run(**locals())
-
-
-# noinspection PyUnusedLocal
 @command('pkm build')
 def build(args: Namespace):
     def on_project(project: Project):
@@ -207,7 +191,7 @@ def vbump(args: Namespace):
     Arg(["-f", "--force"], action='store_true', help="forcefully remove and reinstall the given pacakges"),
     Arg(["-a", "--app"], action='store_true', help="install package in containerized application mode"),
     Arg(["-u", "--update"], action='store_true', help="update the given packages if already installed"),
-    Arg(["-m", "--mode"], required=False, default='editable', choices=['editable', 'copy'],
+    Arg(["-m", "--mode"], required=False, default='auto', choices=['editable', 'copy', 'auto'],
         help="choose the installation mode for the requested packages."),
     Arg(['-s', '--site'], required=False, choices=['user', 'system'],
         help="applicable for global-context, which site to use - defaults to 'user'"),
@@ -222,7 +206,7 @@ def install(args: Namespace):
     """
 
     dependencies = [Dependency.parse(it) for it in args.packages]
-    editable = args.mode == 'editable'
+    store_mode = enum_value_of(StoreMode, args.mode.upper())
 
     def register_repo_bindings(contex: HasAttachedRepository):
         if repo := args.repo:
@@ -247,7 +231,7 @@ def install(args: Namespace):
             raise UnsupportedOperationException("application install as project dependency is not supported")
 
         force(project.attached_environment.installation_target)
-        project.dev_install(dependencies, optional_group=args.optional, update=args.update, editable=editable)
+        project.dev_install(dependencies, optional_group=args.optional, update=args.update, store_mode=store_mode)
 
     def on_environment(env: Environment):
         nonlocal dependencies
@@ -259,15 +243,15 @@ def install(args: Namespace):
             target = env.installation_target
             if args.app:
                 target = env.app_containers.install(
-                    dependencies[0], editable=editable,
+                    dependencies[0], store_mode=store_mode,
                     update=args.update and len(dependencies) == 1).installation_target
                 dependencies = dependencies[1:]
 
             if dependencies:
                 force(target)
                 updates = [d.package_name for d in dependencies] if args.update else None
-                editables = {d.package_name: editable for d in dependencies}
-                target.install(dependencies, updates=updates, editables=editables)
+                store_modes = {d.package_name: store_mode for d in dependencies}
+                target.install(dependencies, updates=updates, store_mode=store_modes)
 
     context.run(**locals())
 
@@ -370,13 +354,21 @@ def new(args: Namespace):
         Display.print("Template Execution Completed Successfully.")
 
 
-@command('pkm show context')
-def show_context(args: Namespace):
+@command('pkm status', Arg("report_options", nargs=argparse.REMAINDER))
+def status(args: Namespace):
+    options = {}
+    option: str
+    for option in args.report_options:
+        if option[0] in ('+', '-'):
+            options[option[1:]] = option[0] == '+'
+        else:
+            options[option] = True
+
     def on_project(project: Project):
         ProjectReport(project).display()
 
     def on_environment(env: Environment):
-        EnvironmentReport(env).display()
+        EnvironmentReport(env, options).display()
 
     context.run(**locals())
 

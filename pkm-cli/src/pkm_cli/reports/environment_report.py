@@ -3,47 +3,48 @@ from typing import Dict, List
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
-from pkm.api.packages.site_packages import InstalledPackage, SitePackages
+from pkm.api.packages.site_packages import InstalledPackage
 from pkm_cli.display.display import Display
 from pkm_cli.reports.report import Report
 
 
 class EnvironmentReport(Report):
 
-    def __init__(self, env: Environment):
+    def __init__(self, env: Environment, options: Dict[str, bool]):
         self._env = env
+        self._options = options
 
-    def display(self, dumb: bool = Display.is_poor()):
+    def display_options(self):
+        Display.print(
+            "[all-installed]: Displays all the packages installed in this environment, not only the user requested")
+
+    def display(self):
         env = self._env
+        Display.print("")
 
-        line = "-" * 80
-        Display.print(line)
+        with self._section("Basic Environment Info"):
+            Display.print(f"Path: {env.path}")
+            Display.print(f"Interpreter Version: {env.interpreter_version}")
 
-        Display.print("Environment Basic Info")
-        Display.print(line)
-        Display.print(f"Path: {env.path}")
-        Display.print(f"Interpreter Version: {env.interpreter_version}")
-        Display.print(line)
+        with self._section("Installed Packages"):
+            package_info: Dict[str, _PackageInfo] = {
+                package.name_key: _PackageInfo(package)
+                for package in env.site_packages.installed_packages()
+            }
 
-        Display.print("Installed Packages")
-        Display.print(line)
+            for p in package_info.values():
+                dependencies = p.package.dependencies(env.installation_target)
+                for d in dependencies:
+                    norm_package_name = d.package_name_key
+                    if q := package_info.get(norm_package_name):
+                        q.required_by.append(p.package)
+                    else:
+                        p.missing_dependencies.append(d)
 
-        package_info: Dict[str, _PackageInfo] = {
-            SitePackages.normalize_package_name(package.name): _PackageInfo(package)
-            for package in env.site_packages.installed_packages()
-        }
-
-        for p in package_info.values():
-            dependencies = p.package.dependencies(env.installation_target)
-            for d in dependencies:
-                norm_package_name = SitePackages.normalize_package_name(d.package_name)
-                if q := package_info.get(norm_package_name):
-                    q.required_by.append(p.package)
-                else:
-                    p.missing_dependencies.append(d)
-
-        for p in package_info.values():
-            p.display()
+            display_all = 'all-installed' in self._options
+            for p in package_info.values():
+                if display_all or p.package.user_request:
+                    p.display()
 
 
 @dataclass

@@ -6,10 +6,10 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from time import perf_counter
 from typing import List, Dict, Optional, Union, Set, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_monitors import PackageOperationMonitoredOp
 from pkm.api.packages.site_packages import InstalledPackage
@@ -94,8 +94,8 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
 
     def install(
             self, dependencies: List[Dependency], repository: Optional[Repository] = None, user_requested: bool = True,
-            dependencies_override: Optional[Dict[str, Dependency]] = None, editables: Optional[Dict[str, bool]] = None,
-            updates: Optional[List[str]] = None):
+            dependencies_override: Optional[Dict[str, Dependency]] = None,
+            store_mode: Optional[Dict[str, StoreMode]] = None, updates: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this target.
         see: `prepare_installation` and `PreparedInstallation:install` for more information about this method arguments
@@ -107,7 +107,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         plan = self.plan_installation(
             dependencies, repository, user_requested, dependencies_override, updates
         )
-        plan.editables = editables
+        plan.store_modes = store_mode
         plan.execute()
 
     def force_remove(self, package: str):
@@ -143,14 +143,17 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
 
         self.reload()
 
-        updates = set(updates or [])
-        preinstalled_packages = [p for p in self.site_packages.installed_packages() if p.name not in updates]
-        pre_requested_deps = {p: p.user_request for p in preinstalled_packages if p.user_request}
+        updates = set(updates or ())
+        preinstalled_packages = [p for p in self.site_packages.installed_packages() if p.name_key not in updates]
+        pre_requested_deps = {p.name_key: p.user_request for p in preinstalled_packages if p.user_request}
         unspecified_spec_packages = \
-            unspecified_spec_packages or [d.package_name for d in dependencies if d.version_spec is AllowAllVersions]
+            unspecified_spec_packages or [
+                d.package_name_key
+                for d in dependencies if d.version_spec is AllowAllVersions]
+
         unspecified_spec_packages = set(unspecified_spec_packages)
 
-        new_deps = {d.package_name: d for d in dependencies}
+        new_deps = {d.package_name_key: d for d in dependencies}
         all_deps = {**pre_requested_deps, **new_deps}
 
         run_slow_path = False
@@ -165,9 +168,9 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo, dependencies_override)
 
-            installation_names = {i.name for i in installation}
+            installation_names = {i.name_key for i in installation}
             for preinstalled in preinstalled_packages:
-                if preinstalled.name not in installation_names:
+                if preinstalled.name_key not in installation_names:
                     installation.append(preinstalled)
 
         except UnsolvableProblemException:
@@ -182,7 +185,11 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo)
 
-        return InstallationPlan(self, installation, new_deps if user_requested else {})
+        user_requests = {**pre_requested_deps}
+        if user_requested:
+            user_requests.update(new_deps)
+
+        return InstallationPlan(self, installation, user_requests)
 
 
 class PackageOperation(Enum):
@@ -198,7 +205,7 @@ class InstallationPlan:
         self.default_target = target
         self.packages = packages
         self.user_requests = user_requests
-        self.editables: Optional[Dict[str, bool]] = None
+        self.store_modes: Optional[Dict[str, StoreMode]] = None
 
     def selected_package(self, name: str) -> Optional[Package]:
         return first_or_none(it for it in self.packages if it.name == name)
@@ -209,28 +216,38 @@ class InstallationPlan:
         operations: Dict[Package, PackageOperation] = {}
 
         target = target or self.default_target
-        editables = self.editables or {}
 
         preinstalled: Dict[str, InstalledPackage] = {
-            SitePackages.normalize_package_name(p.name): p
+            p.name_key: p
             for p in target.site_packages.installed_packages()}
 
         toinstall: Dict[str, Package] = {
-            SitePackages.normalize_package_name(p.name): p
+            p.name_key: p
             for p in self.packages
             if not isinstance(p, _UserRequestPackage)}
 
-        editables = {SitePackages.normalize_package_name(name): value for name, value in editables.items()} \
-            if editables else {}
+        store_modes = {name: value for name, value in (self.store_modes or {}).items()}
 
-        for norm_package_name, package_to_install in toinstall.items():
+        for name_key, package_to_install in toinstall.items():
 
-            if preinstalled_package := preinstalled.pop(norm_package_name, None):
-                prev_install_editable = preinstalled_package.installation_info.editable
-                editable = editables.get(norm_package_name, prev_install_editable)
-                if preinstalled_package.version == package_to_install.version and editable == prev_install_editable:
-                    operations[package_to_install] = PackageOperation.SKIP
-                    continue
+            if preinstalled_package := preinstalled.pop(name_key, None):
+                if preinstalled_package.version == package_to_install.version:
+                    prev_store_mode = preinstalled_package.installation_info.store_mode
+                    store_mode = store_modes.get(name_key, StoreMode.AUTO)
+                    store_mode_matching = (store_mode == StoreMode.AUTO or store_mode == prev_store_mode)
+                    new_user_request = self.user_requests.get(preinstalled_package.name_key)
+                    user_request_matching = \
+                        (not new_user_request) or preinstalled_package.user_request == new_user_request
+
+                    if store_mode_matching and user_request_matching:
+                        operations[package_to_install] = PackageOperation.SKIP
+                        continue
+                    if store_mode_matching and not user_request_matching:
+                        # note that i am attaching the operation to the preinstalled package instead of the real package
+                        # this is for performance reasons - no need to really reinstall the package, only change the
+                        # user request flag
+                        operations[preinstalled_package] = PackageOperation.UPDATE
+                        continue
 
                 operations[package_to_install] = PackageOperation.UPDATE
             else:
@@ -251,7 +268,7 @@ class InstallationPlan:
 
         target = target or self.default_target
         operations = self.compute_operations_for_target(target)
-        editables = self.editables or {}
+        store_modes = self.store_modes or {}
         site = target.site_packages
 
         tasks: List[_PackageOperationTask] = []
@@ -260,11 +277,9 @@ class InstallationPlan:
             if operation == PackageOperation.SKIP:
                 continue
 
-            editable = editables.get(package.name)
-            user_request = self.user_requests.get(package.name)
-            if editable is None and operation == PackageOperation.UPDATE:
-                editable = site.installed_package(package.name).installation_info.editable
-            tasks.append(_PackageOperationTask(package, operation, editable, user_request, target))
+            store_mode = store_modes.get(package.name_key, StoreMode.AUTO)
+            user_request = self.user_requests.get(package.name_key)
+            tasks.append(_PackageOperationTask(package, operation, store_mode, user_request, target))
 
         parallelizm = pkm.global_flags.package_installation_parallelizm
         threads = pkm.threads if parallelizm != "none" else None
@@ -280,11 +295,11 @@ class InstallationPlan:
 
 
 class _PackageOperationTask:
-    def __init__(self, package: Package, operation: PackageOperation, editable: bool,
+    def __init__(self, package: Package, operation: PackageOperation, store_mode: StoreMode,
                  user_request: Optional[Dependency], target: PackageInstallationTarget):
         self._package = package
         self._operation = operation
-        self._editable = editable
+        self._store_mode = store_mode
         self._user_request = user_request
         self._target = target
 
@@ -292,19 +307,19 @@ class _PackageOperationTask:
         return isinstance(self._package, IPCPackable)
 
     def execute(self, threadpool: ThreadPoolExecutor, procpool: Optional[ProcessPoolExecutor]) -> Promise:
-        operation, editable, user_request, package, target = \
-            self._operation, self._editable, self._user_request, self._package, self._target
+        operation, store_mode, user_request, package, target = \
+            self._operation, self._store_mode, self._user_request, self._package, self._target
 
         executor = procpool if self.can_be_multiprocessesd() and procpool else threadpool
 
         promise = None
         if operation == PackageOperation.INSTALL:
             promise = Promise.execute(
-                executor, _po_execute, package, "install_to", target, editable=editable, user_request=user_request)
+                executor, _po_execute, package, "install_to", target, store_mode=store_mode, user_request=user_request)
 
         elif operation == PackageOperation.UPDATE:
             promise = Promise.execute(
-                executor, _po_execute, package, "update_at", target, editable=editable, user_request=user_request)
+                executor, _po_execute, package, "update_at", target, store_mode=store_mode, user_request=user_request)
         elif operation == PackageOperation.REMOVE:
             promise = Promise.execute(executor, _po_execute, package, "uninstall")
 
@@ -339,16 +354,12 @@ class _UserRequestPackage(Package):
         return Dependency(self.name, VersionMatch(self.version))
 
 
-def _norm_pname(p: str) -> str:
-    return PackageDescriptor.normalize_src_package_name(p).lower()
-
-
 class _RemovalRepository(AbstractRepository):
 
     def __init__(self, preinstalled: List[InstalledPackage], user_request: Package):
         super().__init__('removal repository')
         self._preinstalled: Dict[str, InstalledPackage] = {
-            _norm_pname(p.name): p
+            p.name_key: p
             for p in preinstalled
         }
 
@@ -358,7 +369,7 @@ class _RemovalRepository(AbstractRepository):
         if dependency.package_name == self._user_request.name:
             return [self._user_request]
 
-        match = self._preinstalled.get(_norm_pname(dependency.package_name))
+        match = self._preinstalled.get(dependency.package_name_key)
         return [_RemovalPackage(match)] if match else []
 
 
@@ -386,8 +397,12 @@ class _RemovalPackage(Package, IPCPackable):
         return self.package.is_compatible_with(env)
 
     def install_to(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-                   editable: bool = True):
+                   store_mode: StoreMode = StoreMode.AUTO):
         raise UnsupportedOperationException()
+
+    def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
+                  store_mode: StoreMode = StoreMode.AUTO):
+        self.package.update_at(target, user_request, store_mode)
 
 
 @delegate(Repository, '_repo')
@@ -398,7 +413,7 @@ class _InstallationRepository(Repository, ABC):
 
         assert repo, "no repository provided"
         self._user_request = user_request
-        self._installed_packages: Dict[str, InstalledPackage] = {p.name: p for p in installed_packages}
+        self._installed_packages: Dict[str, InstalledPackage] = {p.name_key: p for p in installed_packages}
         self._fast_plan_mode = fast_plan_mode
         self._unspecified_spec_packages = unspecified_spec_packages
         self._repo = repo
@@ -407,10 +422,10 @@ class _InstallationRepository(Repository, ABC):
         if isinstance(dependency, str):
             dependency = Dependency.parse(dependency)
 
-        if dependency.package_name == self._user_request.name:
+        if dependency.package_name_key == self._user_request.name_key:
             return [self._user_request]
 
-        if installed := self._installed_packages.get(dependency.package_name):
+        if installed := self._installed_packages.get(dependency.package_name_key):
             # installed = _UpdatableInstalledPackage(installed, self._repo)
             if self._fast_plan_mode:
                 return [installed]
@@ -418,7 +433,7 @@ class _InstallationRepository(Repository, ABC):
         packages = self._repo.match(dependency, env)
         if installed:
             packages.sort(key=lambda it: 0 if installed.version == it.version else 1)
-        elif self._fast_plan_mode and dependency.package_name in self._unspecified_spec_packages:
+        elif self._fast_plan_mode and dependency.package_name_key in self._unspecified_spec_packages:
             max_version_package = max(packages, key=lambda it: it.version)
             if not isinstance(max_version_package.version, StandardVersion):
                 unspecified_limit = VersionMatch(max_version_package.version)
@@ -428,25 +443,3 @@ class _InstallationRepository(Repository, ABC):
             packages = [p for p in packages if unspecified_limit.allows_version(p.version)]
 
         return packages
-
-#
-# @delegate(Package, '_installed')
-# class _UpdatableInstalledPackage(Package, ABC):
-#     def __init__(self, installed: InstalledPackage, repo: Repository):
-#         self._installed = installed
-#         self.repo = repo
-#
-#     @property
-#     def descriptor(self) -> PackageDescriptor:
-#         return self._installed.descriptor
-#
-#     @property
-#     def published_metadata(self) -> Optional["PackageMetadata"]:
-#         return self._installed.published_metadata
-#
-#     def update_at(self, target: "PackageInstallationTarget", user_request: Optional["Dependency"] = None,
-#                   editable: bool = True):
-#         new_ver = single_or_raise(self.repo.match(self._installed.descriptor.to_dependency(), target.env))
-#         user_request = self._installed.user_request if user_request is None else user_request
-#         self._installed.uninstall()
-#         new_ver.install_to(target, user_request=user_request, editable=editable)
