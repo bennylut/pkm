@@ -1,15 +1,15 @@
-import atexit
 import os
 from abc import abstractmethod
 from contextlib import contextmanager
-from rich.theme import Theme
 from threading import RLock, Thread, Condition
 from typing import Optional, Protocol, TypeVar, ContextManager, List
 
+import atexit
+import questionary as q
 from rich.console import ConsoleRenderable, Console, ConsoleOptions, RenderResult
 from rich.live import Live
+from rich.theme import Theme
 from time import sleep
-import questionary as q
 
 _PKM_THEME = Theme({
     'h1': "green_yellow"
@@ -88,9 +88,10 @@ class _Display:
         if self._dumb:
             self.print("using dumb display")
 
-    def print(self, msg: str, *, newline: bool = True, use_markup: bool = True):
+    def print(self, msg: str = "", *, newline: bool = True, use_markup: bool = True):
         with console_lock:
             self._console.print(msg, end=os.linesep if newline else '', markup=use_markup)
+
 
     def ask(self, prompt: str) -> str:
         return q.text(prompt).ask()

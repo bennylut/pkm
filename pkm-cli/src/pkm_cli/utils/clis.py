@@ -67,15 +67,16 @@ class Command:
     handler: _CommandHandler
     help: str
     kwargs: Dict[str, Any]
+    add_help: bool = True
 
     @classmethod
     def of(cls, func: FunctionType) -> Optional[Command]:
         return getattr(func, "__command", None)
 
 
-def command(path: str, *args: Arg, **kwargs):
+def command(path: str, *args: Arg, add_help: bool = True, **kwargs):
     def _command(func: _CommandHandler) -> _CommandHandler:
-        func.__command = Command(path, args, func, func.__doc__, kwargs)
+        func.__command = Command(path, args, func, func.__doc__, kwargs, add_help)
         return func
 
     return _command
@@ -100,7 +101,7 @@ class SubParsers:
                 nsp = sp._subparsers[p] = SubParsers(new_parser)
             sp = nsp
 
-        parser = sp._subparsers_holder.add_parser(path[-1])
+        parser = sp._subparsers_holder.add_parser(path[-1], add_help=cmd.add_help)
         if cmd.help:
             parser.description = cmd.help
 
@@ -113,6 +114,7 @@ class SubParsers:
             parser.add_argument(*name_or_flags, **d)
 
         parser.set_defaults(func=cmd.handler)
+        # parser.add_help = cmd.add_help
         return parser
 
 
@@ -144,4 +146,3 @@ def create_args_parser(
 
     main.parse_args = parse_args
     return main
-

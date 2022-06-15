@@ -57,7 +57,7 @@ class ProjectGroup(HasAttachedRepository, IPCPackable):
         :return: the parent of this project group (if such exists)
         """
         if not (parent := self._config.parent):
-            return ProjectGroup._find_parent(self.path.resolve())
+            return ProjectGroup._find_group(self.path.resolve())
         else:
             return ProjectGroup(PyProjectGroupConfiguration.load(
                 ensure_exists(parent, lambda: f"{self.path}'s parent path {parent} doesn't exists")
@@ -136,12 +136,12 @@ class ProjectGroup(HasAttachedRepository, IPCPackable):
                 project.build_all()
 
     @classmethod
-    def _find_parent(cls, path: Path) -> Optional["ProjectGroup"]:
+    def _find_group(cls, path: Path) -> Optional["ProjectGroup"]:
         for path_parent in path.parents:
-            if (parent_config_file := (path_parent / 'pyproject-group.toml')).exists():
-                parent_config = PyProjectGroupConfiguration.load(parent_config_file)
-                if any(child == path for child in parent_config.resolved_children):
-                    return ProjectGroup(parent_config)
+            if (group_config_file := (path_parent / 'pyproject-group.toml')).exists():
+                group_config = PyProjectGroupConfiguration.load(group_config_file)
+                if any(child == path for child in group_config.resolved_children):
+                    return ProjectGroup(group_config)
         return None
 
     @classmethod
@@ -152,7 +152,7 @@ class ProjectGroup(HasAttachedRepository, IPCPackable):
         """
         if (pkm_project := project.config.pkm_project) and (group := pkm_project.group):
             return ProjectGroup(PyProjectGroupConfiguration.load(resolve_relativity(Path(group), project.path)))
-        return cls._find_parent(project.path)
+        return cls._find_group(project.path)
 
     @classmethod
     def load(cls, path: Path) -> "ProjectGroup":
@@ -180,7 +180,7 @@ class PyProjectGroupConfiguration(ConfigFile):
 
     @property
     def resolved_children(self) -> Iterable[Path]:
-        return (self.path.joinpath(it).resolve() for it in self.children)
+        return (self.path.parent.joinpath(it).resolve() for it in self.children)
 
     @property
     def name(self) -> str:

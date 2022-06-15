@@ -110,14 +110,17 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
         plan.store_modes = store_mode
         plan.execute()
 
-    def force_remove(self, package: str):
+    def force_remove(self, package: str) -> bool:
         """
         forcefully remove the required package, will not remove its dependencies and will not check if other packages
         depends on it - use this method with care (or don't use it at all :) )
         :param package: the name of the package to be removed
+        :return: True if the package was found and removed, False otherwise
         """
         if installed := self.site_packages.installed_package(package):
             installed.uninstall()
+            return True
+        return False
 
     def plan_installation(
             self, dependencies: List[Dependency], repository: Repository,

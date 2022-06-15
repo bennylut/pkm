@@ -1,39 +1,40 @@
 ## RUNNING TASKS:
-
-## DONE IN THIS VERSION
-- change editable mode to 3 state enum
-- drop pkm shell
-- bugs: in many places a dictionary from package name to something is used, these places are vulnerable to package
-  aliasing mistakes, make a standard package_key value to be used in all these places 
-
-## BACKLOG TASKS:
-- bug: uninstall does not delete the ".lib" directories but installer did created them
+- refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
+- cmd: pkm uninstall - display the packages being removed
+- bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
 - content information (author and maintainer) name and email should be validated before publishing,
     - should use the email.utils.formataddr
-- refactoring - rename pkm show to pkm reports, support `pkm report {report_type}`
-- `pkm show *` should also show containerized applications
-- `pkm show context` should changed for a simple `pkm show`
-- pkm show : print cache size, attached repository, etc.
-- pkm show: add repositories information
+
+
+## DONE IN THIS VERSION
 - cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
+- on contextes that has attached repository - print its information.
+- repository management further standartized, can now examine chain and, the same chain is used for all operations
+- pkm self status: print cache size, flags 
+- pkm status add help flag showing options
+- `pkm show context` should changed for a simple `pkm status`
+- `pkm show *` should also show containerized applications
+
+## BACKLOG TASKS:
+- check ideas for multiple progress bar tui here: https://github.com/Textualize/rich/discussions/1500 also, consider
+  putting the progressbar on the left ([===>  ] task description)
+- consider replacing questionary with rich.prompt
+- bug: uninstall does not delete the ".lib" directories but installer did created them
 - `pkm run` support custom environment variables loading like in pipenv
 - bug: installing installed package should make it user requested but it does not
 - replace copy-transaction with "temp-env" install and then sync to actual env if successfull (this should be made
   outside of the package control, by the installer itself)
-- need to implement my own process pool executor - with better cancel support + interprocess monitoring support
 - qol: package build log should allways be sent into a file, this file can then be suggested to the user if he run on
   non verbose mode
 - bug: version printing expand the ~= operator
 - pkm build: cycle detection is not good enough (may fail on multithreading) should move to build session
 - documentation: document builtin templates
-- cmd: pkm uninstall - display the packages being removed
 - bug: running in dumb terminal log almost nothing
 - look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - documentation: environments
 - documentation: how to work with multiprojects in pycharm
 - documentation: mostly rewrite and extend the projects documentation
-- bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
@@ -42,7 +43,6 @@
 - add git repository type
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
-- refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
 - refactoring: rename version specifiers according to pep440
 - clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
   metadata (as defined in PEP 459).

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Iterable, Union
+from typing import Dict, List, Optional, Tuple, Iterable, Union, Set
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -10,7 +10,8 @@ from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.pkm import HasAttachedRepository, Pkm, pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
-from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
+from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig, \
+    RepositoriesConfigInheritanceMode
 from pkm.api.repositories.repository import Repository, AbstractRepository, RepositoryPublisher
 from pkm.api.repositories.repository_loader import RepositoryLoader, REPOSITORIES_CONFIGURATION_PATH
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
@@ -30,29 +31,54 @@ class RepositoryManagement(ABC):
         self.configuration = cfg
 
     @abstractmethod
-    def _load_attached(self) -> Repository:
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
         ...
 
     @cached_property
     def _publishers(self) -> Dict[str, Optional[RepositoryPublisher]]:
         return {}  # it is cached only so that _update_config will clear it
 
+    @property
     @abstractmethod
-    def parent_contexts(self) -> List[HasAttachedRepository]:
+    def context(self) -> HasAttachedRepository:
         ...
+
+    @abstractmethod
+    def parent_contexts(self) -> List[Tuple[HasAttachedRepository, bool]]:
+        """
+        :return: list of parent contextes, an item in this list is a tuple, its second value represents if the
+        given parent chain is inherited from (false indicate that we only looking at the direct configuration of
+        the parent)
+        """
+
+    def package_lookup_chain(self) -> List[RepositoryManagement]:
+        if self.configuration.inheritance_mode == RepositoriesConfigInheritanceMode.INHERIT_GLOBAL:
+            return [pkm.repository_management]
+        elif self.configuration.inheritance_mode != RepositoriesConfigInheritanceMode.INHERIT_CONTEXT:
+            return [self]
+
+        pending: List[Tuple[RepositoryManagement, bool]] = [(self, True)]
+        closed: Set[Path] = set()
+        chain: List[RepositoryManagement] = []
+
+        while next_ := pop_or_none(pending):
+            rman, inherit = next_
+            if not try_add(closed, rman.configuration.path):
+                continue
+            chain.append(rman)
+            if inherit:
+                pending.extend(
+                    (context.repository_management, inherit) for (context, inherit) in rman.parent_contexts())
+
+        return chain
 
     def publisher_for(self, name: str) -> Optional[RepositoryPublisher]:
         if name in self._publishers:
             return self._publishers[name]
 
-        contexes: List[RepositoryManagement] = [self]
-        opened = set()
-        while context := pop_or_none(contexes):
-            if not try_add(opened, id(context)):
-                continue
-            contexes.extend((it.repository_management for it in context.parent_contexts()))
-            for repo_config in context.defined_repositories():
-                if repo_config.name == name:
+        for rman in self.package_lookup_chain():
+            for repo_name, repo_config in rman.configuration.repos.items():
+                if repo_name == name:
                     result = self._publishers[name] = self._loader.build(name, repo_config).publisher
                     return result
 
@@ -77,7 +103,13 @@ class RepositoryManagement(ABC):
 
     @cached_property
     def attached_repo(self) -> Repository:
-        return self._load_attached()
+        repo = None
+        for rman in reversed(self.package_lookup_chain()):
+            if not isinstance(rman, PkmRepositoryManagement) and rman.configuration.path.exists():
+                repo = self._loader.load(str(rman.configuration.path), rman.configuration, repo)
+            repo = rman._wrap_attached_repository(repo)
+
+        return repo
 
     def _update_config(self):
         self.configuration.save()
@@ -114,11 +146,15 @@ class PkmRepositoryManagement(RepositoryManagement):
         super().__init__(pkm_.repository_loader.global_repo_config, pkm_.repository_loader)
         self.pkm = pkm_
 
-    def _load_attached(self) -> Repository:
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
         return self._loader.global_repo
 
     def parent_contexts(self) -> List[HasAttachedRepository]:
         return []
+
+    @property
+    def context(self) -> HasAttachedRepository:
+        return self.pkm
 
 
 class EnvRepositoryManagement(RepositoryManagement):
@@ -127,18 +163,15 @@ class EnvRepositoryManagement(RepositoryManagement):
         super().__init__(_config_at(env.path), loader)
         self.env = env
 
-    def parent_contexts(self) -> List[HasAttachedRepository]:
-        return [self.env.zoo or pkm]
+    @property
+    def context(self) -> HasAttachedRepository:
+        return self.env
 
-    def _load_attached(self) -> Repository:
-        repo = self._loader.global_repo
-        if zoo := self.env.zoo:
-            repo = zoo.attached_repository
+    def parent_contexts(self) -> List[Tuple[HasAttachedRepository, bool]]:
+        return [(self.env.zoo or pkm, True)]
 
-        if self.configuration.path.exists():
-            repo = self._loader.load("env-configured-repository", self.configuration, repo)
-
-        return repo
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
+        return inherited
 
 
 class ZooRepositoryManagement(RepositoryManagement):
@@ -147,32 +180,18 @@ class ZooRepositoryManagement(RepositoryManagement):
         super().__init__(_config_at(zoo.path), loader)
         self.zoo = zoo
 
-    def parent_contexts(self) -> List[HasAttachedRepository]:
-        return [pkm]
+    @property
+    def context(self) -> HasAttachedRepository:
+        return self.zoo
 
-    def _load_attached(self) -> Repository:
-        repo = self._loader.global_repo
-        if self.configuration.path.exists():
-            repo = self._loader.load("zoo-configured-repository", self.configuration, repo)
+    def parent_contexts(self) -> List[Tuple[HasAttachedRepository, bool]]:
+        return [(pkm, True)]
 
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
         if self.zoo.config.package_sharing.enabled:
-            repo = SharedPackagesRepository(self.zoo.path / ".zoo/shared", repo)
+            inherited = SharedPackagesRepository(self.zoo.path / ".zoo/shared", inherited)
 
-        return repo
-
-
-def _load_for_project_group(
-        loader: RepositoryLoader,
-        group: ProjectGroup,
-        config: RepositoriesConfiguration,
-        base_repo: Optional[Repository] = None) -> Repository:
-    repo = base_repo or loader.global_repo
-
-    if config.path.exists():
-        repo = loader.load("group-configured-repository", config, repo)
-
-    repo = _ProjectsRepository.create("group-projects-repository", group.project_children_recursive, repo)
-    return repo
+        return inherited
 
 
 class ProjectRepositoryManagement(RepositoryManagement):
@@ -181,24 +200,21 @@ class ProjectRepositoryManagement(RepositoryManagement):
         super().__init__(_config_at(project.path), loader)
         self.project = project
 
-    def parent_contexts(self) -> List[HasAttachedRepository]:
-        result = [self.project.attached_environment]
+    @property
+    def context(self) -> HasAttachedRepository:
+        return self.project
+
+    def parent_contexts(self) -> List[Tuple[HasAttachedRepository, bool]]:
+        result = [(self.project.attached_environment, True)]
         if self.project.group:
-            result.append(self.project.group)
+            result.append((self.project.group, False))
 
         return result
 
-    def _load_attached(self) -> Repository:
-        repo = self.project.attached_environment.attached_repository
-
-        if group := self.project.group:
-            repo = _load_for_project_group(self._loader, group, _config_at(group.path), repo)
-        else:
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
+        repo = inherited
+        if not self.project.group:
             repo = _ProjectsRepository.create('project-repository', [self.project], repo)
-
-        if self.configuration.path.exists():
-            repo = self._loader.load("project-configured-repository", self.configuration, repo)
-
         repo = LockPrioritizingRepository(
             "lock-prioritizing-repository", repo, self.project.lock,
             self.project.attached_environment)
@@ -212,11 +228,16 @@ class ProjectGroupRepositoryManagement(RepositoryManagement):
         super().__init__(_config_at(group.path), loader)
         self.group = group
 
-    def _load_attached(self) -> Repository:
-        return _load_for_project_group(self._loader, self.group, self.configuration, None)
+    @property
+    def context(self) -> HasAttachedRepository:
+        return self.group
 
-    def parent_contexts(self) -> List[HasAttachedRepository]:
-        return [pkm]
+    def parent_contexts(self) -> List[Tuple[HasAttachedRepository, bool]]:
+        return [(pkm, True)]
+
+    def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
+        group = self.group
+        return _ProjectsRepository.create("group-projects-repository", group.project_children_recursive, inherited)
 
 
 class _ProjectsRepository(AbstractRepository):

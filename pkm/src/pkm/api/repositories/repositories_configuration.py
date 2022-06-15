@@ -6,14 +6,15 @@ from typing import Any, Dict, Mapping
 
 from pkm.config.configclass import config, config_field, ConfigFile
 from pkm.config.configfiles import TomlConfigIO
+from pkm.utils.enums import enum_by_value
 from pkm.utils.hashes import HashBuilder
 from pkm.utils.properties import cached_property
 
 
 class RepositoriesConfigInheritanceMode(Enum):
-    INHERIT_CONTEXT = 0,
-    INHERIT_GLOBAL = 1,
-    NO_INHERITANCE = 2
+    INHERIT_CONTEXT = "context"
+    INHERIT_GLOBAL = "global"
+    NO_INHERITANCE = "none"
 
 
 @dataclass(eq=True)
@@ -32,16 +33,10 @@ class RepositoryInstanceConfig:
 
 @config(io=TomlConfigIO())
 class RepositoriesConfiguration(ConfigFile):
-    repos: Dict[str, RepositoryInstanceConfig]
+    repos: Dict[str, RepositoryInstanceConfig] = config_field(default_factory=dict)
     inheritance: str = "context"
     package_bindings: Mapping[str, Any] = config_field(key="package-bindings", default_factory=dict)
 
     @cached_property
     def inheritance_mode(self) -> RepositoriesConfigInheritanceMode:
-        value = self.inheritance
-        if value is not None:
-            if value == "global":
-                return RepositoriesConfigInheritanceMode.INHERIT_GLOBAL
-            if not value:
-                return RepositoriesConfigInheritanceMode.NO_INHERITANCE
-        return RepositoriesConfigInheritanceMode.INHERIT_CONTEXT
+        return enum_by_value(RepositoriesConfigInheritanceMode, self.inheritance)

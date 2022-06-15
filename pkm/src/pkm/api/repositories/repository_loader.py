@@ -88,11 +88,11 @@ class RepositoryLoader:
         package_search_list = []
         binding_only_repositories = set()
 
-        for name, definition in config.repos.items():
-            instance = self.build(name, definition)
+        for defined_name, definition in config.repos.items():
+            instance = self.build(defined_name, definition)
             package_search_list.append(instance)
             if definition.bind_only:
-                binding_only_repositories.add(definition.name)
+                binding_only_repositories.add(defined_name)
 
         if config.inheritance_mode == RepositoriesConfigInheritanceMode.INHERIT_CONTEXT:
             package_search_list.append(next_in_context)

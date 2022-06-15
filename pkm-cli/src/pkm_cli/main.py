@@ -21,7 +21,7 @@ from pkm.api.projects.project_group import ProjectGroup
 from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.commons import UnsupportedOperationException
-from pkm.utils.enums import enum_value_of
+from pkm.utils.enums import enum_by_name
 from pkm.utils.processes import execvpe
 from pkm_cli import cli_monitors
 from pkm_cli.api.tasks.tasks_runner import TasksRunner
@@ -33,7 +33,9 @@ from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
 from pkm_cli.reports.environment_report import EnvironmentReport
 from pkm_cli.reports.installed_repositories_report import InstalledRepositoriesReport
 from pkm_cli.reports.package_report import PackageReport
+from pkm_cli.reports.pkm_report import PkmReport
 from pkm_cli.reports.project_report import ProjectReport
+from pkm_cli.reports.report import Report
 from pkm_cli.utils.clis import command, Arg, create_args_parser, Command, with_extras
 from pkm_cli.utils.context import Context
 
@@ -43,15 +45,35 @@ tasks: Optional[TasksRunner] = None
 
 def _cli_container() -> PackageInstallationTarget:
     global_env = Environment.current()
-    if pkm_container := global_env.app_containers.container_of('pkm-cli'):
+    if pkm_container := global_env.package_containers.container_of('pkm-cli'):
         return pkm_container.installation_target
     return global_env.installation_target
 
 
+def status_command(path: str):
+    return command(
+        path, Arg(['-l', '--list-options'], action='store_true'), Arg(['-i', '--include'], nargs='*'),
+        Arg(['-x', '--exclude'], nargs='*'))
+
+
+def _show_status(report: Report, args: Namespace):
+    Display.print()
+
+    if args.list_options:
+        report.display_options()
+        return
+
+    options = {}
+    options.update({s: True for s in args.include or []})
+    options.update({s: False for s in args.exclude or []})
+
+    report.display(options)
+
+
 # noinspection PyUnusedLocal
-@command('pkm self version')
+@status_command('pkm self status')
 def self_version(args: Namespace):
-    SelfController().print_version()
+    _show_status(PkmReport(), args)
 
 
 @command('pkm self update', Arg(["-s", "--version-spec"], default="*"))
@@ -67,7 +89,7 @@ def self_update(args: Namespace):
     Arg('packages', nargs=argparse.REMAINDER, help="the packages to install (support pep508 dependency syntax)"))
 def self_install(args: Namespace):
     dependencies = [Dependency.parse(d) for d in args.packages]
-    store_mode = enum_value_of(StoreMode, args.mode.upper())
+    store_mode = enum_by_name(StoreMode, args.mode.upper())
     SelfController().install_plugins(dependencies, store_mode=store_mode, update=args.update)
 
 
@@ -206,7 +228,7 @@ def install(args: Namespace):
     """
 
     dependencies = [Dependency.parse(it) for it in args.packages]
-    store_mode = enum_value_of(StoreMode, args.mode.upper())
+    store_mode = enum_by_name(StoreMode, args.mode.upper())
 
     def register_repo_bindings(contex: HasAttachedRepository):
         if repo := args.repo:
@@ -242,7 +264,7 @@ def install(args: Namespace):
         if dependencies:
             target = env.installation_target
             if args.app:
-                target = env.app_containers.install(
+                target = env.package_containers.install(
                     dependencies[0], store_mode=store_mode,
                     update=args.update and len(dependencies) == 1).installation_target
                 dependencies = dependencies[1:]
@@ -271,7 +293,7 @@ def uninstall_orphans(args: Namespace):
              help="remove the requested packages even if they are dependant of other packages, "
                   "will not remove any other packages or update pyproject"),
          Arg('package_names', nargs=argparse.REMAINDER, help="the packages to remove"))
-def remove(args: Namespace):
+def uninstall(args: Namespace):
     """
     remove packages from the current context
     """
@@ -298,14 +320,9 @@ def remove(args: Namespace):
             project.dev_uninstall(package_names)
 
     def on_environment(env: Environment):
-        if app_install:
-            if container := env.installation_target.package_containers.container_of(package_names[0]):
-                if len(package_names) == 1:
-                    container.uninstall()
-                else:
-                    _remove(container.installation_target, package_names[1:])
-        else:
-            _remove(env.installation_target, package_names)
+        app = args.package_names[0] if args.app else None
+        package_names = args.package_names[1:] if args.app else args.package_names
+        EnvController(env).uninstall(package_names, args.force, app)
 
     context.run(**locals())
 
@@ -354,21 +371,13 @@ def new(args: Namespace):
         Display.print("Template Execution Completed Successfully.")
 
 
-@command('pkm status', Arg("report_options", nargs=argparse.REMAINDER))
+@status_command('pkm status')
 def status(args: Namespace):
-    options = {}
-    option: str
-    for option in args.report_options:
-        if option[0] in ('+', '-'):
-            options[option[1:]] = option[0] == '+'
-        else:
-            options[option] = True
-
     def on_project(project: Project):
-        ProjectReport(project).display()
+        _show_status(ProjectReport(project), args)
 
     def on_environment(env: Environment):
-        EnvironmentReport(env, options).display()
+        _show_status(EnvironmentReport(env), args)
 
     context.run(**locals())
 

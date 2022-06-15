@@ -47,7 +47,7 @@ class PackageContainer:
         """
         site = self._target.site_packages
         result = None
-        if self.package.name.endswith(_CONTAINERIZED_WRAPPER_SUFFIX):
+        if self.package.name_key.endswith(_CONTAINERIZED_WRAPPER_SUFFIX):
             result = site.installed_package(self.package.name[:-len(_CONTAINERIZED_WRAPPER_SUFFIX)])
 
         return result or site.installed_package(self.package.name)
@@ -71,7 +71,9 @@ class PackageContainer:
         """
         return [it
                 for it in self._target.site_packages.installed_packages()
-                if it.dist_info.is_user_requested() and it.name != self.package.name]
+                if it.dist_info.is_user_requested()
+                and it.name != self.containerized_package.name
+                and it.name != self.package.name]
 
 
 class PackageContainers:

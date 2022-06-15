@@ -1,14 +1,12 @@
 from typing import List, Optional
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.package_containers import PackageContainer
 from pkm.api.packages.package import Package
-from pkm.api.pkm import pkm
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.versions.version_specifiers import VersionSpecifier, AllowAllVersions
 from pkm.utils.properties import cached_property
-from pkm_cli.display.display import Display
 
 
 class SelfController:
@@ -17,18 +15,12 @@ class SelfController:
         pkm_cli_container: PackageContainer
 
         self._installation_target = self.global_environment.installation_target
-        if pkm_cli_container := self.global_environment.app_containers.container_of('pkm-cli'):
+        if pkm_cli_container := self.global_environment.package_containers.container_of('pkm-cli'):
             self._installation_target = pkm_cli_container.installation_target
 
     @cached_property
     def pkm_cli_package(self) -> Package:
         return self._installation_target.site_packages.installed_package('pkm-cli')
-
-    def print_version(self):
-        package = self.pkm_cli_package
-        Display.print(f"pkm-cli {package.version}")
-        Display.print(f"global environment: {self.global_environment.path}")
-        Display.print(f"home path: {pkm.home}")
 
     def install_plugins(
             self, dependencies: List[Dependency], store_mode: StoreMode = StoreMode.AUTO, update: bool = False):

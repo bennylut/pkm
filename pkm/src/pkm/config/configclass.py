@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TypeVar, Dict, Any, Type, Generic, List, Mapping, Optional, Callable, Protocol
 
 from pkm.utils.commons import NoSuchElementException, UnsupportedOperationException
-from pkm.utils.enums import enum_value_of
+from pkm.utils.enums import enum_by_name
 from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import clear_cached_properties
 
@@ -173,7 +173,7 @@ _ParsableFieldCodec = _ParsableFieldCodec()
 class _EnumFieldCodec(ConfigFieldCodec):
 
     def parse(self, parent: ConfigCodec, type_: Type[Enum], v: Any) -> _T:
-        return enum_value_of(type_, v)
+        return enum_by_name(type_, v)
 
     def unparse(self, parent: ConfigCodec, type_: Type, v: _T) -> Any:
         return v.name

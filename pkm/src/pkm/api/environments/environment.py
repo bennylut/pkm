@@ -71,7 +71,7 @@ class Environment(HasAttachedRepository, IPCPackable):
         return None
 
     @property
-    def app_containers(self) -> "PackageContainers":
+    def package_containers(self) -> "PackageContainers":
         return self.installation_target.package_containers
 
     @cached_property

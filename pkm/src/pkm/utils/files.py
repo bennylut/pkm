@@ -287,3 +287,26 @@ def is_relative_to(path: Path, root: Path) -> bool:
     """
 
     return str(path.absolute()).startswith(str(root.absolute()))
+
+
+def dir_size(directory: Path) -> int:
+    """
+    recursively computes the sum of sizes of all files in `directory`
+    :param directory: the directory to compute size for
+    :return: the size in bytes
+    """
+
+    return sum(file.stat().st_size for file in Path(directory).rglob('*'))
+
+
+def numbytes_to_human(numbytes: int) -> str:
+    """
+    format `numbytes` into a human readable size
+    :param numbytes: the amount of bytes to format
+    :return: human readable formatted text
+    """
+    sizes = 'TGMK'
+    for i, s in enumerate(sizes):
+        if numbytes >= (sz := 1 << ((len(sizes) - i) * 10)):
+            return f"{numbytes / sz:.2f}{s}"
+    return f'{numbytes}B'
