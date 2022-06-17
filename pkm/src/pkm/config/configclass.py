@@ -373,7 +373,7 @@ class ConfigField:
 
     def to_dataclass_field(self) -> dataclasses.Field:
         if self.default_factory:
-            return dataclasses.field(default=self.default)  # noqa
+            return dataclasses.field(default_factory=self.default_factory)  # noqa
 
         return dataclasses.field(default=self.default)  # noqa
 

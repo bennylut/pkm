@@ -15,6 +15,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.pth_link import PthLink
 from pkm.api.environments.environment_introspection import EnvironmentIntrospection
 from pkm.api.packages.package_installation import PackageInstallationTarget
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.packages.site_packages import SitePackages
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.repositories.repository import Repository
@@ -251,39 +252,44 @@ class Environment(HasAttachedRepository, IPCPackable):
         PthLink(pth_file, paths, imports).save()
 
     def install(
-            self, dependencies: _DEPENDENCIES_T, repository: Optional[Repository] = None, user_requested: bool = True,
+            self, dependencies: List[Dependency], repository: Optional[Repository] = None, user_requested: bool = True,
             dependencies_override: Optional[Dict[str, List[Dependency]]] = None,
-            editables: Optional[Dict[str, bool]] = None, updates: Optional[List[str]] = None):
+            store_modes: Optional[Dict[str, StoreMode]] = None, updates: Optional[List[str]] = None):
         """
         installs the given set of dependencies into this environment.
         see: `prepare_installation` for more information about this method arguments
         """
 
         self.installation_target.install(
-            _coerce_dependencies(dependencies), repository, user_requested, dependencies_override, editables,
-            updates)
+            dependencies, repository, user_requested, dependencies_override, store_modes, updates)
 
-    def force_remove(self, package: str):
-        """
-        forcefully remove the required package, will not remove its dependencies and will not check if other packages
-        depends on it - use this method with care (or don't use it at all :) )
-        :param package: the name of the package to be removed
-        """
-        self.installation_target.force_remove(package)
-
-    def uninstall(self, packages: _PACKAGE_NAMES_T) -> Set[str]:
+    def uninstall(self, packages: List[str], force: bool = False) -> Set[str]:
         """
         attempt to remove the required packages from this env together will all the dependencies that may become orphan
         as a result of this step.
 
-        if a package `p in packages` is a dependency (directly or indirectly) of another
+        if the force flag is set, will not remove the packages dependencies and will not check if other packages
+        depends on them - use this method with care (or don't use it at all :) )
+
+        otherwise, if a package `p in packages` is a dependency (directly or indirectly) of another
         "user requested" package `q not in packages` then `p` will be kept in the environment but its
         "user requested" flag will be removed (if it was existed)
 
         :param packages: the package names to remove
+        :param force: whether to use force uninstallation
         :return the set of package names that were successfully removed from the environment
         """
-        return self.installation_target.uninstall(_coerce_package_names(packages))
+
+        itarget = self.installation_target
+
+        if force:
+            result = set()
+            for package in packages:
+                if itarget.force_remove(package):
+                    result.add(package)
+            return result
+        else:
+            return itarget.uninstall(packages)
 
     @cached_property
     def entrypoints(self) -> Dict[str, List[EntryPoint]]:
@@ -337,20 +343,6 @@ class Environment(HasAttachedRepository, IPCPackable):
     @classmethod
     def load(cls, path: Union[Path, str]) -> Environment:
         return cls(Path(path))
-
-
-def _coerce_dependencies(dependencies: _DEPENDENCIES_T) -> List[Dependency]:
-    if isinstance(dependencies, str):
-        return [Dependency.parse(dependencies)]
-    if isinstance(dependencies, Dependency):
-        return [dependencies]
-    return [cd for dep in dependencies for cd in _coerce_dependencies(dep)]
-
-
-def _coerce_package_names(package_names: _PACKAGE_NAMES_T) -> List[str]:
-    if isinstance(package_names, str):
-        return [package_names]
-    return package_names
 
 
 def _find_interpreter(env_root: Path) -> Optional[Path]:

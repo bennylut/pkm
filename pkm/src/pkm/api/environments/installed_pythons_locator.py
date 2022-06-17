@@ -20,20 +20,20 @@ from pkm.utils.systems import is_executable
 
 class InstalledPythonsLocator:
 
+    def __init__(self, search_paths: Optional[List[str]] = None):
+        self._search_paths = search_paths or []
+
     @cached_property
     def all_installed(self) -> List[InstalledInterpreter]:
         result: List[InstalledInterpreter] = []
         executeables_matched: Set[Path] = set()
 
-        # add current interpreter
-        current_interpreter_path = Path(sys.executable)
-        current_interpreter = InstalledInterpreter(
-            current_interpreter_path, PackageDescriptor("python", Version.parse(platform.python_version())))
-        executeables_matched.add(current_interpreter_path)
-        result.append(current_interpreter)
-
         # add interpreters in path
-        interpreters_in_path = _interpreters_in_path()
+        print(f"DBG: search path = {self._search_paths}")
+        interpreters_in_path = _lookup_in_env_path()
+        for sp in self._search_paths:
+            interpreters_in_path.update(_lookup_in_path(Path(sp).expanduser()))
+        interpreters_in_path.add(Path(sys.executable).resolve())
         for interpreter_path in interpreters_in_path:
             try:
                 cmdout = subprocess.run(
@@ -89,19 +89,28 @@ _OS = platform.system()
 _PYTHON_EXEC_RX = re.compile(r"python-?[\d.]*(.exe)?")
 
 
-def _interpreters_in_path() -> Set[Path]:
-    path_parts = [path for it in (os.environ.get("PATH") or "").split(os.pathsep) if (path := Path(it)).exists()]
+def _as_python_executeable(file: Path) -> Optional[Path]:
+    if (not file.is_dir()) and _PYTHON_EXEC_RX.fullmatch(file.name.lower()) and is_executable(file):
+        try:
+            return file.resolve()
+        except:  # noqa
+            pass
+    return None
 
-    def as_python_executeable(file: Path) -> Optional[Path]:
-        if _PYTHON_EXEC_RX.fullmatch(file.name.lower()) and is_executable(file):
-            try:
-                return file.resolve()
-            except:  # noqa
-                pass
-        return None
+
+def _lookup_in_path(path: Path):
+    return {
+        executable
+        for file in path.rglob("python")
+        if (executable := _as_python_executeable(file))
+    }
+
+
+def _lookup_in_env_path() -> Set[Path]:
+    path_parts = [path for it in (os.environ.get("PATH") or "").split(os.pathsep) if (path := Path(it)).exists()]
 
     return {
         executable
         for path in path_parts
         for file in path.iterdir()
-        if (executable := as_python_executeable(file))}
+        if (executable := _as_python_executeable(file))}

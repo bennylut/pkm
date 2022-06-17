@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from pkm.config.configclass import config, config_field, ConfigFile
 from pkm.config.configfiles import TomlConfigIO
@@ -31,11 +31,19 @@ class _PkmRepositories:
     main: "Repository"
 
 
+# @dataclass
+# @config(io=TomlConfigIO())
+# class PkmGlobalFlags(ConfigFile):
+#     : can be: "proc", "thread", "none"
+# package_installation_parallelizm: str = config_field(key="package-installation-parallelism", default="proc")
+
+
 @dataclass
 @config(io=TomlConfigIO())
-class PkmGlobalFlags(ConfigFile):
+class PkmGeneralConfiguration(ConfigFile):
     #: can be: "proc", "thread", "none"
-    package_installation_parallelizm: str = config_field(key="package-installation-parallelizm", default="proc")
+    concurrency_mode: str = config_field(key="concurrency.mode", default="proc")
+    interpreters_search_paths: List[str] = config_field(key='interpreters.search-paths', default_factory=list)
 
 
 class HasAttachedRepository(ABC):
@@ -60,12 +68,21 @@ class Pkm(HasAttachedRepository):
         self.threads = ThreadPoolExecutor()
         self.processes = ProcessPoolExecutor()
         self._home = home
-        self.global_flags = PkmGlobalFlags.load(home / 'etc/pkm/global_flags.toml')
+
+    @cached_property
+    def config(self) -> PkmGeneralConfiguration:
+        general_config = self.home / 'etc/pkm/general.toml'
+        if not general_config.exists():
+            mkdir(general_config.parent)
+            with ResourcePath('pkm.resources', 'default_pkm_general.toml').use() as default_pkm_general_cfg:
+                shutil.copy(default_pkm_general_cfg, general_config)
+
+        return PkmGeneralConfiguration.load(general_config)
 
     @cached_property
     def installed_pythons(self) -> "InstalledPythonsLocator":
         from pkm.api.environments.installed_pythons_locator import InstalledPythonsLocator
-        return InstalledPythonsLocator()
+        return InstalledPythonsLocator(self.config.interpreters_search_paths)
 
     @cached_property
     def home(self) -> Path:
@@ -101,7 +118,6 @@ class Pkm(HasAttachedRepository):
 
     @cached_property
     def repositories(self) -> _PkmRepositories:
-
         return _PkmRepositories(
             self.repository_loader.pypi,
             self.repository_loader.global_repo,

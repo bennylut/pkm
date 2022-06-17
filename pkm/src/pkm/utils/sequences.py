@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Iterable, Sequence, Optional, Any, List
 
-from pkm.utils.types import Hashable, StackLike, Comparable
+from pkm.utils.types import Hashable, StackLike, Comparable, Predicate
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")

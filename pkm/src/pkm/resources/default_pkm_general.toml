@@ -1,0 +1,6 @@
+[concurrency]
+mode = "proc" # can also accept: thread, none
+
+[interpreters]
+search-paths = ["~/.pyenv/versions"]
+

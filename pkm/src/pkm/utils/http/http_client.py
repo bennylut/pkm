@@ -217,7 +217,7 @@ class FetchedResource:
             if any(p.iterdir()):
                 break
 
-            p.unlink()
+            p.rmdir()
             p = p.parent
 
         clear_cached_properties(self)

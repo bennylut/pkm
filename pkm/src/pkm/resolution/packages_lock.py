@@ -87,7 +87,7 @@ class PackagesLock:
 
         return result
 
-    def update_lock(self, env: Environment):
+    def update_lock(self, env: Environment) -> PackagesLock:
         """
         lock the packages in the given environment
         :param env: the environment to use to extract lock information
@@ -103,6 +103,7 @@ class PackagesLock:
             new_locks.append(_LockedVersion(env_hash, package.descriptor))
 
         self._locked_packages = groupby(new_locks, lambda it: it.package.name)
+        return self
 
     def save(self, lock_file: Optional[Path] = None):
         """

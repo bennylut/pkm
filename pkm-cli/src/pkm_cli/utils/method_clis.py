@@ -40,16 +40,16 @@ class CliMethodArgs(MethodArgs):
         def identity(x):
             return x
 
-        def parser_for(name: str):
-            result_ = arg_types.get(name, identity)
-            if result_ == str:
-                result_ = identity
-            elif str(result_).startswith("typing.Union["):  # horible hack to handle Optional...
-                type_args = typing.get_args(result_)
-                if len(type_args) == 2 and type_args[1].__name__ == 'NoneType':
-                    result_ = type_args[0]
+        def parser_for(name: str) -> Callable:
+            type_ = arg_types.get(name, identity)
+            if type_ == str:
+                type_ = identity
+            elif type_ == typing.Union or typing.get_origin(type_) == typing.Union:
+                type_args = [t for t in typing.get_args(type_) if t.__name__ != 'NoneType']
+                if type_args:
+                    type_ = type_args[0]
 
-            return result_
+            return type_
 
         parsed_args = [parser_for(name)(arg) for arg, name in named_args]
         parsed_kwargs = {k: parser_for(k)(v) for k, v in self._kwargs.items()}

@@ -168,6 +168,7 @@ class PackageInstallationTarget:  # TODO: maybe rename into package installation
             user_request = _UserRequestPackage(list(new_deps.values()))
             installation_repo = _InstallationRepository(
                 repository, preinstalled_packages, user_request, unspecified_spec_packages, True)
+
             installation = resolve_dependencies(
                 user_request.to_dependency(), self, installation_repo, dependencies_override)
 
@@ -284,10 +285,10 @@ class InstallationPlan:
             user_request = self.user_requests.get(package.name_key)
             tasks.append(_PackageOperationTask(package, operation, store_mode, user_request, target))
 
-        parallelizm = pkm.global_flags.package_installation_parallelizm
-        threads = pkm.threads if parallelizm != "none" else None
+        parallelism = pkm.config.concurrency_mode
+        threads = pkm.threads if parallelism != "none" else None
 
-        if parallelizm == "proc" and sum(1 for it in tasks if it.can_be_multiprocessesd()) > 1:
+        if parallelism == "proc" and sum(1 for it in tasks if it.can_be_multiprocessesd()) > 1:
             procpool = pkm.processes
             await_all_promises_or_cancel([task.execute(threads, procpool) for task in tasks])
 

@@ -63,6 +63,12 @@ class Mapper(Protocol[_T, _U]):
         ...
 
 
+class Predicate(Protocol[_T]):
+    @abstractmethod
+    def __call__(self, inpt: _T) -> bool:
+        ...
+
+
 # Credits: some of the following type helpers are taken directly from typing_extensions
 class _Immutable:
     """Mixin to indicate that object should not be copied."""

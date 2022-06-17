@@ -39,7 +39,7 @@ def build_sdist(project: Project, target_dir: Optional[Path] = None) -> Path:
         dist_info_path = bc.build_dir / 'build.dist-info'
         bc.build_dist_info(dist_info_path)
         shutil.copy(dist_info_path / "METADATA", data_dir / "PKG-INFO")
-        bc.pyproject.save_to(data_dir / 'pyproject.toml')
+        bc.pyproject.save(data_dir / 'pyproject.toml')
 
         if bc.pyproject.pkm_project.packages:
             bc.copy_sources(data_dir)

@@ -1,6 +1,6 @@
 [project]
 name = "pkm"
-version = "0.4.57"
+version = "0.4.58"
 description = "Package Manager For Python"
 authors = [{ name = "bennyl" }]
 requires-python = ">=3.8, <4.0"

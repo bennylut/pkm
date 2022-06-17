@@ -27,6 +27,7 @@ from pkm_cli import cli_monitors
 from pkm_cli.api.tasks.tasks_runner import TasksRunner
 from pkm_cli.api.templates.template_runner import TemplateRunner
 from pkm_cli.controllers.env_controller import EnvController
+from pkm_cli.controllers.prj_controller import PrjController
 from pkm_cli.controllers.self_controller import SelfController
 from pkm_cli.display.display import Display
 from pkm_cli.reports.added_repositories_report import AddedRepositoriesReport
@@ -253,7 +254,12 @@ def install(args: Namespace):
             raise UnsupportedOperationException("application install as project dependency is not supported")
 
         force(project.attached_environment.installation_target)
-        project.dev_install(dependencies, optional_group=args.optional, update=args.update, store_mode=store_mode)
+        ctrl = PrjController(project)
+        if dependencies:
+            ctrl.install_dependencies(
+                dependencies, optional_group=args.optional, update=args.update, store_mode=store_mode)
+        else:
+            ctrl.install_project(optional_group=args.optional)
 
     def on_environment(env: Environment):
         nonlocal dependencies
@@ -285,6 +291,9 @@ def uninstall_orphans(args: Namespace):
     def on_environment(env: Environment):
         EnvController(env).uninstall_orphans(args.app)
 
+    def on_project(prj: Project):
+        on_environment(prj.attached_environment)
+
     context.run(**locals())
 
 
@@ -298,26 +307,13 @@ def uninstall(args: Namespace):
     remove packages from the current context
     """
 
-    if not (package_names := args.package_names):
+    if not args.package_names:
         raise ValueError("no package names are provided to be removed")
 
-    app_install = bool(args.app)
-
-    def _remove(target: PackageInstallationTarget, packages: List[str] = package_names):
-        if args.force:
-            for package in packages:
-                target.force_remove(package)
-        else:
-            target.uninstall(packages)
-
     def on_project(project: Project):
-        if app_install:
+        if args.app:
             raise UnsupportedOperationException("application install/remove as project dependency is not supported")
-
-        if args.force:
-            _remove(project.attached_environment.installation_target)
-        else:
-            project.dev_uninstall(package_names)
+        PrjController(project).uninstall_dependencies(args.package_names, args.force)
 
     def on_environment(env: Environment):
         app = args.package_names[0] if args.app else None

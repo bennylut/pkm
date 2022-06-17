@@ -4,6 +4,9 @@ import itertools
 from functools import reduce
 from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable
 
+from pkm.utils.commons import NoSuchElementException
+from pkm.utils.types import Predicate
+
 _T = TypeVar("_T")
 _U = TypeVar("_U")
 
@@ -91,3 +94,11 @@ class Seq(Generic[_T], Iterator[_T]):
 
     def str_join(self, sep: str) -> str:
         return sep.join(str(it) for it in self._iter)
+
+    def index_of_matching_or_none(self, matcher: Predicate[_T]) -> Optional[int]:
+        return next((i for i, it in enumerate(self._iter) if matcher(it)), None)
+
+    def index_of_matching(self, matcher: Predicate[_T]) -> int:
+        if (result := self.index_of_matching_or_none(matcher)) is None:
+            raise NoSuchElementException("no match found")
+        return result

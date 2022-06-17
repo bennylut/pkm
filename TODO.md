@@ -1,21 +1,24 @@
 ## RUNNING TASKS:
-- refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
-- cmd: pkm uninstall - display the packages being removed
-- bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
-- content information (author and maintainer) name and email should be validated before publishing,
-    - should use the email.utils.formataddr
-
 
 ## DONE IN THIS VERSION
-- cmd: pkm show - on envs, show all the installed script entrypoints (and who installed them)
-- on contextes that has attached repository - print its information.
-- repository management further standartized, can now examine chain and, the same chain is used for all operations
-- pkm self status: print cache size, flags 
-- pkm status add help flag showing options
-- `pkm show context` should changed for a simple `pkm status`
-- `pkm show *` should also show containerized applications
+- simplification: env - join remove and force remove
+- bug: `pkm install package`, if failed (say package not in repo) still updates `pyproject.toml`
+- cmd: pkm uninstall - display the packages being removed
+- simplification: remove the coerced dependnecies and package names support in env install/remove
+- refactoring: project.install_dev and project.uninstall_dev belongs to the cli flow and not to main pkm
+- bug: configuration framework default factory was not transferred to data class
+- bug: current intepreter shown twice on templates
+- bug: incorrect default configuration on pkm-project
+- refactoring: global_flags move into general configuration with interpreters search path
+- ".pyenv" installations are searched for by default
 
 ## BACKLOG TASKS:
+- multiproc: pipe monitoring events, currently download is not shown when multiproc
+- simplification: remove the repository:sort_by_priority function - do that as part of the match for repostiries that
+  this important to
+- documentation: dependency overrides, what is the use flow?
+- try and break multiproc, when broken - add code that handles it by switching to multithread
+- publishing without authentication available, an exception shown but help does not describe how to provide auth
 - check ideas for multiple progress bar tui here: https://github.com/Textualize/rich/discussions/1500 also, consider
   putting the progressbar on the left ([===>  ] task description)
 - consider replacing questionary with rich.prompt
@@ -46,7 +49,6 @@
 - refactoring: rename version specifiers according to pep440
 - clarification: Source distributions using a local version identifier SHOULD provide the python.integrator extension
   metadata (as defined in PEP 459).
-- simplification: remove the coerced dependnecies and package names support in env install/remove
 - enhancement: delegation should also support abstract properties
 - bug: generated pyc files are not getting signed
 - replace dependency resolution progressbar with spinner?
@@ -65,6 +67,8 @@
 - how to create platform/abi dependent projects? need to collect usecases (maybe cython and numpy?)
 - local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
   code under discovery pacakage)
+- content information (author and maintainer) name and email should be validated before publishing,
+    - should use the email.utils.formataddr
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 

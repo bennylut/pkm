@@ -799,8 +799,8 @@ class Solver(Generic[PKG_T]):
             try:
                 version.fetch_dependencies_info(self._problem)
             except MalformedPackageException:
-                # import traceback
-                # traceback.print_exc()
+                import traceback
+                traceback.print_exc()
                 warnings.warn(f"package: {version} discovered to be malformed")
                 continue  # retry with another version
             break

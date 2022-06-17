@@ -17,9 +17,12 @@ from pkm.api.repositories.repository_loader import RepositoryLoader, REPOSITORIE
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.resolution.packages_lock import LockPrioritizingRepository
 from pkm.utils.commons import NoSuchElementException
+from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.seqs import seq
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import try_add
+from pkm.utils.types import Supplier
 
 
 class RepositoryManagement(ABC):
@@ -212,14 +215,15 @@ class ProjectRepositoryManagement(RepositoryManagement):
         return result
 
     def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
-        repo = inherited
-        if not self.project.group:
-            repo = _ProjectsRepository.create('project-repository', [self.project], repo)
-        repo = LockPrioritizingRepository(
-            "lock-prioritizing-repository", repo, self.project.lock,
+        # must wrap (even if it has project group) so that the repository will always return the exact same project
+        # with any modifications made to it and won't reload it from disk
+        inherited = _ProjectsRepository.create('project-repository', [self.project], inherited)
+
+        inherited = LockPrioritizingRepository(
+            "lock-prioritizing-repository", inherited, self.project.lock,
             self.project.attached_environment)
 
-        return repo
+        return inherited
 
 
 class ProjectGroupRepositoryManagement(RepositoryManagement):
@@ -241,15 +245,15 @@ class ProjectGroupRepositoryManagement(RepositoryManagement):
 
 
 class _ProjectsRepository(AbstractRepository):
-    def __init__(self, name: str, projects: Dict[str, Tuple[PackageDescriptor, Path]], base_repo: Repository):
+    def __init__(self, name: str, projects: Dict[str, List[Project]], base_repo: Repository):
         super().__init__(name)
         self._packages = projects
         self._base_repo = base_repo
 
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
-        if (package_and_path := self._packages.get(dependency.package_name)) and \
-                dependency.version_spec.allows_version(package_and_path[0].version):
-            return [Project.load(package_and_path[1])]
+        if not dependency.required_url():
+            if matched_projects := self._packages.get(dependency.package_name_key):
+                return sorted([project for project in matched_projects], key=lambda it: it.version, reverse=True)
         return self._base_repo.match(dependency, env)
 
     def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
@@ -257,7 +261,8 @@ class _ProjectsRepository(AbstractRepository):
 
     @classmethod
     def create(cls, name: str, projects: Iterable[Project], base: Repository) -> _ProjectsRepository:
-        return _ProjectsRepository(name, {p.name: (p.descriptor, p.path) for p in projects}, base)
+        grouped_projects = groupby(projects, lambda it: it.name_key)
+        return _ProjectsRepository(name, grouped_projects, base)
 
     def accept_non_url_packages(self) -> bool:
         return self._base_repo.accept_non_url_packages()

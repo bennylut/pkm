@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import shutil
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Union, TYPE_CHECKING, Dict, Callable
 
 from pkm.api.distributions.distinfo import DistInfo
-from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.environments.environment_builder import EnvironmentBuilder
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
+from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVIRONMENT_CONFIGURATION_PATH, \
@@ -176,97 +176,29 @@ class Project(Package, HasAttachedRepository, IPCPackable):
             self.config.save()
         return new_version
 
-    def dev_uninstall(self, packages: List[str]):
+    def install_project(
+            self, optional_group: Optional[str] = None, packages_to_update: Optional[List[str]] = None,
+            packages_store_mode: Optional[Dict[str, StoreMode]] = None):
+
         """
-        remove and uninstall all dependencies that are related to the given list of packages
-        :param packages: the list of package names to remove
-        """
-
-        package_names_set = set(packages)
-        project_dependencies = self.config.project.dependencies or []
-        project_optional_deps = self.config.project.optional_dependencies or {}
-
-        def filter_dep(deps: List[Dependency]):
-            return [d for d in deps if d.package_name not in package_names_set]
-
-        self._pyproject.project.dependencies = filter_dep(project_dependencies)
-        self._pyproject.project.optional_dependencies = {g: filter_dep(d) for g, d in project_optional_deps.items()}
-        self._pyproject.save()
-
-        # fix installation metadata of the project by reinstalling it (without dependencies)
-        self.update_at(self.attached_environment.installation_target)
-        self.attached_environment.uninstall(packages)
-
-        self.lock.update_lock(self.attached_environment)
-        self.lock.save()
-
-    def dev_install(
-            self, new_dependencies: Optional[List["Dependency"]] = None,
-            optional_group: Optional[str] = None, update: bool = False, store_mode: StoreMode = StoreMode.AUTO):
-        """
-        install the dependencies of this project to its assigned environments
-        :param new_dependencies: if given, resolve and add these dependencies to this project and then install
-        :param optional_group: if not None, installs the dependencies including the ones from the given group,
-           also, mark the newly installed dependencies as optional and add them to that group
-        :param update: if True, will attempt to update the given `new_dependencies`,
-           or all the project dependencies if no `new_dependencies` are given
-        :param store_mode: controls the way the new packages will be stored in the attached environment
+        installs the project into its attached environment
+        :param optional_group: if given, will install the project with this optional extras
+        :param packages_to_update: if given, list of package name keys that need to be updated during the installation
+        :param packages_store_mode: if given, dict of package name key to store mode to use to this package when
+               installing it
         """
 
-        deps = {d.package_name: d for d in (self._pyproject.project.dependencies or [])}
+        dependency = self.descriptor.to_dependency()
         if optional_group:
-            deps.update(
-                {d.package_name: d for d in (self._pyproject.project.optional_dependencies.get(optional_group) or [])})
+            dependency = dependency.with_extras([optional_group])
 
-        new_deps: Dict[str, "Dependency"] = {d.package_name: d for d in new_dependencies} if new_dependencies else {}
+        updates = [dependency.package_name_key]
+        if packages_to_update:
+            updates.extend(packages_to_update)
 
-        # save the new dependencies to the configuration, use a wide version specifier if no such specifier is given:
-        _update_dependencies(self.config, new_deps, optional_group)
-
-        if update:
-            self.lock.unlock_packages(new_deps.keys()).save()
-
-        repository = self.attached_repository
-        project_dependency = self.descriptor.to_dependency()
-        if optional_group:
-            project_dependency = project_dependency.with_extras([optional_group])
-
-        # should probably submit the optionals
-        self.update_at(
-            self.attached_environment.installation_target, store_mode=StoreMode.EDITABLE,
-            user_request=project_dependency)
-
-        new_deps_names = list(new_deps.keys())
-
-        target = self.attached_environment.installation_target
-        installation = target.plan_installation(
-            [project_dependency], repository,
-            updates=new_deps_names if update else None,
-            unspecified_spec_packages=[d.package_name for d in new_deps.values() if d.version_spec is AllowAllVersions]
-        )
-
-        all_deps_names = set(d.package_name for d in self.config.project.all_dependencies)
-        installation.store_modes = {package_name: store_mode for package_name in new_deps_names}
-        new_deps_with_version = {}
-
-        for package, operation in installation.compute_operations_for_target(target).items():
-            newly_requested = package.name in new_deps
-
-            if package.name in all_deps_names:
-                # update pyproject dependency specification
-                if newly_requested:
-                    dep = new_deps[package.name]
-                    if dep.version_spec is not AllowAllVersions:
-                        spec = dep.version_spec
-                    else:
-                        spec = package.descriptor.to_dependency(True).version_spec
-
-                    new_deps_with_version[dep.package_name] = replace(dep, version_spec=spec)
-
-        installation.execute()
-        _update_dependencies(self.config, new_deps_with_version, optional_group)
-        self.lock.update_lock(self.attached_environment)
-        self.lock.save()
+        self.attached_environment.install(
+            dependency, repository=self.attached_repository,
+            updates=updates, store_modes=packages_store_mode)
 
     def _reload(self):
         clear_cached_properties(self)

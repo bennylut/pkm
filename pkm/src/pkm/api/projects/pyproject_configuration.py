@@ -147,9 +147,11 @@ class ProjectConfig:
         if self._entry_points:
             result.update({g: _entrypoints_from_config(g, eps) for g, eps in self.entry_points.values()})
         if self._scripts:
-            result['scripts'].extend(_entrypoints_from_config('scripts', self._scripts))
+            result[EntryPoint.G_CONSOLE_SCRIPTS] \
+                .extend(_entrypoints_from_config(EntryPoint.G_CONSOLE_SCRIPTS, self._scripts))
         if self._gui_scripts:
-            result['gui-scripts'].extend(_entrypoints_from_config('gui-scripts', self._gui_scripts))
+            result[EntryPoint.G_GUI_SCRIPTS] \
+                .extend(_entrypoints_from_config(EntryPoint.G_CONSOLE_SCRIPTS, self._gui_scripts))
 
         return result
 
@@ -235,10 +237,11 @@ _LEGACY_PROJECT_DYNAMIC = [
 @config(io=TomlConfigIO())
 class PyProjectConfiguration(ConfigFile):
     project: ProjectConfig
-    pkm_project: PkmProjectConfig = config_field(key="tool.pkm.project")
+    pkm_project: PkmProjectConfig = config_field(key="tool.pkm.project", default_factory=PkmProjectConfig)
     build_system: BuildSystemConfig = config_field(key="build-system", default_factory=BuildSystemConfig)
     pkm_application: PkmApplicationConfig = config_field(key="tool.pkm.application")
-    pkm_distribution: PkmDistributionConfig = config_field(key="tool.pkm.distribution")
+    pkm_distribution: PkmDistributionConfig = config_field(
+        key="tool.pkm.distribution", default_factory=lambda: PkmDistributionConfig(PKM_DIST_CFG_TYPE_LIB))
     _leftovers = config_field(leftover=True)
 
     @classmethod
