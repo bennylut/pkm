@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Iterable, Union, Set
@@ -6,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Iterable, Union, Set
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
-from pkm.api.packages.package import PackageDescriptor, Package
+from pkm.api.packages.package import Package
 from pkm.api.pkm import HasAttachedRepository, Pkm, pkm
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
@@ -19,10 +20,8 @@ from pkm.resolution.packages_lock import LockPrioritizingRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property, clear_cached_properties
-from pkm.utils.seqs import seq
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import try_add
-from pkm.utils.types import Supplier
 
 
 class RepositoryManagement(ABC):
@@ -220,8 +219,7 @@ class ProjectRepositoryManagement(RepositoryManagement):
         inherited = _ProjectsRepository.create('project-repository', [self.project], inherited)
 
         inherited = LockPrioritizingRepository(
-            "lock-prioritizing-repository", inherited, self.project.lock,
-            self.project.attached_environment)
+            "lock-prioritizing-repository", inherited, self.project.lock)
 
         return inherited
 
@@ -253,11 +251,8 @@ class _ProjectsRepository(AbstractRepository):
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         if not dependency.required_url():
             if matched_projects := self._packages.get(dependency.package_name_key):
-                return sorted([project for project in matched_projects], key=lambda it: it.version, reverse=True)
+                return self._sorted_by_version([project for project in matched_projects])
         return self._base_repo.match(dependency, env)
-
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return packages
 
     @classmethod
     def create(cls, name: str, projects: Iterable[Project], base: Repository) -> _ProjectsRepository:

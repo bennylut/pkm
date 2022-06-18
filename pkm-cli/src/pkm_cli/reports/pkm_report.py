@@ -1,9 +1,9 @@
-from typing import Dict, TYPE_CHECKING
+from typing import Dict
 
 from pkm.api.pkm import pkm
 from pkm.utils.files import numbytes_to_human, dir_size
-from pkm_cli.reports.report import Report
 from pkm_cli.controllers.self_controller import SelfController
+from pkm_cli.reports.report import Report
 
 
 class PkmReport(Report):
@@ -27,6 +27,7 @@ class PkmReport(Report):
             self.writeln(
                 f"Build Packages Cache: [blue]{numbytes_to_human(dir_size(pkm.source_build_cache.workspace))}[/]")
 
-        with self.section("Global Flags"):
-            for flag, value in pkm.global_flags.to_config().items():
-                self.writeln(f"{flag}: {value}")
+        with self.section("Configuration"):
+            cfg = pkm.config
+            self.writeln(f"Concurrency Mode = {cfg.concurrency_mode}")
+            self.writeln(f"Custom Interpreters Search Path = {cfg.interpreters_search_paths}")

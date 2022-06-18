@@ -56,6 +56,7 @@ class FieldDoc:
         if isinstance(node, ast.Assign):
             target = node.targets[0]
             if isinstance(target, ast.Tuple):
+                # noinspection PyUnresolvedReferences
                 return [FieldDoc(ast_unparse(t), f"{ast_unparse(t)} = {ast_unparse(v)}", None)
                         for t, v in zip(target.elts, node.value.elts)]
             return [FieldDoc(ast_unparse(target), ast_unparse(node), None)]

@@ -1,3 +1,5 @@
+from typing import Dict
+
 from pkm.api.pkm import pkm
 from pkm_cli.display.display import Display
 from pkm_cli.reports.report import Report
@@ -5,7 +7,10 @@ from pkm_cli.reports.report import Report
 
 class InstalledRepositoriesReport(Report):
 
-    def display(self, dumb: bool = Display.is_poor()):
+    def display_options(self):
+        self.writeln("No Options")
+
+    def display(self, options: Dict[str, bool]):
         line_sep = "-" * 80
         Display.print(line_sep)
         Display.print("Builtin Repositories")

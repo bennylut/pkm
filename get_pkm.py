@@ -31,8 +31,9 @@ def _install(args: Namespace):
         sys.path.insert(1, pkm_import)
 
         from pkm.api.environments.environment import Environment
+        from pkm.api.dependencies.dependency import Dependency
         print("Installing...")
-        Environment.current().install(f'pkm-cli {version}')
+        Environment.current().install([Dependency.parse(f'pkm-cli {version}')])
         print("Done!")
 
 

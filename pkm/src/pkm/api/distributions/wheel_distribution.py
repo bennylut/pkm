@@ -11,14 +11,14 @@ from zipfile import ZipFile
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.distinfo import DistInfo, RecordsFileConfiguration, Record
 from pkm.api.distributions.distribution import Distribution
-from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.packages.package import PackageDescriptor
+from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import StandardVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange
 from pkm.distributions.executables import Executables
 from pkm.utils.archives import extract_archive
-from pkm.utils.files import path_to, CopyTransaction, temp_dir
+from pkm.utils.files import path_to, CopyTransaction, temp_dir, is_empty_directory
 
 _METADATA_FILE_RX = re.compile("[^/]*\\.dist-info/METADATA")
 
@@ -96,16 +96,20 @@ class WheelDistribution(Distribution):
 
         site_packages = Path(target.purelib if wheel_file.root_is_purelib else target.platlib)
 
+        _remove_empty_directories(content)
+
         records_file: RecordsFileConfiguration = dist_info.load_record_cfg()
         if not skip_record_verification:
             _verify_records(dist_info, content, records_file)
 
+        data_dir = dist_info.path.with_suffix(".data")
+
         with CopyTransaction() as ct:
             for d in content.iterdir():
                 if d.is_dir():
-                    if _is_valid_data_dir(d, target):
+                    if d == data_dir:
                         for k in d.iterdir():
-                            target_path = getattr(target, k.name)
+                            target_path = getattr(target, k.name) or Path(target.data, k.name)
                             if k.name == 'scripts':
                                 ct.copy_tree(
                                     k, Path(target_path),
@@ -175,10 +179,6 @@ class WheelDistribution(Distribution):
                 self._package, tmp_path, target, user_request, installation_mode)
 
 
-def _is_valid_data_dir(data_dir: Path, target: "PackageInstallationTarget") -> bool:
-    return data_dir.suffix == '.data' and all(hasattr(target, k.name) for k in data_dir.iterdir())
-
-
 def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInfo:
     dist_info = list(unpacked_wheel.glob("*.dist-info"))
     if not dist_info:
@@ -187,6 +187,12 @@ def _find_dist_info(unpacked_wheel: Path, package: PackageDescriptor) -> DistInf
         raise InstallationException(f"wheel for {package} contains more than one possible dist-info")
 
     return DistInfo.load(dist_info[0])
+
+
+def _remove_empty_directories(content: Path):
+    to_del = [d for d in content.glob("**/") if is_empty_directory(d)]
+    for d in to_del:
+        d.rmdir()
 
 
 def _verify_records(dist_info: DistInfo, content: Path, records_file: RecordsFileConfiguration):

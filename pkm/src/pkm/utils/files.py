@@ -41,16 +41,6 @@ def mkdir(path: Path) -> Path:
     return path
 
 
-def resolve_relativity(path: Path, parent: Path) -> Path:
-    """
-    :param path: the path to resolve
-    :param parent: the potential parent of the path (if the path is relative)
-    :return: if `path` is absolute, return `path` otherwise return `parent / path`
-    """
-
-    return path if path.is_absolute() else parent / path
-
-
 def path_to(source: Path, destination: Path) -> Path:
     """
     creates a relative path from `source` to `destination`, allowing back stepping ('..')

@@ -103,10 +103,8 @@ def await_all_promises_or_cancel(promises: List[Promise]):
     try:
         await_all_promises(promises)
     except Exception as e:
-        print("DBG: canceling all promises")
         for p in [uncanceled for uncanceled in promises if not uncanceled.request_cancel()]:
             try:
-                print("DBG: failed to cancel, awaiting result...")
                 p.result()
             except BaseException as ie:
                 warnings.warn(f"multiple errors while waiting for promises to complete: {ie}")

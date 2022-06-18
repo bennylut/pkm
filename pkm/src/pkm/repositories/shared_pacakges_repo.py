@@ -59,12 +59,13 @@ class SharedPackagesRepository(AbstractRepository):
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         packages_dir = self._workspace / dependency.package_name
         packages = self._base_repo.match(dependency, env)
-        return [
+        return self._sort_by_priority([
             _SharedPackage(p, packages_dir / str(p.version))
             for p in packages
-        ]
+        ])
 
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+    @staticmethod
+    def _sort_by_priority(packages: List[Package]) -> List[Package]:
         def key(p: Package):
             return 0 if isinstance(p, _SharedPackage) else 1
 

@@ -48,7 +48,8 @@ class SimpleRepository(AbstractRepository):
             }
             self._packages[dependency.package_name] = version_to_package
 
-        return [p for p in version_to_package.values() if dependency.version_spec.allows_version(p.version)]
+        packages = [p for p in version_to_package.values() if dependency.version_spec.allows_version(p.version)]
+        return self._sorted_by_version(packages)
 
 
 _DISTRIBUTION_EXTENSIONS = (".whl", ".tar.gz", ".zip")

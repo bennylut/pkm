@@ -15,7 +15,7 @@ from pkm.config.configfiles import INIConfigIO, WheelFileConfigIO, CSVConfigIO
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
-from pkm.utils.files import path_to, resolve_relativity
+from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
 from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import groupby
@@ -152,7 +152,7 @@ class DistInfo(IPCPackable):
         """
         return self.user_requested_path().exists()
 
-    def load_user_requested_info(self) -> Optional[Dependency]:
+    def load_user_requested_dependency(self) -> Optional[Dependency]:
         try:
             return Dependency.parse(self.user_requested_path().read_text().strip())
         except:  # noqa
@@ -201,7 +201,7 @@ class DistInfo(IPCPackable):
         """
         root = self.path.parent
         for record in self.load_record_cfg().records:
-            file = resolve_relativity(Path(record.file), root).resolve()
+            file = Path(root, record.file).resolve()
             yield file
 
         yield self.record_path()
@@ -269,7 +269,7 @@ class Record:
     length: int
 
     def absolute_path(self, dist_info: DistInfo) -> Path:
-        return resolve_relativity(Path(self.file), dist_info.path).resolve()
+        return (dist_info.path / self.file).resolve()
 
 
 @config(io=CSVConfigIO(

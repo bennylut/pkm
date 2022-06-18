@@ -138,17 +138,13 @@ class PackagesLock:
 
 
 class LockPrioritizingRepository(AbstractRepository):
-    def __init__(self, name: str, base_repo: Repository, lock: PackagesLock, env: Environment):
+    def __init__(self, name: str, base_repo: Repository, lock: PackagesLock):
         super().__init__(name)
         self._base_repo = base_repo
         self._lock = lock
-        self._env = env
 
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
-        return self._base_repo.match(dependency, env)
-
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return self._lock.sort_packages_by_lock_preference(self._env, packages)
+        return self._lock.sort_packages_by_lock_preference(env, self._base_repo.match(dependency, env))
 
     def accepted_url_protocols(self) -> Iterable[str]:
         return self._base_repo.accepted_url_protocols()

@@ -165,9 +165,6 @@ class _CompositeRepository(AbstractRepository):
 
         return []
 
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        return packages
-
     def accepted_url_protocols(self) -> Iterable[str]:
         return self._url_handlers.keys()
 

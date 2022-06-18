@@ -1,4 +1,4 @@
-from typing import Set, Dict
+from typing import Dict
 
 from pkm.api.pkm import HasAttachedRepository
 from pkm_cli.display.display import Display

@@ -36,8 +36,9 @@ class CondaRepository(AbstractRepository):
         subdir_name = subdir_of(env.operating_platform)
         subdir = self.subdir_by_name(subdir_name)
 
-        return [p for p in subdir.general_package(dependency.package_name) if
-                dependency.version_spec.allows_version(p.version)]
+        return self._sorted_by_version(
+            [p for p in subdir.general_package(dependency.package_name)
+             if dependency.version_spec.allows_version(p.version)])
 
     def subdir_by_name(self, subdir_name: str) -> CondaChannelSubdir:
         if not (subdir := self.subdirs.get(subdir_name)):

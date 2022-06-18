@@ -6,15 +6,15 @@ from argparse import Namespace, ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 from pstats import SortKey
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 import sys
 
 from pkm.api.dependencies.dependency import Dependency
-from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
 from pkm.api.packages.package_installation import PackageInstallationTarget
+from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.pkm import pkm, HasAttachedRepository
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
@@ -123,7 +123,7 @@ def uninstall_repo(args: Namespace):
 
 @command('pkm repos show installed')
 def show_installed_repositories(_: Namespace):
-    InstalledRepositoriesReport().display()
+    InstalledRepositoriesReport().display({})
 
 
 @command(
@@ -152,7 +152,7 @@ def remove_repo(args: Namespace):
 @command('pkm repos show added')
 def show_added_repositories(args: Namespace):
     def show(with_repo: HasAttachedRepository):
-        AddedRepositoriesReport(with_repo).display()
+        AddedRepositoriesReport(with_repo).display({})
 
     on_environment, on_project, on_project_group, = show, show, show
     context.run(**locals())
@@ -333,21 +333,8 @@ def publish(args: Namespace):
         publish_auth = None
 
     def on_project(project: Project):
-        if not project.is_built_in_default_location():
-            project.build()
-
-        if not (publisher := project.repository_management.publisher_for(args.repo)):
-            raise UnsupportedOperationException(f"repository: {args.repo} does not support publishing")
-
-        auth_args: Dict[str, str] = {}
-        if hasattr(args, 'repo_extras'):
-            auth_args = args.repo_extras
-        elif publisher.requires_authentication():
-            if not publish_auth or not publish_auth.is_configuration_exists() \
-                    or not (auth_args := publish_auth.auth_args_for(args.repo)):
-                raise UnsupportedOperationException("authentication required")
-
-        project.publish(publisher, auth_args)
+        auth_args = getattr(args, 'repo_extras', {})
+        auth_args = PrjController(project).publish(args.repo, auth_args)
         if args.save and publish_auth:
             publish_auth.add_auth_args(args.repo, auth_args)
 
@@ -381,10 +368,10 @@ def status(args: Namespace):
 @command('pkm show package', Arg('dependency'))
 def show_package(args: Namespace):
     def on_project(project: Project):
-        PackageReport(project, args.dependency).display()
+        PackageReport(project, args.dependency).display({})
 
     def on_environment(env: Environment):
-        PackageReport(env, args.dependency).display()
+        PackageReport(env, args.dependency).display({})
 
     context.run(**locals())
 

@@ -92,7 +92,6 @@ class _Display:
         with console_lock:
             self._console.print(msg, end=os.linesep if newline else '', markup=use_markup)
 
-
     def ask(self, prompt: str) -> str:
         return q.text(prompt).ask()
 

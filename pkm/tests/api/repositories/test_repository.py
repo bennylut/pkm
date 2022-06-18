@@ -47,7 +47,7 @@ class DummyRepository(AbstractRepository):
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         # monitor.on_dependency_match(dependency)
         packages: List[Package] = self._packages[dependency.package_name] or []
-        return [p for p in packages if dependency.version_spec.allows_version(p.version)]
+        return self._sorted_by_version([p for p in packages if dependency.version_spec.allows_version(p.version)])
 
     def __init__(self, packages: Dict[str, List[str]]):
         super().__init__('dummy')

@@ -105,7 +105,7 @@ class SitePackages(IPCPackable):
 
 
 def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Optional[Dependency]:
-    if stored_request := dist_info.load_user_requested_info():
+    if stored_request := dist_info.load_user_requested_dependency():
         return stored_request
     elif dist_info.is_user_requested():
         return Dependency(metadata.package_name, VersionMatch(metadata.package_version))

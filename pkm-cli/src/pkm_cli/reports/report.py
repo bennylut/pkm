@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 from abc import abstractmethod, ABC
 from contextlib import contextmanager
-from typing import ContextManager, Optional, Set, Dict
+from typing import ContextManager, Optional, Dict
 
 from rich import markup
-from rich.control import strip_control_codes
 
 from pkm_cli.display.display import Display
 

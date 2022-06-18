@@ -197,7 +197,7 @@ class Project(Package, HasAttachedRepository, IPCPackable):
             updates.extend(packages_to_update)
 
         self.attached_environment.install(
-            dependency, repository=self.attached_repository,
+            [dependency], repository=self.attached_repository,
             updates=updates, store_modes=packages_store_mode)
 
     def _reload(self):

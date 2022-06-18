@@ -23,7 +23,7 @@ class PackagesDictRepository(AbstractRepository):
 
     def _do_match(self, dependency: Dependency, env: Environment) -> List[Package]:
         all_packages = self._packages.get(dependency.package_name) or []
-        return [p for p in all_packages if dependency.version_spec.allows_version(p.version)]
+        return self._sorted_by_version([p for p in all_packages if dependency.version_spec.allows_version(p.version)])
 
 
 class FileSystemRepositoryBuilder(RepositoryBuilder):

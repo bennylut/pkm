@@ -1,13 +1,16 @@
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.projects.project import Project
+from pkm.api.repositories.repository import AuthParamType
 from pkm.api.versions.version_specifiers import AllowAllVersions
+from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.dicts import get_or_put
 from pkm.utils.seqs import seq
 from pkm_cli.display.display import Display
+import questionary as q
 
 
 class PrjController:
@@ -81,3 +84,25 @@ class PrjController:
             configured_dependencies.clear()
             configured_dependencies.extend(prev_deps)
             raise e
+
+    def publish(self, repo_name: str, auth_args: Dict[str, str]) -> Dict[str, str]:
+        project = self.prj
+        if not project.is_built_in_default_location():
+            project.build()
+
+        if not (publisher := project.repository_management.publisher_for(repo_name)):
+            raise UnsupportedOperationException(f"repository: {repo_name} does not support publishing")
+
+        requested_auth_params = {}
+        for param in publisher.authentication_params():
+            if not (user_provided_value := auth_args.get(param.name)):
+                if param.type == AuthParamType.PASSWORD:
+                    user_provided_value = q.password(param.name).unsafe_ask()
+                elif param.type == AuthParamType.FILE:
+                    user_provided_value = q.path(param.name).unsafe_ask()
+                else:
+                    user_provided_value = q.text(param.name).unsafe_ask()
+            requested_auth_params[param.name] = user_provided_value
+
+        project.publish(publisher, requested_auth_params)
+        return requested_auth_params

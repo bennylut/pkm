@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Set
+from typing import Dict, List
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment

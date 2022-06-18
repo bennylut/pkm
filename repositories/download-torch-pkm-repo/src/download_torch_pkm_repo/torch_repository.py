@@ -38,9 +38,10 @@ class DownloadTorchRepository(AbstractRepository):
                 if local in self._compatible_locals:
                     matches.append(package)
 
-        return matches
+        return self._sort_by_priority(matches)
 
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
+    @staticmethod
+    def _sort_by_priority(packages: List[Package]) -> List[Package]:
         def key(p: Package) -> Tuple:
             version = cast(StandardVersion, p.version)
             ll = version.local_label

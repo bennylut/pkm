@@ -1,4 +1,6 @@
-from typing import Optional, Any
+from typing import Optional, Any, Dict
+
+from rich.markdown import Markdown
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
@@ -7,15 +9,18 @@ from pkm.api.projects.project import Project
 from pkm.api.repositories.repository import Repository
 from pkm_cli.display.display import Display
 from pkm_cli.reports.report import Report
-from rich.markdown import Markdown
 
 
 class PackageReport(Report):
     def __init__(self, context: Optional[Any], dependency: str):
+        super().__init__()
         self._context = context
         self._dependency = Dependency.parse(dependency)
 
-    def display(self, dumb: bool = Display.is_poor()):
+    def display_options(self):
+        self.writeln("No Options")
+
+    def display(self, options: Dict[str, bool]):
         line = "-" * 80
         Display.print(line)
 
@@ -69,10 +74,7 @@ class PackageReport(Report):
             if metadata := selected.published_metadata:
                 Display.print(f"Summary: {metadata.summary}")
                 Display.print(f"Requires Python: {metadata.required_python_spec}")
-                if not dumb:
-                    desc = Markdown(metadata.description)
-                else:
-                    desc = ("\n" + metadata.description).replace("\n", "\n\t| ")
+                desc = Markdown(metadata.description)
 
                 Display.print(f"Description:")
                 Display.print(desc)

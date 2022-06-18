@@ -9,7 +9,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.standard_package import AbstractPackage, PackageArtifact
 from pkm.api.pkm import pkm
-from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository
+from pkm.api.repositories.repository import AbstractRepository, RepositoryBuilder, Repository, AuthParam, AuthParamType
 from pkm.api.repositories.repository import RepositoryPublisher
 from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
@@ -73,7 +73,7 @@ class PyPiRepository(AbstractRepository, IPCPackable):
                         relevant_artifacts, self, PackageMetadata.from_config(package_info)
                     ))
 
-        return packages
+        return self._sorted_by_version(packages)
 
 
 # noinspection PyProtectedMember
@@ -135,10 +135,13 @@ class PyPiPublisher(RepositoryPublisher):
         self._http = http
         self._publish_url = publish_url
 
+    def authentication_params(self) -> Optional[List[AuthParam]]:
+        return [AuthParam('username', AuthParamType.STRING), AuthParam('password', AuthParamType.PASSWORD)]
+
     def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, distribution: Path):
         print(f"uploading distribution: {distribution}")
 
-        data = {k.replace('-', '_').lower(): v for k, v in package_meta.items()}
+        data = {k.replace('-', '_').lower(): v for k, v in package_meta.to_config().items()}
         file_type = 'bdist_wheel' if distribution.suffix == '.whl' else 'sdist'
         py_version = distribution.name.split("-")[2] if distribution.suffix == '.whl' else 'source'
 

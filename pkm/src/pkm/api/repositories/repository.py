@@ -1,4 +1,6 @@
 from abc import abstractmethod, ABC
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import List, Union, Optional, Protocol, Iterable, TYPE_CHECKING, Dict
 
@@ -73,8 +75,8 @@ class AbstractRepository(Repository, ABC):
             dependency = Dependency.parse(dependency)
 
         matched = [d for d in self._do_match(dependency, env) if d.is_compatible_with(env)]
-        filtered = self._filter_prereleases(matched, dependency)
-        return self._sort_by_priority(dependency, filtered)
+        return self._filter_prereleases(matched, dependency)
+        # return self._sort_by_priority(dependency, filtered)
 
     @property
     def publisher(self) -> Optional["RepositoryPublisher"]:
@@ -86,13 +88,7 @@ class AbstractRepository(Repository, ABC):
         pre_release, rest = partition(packages, lambda it: it.version.is_pre_or_dev_release())
         return rest or packages
 
-    def _sort_by_priority(self, dependency: Dependency, packages: List[Package]) -> List[Package]:
-        """
-        sorts `matches` by the required priority
-        :param dependency: the dependency that resulted in the given `packages`
-        :param packages: the packages that were the result `_do_match(dependency)`
-        :return: sorted packages by priority (first is more important than last)
-        """
+    def _sorted_by_version(self, packages: List[Package]) -> List[Package]:
         packages.sort(key=lambda it: it.version, reverse=True)
         return packages
 
@@ -105,8 +101,21 @@ class AbstractRepository(Repository, ABC):
 
         :param dependency: the dependency to match
         :param env: the environment that the returned packages should be applicable with
-        :return: list of all the packages in this repository that match the given `dependency` version spec
+        :return: list of all the packages in this repository that match the given `dependency` version spec,
+                 sorted decending by the priority in which version resolution should follow (in most cases by version)
         """
+
+
+class AuthParamType(Enum):
+    PASSWORD = 0
+    FILE = 1
+    STRING = 2
+
+
+@dataclass
+class AuthParam:
+    name: str
+    type: AuthParamType
 
 
 class RepositoryPublisher:
@@ -114,8 +123,9 @@ class RepositoryPublisher:
         self.repository_name = repository_name
 
     # noinspection PyMethodMayBeStatic
-    def requires_authentication(self) -> bool:
-        return True
+    @abstractmethod
+    def authentication_params(self) -> Optional[List[AuthParam]]:
+        ...
 
     @abstractmethod
     def publish(self, auth_args: Dict[str, str], package_meta: PackageMetadata, distribution: Path):

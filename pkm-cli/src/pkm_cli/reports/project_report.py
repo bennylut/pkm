@@ -3,7 +3,6 @@ from typing import Dict, Optional
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.projects.project import Project
-from pkm_cli.display.display import Display
 from pkm_cli.reports.attached_repository_report import AttachedRepositoryReport
 from pkm_cli.reports.report import Report
 

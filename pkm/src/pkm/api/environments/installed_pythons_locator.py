@@ -29,7 +29,6 @@ class InstalledPythonsLocator:
         executeables_matched: Set[Path] = set()
 
         # add interpreters in path
-        print(f"DBG: search path = {self._search_paths}")
         interpreters_in_path = _lookup_in_env_path()
         for sp in self._search_paths:
             interpreters_in_path.update(_lookup_in_path(Path(sp).expanduser()))

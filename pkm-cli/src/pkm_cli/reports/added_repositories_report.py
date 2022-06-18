@@ -1,3 +1,5 @@
+from typing import Dict
+
 from pkm.api.pkm import HasAttachedRepository
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import try_add
@@ -9,11 +11,13 @@ import re
 class AddedRepositoriesReport(Report):
 
     def __init__(self, with_repo: HasAttachedRepository):
+        super().__init__()
         self._with_repo = with_repo
 
-    def display(self, dumb: bool = Display.is_poor()):
-        line_sep = "-" * 80
+    def display_options(self):
+        self.writeln("No Options")
 
+    def display(self, options: Dict[str, bool]):
         contexts = [self._with_repo]
         opened = set()
         while context := pop_or_none(contexts):
@@ -22,17 +26,12 @@ class AddedRepositoriesReport(Report):
             contexts.extend(context.repository_management.parent_contexts())
 
             if defined_repositories := context.repository_management.defined_repositories():
-                Display.print(line_sep)
-                Display.print(f"[h1]{_context_name(context)} Context[/]")
-                Display.print(line_sep)
-
-                for added_repository in defined_repositories:
-                    desc = f"{added_repository.name}: {added_repository.type}"
-                    if added_repository.bind_only:
-                        desc += " (bind only)"
-                    Display.print(desc)
-
-        Display.print(line_sep)
+                with self.section(f"{_context_name(context)} Context"):
+                    for added_repository in defined_repositories:
+                        desc = f"{added_repository.name}: {added_repository.type}"
+                        if added_repository.bind_only:
+                            desc += " (bind only)"
+                        Display.print(desc)
 
 
 def _context_name(context: HasAttachedRepository) -> str:

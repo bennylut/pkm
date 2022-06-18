@@ -1,12 +1,15 @@
 [project]
 name = "pkm"
-version = "0.4.58"
+version = "0.4.59"
 description = "Package Manager For Python"
 authors = [{ name = "bennyl" }]
 requires-python = ">=3.8, <4.0"
 dependencies = []
 readme.file = "README.md"
 license.text = "MIT License"
+
+[tool.pkm.distribution]
+type = "lib"
 
 [build-system]
 requires = []

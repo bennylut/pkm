@@ -8,7 +8,7 @@ from pkm.api.projects.environments_config import EnvironmentsConfiguration, ENVI
 from pkm.api.projects.project import Project
 from pkm.config.configclass import config, ConfigFile, config_field
 from pkm.config.configfiles import TomlConfigIO
-from pkm.utils.files import ensure_exists, resolve_relativity
+from pkm.utils.files import ensure_exists
 from pkm.utils.ipc import IPCPackable
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
@@ -151,7 +151,7 @@ class ProjectGroup(HasAttachedRepository, IPCPackable):
         :return: the project group if such defined
         """
         if (pkm_project := project.config.pkm_project) and (group := pkm_project.group):
-            return ProjectGroup(PyProjectGroupConfiguration.load(resolve_relativity(Path(group), project.path)))
+            return ProjectGroup(PyProjectGroupConfiguration.load(Path(project.path, group)))
         return cls._find_group(project.path)
 
     @classmethod
