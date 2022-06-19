@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pkm.api.environments.installed_pythons_locator import InstalledPythonsLocator
     from pkm.api.repositories.repository import Repository
     from pkm.api.repositories.repository_loader import RepositoryLoader
-    from pkm.distributions.source_build_cache import SourceBuildCache
+    from pkm.build.source_build_cache import SourceBuildCache
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 ENV_PKM_HOME = "PKM_HOME"
@@ -29,13 +29,6 @@ ENV_PKM_HOME = "PKM_HOME"
 class _PkmRepositories:
     pypi: "Repository"
     main: "Repository"
-
-
-# @dataclass
-# @config(io=TomlConfigIO())
-# class PkmGlobalFlags(ConfigFile):
-#     : can be: "proc", "thread", "none"
-# package_installation_parallelizm: str = config_field(key="package-installation-parallelism", default="proc")
 
 
 @dataclass
@@ -99,7 +92,7 @@ class Pkm(HasAttachedRepository):
 
     @cached_property
     def source_build_cache(self) -> "SourceBuildCache":
-        from pkm.distributions.source_build_cache import SourceBuildCache
+        from pkm.build.source_build_cache import SourceBuildCache
         return SourceBuildCache(self.home / 'build-cache')
 
     @cached_property

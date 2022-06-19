@@ -19,6 +19,7 @@ from pkm.utils.http.http_client import HttpClient, HttpException
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
 from pkm.utils.io_streams import chunks
 from pkm.utils.ipc import IPCPackable
+from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property
 
 
@@ -99,6 +100,15 @@ class PypiPackage(AbstractPackage, IPCPackable):
         resource = self._repo._http.fetch_resource(url, resource_name=f"{self.name} {self.version}")
         if not resource:
             raise FileNotFoundError(f'cannot find requested artifact: {artifact.file_name}')
+
+        # validate package hash if available
+        if digests := artifact.other_info['digests']:
+            hash_function = 'sha256'
+            if hash_function not in digests:
+                hash_function = first_or_none(digests.keys())
+
+            if hash_function is not None and not resource.is_hash_valid(hash_function, digests[hash_function]):
+                raise InstallationException(f"invalid hash for resource downloaded from {url}")
 
         return resource.data
 

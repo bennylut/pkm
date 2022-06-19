@@ -262,10 +262,12 @@ class InstallationPlan:
 
         return operations
 
-    def execute(self, target: Optional[PackageInstallationTarget] = None):
+    def execute(self, target: Optional[PackageInstallationTarget] = None, concurrency_mode: Optional[str] = None):
         """
         executes the prepared installation inside the given `target`
         :param target: the site in which to execute this installation
+        :param concurrency_mode: the concurrency mode to use (accept the same values allowed in pkm's general config)
+            if not given, use the value given in the general config
         """
 
         from pkm.api.pkm import pkm
@@ -285,7 +287,7 @@ class InstallationPlan:
             user_request = self.user_requests.get(package.name_key)
             tasks.append(_PackageOperationTask(package, operation, store_mode, user_request, target))
 
-        parallelism = pkm.config.concurrency_mode
+        parallelism = pkm.config.concurrency_mode if concurrency_mode is None else concurrency_mode
         threads = pkm.threads if parallelism != "none" else None
 
         if parallelism == "proc" and sum(1 for it in tasks if it.can_be_multiprocessesd()) > 1:

@@ -7,7 +7,7 @@ from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.versions.version import Version, UrlVersion, StandardVersion
 from pkm.api.versions.version_specifiers import VersionMatch
-from pkm.pep517_builders.external_builders import BuildError
+from pkm.build.external_builders import BuildError
 from pkm.resolution.pubgrub import Problem, MalformedPackageException, Term, Solver
 from pkm.utils.dicts import get_or_put
 from pkm.utils.hashes import HashBuilder
@@ -75,8 +75,7 @@ class _PkmPackageInstallationProblem(Problem):
                 self.opened_packages[descriptor] = single_or_raise(
                     self._repo.match(f"{package} @ {version}", self._target.env))
 
-            dependencies = self.opened_packages[descriptor] \
-                .dependencies(self._target, package.extras)
+            dependencies = self.opened_packages[descriptor].dependencies(self._target, package.extras)
 
             for d in dependencies:
                 if not d.required_url():

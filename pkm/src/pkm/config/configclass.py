@@ -302,7 +302,8 @@ class ConfigCodec:
     def parse(self, config_: _RAW_CONFIG_T, target_class: Type[_T], target_object: _T = None) -> _T:
         field_schema: Dict[str, ConfigField] = getattr(target_class, _CONFIG_SCHEMA_FIELD)
 
-        target_object = target_object or target_class()
+        call_post_init = target_object is None
+        target_object = target_object or target_class.__new__(target_class)
         for field, schema in field_schema.items():
 
             if schema.leftover:
@@ -331,6 +332,9 @@ class ConfigCodec:
                             f"parsing field: '{field}' into type: '{schema.type}' failed") from e
 
             setattr(target_object, field, value)
+
+        if call_post_init and callable(post_init := getattr(target_object, '__post_init__', None)):
+            post_init()
 
         return target_object
 

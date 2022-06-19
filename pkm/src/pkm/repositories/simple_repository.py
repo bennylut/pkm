@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Union, Tuple, Dict, Optional, Callable
 
 from pkm.api.dependencies.dependency import Dependency
+from pkm.api.distributions.wheel_distribution import InstallationException
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
@@ -110,10 +111,17 @@ class _SimplePackage(AbstractPackage, IPCPackable):
         self.__init__(*state)
 
     def _retrieve_artifact(self, artifact: PackageArtifact) -> Path:
-        return pkm.httpclient.fetch_resource(
-            artifact.other_info['url'], CacheDirective.allways(),
-            resource_name=f"{self.name} {self.version}"
-        ).data
+        url = artifact.other_info['url']
+        resource = pkm.httpclient.fetch_resource(url, CacheDirective.allways(),
+                                                 resource_name=f"{self.name} {self.version}")
+
+        fragment = Url.parse(url).fragment
+        if fragment:
+            hash_function, _, hash_value = fragment.partition("=")
+            if hash_function and hash_value and not resource.is_hash_valid(hash_function, hash_value):
+                raise InstallationException(f"Invalid hash for a resource received from {url}")
+
+        return resource.data
 
 
 class SimpleRepositoryBuilder(RepositoryBuilder):

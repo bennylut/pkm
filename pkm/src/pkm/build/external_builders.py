@@ -1,21 +1,21 @@
 import json
-import threading
-from collections import defaultdict
-from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional, Dict, Set, Literal, Any, List, TYPE_CHECKING
+from typing import Optional, Literal, Any, List, TYPE_CHECKING
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.distributions.build_monitors import BuildPackageMonitoredOp, BuildPackageHookExecutionEvent
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.projects.pyproject_configuration import BuildSystemConfig
+from pkm.utils.dicts import put_if_absent
 from pkm.utils.files import temp_dir
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
     from pkm.api.projects.project import Project
+
+_CURRENT_BUILD_PATH_ATTR = "_current_build_path"
 
 
 class BuildError(IOError):
@@ -23,24 +23,6 @@ class BuildError(IOError):
     def __init__(self, msg: str, missing_hook: bool = False) -> None:
         super().__init__(msg)
         self.missing_hook = missing_hook
-
-
-_ongoing_builds: Dict[int, Set[PackageDescriptor]] = defaultdict(set)
-
-
-@contextmanager
-def _cycle_detection(project: "Project"):
-    ongoing_builds = _ongoing_builds[threading.current_thread().ident]
-    if project.descriptor in ongoing_builds:
-        raise BuildError(f"cycle detected involving: {ongoing_builds}")
-
-    ongoing_builds.add(project.descriptor)
-    try:
-        yield
-    finally:
-        ongoing_builds.remove(project.descriptor)
-        if not ongoing_builds:
-            del _ongoing_builds[threading.current_thread().ident]
 
 
 def build_sdist(project: "Project", target_dir: Optional[Path] = None,
@@ -60,7 +42,7 @@ def build_sdist(project: "Project", target_dir: Optional[Path] = None,
     target_dir.mkdir(exist_ok=True, parents=True)
 
     dist = 'sdist'
-    with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir, _cycle_detection(project):
+    with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir:
 
         pyproject = project.config
         buildsys: BuildSystemConfig = pyproject.build_system
@@ -109,17 +91,30 @@ def build_wheel(project: "Project", target_dir: Optional[Path] = None, only_meta
 
     from pkm.api.environments.environment_builder import EnvironmentBuilder
     target_dir = target_dir or (project.directories.dist / str(project.version))
+
+    if not target_env or (current_build_path := getattr(target_env, _CURRENT_BUILD_PATH_ATTR, None)) is None:
+        current_build_path = dict()
+
+    if not put_if_absent(current_build_path, project.descriptor, True):
+        def pstr(p: PackageDescriptor):
+            return f"{p.name} {p.version}"
+
+        raise BuildError(
+            f"build cycle detected: "
+            f"{' -> '.join(pstr(it) for it in current_build_path.keys())} -> {pstr(project.descriptor)}")
+
     interpreter_path = target_env.interpreter_path if target_env else project.attached_environment.interpreter_path
 
     target_dir.mkdir(exist_ok=True, parents=True)
 
     dist = 'editable_wheel' if editable else 'metadata' if only_meta else 'wheel'
-    with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir, _cycle_detection(project):
+    with BuildPackageMonitoredOp(project.descriptor, dist) as mop, temp_dir() as tdir:
         pyproject = project.config
         buildsys: BuildSystemConfig = pyproject.build_system
         build_packages_repo = project.attached_repository
 
         build_env = EnvironmentBuilder.create(tdir / 'venv', interpreter_path)
+        setattr(build_env, _CURRENT_BUILD_PATH_ATTR, current_build_path)
 
         if buildsys.requirements:
             build_env.install(buildsys.requirements, build_packages_repo)
@@ -219,3 +214,12 @@ def _exec_build_cycle_script(
                 f"Hook: {hook}\n"
                 f"Resulted in exception:\n{result.result}", False)
         return result
+
+# class _FilteringRepository(AbstractRepository):
+#     def __init__(self, repo: Repository, filtered_packages: Set[PackageDescriptor]):
+#         super().__init__("filtering-repo")
+#         self._repo = repo
+#         self._filtered_pacakges = filtered_packages
+#
+#     def _do_match(self, dependency: Dependency, env: "Environment") -> List[Package]:
+#         return [it for it in self._repo.match(dependency, env) if it.descriptor not in self._filtered_pacakges]

@@ -21,14 +21,8 @@ class RepositoriesConfigInheritanceMode(Enum):
 @config
 class RepositoryInstanceConfig:
     type: str
-    bind_only: bool = config_field(key="bind-only")
+    bind_only: bool = config_field(key="bind-only", default=False)
     args: Dict[str, str] = config_field(leftover=True)
-
-    def __hash__(self):
-        return HashBuilder() \
-            .regulars(self.type, self.bind_only) \
-            .unordered_mapping(self.args) \
-            .build()
 
 
 @config(io=TomlConfigIO())

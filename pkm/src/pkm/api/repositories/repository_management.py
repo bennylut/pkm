@@ -21,7 +21,7 @@ from pkm.utils.commons import NoSuchElementException
 from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.sequences import pop_or_none
-from pkm.utils.sets import try_add
+from pkm.utils.sets import add_if_absent
 
 
 class RepositoryManagement(ABC):
@@ -65,7 +65,7 @@ class RepositoryManagement(ABC):
 
         while next_ := pop_or_none(pending):
             rman, inherit = next_
-            if not try_add(closed, rman.configuration.path):
+            if not add_if_absent(closed, rman.configuration.path):
                 continue
             chain.append(rman)
             if inherit:
@@ -81,7 +81,8 @@ class RepositoryManagement(ABC):
         for rman in self.package_lookup_chain():
             for repo_name, repo_config in rman.configuration.repos.items():
                 if repo_name == name:
-                    result = self._publishers[name] = self._loader.build(name, repo_config).publisher
+                    result = self._publishers[name] \
+                        = self._loader.build(name, repo_config.type, **repo_config.args).publisher
                     return result
 
         raise NoSuchElementException(f"repository: {name} could not be found")
@@ -122,7 +123,7 @@ class RepositoryManagement(ABC):
 
         # the following line act a s a safeguard before the add operation,
         # if it fails the actual addition will not take place
-        self._loader.build(name, config)
+        self._loader.build(name, builder, **args)
 
         self.configuration.repos[name] = config
 
@@ -216,7 +217,7 @@ class ProjectRepositoryManagement(RepositoryManagement):
     def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
         # must wrap (even if it has project group) so that the repository will always return the exact same project
         # with any modifications made to it and won't reload it from disk
-        inherited = _ProjectsRepository.create('project-repository', [self.project], inherited)
+        inherited = ProjectsRepository.create('project-repository', [self.project], inherited)
 
         inherited = LockPrioritizingRepository(
             "lock-prioritizing-repository", inherited, self.project.lock)
@@ -239,11 +240,11 @@ class ProjectGroupRepositoryManagement(RepositoryManagement):
 
     def _wrap_attached_repository(self, inherited: Optional[Repository]) -> Repository:
         group = self.group
-        return _ProjectsRepository.create("group-projects-repository", group.project_children_recursive, inherited)
+        return ProjectsRepository.create("group-projects-repository", group.project_children_recursive, inherited)
 
 
-class _ProjectsRepository(AbstractRepository):
-    def __init__(self, name: str, projects: Dict[str, List[Project]], base_repo: Repository):
+class ProjectsRepository(AbstractRepository):
+    def __init__(self, name: str, projects: Dict[str, List[Project]], base_repo: Optional[Repository]):
         super().__init__(name)
         self._packages = projects
         self._base_repo = base_repo
@@ -252,15 +253,19 @@ class _ProjectsRepository(AbstractRepository):
         if not dependency.required_url():
             if matched_projects := self._packages.get(dependency.package_name_key):
                 return self._sorted_by_version([project for project in matched_projects])
-        return self._base_repo.match(dependency, env)
+        if self._base_repo:
+            return self._base_repo.match(dependency, env)
+        return []
 
     @classmethod
-    def create(cls, name: str, projects: Iterable[Project], base: Repository) -> _ProjectsRepository:
+    def create(cls, name: str, projects: Iterable[Project], base: Optional[Repository] = None) -> ProjectsRepository:
         grouped_projects = groupby(projects, lambda it: it.name_key)
-        return _ProjectsRepository(name, grouped_projects, base)
+        return ProjectsRepository(name, grouped_projects, base)
 
     def accept_non_url_packages(self) -> bool:
-        return self._base_repo.accept_non_url_packages()
+        return self._base_repo and self._base_repo.accept_non_url_packages()
 
     def accepted_url_protocols(self) -> Iterable[str]:
-        return self._base_repo.accepted_url_protocols()
+        if self._base_repo:
+            return self._base_repo.accepted_url_protocols()
+        return ()

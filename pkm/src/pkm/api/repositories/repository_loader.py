@@ -9,13 +9,14 @@ from typing import List, Dict, Iterable, Optional, Set, Mapping
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.environments.environment import Environment
 from pkm.api.packages.package import Package
-from pkm.api.repositories.repositories_configuration import RepositoryInstanceConfig, RepositoriesConfiguration, \
+from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, \
     RepositoriesConfigInheritanceMode
 from pkm.api.repositories.repository import Repository, RepositoryBuilder, AbstractRepository
 from pkm.repositories.file_repository import FileRepository
 from pkm.repositories.pypi_repository import PypiRepositoryBuilder
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
+from pkm.utils.hashes import HashBuilder
 from pkm.utils.iterators import first_or_none
 
 REPOSITORIES_EXTENSIONS_ENTRYPOINT_GROUP = "pkm-repositories"
@@ -69,7 +70,7 @@ class RepositoryLoader:
 
         base = _CompositeRepository('base', base_repositories, set(), {})
 
-        self._cached_instances: Dict[RepositoryInstanceConfig, Repository] = {}  # noqa
+        self._cached_instances: Dict[_CachedRepositoryKey, Repository] = {}
 
         self.global_repo_config = RepositoriesConfiguration.load(main_cfg)
 
@@ -89,7 +90,7 @@ class RepositoryLoader:
         binding_only_repositories = set()
 
         for defined_name, definition in config.repos.items():
-            instance = self.build(defined_name, definition)
+            instance = self.build(defined_name, definition.type, **definition.args)
             package_search_list.append(instance)
             if definition.bind_only:
                 binding_only_repositories.add(defined_name)
@@ -105,8 +106,7 @@ class RepositoryLoader:
                 package_binding[package] = binding
             else:
                 type_ = binding.pop('type')
-                binding = self.build(
-                    name, RepositoryInstanceConfig(type=type_, bind_only=True, args=binding))
+                binding = self.build(name, type_, **binding)
                 binding_only_repositories.add(binding.name)
                 package_search_list.append(binding)
                 package_binding[package] = binding.name
@@ -118,14 +118,27 @@ class RepositoryLoader:
 
         return _CompositeRepository(name, package_search_list, binding_only_repositories, package_binding)
 
-    def build(self, name: str, config: RepositoryInstanceConfig) -> Repository:
-        if not (cached := self._cached_instances.get(config)):
-            if not (builder := self._builders.get(config.type)):
-                raise KeyError(f"unknown repository type: {config.type}")
-            cached = builder.build(name, config.args)
-            self._cached_instances[config] = cached
+    def build(self, name: str, builder: str, **args) -> Repository:
+        key = _CachedRepositoryKey(builder, args)
+        if not (cached := self._cached_instances.get(key)):
+            if not (builder := self._builders.get(builder)):
+                raise KeyError(f"unknown repository type: {builder}")
+            cached = builder.build(name, args)
+            self._cached_instances[key] = cached
 
         return cached
+
+
+@dataclass(eq=True)
+class _CachedRepositoryKey:
+    builder: str
+    args: Dict[str, str]
+
+    def __hash__(self):
+        return HashBuilder() \
+            .regular(self.builder) \
+            .unordered_mapping(self.args) \
+            .build()
 
 
 class _CompositeRepository(AbstractRepository):

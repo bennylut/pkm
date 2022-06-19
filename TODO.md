@@ -1,14 +1,20 @@
 ## RUNNING TASKS:
+- integrate bash* autocomplete (can we also do so for `pkm run`?)
 
 ## DONE IN THIS VERSION
-- publishing without authentication available, an exception shown but help does not describe how to provide auth, also
-  should probably allow asking the user for the missing auth keys directly in the ui
-- bug: uninstall does not delete the ".lib" directories but installer did created them
-- bug: generated pyc files are not getting signed
-- simplification: remove the repository:sort_by_priority function - do that as part of the match for repostiries that
-  this important to
+- look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
+- package artifact hash validation: pypi, simple, torch
+- bug: recursion in cached property loop forever
+- pkm build: cycle detection is not good enough (may fail on multithreading/multiproc) should move to build session
+- bug: version printing expand the ~= operator
+- enhancement: config classes can now defined post_init like dataclasses
+- content information (author and maintainer) name and email should be escaped before publishing,
+    - should use the email.utils.formataddr
+
 
 ## BACKLOG TASKS:
+- cli hook into warnings and display them using Display
+- build hook print - should be named in log according to the package being built and not the process building
 - multiproc: pipe monitoring events, currently download is not shown when multiproc
 - documentation: dependency overrides, what is the use flow?
 - try and break multiproc, when broken - add code that handles it by switching to multithread
@@ -18,16 +24,12 @@
 - `pkm run` support custom environment variables loading like in pipenv
 - qol: package build log should allways be sent into a file, this file can then be suggested to the user if he run on
   non verbose mode
-- bug: version printing expand the ~= operator
-- pkm build: cycle detection is not good enough (may fail on multithreading/multiproc) should move to build session
 - documentation: document builtin templates
 - bug: running in dumb terminal log almost nothing
-- look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
 - extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
 - documentation: environments
 - documentation: how to work with multiprojects in pycharm
 - documentation: mostly rewrite and extend the projects documentation
-- integrate bash* autocomplete (can we also do so for `pkm run`?)
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
 - add test support (maybe extendable test engine?)
@@ -35,20 +37,14 @@
 - add git repository type
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
-- refactoring: rename version specifiers according to pep440
 - enhancement: delegation should also support abstract properties
 - replace dependency resolution progressbar with spinner?
-- package artifact hash validation: pypi, simple, torch
 - qof: when running in "build-sys" mode, basic monitoring should be on
 - cli: if building packages during dependency resolution, output is very convoluted
 - enhancement: build using pkm own buildsys is too quiet, cannot use the output for effective debugging
 - documentation: explain about PKM_HOME, maybe show its value in one of the reports
 - documentation site: sidebar responsive to phones
 - toml parser/writer need unit tests
-- local pythons repository - support windows (using PEP 514, virtualenv has a reference implementation in its source
-  code under discovery pacakage)
-- content information (author and maintainer) name and email should be validated before publishing,
-    - should use the email.utils.formataddr
 
 ## For version 1.0+
 - post/pre processing and "compilers/transpilers" support  
@@ -62,6 +58,10 @@
 - feature: namespace guard file (in a namespace package add a `.namespace` file and `pkm` will guard it to not
   allow `__init__.py` files to be accedantly added to it)
 - enhancement: failure during installation should revert fully to the previous environment state
+- local pythons lookup - support windows (using PEP 514, virtualenv has a reference implementation in its source
+  code under discovery pacakage)
+- performance: pkm keeps rebuilding/resolving similar build environments - consider caching them or their solutions
+- test "probe" framework (maybe there is already something like that)
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 - automatic monkey patching of a module - can be defined in the project level = extension methods, this can be done with

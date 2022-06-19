@@ -48,7 +48,7 @@ class _ContextualCommand:
         path = path.resolve()
 
         if (on_project := self.on_project) and (project := _lookup_project(path)):
-            print_(f"using project context: {project.path}")
+            print_(f"using [gold1 on grey19]project[/] context: {project.path}")
             on_project(project)
         elif (on_project_group := self.on_project_group) and (project_group := _lookup_project_group(path)):
             print_(f"using project-group context: {project_group.path}")

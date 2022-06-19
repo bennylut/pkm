@@ -2,6 +2,7 @@ from dataclasses import FrozenInstanceError
 from threading import RLock
 
 from typing import TypeVar, Callable, Any, Dict
+from weakref import WeakKeyDictionary
 
 from pkm.utils.commons import UnsupportedOperationException
 
@@ -23,28 +24,24 @@ class cached_property:
         self._attr = f"_cached_{name}"
 
     def _compute(self, instance):
-        compute = True
         iid = id(instance)
+        instance_lock_owner = False
         with self._mutation_lock:
-            instance_lock = self._instance_locks.get(iid)
-            if instance_lock is not None:
-                compute = False
-            else:
-                instance_lock = self._instance_locks[iid] = RLock()
-                instance_lock.acquire()
+            if not (instance_lock := self._instance_locks.get(iid)):
+                self._instance_locks[iid] = instance_lock = RLock()
+                instance_lock_owner = True
 
         with instance_lock:
-            if compute:
+            if not hasattr(instance, self._attr):
+                value = self._func(instance)
                 try:
-                    if not hasattr(instance, self._attr):
-                        value = self._func(instance)
-                        try:
-                            setattr(instance, self._attr, value)
-                        except FrozenInstanceError:
-                            super(instance.__class__, instance).__setattr__(self._attr, value)
-                finally:
-                    del self._instance_locks[iid]
-                    instance_lock.release()
+                    setattr(instance, self._attr, value)
+                except FrozenInstanceError:
+                    super(instance.__class__, instance).__setattr__(self._attr, value)
+
+        if instance_lock_owner:
+            with self._mutation_lock:
+                del self._instance_locks[iid]
 
     def __get__(self, instance, owner) -> _T:
         if instance is None:

@@ -86,11 +86,12 @@ class Project(Package, HasAttachedRepository, IPCPackable):
     def published_metadata(self) -> Optional[PackageMetadata]:
         return PackageMetadata.from_project_config(self.config.project)
 
-    @cached_property
-    def computed_metadata(self) -> PackageMetadata:
+    def compute_metadata(self, env: Environment) -> PackageMetadata:
         if self.config.project.dynamic:
-            dist_info = DistInfo.load(self.build_wheel(only_meta=True))
-            return dist_info.load_metadata_cfg()
+            if not (computed := getattr(self, '_compute_metadata', None)):
+                dist_info = DistInfo.load(self.build_wheel(only_meta=True, target_env=env))
+                setattr(self, '_compute_metadata', computed := dist_info.load_metadata_cfg())
+            return computed
         return self.published_metadata
 
     @property
@@ -103,7 +104,7 @@ class Project(Package, HasAttachedRepository, IPCPackable):
         prj = self.config.project
 
         if prj.is_dynamic('dependencies') or prj.is_dynamic('optional-dependencies'):
-            all_deps = self.computed_metadata.dependencies
+            all_deps = self.compute_metadata(target.env).dependencies
         else:
             all_deps = self._pyproject.project.all_dependencies
 
@@ -252,10 +253,10 @@ class Project(Package, HasAttachedRepository, IPCPackable):
         """
 
         if self.is_pkm_project():
-            from pkm.pep517_builders.pkm_builders import build_sdist
+            from pkm.build.pkm_builders import build_sdist
             return build_sdist(self, target_dir)
         else:
-            from pkm.pep517_builders.external_builders import build_sdist
+            from pkm.build.external_builders import build_sdist
             return build_sdist(self, target_dir)
 
     def build_wheel(self, target_dir: Optional[Path] = None, only_meta: bool = False, editable: bool = False,
@@ -269,13 +270,13 @@ class Project(Package, HasAttachedRepository, IPCPackable):
         :return: path to the built artifact (directory if only_meta, wheel archive otherwise)
         """
         if self.is_containerized_application() and not only_meta:
-            from pkm.pep517_builders.pkm_app_builders import build_wheel
+            from pkm.build.pkm_app_builders import build_wheel
             return build_wheel(self, target_dir, editable=editable, target_env=target_env)
         elif self.is_pkm_project():
-            from pkm.pep517_builders.pkm_builders import build_wheel
+            from pkm.build.pkm_builders import build_wheel
             return build_wheel(self, target_dir, only_meta, editable, target_env=target_env)
         else:
-            from pkm.pep517_builders.external_builders import build_wheel
+            from pkm.build.external_builders import build_wheel
             return build_wheel(self, target_dir, only_meta, editable, target_env=target_env)
 
     def build(self, target_dir: Optional[Path] = None) -> List[Path]:

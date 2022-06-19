@@ -59,4 +59,4 @@ class FileSystemRepositoryBuilder(RepositoryBuilder):
 
 
 def _is_distribution(path: Path) -> bool:
-    return endswith_any(path.name, ('.tar.gz', '.whl')) is not None
+    return (not path.is_dir()) and endswith_any(path.name, ('.tar.gz', '.whl')) is not None

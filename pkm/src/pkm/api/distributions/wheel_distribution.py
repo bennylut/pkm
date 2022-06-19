@@ -16,7 +16,7 @@ from pkm.api.packages.package_installation_info import PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version import StandardVersion
 from pkm.api.versions.version_specifiers import StandardVersionRange
-from pkm.distributions.executables import Executables
+from pkm.launchers.executables import Executables
 from pkm.utils.archives import extract_archive
 from pkm.utils.files import path_to, CopyTransaction, temp_dir, is_empty_directory
 

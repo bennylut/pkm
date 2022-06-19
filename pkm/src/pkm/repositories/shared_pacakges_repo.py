@@ -14,7 +14,7 @@ from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.packages.site_packages import InstalledPackage
 from pkm.api.repositories.repository import AbstractRepository, Repository
-from pkm.distributions.executables import Executables
+from pkm.launchers.executables import Executables
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import CopyTransaction, is_empty_directory, is_relative_to
 from pkm.utils.ipc import IPCPackable

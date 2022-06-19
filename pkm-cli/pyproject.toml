@@ -1,6 +1,6 @@
 [project]
 name = "pkm-cli"
-version = "0.4.49"
+version = "0.4.50"
 description = "Command line interface for PKM"
 authors = [{ name = "bennyl" }]
 requires-python = ">=3.8, <4.0"
@@ -11,9 +11,6 @@ license.text = "MIT License"
 
 [project.scripts]
 pkm = "pkm_cli.main:main"
-
-[tool.pkm.distribution]
-type = "lib"
 
 [build-system]
 requires = ["pkm >=0.4.23"]

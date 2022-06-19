@@ -2,7 +2,7 @@ from typing import Dict
 
 from pkm.api.pkm import HasAttachedRepository
 from pkm.utils.sequences import pop_or_none
-from pkm.utils.sets import try_add
+from pkm.utils.sets import add_if_absent
 from pkm_cli.display.display import Display
 from pkm_cli.reports.report import Report
 import re
@@ -21,7 +21,7 @@ class AddedRepositoriesReport(Report):
         contexts = [self._with_repo]
         opened = set()
         while context := pop_or_none(contexts):
-            if not try_add(opened, id(context)):
+            if not add_if_absent(opened, id(context)):
                 continue
             contexts.extend(context.repository_management.parent_contexts())
 

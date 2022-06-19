@@ -18,8 +18,8 @@ from pkm.api.projects.pyproject_configuration import PyProjectConfiguration, Pkm
 from pkm.api.repositories.repositories_configuration import RepositoriesConfiguration, RepositoryInstanceConfig
 from pkm.api.repositories.repository_loader import REPOSITORIES_CONFIGURATION_PATH
 from pkm.api.versions.version import Version
-from pkm.distributions.executables import Executables
-from pkm.pep517_builders.pkm_builders import build_wheel
+from pkm.launchers.executables import Executables
+from pkm.build.pkm_builders import build_wheel
 from pkm.repositories.file_system_repository import FILE_SYSTEM_REPOSITORY_TYPE
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import temp_dir, mkdir, CopyTransaction, path_to

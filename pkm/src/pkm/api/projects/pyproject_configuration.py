@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass, replace
+from email.header import Charset  # noqa
+from email.utils import specialsre, escapesre  # noqa
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Mapping, Any, Iterator, Type
 
@@ -27,11 +29,29 @@ class BuildSystemConfig:
     backend_path: List[str] = config_field(key='backend-path')
 
 
+_contect_info_charset = Charset('utf-8')
+
+
 @dataclass(eq=True)
 @config
 class ContactInfo:
     name: str = None
     email: str = None
+
+    def __post_init__(self):
+        """
+        adjusted from source of email.utils.formataddr, make sure the given name is according to rfc822
+        """
+        try:
+            self.name.encode('ascii')
+        except UnicodeEncodeError:
+            self.name = _contect_info_charset.header_encode(self.name)
+        else:
+            quotes = ''
+            if specialsre.search(self.name):
+                quotes = '"'
+            name = escapesre.sub(r'\\\g<0>', self.name)
+            self.name = f"{quotes}{name}{quotes}"
 
 
 def _entrypoints_from_config(group: str, ep: Dict[str, str]) -> List[EntryPoint]:

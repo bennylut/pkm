@@ -529,6 +529,17 @@ class StandardVersionRange(VersionSpecifier):
                and self.includes_max == other.includes_max and self.min == other.min and self.max == other.max
 
     def __str__(self):
+
+        # first attempt to recognize the ~= pattern:
+
+        # noinspection PyUnboundLocalVariable
+        if self.includes_min and (not self.includes_max) \
+                and self.min and self.max \
+                and len(smr := self.min.release) > 1 \
+                and self.max.release == (*smr[:-2], smr[-2] + 1, 0):
+
+            return f"~={self.min}"
+
         res = ''
         if self.min is not None:
             res += '>'

@@ -14,7 +14,7 @@ from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.ipc import IPCPackable
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.sequences import pop_or_none
-from pkm.utils.sets import try_add
+from pkm.utils.sets import add_if_absent
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -89,7 +89,7 @@ class SitePackages(IPCPackable):
 
         while next_ := pop_or_none(requested):
             name = next_.name_key
-            if not try_add(done, name):
+            if not add_if_absent(done, name):
                 continue
 
             orphans.pop(name, None)

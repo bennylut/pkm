@@ -5,7 +5,7 @@ from pkm.utils.types import Hashable
 _T = TypeVar("_T", bound=Hashable)
 
 
-def try_add(st: Set[_T], item: _T) -> bool:
+def add_if_absent(st: Set[_T], item: _T) -> bool:
     """
     tries to add an item to the set indicating if the operation succeeded
     :param st: the set to add the item into

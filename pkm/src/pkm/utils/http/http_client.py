@@ -1,6 +1,8 @@
 import hashlib
 import json
-import locale
+import email.utils as eu
+from datetime import datetime
+from datetime import timezone
 import shutil
 import socket
 from collections import deque
@@ -19,7 +21,7 @@ from pkm.config.configclass import ConfigFile, config, config_field
 from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.commons import Closeable, IllegalStateException
 from pkm.utils.dicts import get_or_put
-from pkm.utils.http.cache_directive import TF_HTTP, CacheDirective
+from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_monitors import FetchResourceMonitoredOp, FetchResourceCacheHitEvent, \
     FetchResourceDownloadStartEvent
 from pkm.utils.promises import Promise, Deferred
@@ -32,11 +34,11 @@ HTTPConnection.debuglevel = 0
 # ------------
 # this sad hack is made because http timestamp parsing requires en_us locale, I can probably write my own parser/writer
 # to remove this hack
-try:
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
+# try:
+#     locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+# except locale.Error:
+#     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+#
 # this sad hack is made because for some reason,
 # many services still has problem with ipv6 (like cloudfront occasionally have)
 # and some are just slower to accept connections (like pypi)
@@ -269,7 +271,8 @@ class FetchedResource:
             fetch_info = self.fetch_info_data = FetchInfoConfig()
             fetch_info.path = self.fetch_info
 
-            fetch_info.fetch_time = last_modified or datetime.utcnow().strftime(TF_HTTP)
+            # fetch_info.fetch_time = last_modified or datetime.utcnow().strftime(TF_HTTP)
+            fetch_info.fetch_time = last_modified or eu.format_datetime(datetime.now().astimezone(timezone.utc), True)
             fetch_info.etag = rheaders.get("etag") or ''
 
             fetch_info.save()

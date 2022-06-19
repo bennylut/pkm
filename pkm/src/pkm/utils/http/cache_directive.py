@@ -1,3 +1,4 @@
+import email.utils as eu
 from abc import abstractmethod
 from datetime import datetime
 from http.client import HTTPResponse
@@ -9,8 +10,9 @@ from pkm.utils.functionals import run_once
 if TYPE_CHECKING:
     from pkm.utils.http.http_client import FetchInfoConfig
 
-TF_HTTP = '%a, %d %b %Y %H:%M:%S GMT'
-TF_PACKAGE_UPLOAD_TIME = '%Y-%m-%dT%H:%M:%S'
+
+# TF_HTTP = '%a, %d %b %Y %H:%M:%S GMT'
+# TF_PACKAGE_UPLOAD_TIME = '%Y-%m-%dT%H:%M:%S'
 
 
 class CacheDirective(Protocol):
@@ -60,7 +62,8 @@ class CacheDirective(Protocol):
                 if fetch_time is None:
                     return False
 
-                fetch_time = datetime.strptime(fetch_time, TF_HTTP)
+                # fetch_time = datetime.strptime(fetch_time, TF_HTTP)
+                fetch_time = eu.parsedate_to_datetime(fetch_time)
                 return fetch_time >= dt
 
         return _After()

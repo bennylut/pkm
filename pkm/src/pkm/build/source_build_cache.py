@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-import pkm.pep517_builders.external_builders as ext_build
+import pkm.build.external_builders as ext_build
 from pkm.api.distributions.source_distribution import SourceDistribution
 from pkm.api.distributions.wheel_distribution import WheelDistribution
 from pkm.api.environments.environment import Environment
@@ -11,7 +11,7 @@ from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation import PackageInstallationTarget
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.projects.project import Project
-from pkm.pep517_builders.external_builders import BuildError
+from pkm.build.external_builders import BuildError
 from pkm.utils.archives import extract_archive
 from pkm.utils.files import temp_dir
 from pkm.utils.hashes import stream
