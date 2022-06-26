@@ -8,7 +8,7 @@ from pkm.api.packages.standard_package import PackageArtifact, AbstractPackage
 from pkm.api.pkm import pkm
 from pkm.api.repositories.repository import AbstractRepository
 from pkm.utils.http.http_client import Url
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 
 
 class UrlRepository(AbstractRepository):
@@ -26,7 +26,7 @@ class UrlRepository(AbstractRepository):
         return [UrlPackage(PackageDescriptor(dependency.package_name, vurl), vurl.url)]
 
 
-class UrlPackage(AbstractPackage, IPCPackable):
+class UrlPackage(AbstractPackage, Serializable):
 
     def __init__(self, desc: PackageDescriptor, url: str):
         purl = Url.parse(url)

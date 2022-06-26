@@ -11,7 +11,7 @@ from pkm.api.packages.package_installation_info import StoreMode, PackageInstall
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import VersionMatch
 from pkm.utils.files import is_empty_directory, is_relative_to
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.properties import cached_property, clear_cached_properties
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import add_if_absent
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from pkm.api.packages.package_installation import PackageInstallationTarget
 
 
-class SitePackages(IPCPackable):
+class SitePackages(Serializable):
 
     def __init__(self, env: "Environment", purelib: Path, platlib: Path):
 
@@ -112,7 +112,7 @@ def _read_user_request(dist_info: DistInfo, metadata: PackageMetadata) -> Option
     return None
 
 
-class InstalledPackage(Package, IPCPackable):
+class InstalledPackage(Package, Serializable):
 
     def __init__(self, dist_info: DistInfo, site: Optional[SitePackages] = None):
 

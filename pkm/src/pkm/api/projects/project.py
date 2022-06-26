@@ -22,7 +22,7 @@ from pkm.api.versions.version_specifiers import AllowAllVersions
 from pkm.resolution.packages_lock import PackagesLock
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.files import temp_dir
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.properties import cached_property, clear_cached_properties
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class Project(Package, HasAttachedRepository, IPCPackable):
+class Project(Package, HasAttachedRepository, Serializable):
 
     def __init__(self, pyproject: PyProjectConfiguration, group: Optional["ProjectGroup"] = None):
         self._path = pyproject.path.absolute().parent

@@ -16,14 +16,14 @@ from pkm.config.configfiles import TomlConfigIO
 from pkm.repositories.shared_pacakges_repo import SharedPackagesRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import is_relative_to
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.properties import cached_property
 
 if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class EnvironmentsZoo(HasAttachedRepository, IPCPackable):
+class EnvironmentsZoo(HasAttachedRepository, Serializable):
 
     def __init__(self, cfg: EnvironmentZooConfiguration):
         self.config = cfg

@@ -18,12 +18,12 @@ from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import HttpClient, HttpException
 from pkm.utils.http.mfd_payload import FormField, MultipartFormDataPayload
 from pkm.utils.io_streams import chunks
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import first_or_none
 from pkm.utils.properties import cached_property
 
 
-class PyPiRepository(AbstractRepository, IPCPackable):
+class PyPiRepository(AbstractRepository, Serializable):
 
     def __init__(self, name: str, fetch_url: str, publish_url: Optional[str]):
         super().__init__(name)
@@ -78,7 +78,7 @@ class PyPiRepository(AbstractRepository, IPCPackable):
 
 
 # noinspection PyProtectedMember
-class PypiPackage(AbstractPackage, IPCPackable):
+class PypiPackage(AbstractPackage, Serializable):
 
     def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact], repo: PyPiRepository,
                  metadata: PackageMetadata):

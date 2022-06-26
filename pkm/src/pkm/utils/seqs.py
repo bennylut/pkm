@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import itertools
 from functools import reduce
-from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable
+from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable, Tuple, Type
 
 from pkm.utils.commons import NoSuchElementException
-from pkm.utils.types import Predicate
+from pkm.utils.types import Predicate, Mapper, Comparable
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
+_CMP = TypeVar("_CMP", bound=Comparable)
 
 
 def seq(iterator: Iterable[_T]) -> Seq[_T]:
@@ -47,7 +48,7 @@ class Seq(Generic[_T], Iterator[_T]):
         except StopIteration:
             return default
 
-    def unique(self, key: Callable[[_T], Hashable] = lambda it: it) -> Seq[_T]:
+    def unique_by(self, key: Callable[[_T], Hashable] = lambda it: it) -> Seq[_T]:
         def yield_uniques():
             tracked = set()
             for it in self._iter:
@@ -95,6 +96,26 @@ class Seq(Generic[_T], Iterator[_T]):
     def str_join(self, sep: str) -> str:
         return sep.join(str(it) for it in self._iter)
 
+    def partition_by(self, key: Predicate[_T]) -> Tuple[List[_T], List[_T]]:
+        yes, no = [], []
+        for item in self._iter:
+            if key(item):
+                yes.append(item)
+            else:
+                no.append(item)
+
+        return yes, no
+
+    def partition_by_type(self, type_: Type[_U]) -> Tuple[List[_U], List[_T]]:
+        yes, no = [], []
+        for item in self._iter:
+            if isinstance(item, type_):
+                yes.append(item)
+            else:
+                no.append(item)
+
+        return yes, no
+
     def index_of_matching_or_none(self, matcher: Predicate[_T]) -> Optional[int]:
         return next((i for i, it in enumerate(self._iter) if matcher(it)), None)
 
@@ -102,3 +123,24 @@ class Seq(Generic[_T], Iterator[_T]):
         if (result := self.index_of_matching_or_none(matcher)) is None:
             raise NoSuchElementException("no match found")
         return result
+
+    def min_by(self, measure: Mapper[_T, Comparable]) -> _T:
+        return min(self._iter, key=measure)
+
+    def min_by_or_none(self, measure: Mapper[_T, Comparable]) -> Optional[_T]:
+        try:
+            return min(self._iter, key=measure)
+        except ValueError:
+            return None
+
+    def max_by(self, measure: Mapper[_T, Comparable]) -> _T:
+        return max(self._iter, key=measure)
+
+    def max(self) -> _T:
+        return max(self._iter)
+
+    def max_by_or_none(self, measure: Mapper[_T, Comparable]) -> Optional[_T]:
+        try:
+            return max(self._iter, key=measure)
+        except ValueError:
+            return None

@@ -1,40 +1,31 @@
 ## RUNNING TASKS:
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
+- documentation: environments
+- cli hook into warnings and display them using Display
+- build hook print - should be named in log according to the package being built and not the process building
+- `pkm run` support custom environment variables loading like in pipenv
+- qol: package build log should allways be sent into a file, this file can then be suggested to the user if he run on
+  non verbose mode
 
 ## DONE IN THIS VERSION
-- look at the SimpleHTTPRequestHandler::send_header for better parsing of "if-modified-since"
-- package artifact hash validation: pypi, simple, torch
-- bug: recursion in cached property loop forever
-- pkm build: cycle detection is not good enough (may fail on multithreading/multiproc) should move to build session
-- bug: version printing expand the ~= operator
-- enhancement: config classes can now defined post_init like dataclasses
-- content information (author and maintainer) name and email should be escaped before publishing,
-    - should use the email.utils.formataddr
 
 
 ## BACKLOG TASKS:
-- cli hook into warnings and display them using Display
-- build hook print - should be named in log according to the package being built and not the process building
+- migration tool from poetry and pipenv
+- build/publish with dependencies
 - multiproc: pipe monitoring events, currently download is not shown when multiproc
 - documentation: dependency overrides, what is the use flow?
 - try and break multiproc, when broken - add code that handles it by switching to multithread
 - check ideas for multiple progress bar tui here: https://github.com/Textualize/rich/discussions/1500 also, consider
   putting the progressbar on the left ([===>  ] task description)
-- consider replacing questionary with rich.prompt
-- `pkm run` support custom environment variables loading like in pipenv
-- qol: package build log should allways be sent into a file, this file can then be suggested to the user if he run on
-  non verbose mode
 - documentation: document builtin templates
 - bug: running in dumb terminal log almost nothing
-- extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
-- documentation: environments
 - documentation: how to work with multiprojects in pycharm
 - documentation: mostly rewrite and extend the projects documentation
 - display: create (indentation based) subprocess/subtask contextual display, this can be used to seperate progress of
   sub builds from main build
-- add test support (maybe extendable test engine?)
+- add test support (maybe extendable test engine?), maybe add it as a prebuild hook (task?)
 - documentation: repositories - how to build your own
-- add git repository type
 - when publishing into a (closed) index (like pypi) - all dependencies should be available in this index (except urls
   and git)
 - enhancement: delegation should also support abstract properties
@@ -62,6 +53,9 @@
   code under discovery pacakage)
 - performance: pkm keeps rebuilding/resolving similar build environments - consider caching them or their solutions
 - test "probe" framework (maybe there is already something like that)
+- consider replacing questionary with rich.prompt
+- extract the docs-builder to a template together with relevant tasks - this may be usefull to many other projects
+- add git repository type
 
 ## Ideas (may be irrelevant to pkm and may have their own library):
 - automatic monkey patching of a module - can be defined in the project level = extension methods, this can be done with

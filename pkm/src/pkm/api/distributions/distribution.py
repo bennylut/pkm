@@ -6,7 +6,7 @@ from pkm.api.packages.package_installation_info import PackageInstallationInfo, 
 from pkm.api.packages.package import PackageDescriptor, Package
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package_metadata import PackageMetadata
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 
 if TYPE_CHECKING:
     from pkm.api.environments.environment import Environment
@@ -62,7 +62,7 @@ class Distribution(Protocol):
         return _DistributionPackage(SourceDistribution(desc, distribution))
 
 
-class _DistributionPackage(Package, IPCPackable):
+class _DistributionPackage(Package, Serializable):
 
     def __init__(self, dist: Distribution):
         self._dist = dist

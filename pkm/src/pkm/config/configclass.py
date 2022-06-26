@@ -10,7 +10,7 @@ from typing import TypeVar, Dict, Any, Type, Generic, List, Mapping, Optional, C
 
 from pkm.utils.commons import NoSuchElementException, UnsupportedOperationException
 from pkm.utils.enums import enum_by_name
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.properties import clear_cached_properties
 
 _T = TypeVar("_T")
@@ -31,7 +31,7 @@ class Stringable(Protocol):
 
 
 # noinspection PyShadowingNames
-class ConfigFile(ABC, IPCPackable):
+class ConfigFile(ABC, Serializable):
     _path: Path
 
     def __getstate__(self):

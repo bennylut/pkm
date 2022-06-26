@@ -21,7 +21,7 @@ from pkm.resolution.dependency_resolver import resolve_dependencies
 from pkm.resolution.pubgrub import UnsolvableProblemException
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.delegations import delegate
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import first_or_none
 from pkm.utils.multiproc import ProcessPoolExecutor
 from pkm.utils.promises import Promise, await_all_promises_or_cancel
@@ -310,7 +310,7 @@ class _PackageOperationTask:
         self._target = target
 
     def can_be_multiprocessesd(self):
-        return isinstance(self._package, IPCPackable)
+        return isinstance(self._package, Serializable)
 
     def execute(self, threadpool: ThreadPoolExecutor, procpool: Optional[ProcessPoolExecutor]) -> Promise:
         operation, store_mode, user_request, package, target = \
@@ -379,7 +379,7 @@ class _RemovalRepository(AbstractRepository):
         return [_RemovalPackage(match)] if match else []
 
 
-class _RemovalPackage(Package, IPCPackable):
+class _RemovalPackage(Package, Serializable):
 
     def __init__(self, p: InstalledPackage):
         self.package = p

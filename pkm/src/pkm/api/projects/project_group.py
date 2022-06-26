@@ -9,7 +9,7 @@ from pkm.api.projects.project import Project
 from pkm.config.configclass import config, ConfigFile, config_field
 from pkm.config.configfiles import TomlConfigIO
 from pkm.utils.files import ensure_exists
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import single_or_raise
 from pkm.utils.properties import cached_property
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pkm.api.repositories.repository_management import RepositoryManagement
 
 
-class ProjectGroup(HasAttachedRepository, IPCPackable):
+class ProjectGroup(HasAttachedRepository, Serializable):
     """
     project group, like the name implies, is a group of projects
     the projects are related to themselves in a parent/children manner,

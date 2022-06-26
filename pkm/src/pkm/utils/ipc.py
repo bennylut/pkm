@@ -38,13 +38,3 @@ from typing import Protocol, runtime_checkable
 #         self.pool.terminate()
 #
 
-@runtime_checkable
-class IPCPackable(Protocol):
-
-    @abstractmethod
-    def __getstate__(self):
-        ...
-
-    @abstractmethod
-    def __setstate__(self, state):
-        ...

@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import TypeVar, Optional, Callable, Type, Union
+from typing import TypeVar, Optional, Callable, Type, Union, Hashable
 
 _T = TypeVar("_T")
 # noinspection PyTypeChecker
@@ -68,3 +68,4 @@ class Closeable(ABC):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+

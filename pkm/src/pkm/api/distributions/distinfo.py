@@ -17,7 +17,7 @@ from pkm.utils.dicts import get_or_compute
 from pkm.utils.entrypoints import EntryPoint, ObjectReference
 from pkm.utils.files import path_to
 from pkm.utils.hashes import HashSignature
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from pkm.api.packages.package import PackageDescriptor
 
 
-class DistInfo(IPCPackable):
+class DistInfo(Serializable):
 
     def __init__(self, path: Path):
         self.path = path

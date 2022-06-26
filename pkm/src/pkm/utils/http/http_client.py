@@ -1,14 +1,13 @@
+import email.utils as eu
 import hashlib
 import json
-import email.utils as eu
-from datetime import datetime
-from datetime import timezone
 import shutil
 import socket
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import datetime
+from datetime import timezone
 from gzip import GzipFile
 from http.client import HTTPSConnection, HTTPConnection, HTTPResponse
 from pathlib import Path
@@ -27,18 +26,8 @@ from pkm.utils.http.http_monitors import FetchResourceMonitoredOp, FetchResource
 from pkm.utils.promises import Promise, Deferred
 from pkm.utils.properties import clear_cached_properties, cached_property
 
-_next_connection_number = 0
 HTTPConnection.debuglevel = 0
 
-# Sad Hacks:
-# ------------
-# this sad hack is made because http timestamp parsing requires en_us locale, I can probably write my own parser/writer
-# to remove this hack
-# try:
-#     locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-# except locale.Error:
-#     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-#
 # this sad hack is made because for some reason,
 # many services still has problem with ipv6 (like cloudfront occasionally have)
 # and some are just slower to accept connections (like pypi)
@@ -102,8 +91,6 @@ class Url:
             host = parts.netloc
             port = '80' if scheme == 'http' else '443'
 
-        # if not scheme or not host:
-        #     raise ValueError("no schema or host in url")
         return Url(scheme, host, int(port), parts.path, parts.query, parts.fragment)
 
 
@@ -146,9 +133,9 @@ class _Connections(Closeable):
 
         if not result:
             result = self._ctype(host=self._host, port=self._port, timeout=10)
-            global _next_connection_number
-            result.number = _next_connection_number
-            _next_connection_number += 1
+            # global _next_connection_number
+            # result.number = _next_connection_number
+            # _next_connection_number += 1
         return cast(HTTPConnection, _ConnectionProxy(result, self))
 
     def _release(self, conn: HTTPConnection):

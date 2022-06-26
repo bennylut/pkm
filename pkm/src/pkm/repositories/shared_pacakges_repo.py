@@ -17,7 +17,7 @@ from pkm.api.repositories.repository import AbstractRepository, Repository
 from pkm.launchers.executables import Executables
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.files import CopyTransaction, is_empty_directory, is_relative_to
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import first_or_none
 
 
@@ -92,7 +92,7 @@ class _SharedPackage(Package):
         self._package = package
         self._shared_path = shared_path
 
-        if isinstance(package, IPCPackable):
+        if isinstance(package, Serializable):
             self.__getstate__ = self._getstate
 
         if shared_path.exists():

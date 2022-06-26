@@ -13,7 +13,7 @@ from pkm.api.versions.version import Version
 from pkm.api.versions.version_specifiers import VersionSpecifier
 from pkm.utils.http.cache_directive import CacheDirective
 from pkm.utils.http.http_client import Url
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import groupby
 from pkm.utils.strings import endswith_any, without_suffix
 
@@ -99,7 +99,7 @@ class _HtmlArtifactsExtractor(HTMLParser):
                 self.artifacts.append(PackageArtifact(text, requires_python, {'url': url}))
 
 
-class _SimplePackage(AbstractPackage, IPCPackable):
+class _SimplePackage(AbstractPackage, Serializable):
 
     def __init__(self, descriptor: PackageDescriptor, artifacts: List[PackageArtifact]):
         super().__init__(descriptor, artifacts)

@@ -22,7 +22,7 @@ from pkm.api.repositories.repository import Repository
 from pkm.api.versions.version import StandardVersion, Version
 from pkm.utils.commons import unone, NoSuchElementException
 from pkm.utils.entrypoints import EntryPoint
-from pkm.utils.ipc import IPCPackable
+from pkm.utils.types import Serializable
 from pkm.utils.iterators import find_first
 from pkm.utils.processes import execvpe, monitored_run
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -40,7 +40,7 @@ _T = TypeVar("_T")
 _DBG_ACTIVATED = set()
 
 
-class Environment(HasAttachedRepository, IPCPackable):
+class Environment(HasAttachedRepository, Serializable):
 
     def __init__(self, env_path: Path, interpreter_path: Optional[Path] = None, *,
                  use_user_site: bool = False, zoo: Optional["EnvironmentsZoo"] = None):

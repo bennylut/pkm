@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import typing
 from abc import abstractmethod
-from typing import Any, TypeVar, Protocol, Iterator
+from typing import Any, TypeVar, Protocol, Iterator, runtime_checkable
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
@@ -66,6 +66,18 @@ class Mapper(Protocol[_T, _U]):
 class Predicate(Protocol[_T]):
     @abstractmethod
     def __call__(self, inpt: _T) -> bool:
+        ...
+
+
+@runtime_checkable
+class Serializable(Protocol):
+
+    @abstractmethod
+    def __getstate__(self):
+        ...
+
+    @abstractmethod
+    def __setstate__(self, state):
         ...
 
 
