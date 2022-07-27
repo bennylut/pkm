@@ -20,6 +20,7 @@ from pkm.resolution.packages_lock import LockPrioritizingRepository
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.iterators import groupby
 from pkm.utils.properties import cached_property, clear_cached_properties
+from pkm.utils.seqs import seq
 from pkm.utils.sequences import pop_or_none
 from pkm.utils.sets import add_if_absent
 
@@ -87,6 +88,14 @@ class RepositoryManagement(ABC):
 
         raise NoSuchElementException(f"repository: {name} could not be found")
 
+    def publishable_repositories(self) -> Dict[str, RepositoryPublisher]:
+        result = {}
+        for rman in self.package_lookup_chain():
+            for repo_name, repo_config in rman.configuration.repos.items():
+                if publisher := self.publisher_for(repo_name):
+                    result[repo_name] = publisher
+        return result
+
     def register_bindings(self, packages: List[str], repo: Optional[Union[str, RepositoryInstanceConfig]]):
         if repo:
             if isinstance(repo, RepositoryInstanceConfig):
@@ -129,8 +138,13 @@ class RepositoryManagement(ABC):
 
         self._update_config()
 
-    def defined_repositories(self) -> Iterable[RepositoryInstanceConfig]:
-        return self.configuration.repos.values()
+    def defined_repositories(self) -> Iterable[Tuple[str, RepositoryInstanceConfig]]:
+        # noinspection PyTypeChecker
+        return self.configuration.repos.items()
+
+    def all_repositories(self) -> Iterable[Tuple[str, RepositoryInstanceConfig]]:
+        return seq(self.package_lookup_chain())\
+            .flatmap(lambda it: it.defined_repositories()).unique_by(lambda it: it[0])
 
     def remove_repository(self, name: str):
         self.configuration.repos.pop(name, None)

@@ -1,9 +1,15 @@
 from abc import abstractmethod, ABC
-from typing import TypeVar, Optional, Callable, Type, Union, Hashable
+from typing import TypeVar, Optional, Callable, Type, Union, Hashable, Any
 
 _T = TypeVar("_T")
 # noinspection PyTypeChecker
 _C = TypeVar('_C', bound=Type)
+
+
+def as_instance(obj: Any, type_: Type[_T]) -> Optional[_T]:
+    if isinstance(obj, type_):
+        return obj
+    return None
 
 
 def unone(v: Optional[_T], on_none: Callable[[], _T]) -> _T:
@@ -69,3 +75,6 @@ class Closeable(ABC):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+
+# Common Values
+MISSING = object()

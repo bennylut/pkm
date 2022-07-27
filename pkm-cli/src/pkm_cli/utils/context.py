@@ -1,17 +1,22 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 from pathlib import Path
-
-from argparse import Namespace
 
 from typing import Optional, Callable
 
 from pkm.api.environments.environment import Environment
 from pkm.api.environments.environments_zoo import EnvironmentsZoo
+from pkm.api.pkm import HasAttachedRepository
 from pkm.api.projects.project import Project
 from pkm.api.projects.project_group import ProjectGroup
 from pkm.utils.commons import UnsupportedOperationException
+from pkm.utils.symbol import Symbol
+from pkm.utils.types import Consumer
+from pkm_cli.api.dynamic_cli.command_parser import Command
 from pkm_cli.display.display import Display
+
+_CONTEXT_SYM = Symbol("context")
 
 
 def _lookup_project_group(path: Path) -> Optional[ProjectGroup]:
@@ -64,21 +69,45 @@ class _ContextualCommand:
         return True
 
 
+class _ContextCollector:
+    def __init__(self):
+        self.context = None
+
+    def __call__(self, context=None):
+        self.context = context
+
+
 # noinspection PyShadowingBuiltins
 class Context:
+    # add listeners/? to context so that we can add tasks when project is applied
     def __init__(self, path: Path, lookup: bool, use_global: bool, site: Optional[str]):
         self._path = path
         self._lookup = lookup
         self._use_global = use_global
         self._site = site
 
+    def lookup_project(self) -> Optional[Project]:
+        collector = _ContextCollector()
+        self.run(on_project=collector, on_missing=collector)
+        return collector.context
+
+    def lookup_has_attached_repository(self) -> Optional[HasAttachedRepository]:
+
+        collector = _ContextCollector()
+
+        # noinspection PyTypeChecker
+        self.run(
+            on_project=collector, on_project_group=collector, on_environment=collector,
+            on_env_zoo=collector, on_missing=collector)
+        return collector.context
+
     # noinspection PyUnusedLocal
     def run(self,
-            on_project: Optional[Callable[[Project], None]] = None,
-            on_project_group: Optional[Callable[[ProjectGroup], None]] = None,
-            on_environment: Optional[Callable[[Environment], None]] = None,
+            on_project: Optional[Consumer[Project]] = None,
+            on_project_group: Optional[Consumer[ProjectGroup]] = None,
+            on_environment: Optional[Consumer[Environment]] = None,
             on_free_context: Optional[Callable[[], None]] = None,
-            on_env_zoo: Optional[Callable[[EnvironmentsZoo], None]] = None,
+            on_env_zoo: Optional[Consumer[EnvironmentsZoo]] = None,
             on_missing: Optional[Callable[[], None]] = None,
             silent: bool = False,
             **_):
@@ -122,11 +151,18 @@ class Context:
                 raise UnsupportedOperationException("could not execute operation on current context")
 
     @classmethod
-    def of(cls, args: Namespace):
+    def of(cls, command: Command) -> Context:
+        command = command.parent_by_path("pkm")
+        if prec := _CONTEXT_SYM.getattr(command, None):
+            return prec
+
         cwd = Path.cwd()
-        if context := args.context:
-            return cls(Path(context), False, False, None)
-        elif args.global_context:
-            return cls(cwd, False, True, getattr(args, 'site', None))
+        if context := command.context:
+            result = cls(Path(context), False, False, None)
+        elif command.global_context:
+            result = cls(cwd, False, True, getattr(command, 'site', None))
         else:
-            return cls(cwd, True, False, None)
+            result = cls(cwd, True, False, None)
+
+        _CONTEXT_SYM.setattr(command, result)
+        return result

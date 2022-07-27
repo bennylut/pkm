@@ -18,17 +18,11 @@ class AddedRepositoriesReport(Report):
         self.writeln("No Options")
 
     def display(self, options: Dict[str, bool]):
-        contexts = [self._with_repo]
-        opened = set()
-        while context := pop_or_none(contexts):
-            if not add_if_absent(opened, id(context)):
-                continue
-            contexts.extend(context.repository_management.parent_contexts())
-
-            if defined_repositories := context.repository_management.defined_repositories():
-                with self.section(f"{_context_name(context)} Context"):
-                    for added_repository in defined_repositories:
-                        desc = f"{added_repository.name}: {added_repository.type}"
+        for har in self._with_repo.repository_management.package_lookup_chain():
+            if defined_repositories := har.defined_repositories():
+                with self.section(f"{_context_name(har.context)} Context"):
+                    for name, added_repository in defined_repositories:
+                        desc = f"{name}: {added_repository.type}"
                         if added_repository.bind_only:
                             desc += " (bind only)"
                         Display.print(desc)

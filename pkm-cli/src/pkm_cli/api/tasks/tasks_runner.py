@@ -3,13 +3,14 @@ import json
 import os
 import subprocess
 from contextlib import contextmanager
-from typing import List, Optional, Union, Any
+from pathlib import Path
+from typing import List, Optional, Union, Any, Iterable
 
 from jinja2.utils import Namespace
 
 from pkm.api.projects.project import Project
 from pkm.utils.files import temp_dir
-from pkm_cli.utils.clis import Command
+from pkm_cli.api.dynamic_cli.command_parser import Command
 
 _EXECUTE_TASK = """
 import importlib.util as iu
@@ -65,9 +66,8 @@ class TasksRunner:
         return _Task(task_name, self._project).execute(args)
 
     @contextmanager
-    def run_attached(self, command: Command, command_args: Namespace):
-        command_args_dict = dict(vars(command_args))
-        del command_args_dict['func']
+    def run_attached(self, command: Command):
+        command_args_dict = command.arguments
 
         if before := _get_attached_name('before', command.path, self._project):
             _Task(before, self._project).execute_attached(command_args_dict)
@@ -94,6 +94,24 @@ class _Task:
         return self._execute('describe', [])
 
     def _execute(self, mode: str, args: Any) -> Union[int, str]:
+        import importlib.util as iu
+
+        new_paths = os.pathsep.join({
+            str(Path(sl).parent.absolute()) for m in ["pkm", "pkm_cli"]
+            for sl in iu.find_spec(m).submodule_search_locations})
+
+        if pythonpath := os.environ.get("PYTHONPATH", None):
+            pythonpath = f"{pythonpath}:{new_paths}"
+        else:
+            pythonpath = new_paths
+
+        env = {**os.environ, "PYTHONPATH": pythonpath}
+        with self.project.attached_environment.activate(env):
+            subprocess.run([
+                str(self.project.attached_environment.interpreter_path), "-m", "pkm_cli.tasks.execute_task_cli"
+                "-p", str(self.project.path),
+            ], env=env).check_returncode()
+
         project = self.project
         group = project.group
         insn = {
@@ -134,8 +152,8 @@ class _Task:
                     os.environ["PYTHONPATH"] = old_pythonpath
 
 
-def _get_attached_name(phase: str, command: str, project: Project) -> Optional[str]:
-    cmd = command.replace("-", "_").split(" ")[1:]
+def _get_attached_name(phase: str, command: Iterable[str], project: Project) -> Optional[str]:
+    cmd = [it.replace("-", "_") for it in command][1:]
     task_path = project.path.joinpath("tasks", "commands", *cmd, phase + ".py")
     if task_path.exists():
         return f"commands.{'.'.join(cmd)}.{phase}"

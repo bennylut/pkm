@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 from functools import reduce
-from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable, Tuple, Type
+from typing import TypeVar, Generic, Iterator, Callable, Optional, List, Iterable, Hashable, Tuple, Type, Set
 
 from pkm.utils.commons import NoSuchElementException
 from pkm.utils.types import Predicate, Mapper, Comparable
@@ -27,16 +27,16 @@ class Seq(Generic[_T], Iterator[_T]):
     def map(self, mapper: Callable[[_T], _U]) -> Seq[_U]:
         return Seq(mapper(it) for it in self._iter)
 
-    def flatmap(self, mapper: Callable[[_T], Iterable[_U]]) -> Seq[_U]:
+    def flatmap(self, mapper: Mapper[_T, Iterable[_U]]) -> Seq[_U]:
         return Seq((item for collection in self.map(mapper) for item in collection))
 
-    def map_not_none(self, mapper: Callable[[_T], _U]) -> Seq[_U]:
+    def map_not_none(self, mapper: Mapper[_T, _U]) -> Seq[_U]:
         return Seq(m for it in self._iter if (m := mapper(it)) is not None)
 
-    def filter(self, accept: Callable[[_T], bool]) -> Seq[_T]:
+    def filter(self, accept: Predicate[_T]) -> Seq[_T]:
         return Seq(it for it in self._iter if accept(it))
 
-    def chain(self, other: Iterator[_T]) -> Seq[_T]:
+    def chain(self, other: Iterable[_T]) -> Seq[_T]:
         return Seq(itertools.chain(self._iter, other))
 
     def reduce(self, reducer: Callable[[_U, _T], _U], init: _U) -> _U:
@@ -90,6 +90,14 @@ class Seq(Generic[_T], Iterator[_T]):
             into.extend(self._iter)
         else:
             into = list(self._iter)
+
+        return into
+
+    def to_set(self, into: Optional[Set[_T]] = None) -> Set[_T]:
+        if into:
+            into.update(self._iter)
+        else:
+            into = set(self._iter)
 
         return into
 

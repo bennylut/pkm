@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from types import FunctionType
+
 import sys
 import typing
 from abc import abstractmethod
-from typing import Any, TypeVar, Protocol, Iterator, runtime_checkable
+from typing import Any, TypeVar, Protocol, Iterator, runtime_checkable, Callable, Union
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
@@ -79,6 +81,9 @@ class Serializable(Protocol):
     @abstractmethod
     def __setstate__(self, state):
         ...
+
+
+Func = Union[FunctionType, Callable]
 
 
 # Credits: some of the following type helpers are taken directly from typing_extensions

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import importlib.util as iu
+import importlib.resources as ir
+import inspect
 import shutil
 from contextlib import contextmanager
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from types import ModuleType
-from typing import List, Any, Optional, ContextManager, Set, Mapping
+from typing import List, Any, Optional, ContextManager, Set, Mapping, Dict
 
 import questionary as q
 from jinja2 import FileSystemLoader
@@ -15,8 +17,9 @@ from jinja2.sandbox import SandboxedEnvironment
 from pkm.utils.commons import UnsupportedOperationException, IllegalStateException
 from pkm.utils.files import temp_dir
 from pkm.utils.properties import cached_property
+from pkm_cli.api.dynamic_cli.method_parser import command_definition_from_method
+from pkm_cli.api.dynamic_cli.command_parser import CommandDef, flag, Command
 from pkm_cli.display.display import Display
-from pkm_cli.utils.method_clis import CliMethodArgs, MethodArgs, SimpleMethodArgs
 
 
 class TemplateRunner:
@@ -24,36 +27,44 @@ class TemplateRunner:
     def __init__(self):
         self.jinja_context = SandboxedEnvironment(loader=FileSystemLoader("/"))
 
+    @staticmethod
+    def templates_in_namespace() -> List[str]:
+
+        def find(namespace: str) -> List[str]:
+            result = []
+            for c in ir.contents(namespace):
+                if c == "render.py":
+                    return [namespace]
+                elif not ir.is_resource(namespace, c):
+                    result.extend(find(f"{namespace}.{c}"))
+
+            return result
+
+        l = len("pkm_templates.")
+        return [it[l:] for it in find("pkm_templates")]
+
     @contextmanager
-    def _load_template(self, name: str) -> ContextManager[_Template]:
+    def load_template(self, name: str) -> ContextManager[Template]:
         name = name.replace('-', '_')
         renderer_name = f"{name}.render"
 
         local_template_file = Path(*name.split("."), "render.py")
         if local_template_file.exists():
-            yield _Template(iu.spec_from_file_location(str(local_template_file.resolve())), self)
+            yield Template(iu.spec_from_file_location(str(local_template_file.resolve())), self)
             return
 
         try:
             if template_spec := iu.find_spec(f"pkm_templates.{renderer_name}"):
-                yield _Template(template_spec, self)
+                yield Template(template_spec, self)
                 return
         except ModuleNotFoundError:
             ...
 
         raise FileNotFoundError(f"No such template: {name}")
 
-    def run(self, template_name: str, target_dir: Path, args: List[str], allow_overwrite: bool = False):
-        with self._load_template(template_name) as template:
-            template.execute(target_dir, CliMethodArgs.parse(args), allow_overwrite)
-
-    def describe(self, template_name: str) -> str:
-        with self._load_template(template_name) as template:
-            return template.describe()
-
 
 # noinspection PyMethodMayBeStatic
-class _Template:
+class Template:
 
     def __init__(self, render_spec: ModuleSpec, runner: TemplateRunner):
         self._render_spec = render_spec
@@ -65,7 +76,25 @@ class _Template:
         module = self._module
         return module.__doc__ or f"No Description Provided for template '{self._template_dir.name}'"
 
-    def execute(self, target_dir: Path, args: MethodArgs, allow_overwrite: bool = False):
+    def as_command(self, command_path: str, target_dir: Optional[Path] = None) -> CommandDef:
+        target_dir = target_dir or Path.cwd()
+        result = command_definition_from_method(self._module.setup, command_path)
+
+        allowed_args = {a.field_name for a in result.arguments_def}
+
+        overwrite_flag_names = "-o, --overwrite"
+        if any("-o" in it.defined_names for it in result.arguments_def):
+            overwrite_flag_names = "--overwrite"
+
+        result.arguments_def = [*result.arguments_def, flag(overwrite_flag_names)]
+
+        def execute(cmd: Command):
+            self.execute(target_dir, {k: v for k, v in cmd.arguments.items() if k in allowed_args}, cmd.overwrite)
+
+        result.execution = execute
+        return result
+
+    def execute(self, target_dir: Path, args: Dict[str, Any], allow_overwrite: bool = False):
         module = self._module
         self._builtins.install_execution(module, target_dir, allow_overwrite)
 
@@ -131,9 +160,8 @@ class _Template:
             else:
                 shutil.copy(template_child, target_child)
 
-    def _setup(self, args: MethodArgs, module: ModuleType) -> Mapping:
-        setup_function = module.setup
-        result = args.invoke(setup_function)
+    def _setup(self, args: Dict[str, Any], module: ModuleType) -> Mapping:
+        result = module.setup(**args)
         if not isinstance(result, Mapping):
             raise IllegalStateException(
                 f"invalid return value from template setup function (dict is required, got {type(result)})")
@@ -149,7 +177,7 @@ class _Template:
         self._render_spec.loader.exec_module(module)
 
         if not callable(getattr(module, 'setup', None)):
-            raise UnsupportedOperationException(f"illegal template, no setup function defiend")
+            raise UnsupportedOperationException(f"illegal template, no setup function defined")
 
         return module
 
@@ -162,10 +190,10 @@ class _TemplateExtendedBuiltins:
         self._target_dir = None
         self._allow_overwrite = None
 
-    def render_template(self, name: str, *args, **kwargs):
+    def render_template(self, name: str, **kwargs):
         # noinspection PyProtectedMember
         with self._runner._load_template(name) as t:
-            t.execute(self._target_dir, SimpleMethodArgs(*args, **kwargs), self._allow_overwrite)
+            t.execute(self._target_dir, kwargs, self._allow_overwrite)
 
     def confirm(self, prompt: str, default: bool = True) -> bool:
         """

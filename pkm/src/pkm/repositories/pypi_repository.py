@@ -202,9 +202,8 @@ class PypiRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__('pypi')
 
-    def build(self, name: str, args: Dict[str, str]) -> Repository:
-        url = self._arg(args, 'url', required=True)
-
+    # noinspection PyMethodMayBeStatic
+    def build(self, name: str, url: str, publish_url: Optional[str] = None) -> Repository:
         if url == 'main':
             fetch_url = "https://pypi.org/pypi"
             publish_url = "https://upload.pypi.org/legacy"
@@ -213,6 +212,5 @@ class PypiRepositoryBuilder(RepositoryBuilder):
             publish_url = "https://test.pypi.org/legacy"
         else:
             fetch_url = url.rstrip('/')
-            publish_url = self._arg(args, 'publish-url')
 
         return PyPiRepository(name, fetch_url, publish_url)

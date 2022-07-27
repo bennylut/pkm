@@ -31,8 +31,9 @@ class FileSystemRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__(FILE_SYSTEM_REPOSITORY_TYPE)
 
-    def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
-        path = Path(self._arg(args, 'path', required=True))
+    # noinspection PyMethodMayBeStatic
+    def build(self, name: str, path: str) -> Repository:
+        path = Path(path)
 
         packages: Dict[str, List[Package]] = defaultdict(list)
         if path.is_dir():

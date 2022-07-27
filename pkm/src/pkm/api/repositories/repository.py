@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Union, Optional, Protocol, Iterable, TYPE_CHECKING, Dict
+from typing import List, Union, Optional, Protocol, Iterable, TYPE_CHECKING, Dict, Callable
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import Package
@@ -138,26 +138,14 @@ class RepositoryPublisher:
 
 
 class RepositoryBuilder(ABC):
+    """
+    must implement a build function that build a new repository instance, the first parameter of this function must be
+    the name of the created repository, implementations may request additional arguments
+    """
+    build: Callable[[str, ...], Repository]
 
     def __init__(self, repo_type: str):
         self.repo_type = repo_type
 
-    def _arg(self, args: Dict[str, str], name: str,
-             default: Optional[str] = None, required: bool = False) -> Optional[str]:
-        result = args.get(name)
-        if not result and required:
-            raise ValueError(f"missing argument: {name} for repository type: {self.repo_type}")
-
-        return unone(result, lambda: default)
-
-    @abstractmethod
-    def build(self, name: str, args: Dict[str, str]) -> Repository:
-        """
-        build a new repository instance using the given `kwargs`
-        :param name: name for the created repository
-        :param args: arguments for the instance creation, may be defined by derived classes
-        :return: the created instance
-        """
-
-    def build_publisher(self, name: str, args: Dict[str, str]) -> Optional[RepositoryPublisher]:
-        return self.build(name, args).publisher
+    def build_publisher(self, name: str, **kwargs) -> Optional[RepositoryPublisher]:
+        return self.build(name, **kwargs).publisher

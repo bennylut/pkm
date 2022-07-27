@@ -128,6 +128,5 @@ class SimpleRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__("simple")
 
-    def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
-        url = self._arg(args, 'url', required=True)
+    def build(self, name: Optional[str], url: str) -> Repository:
         return SimpleRepository(name or url, str(url).rstrip('/'))
