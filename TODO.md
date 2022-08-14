@@ -11,6 +11,7 @@
 
 
 ## BACKLOG TASKS:
+- pkm -p to execute command on a project in group, -P to execute command on all projects in the group
 - migration tool from poetry and pipenv
 - build/publish with dependencies
 - multiproc: pipe monitoring events, currently download is not shown when multiproc
