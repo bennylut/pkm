@@ -8,6 +8,11 @@ global ask
 
 
 def setup(name: str = None) -> dict:
+    """
+    creates a new virtual environment
+
+    :param name: the environment name (creates the environment in a directory with the same name)
+    """
     env_name = name or ask("Environment Name")
 
     python_available_versions = [str(p.version.without_patch()) for p in pkm.installed_pythons.all_installed]

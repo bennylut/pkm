@@ -64,6 +64,5 @@ class DownloadTorchRepositoryBuilder(RepositoryBuilder):
     def _cuda_compatibility(self) -> CudaCompatibilityTable:
         return CudaCompatibilityTable.load()
 
-    def build(self, name: Optional[str], args: Dict[str, str]) -> Repository:
-        allow_cpu = self._arg(args, 'allow-cpu', default="true").lower() == "true"
+    def build(self, name: Optional[str], allow_cpu: bool = True) -> Repository:
         return DownloadTorchRepository(name, allow_cpu, self._cuda_compatibility.compatible_cuda_versions())

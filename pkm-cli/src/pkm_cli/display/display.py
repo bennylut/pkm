@@ -31,6 +31,10 @@ _T = TypeVar("_T", bound=InformationUnit)
 console_lock = RLock()
 
 
+def restore_cursor():
+    print("\x1b[?25h", flush=True, end='')
+
+
 class _LiveOutput(ConsoleRenderable):
     def __init__(self, console: Console):
         self._live_renderer: Optional[Live] = Live(
@@ -41,8 +45,7 @@ class _LiveOutput(ConsoleRenderable):
         self._requires_render = Condition()
 
         Thread(name="live output refresher", target=self._refresh_loop, daemon=True).start()
-        atexit.register(
-            lambda: print("\x1b[?25h", flush=True, end=''))  # make sure the cursor is re-shown after python exiting
+        atexit.register(restore_cursor)  # make sure the cursor is re-shown after python exiting
 
     def _refresh_loop(self):
         empty_rendered = False

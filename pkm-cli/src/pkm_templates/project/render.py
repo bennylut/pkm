@@ -9,7 +9,7 @@ try:
     import pwd
 
     default_author = pwd.getpwuid(os.getuid()).pw_name
-except: # noqa
+except:  # noqa
     default_author = os.environ.get('USERNAME') or 'Johon Doe'
 
 global ask
@@ -17,7 +17,14 @@ global confirm
 global target_dir
 
 
-def setup(project_name: str = None, required_python: str = None) -> dict:
+def setup(project_name: str = None, *, required_python: str = None) -> dict:
+    """
+    creates a new pkm style project.
+
+    :param project_name: the name of the project (and directory) that will be created
+    :param required_python: the version of python that is required
+    :return:
+    """
     project_name = project_name or ask("Project Name")
     package_name = PackageDescriptor.normalize_src_package_name(project_name)
     version = ask("Version", default="0.1.0")

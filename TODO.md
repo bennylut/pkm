@@ -1,17 +1,49 @@
 ## RUNNING TASKS:
+- move to the new dynamic cli
+  - fix both template and tasks documentation (mainly modified environments)
+  - publish arguments integration
+  - integrate new task executor
+  - when returning command - may also return status indicating if there was an error parsing the command
+  - if a flag/option is used in help we can color it differently
+  - move cached properties into symbols
+  - remove the describe functionality from both tasks and templates - it is now done by default by the cli
+  - cleanup old cli relics
+  - new-cli: pkm run tasks
+  - attached tasks are not integrated
+  - new-cli: pkm install - test it - does not work!
+  - for the pkm-run support "options terminator"
+  
+## DONE IN THIS VERSION
+- new-cli: pkm new
+- template engine integration
+- new-cli: pkm run
+- bug: subcommands options was not filled by their default values 
+- new task execution implementation
+- dynamic cli - support self command replacement
+- positionals can have defaults - but once a single positional have a default all the rest must also heve a default
+- support -h in template commands
+- show the template subcommand description in the help of pkm new
+- in help, option names should be sorted by size
+- "-h" flag - support "global" flags
+- context provide a way to access any "has repositories"
+- change field provider into a class instead of a function
+- repository builder needs a way to define its arguments and use it by pkm 
+- bug: non parse errors are being swallowed
+- command execute is not contextual
+- bug: -R show the name parameter
+
+## BACKLOG TASKS:
+- pkm -p to execute command on a project in group, -P to execute command on all projects in the group
+- refactoring unify all "missing" sentinals
+- refactoring: cleanup the install command - it has too much logic 
 - integrate bash* autocomplete (can we also do so for `pkm run`?)
+- sphinx docgen for new commands
 - documentation: environments
 - cli hook into warnings and display them using Display
 - build hook print - should be named in log according to the package being built and not the process building
 - `pkm run` support custom environment variables loading like in pipenv
 - qol: package build log should allways be sent into a file, this file can then be suggested to the user if he run on
   non verbose mode
-
-## DONE IN THIS VERSION
-
-
-## BACKLOG TASKS:
-- pkm -p to execute command on a project in group, -P to execute command on all projects in the group
 - migration tool from poetry and pipenv
 - build/publish with dependencies
 - multiproc: pipe monitoring events, currently download is not shown when multiproc

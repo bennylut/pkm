@@ -4,8 +4,8 @@ from typing import Optional, Callable, List
 from unittest import TestCase
 
 from pkm.utils.seqs import seq
-from pkm_cli.dynamic_cli.parser import command, Command, DynamicCommandLine, commands_from, flag, option, \
-    positional, CommandDef, dynamic, ArgumentDef
+from pkm_cli.api.dynamic_cli.command_parser import command, Command, DynamicCommandLine, command_definitions_from, flag, option, \
+    positional, CommandDef, dynamic, ArgumentDef, ChoicesReader, dynamic_commands
 
 
 # noinspection PyMethodMayBeStatic,PyBroadException
@@ -13,21 +13,21 @@ class TestDynamicCLI(TestCase):
 
     def test_basic_types(self):
         commands = make_commands(
-            command("cmd", option("-i", mapper=int), positional("f", mapper=Path))
+            command("cmd", option("-i", reader=int), positional("f", reader=Path))
         )
 
-        cmd: Command = DynamicCommandLine(["cmd", "-i", "7", "/x/y"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["cmd", "-i", "7", "/x/y"]).execute()
         assert cmd.i == 7 and isinstance(cmd.f, Path)
 
     def test_mutex_groups(self):
         commands = make_commands(
-            command("cmd", option("-x", mutex_group="x", default_value=None), flag("-f", mutex_group="x"), flag("-y"))
+            command("cmd", option("-x", mutex_group="x", default=None), flag("-f", mutex_group="x"), flag("-y"))
         )
 
-        DynamicCommandLine(["cmd", "-x", "v", "-y"], commands).execute()
-        DynamicCommandLine(["cmd", "-f", "-y"], commands).execute()
+        DynamicCommandLine.create(commands, ["cmd", "-x", "v", "-y"]).execute()
+        DynamicCommandLine.create(commands, ["cmd", "-f", "-y"]).execute()
         with expect_failure("should fail due to mutex group"):
-            DynamicCommandLine(["cmd", "-f", "-x", "bla"], commands).execute()
+            DynamicCommandLine.create(commands, ["cmd", "-f", "-x", "bla"]).execute()
 
     def test_contextual_subcommands(self):
         success = False
@@ -43,20 +43,20 @@ class TestDynamicCLI(TestCase):
             yield
             success = cmd.arguments["xxx"] == "zzz"
 
-        DynamicCommandLine(["a", "b"], commands_from(locals())).execute()
+        DynamicCommandLine.create(command_definitions_from(locals()), ["a", "b"]).execute()
         assert success
 
     def test_nvalues(self):
         commands = make_commands(
             command("a b", positional("x", n_values=3), flag("-y"), positional("z")),
-            command("with-att", positional("x", n_values=3, fields=[option("+name", default_value="default")]))
+            command("with-att", positional("x", n_values=3, fields=[option("+name", default="default")]))
         )
 
-        cmd: Command = DynamicCommandLine(["a", "b", "1", "2", "3", "-y", "4"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "b", "1", "2", "3", "-y", "4"]).execute()
         assert cmd.x == ["1", "2", "3"] and cmd.y and cmd.z == "4"
 
-        cmd: Command = DynamicCommandLine(
-            ["with-att", "first", "+name=first-name", "second", "third", "+name=last-name"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(
+            commands, ["with-att", "first", "+name=first-name", "second", "third", "+name=last-name"]).execute()
         assert cmd.x[0]["value"] == "first" and cmd.x[0]["name"] == "first-name"
         assert cmd.x[1]["value"] == "second" and cmd.x[1]["name"] == "default"
         assert cmd.x[2]["value"] == "third" and cmd.x[2]["name"] == "last-name"
@@ -66,7 +66,7 @@ class TestDynamicCLI(TestCase):
             command("a b", option('-v, --vv', repeatable=True), option("-x"))
         )
 
-        cmd: Command = DynamicCommandLine(["a", "b", "-v", "1", "-x", "2", "-v", "3"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "b", "-v", "1", "-x", "2", "-v", "3"]).execute()
         assert cmd.vv == ["1", "3"]
 
     def test_equals(self):
@@ -74,21 +74,21 @@ class TestDynamicCLI(TestCase):
             command("a b", option('-n, --name'), flag("-f,--ff"))
         )
 
-        cmd: Command = DynamicCommandLine(["a", "b", "--name=bla", "-f"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "b", "--name=bla", "-f"]).execute()
         assert cmd.name == "bla" and cmd.ff
 
     def test_choices(self):
         commands = make_commands(
-            command("a b", option('-n, --name', choices=['x', 'y']), )
+            command("a b", option('-n, --name', reader=ChoicesReader(['x', 'y'])), )
         )
 
         with expect_failure('should have failed due to illegal option value'):
-            DynamicCommandLine(["a", "b", "-n", "z"], commands).execute()  # ensure that passes
+            DynamicCommandLine.create(commands, ["a", "b", "-n", "z"]).execute()  # ensure that passes
 
-        DynamicCommandLine(["a", "b", "-n", "x"], commands).execute()  # ensure that passes
+        DynamicCommandLine.create(commands, ["a", "b", "-n", "x"]).execute()  # ensure that passes
 
     def test_field_providers(self):
-        def provider(_: Command) -> List[ArgumentDef]:
+        def provider(_: Command, __, ___) -> List[ArgumentDef]:
             return [option("+name"), flag("-x")]
 
         commands = make_commands(
@@ -96,26 +96,26 @@ class TestDynamicCLI(TestCase):
                     flag("-r,--rr", fields_provider=provider))
         )
 
-        DynamicCommandLine(["cmd"], commands).execute()  # ensure that passes
+        DynamicCommandLine.create(commands, ["cmd"]).execute()  # ensure that passes
 
-        cmd: Command = DynamicCommandLine(["cmd", "-r", "+name=aaa"], commands).execute()  # ensure that passes
+        cmd: Command = DynamicCommandLine.create(commands, ["cmd", "-r", "+name=aaa"]).execute()  # ensure that passes
         assert cmd.rr['value'] and cmd.rr['name'] == 'aaa'
 
         with expect_failure("should fail as no name is provided"):
-            DynamicCommandLine(["cmd", "-r"], commands).execute()  # ensure that passes
+            DynamicCommandLine.create(commands, ["cmd", "-r"]).execute()  # ensure that passes
 
     def test_fields(self):
         commands = make_commands(
             command("a b",
-                    flag("-r,--rr", fields=[option("+name"), flag("+f"), option("+x", default_value="yyy")]))
+                    flag("-r,--rr", fields=[option("+name"), flag("+f"), option("+x", default="yyy")]))
         )
 
-        DynamicCommandLine(["a", "b"], commands).execute()  # ensure that passes
+        DynamicCommandLine.create(commands, ["a", "b"]).execute()  # ensure that passes
 
         with expect_failure("should have failed due to missing attached argument name"):
-            DynamicCommandLine(["a", "b", "-r"], commands).execute()
+            DynamicCommandLine.create(commands, ["a", "b", "-r"]).execute()
 
-        cmd: Command = DynamicCommandLine(["a", "b", "-r", "+name=xxx", "+f"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "b", "-r", "+name=xxx", "+f"]).execute()
         assert cmd.rr and cmd.rr['name'] == "xxx" and cmd.rr["f"] is True and cmd.rr["x"] == "yyy"
 
     def test_dynamic_arguments(self):
@@ -124,23 +124,20 @@ class TestDynamicCLI(TestCase):
 
         commands = make_commands(command("a b", positional("c"), dynamic(args_provider)))
 
-        cmd: Command = DynamicCommandLine(["a", "b", "x y", "1", "2"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "b", "x y", "1", "2"]).execute()
         assert cmd.x == "1" and cmd.y == "2"
 
     def test_dynamic_commands(self):
-        @command("a *")
-        def a(_: Command) -> List[CommandDef]:
+        @dynamic_commands("a")
+        def a(_: Command, __: List[str]) -> List[CommandDef]:
             return make_commands(command("x"), command("y", positional("some-arg")))
 
-        with expect_failure("dynamic commands should not allow the definition of arguments"):
-            make_commands(command("b *", positional("x"), flag("-a,--aa")))
+        commands = command_definitions_from(locals())
 
-        commands = commands_from(locals())
-
-        cmd: Command = DynamicCommandLine(["a", "x"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "x"]).execute()
         assert cmd.path == ("a", "x")
 
-        cmd: Command = DynamicCommandLine(["a", "y", "some-value"], commands).execute()
+        cmd: Command = DynamicCommandLine.create(commands, ["a", "y", "some-value"]).execute()
         assert cmd.some_arg == "some-value"
 
     def test_positional_arguments(self):
@@ -148,32 +145,32 @@ class TestDynamicCLI(TestCase):
             command("a b", positional("bla-bli"), option("-x,--xxx"), flag("-v,--vvv"))
         )
 
-        cmd = DynamicCommandLine(["a", "b", "-x", "hello", "bla-bli-value"], commands).execute()
+        cmd = DynamicCommandLine.create(commands, ["a", "b", "-x", "hello", "bla-bli-value"]).execute()
         assert cmd.xxx == 'hello' and cmd.bla_bli == "bla-bli-value"
 
-        cmd = DynamicCommandLine(["a", "b", "bla-bli-value", "-x", "hello"], commands).execute()
+        cmd = DynamicCommandLine.create(commands, ["a", "b", "bla-bli-value", "-x", "hello"]).execute()
         assert cmd.xxx == 'hello' and cmd.bla_bli == "bla-bli-value"
 
         with expect_failure("should have been failed due to missing required value"):
-            DynamicCommandLine(["a", "b", "-x", "hello"], commands).execute()
+            DynamicCommandLine.create(commands, ["a", "b", "-x", "hello"]).execute()
 
     def test_options(self):
         commands = make_commands(
-            command("a b", option('-x, --xxx', default_value='some-value'), option("-r, --required"), flag("-f, --fff"))
+            command("a b", option('-x, --xxx', default='some-value'), option("-r, --required"), flag("-f, --fff"))
         )
 
-        abcmd = DynamicCommandLine(["a", "b", "-r", "hello"], commands).execute()
+        abcmd = DynamicCommandLine.create(commands, ["a", "b", "-r", "hello"]).execute()
         assert abcmd.required == 'hello' and abcmd.xxx == 'some-value'
 
         with expect_failure("should have been failed due to missing required value"):
-            DynamicCommandLine(["a", "b"], commands).execute()
+            DynamicCommandLine.create(commands, ["a", "b"]).execute()
 
-        abcmd = DynamicCommandLine(["a", "b", "-fr", "hello", "-x", "another-value"], commands).execute()
+        abcmd = DynamicCommandLine.create(commands, ["a", "b", "-fr", "hello", "-x", "another-value"]).execute()
         assert abcmd and abcmd.fff and abcmd.xxx == 'another-value' and abcmd.required == 'hello'
 
     def test_simple_command(self):
         commands = make_commands(command(""))
-        assert DynamicCommandLine([], commands).execute()
+        assert DynamicCommandLine.create(commands, []).execute()
 
     def test_subpath_simple_command(self):
         commands_executed = []
@@ -186,7 +183,7 @@ class TestDynamicCLI(TestCase):
         def ab(_: Command):
             commands_executed.append("b")
 
-        DynamicCommandLine(["a", "b"], commands_from(locals())).execute()
+        DynamicCommandLine.create(command_definitions_from(locals()), ["a", "b"]).execute()
         assert commands_executed == ["a", "b"]
 
     def test_flags(self):
@@ -203,37 +200,37 @@ class TestDynamicCLI(TestCase):
             nonlocal abcmd
             abcmd = cmd
 
-        commands = commands_from(locals())
+        commands = command_definitions_from(locals())
 
-        DynamicCommandLine(["a", "b"], commands).execute()
+        DynamicCommandLine.create(commands, ["a", "b"]).execute()
         assert abcmd and acmd
 
         abcmd, acmd = None, None
-        DynamicCommandLine(["a", "b", "-x"], commands).execute()
+        DynamicCommandLine.create(commands, ["a", "b", "-x"]).execute()
         assert abcmd and abcmd.xxx
         assert acmd and not acmd.xxx
 
         abcmd, acmd = None, None
-        DynamicCommandLine(["a", "b", "-x", "-h"], commands).execute()
+        DynamicCommandLine.create(commands, ["a", "b", "-x", "-h"]).execute()
         assert abcmd and abcmd.xxx and abcmd.help
         assert acmd and not acmd.xxx
 
         abcmd, acmd = None, None
-        DynamicCommandLine(["a", "b", "-xh"], commands).execute()
+        DynamicCommandLine.create(commands, ["a", "b", "-xh"]).execute()
         assert abcmd and abcmd.xxx and abcmd.help
         assert acmd and not acmd.xxx
 
         abcmd, acmd = None, None
-        DynamicCommandLine(["a", "-v", "b", "-xh"], commands).execute()
+        DynamicCommandLine.create(commands, ["a", "-v", "b", "-xh"]).execute()
         assert abcmd and abcmd.xxx and abcmd.help
         assert acmd and acmd.vvv
 
         with expect_failure("should not have accepted v as a flag for a b"):
-            DynamicCommandLine(["a", "b", "-xhv"], commands).execute()
+            DynamicCommandLine.create(commands, ["a", "b", "-xhv"]).execute()
 
 
 def make_commands(*commands: Callable) -> List[CommandDef]:
-    return commands_from(c(return_cmd) for c in commands)
+    return command_definitions_from(c(return_cmd) for c in commands)
 
 
 def return_cmd(cmd: Command) -> Command:

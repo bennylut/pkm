@@ -21,8 +21,7 @@ class CondaRepositoryBuilder(RepositoryBuilder):
     def __init__(self):
         super().__init__("conda")
 
-    def build(self, name: str, args: Dict[str, str]) -> Repository:
-        channel = self._arg(args, 'channel', required=True)
+    def build(self, name: str, channel: str) -> Repository:
         if not (result := _prebuilt_repositories.get(channel)):
             _prebuilt_repositories[channel] = result = CondaRepository(name, channel)
 

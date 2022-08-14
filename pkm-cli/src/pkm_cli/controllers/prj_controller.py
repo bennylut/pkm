@@ -1,10 +1,11 @@
+from __future__ import annotations
 from typing import Optional, List, Iterable, Dict
 
 from pkm.api.dependencies.dependency import Dependency
 from pkm.api.packages.package import PackageDescriptor
 from pkm.api.packages.package_installation_info import StoreMode
 from pkm.api.projects.project import Project
-from pkm.api.repositories.repository import AuthParamType
+from pkm.api.repositories.repository import AuthParamType, AuthParam, RepositoryPublisher
 from pkm.api.versions.version_specifiers import AllowAllVersions
 from pkm.utils.commons import UnsupportedOperationException
 from pkm.utils.dicts import get_or_put
@@ -106,3 +107,6 @@ class PrjController:
 
         project.publish(publisher, requested_auth_params)
         return requested_auth_params
+
+    def publishable_repositories(self) -> Iterable[RepositoryPublisher]:
+        return self.prj.repository_management.publishable_repositories().values()

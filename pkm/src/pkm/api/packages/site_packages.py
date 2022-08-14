@@ -10,6 +10,7 @@ from pkm.api.packages.package import Package, PackageDescriptor
 from pkm.api.packages.package_installation_info import StoreMode, PackageInstallationInfo
 from pkm.api.packages.package_metadata import PackageMetadata
 from pkm.api.versions.version_specifiers import VersionMatch
+from pkm.utils.dicts import put_if_absent
 from pkm.utils.files import is_empty_directory, is_relative_to
 from pkm.utils.types import Serializable
 from pkm.utils.properties import cached_property, clear_cached_properties
@@ -54,16 +55,32 @@ class SitePackages(Serializable):
     def platlib_path(self) -> Path:
         return self._platlib
 
+    def installation_tree_of(self, package: str) -> Iterable[InstalledPackage]:
+        """
+        :param package: the root package
+        :return: the given [package] and all the other packages that this [package] depends on recursively
+        """
+
+        collected: Dict[str, InstalledPackage] = {}
+
+        def collect(p: InstalledPackage):
+            if put_if_absent(collected, p.name_key, p):
+                for dependency in p.dependencies(self.env.installation_target):
+                    if q := self.installed_package(dependency.package_name):
+                        collect(q)
+
+        if installed_package := self.installed_package(package):
+            collect(installed_package)
+            return collected.values()
+
+        return ()
+
     @cached_property
     def _name_to_packages(self) -> Dict[str, InstalledPackage]:
         result: Dict[str, InstalledPackage] = {}
         self._scan_packages(self._purelib, result)
         self._scan_packages(self._platlib, result)
         return result
-
-    # @staticmethod
-    # def normalize_package_name(package_name: str) -> str:
-    #     return PackageDescriptor.normalize_src_package_name(package_name).lower()
 
     def _scan_packages(self, site: Path, result: Dict[str, InstalledPackage]):
         if not site.exists():

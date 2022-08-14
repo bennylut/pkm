@@ -45,7 +45,7 @@ class RepositoryLoader:
 
         self._builder_providers: Dict[str, EntryPoint] = {}
 
-        self.pypi = pypi_builder.build('pypi', {'url': 'main'})
+        self.pypi = pypi_builder.build('pypi', 'main')
 
         base_repositories = [
             GitRepository(workspace / 'git'), UrlRepository(), FileRepository()]
@@ -123,7 +123,7 @@ class RepositoryLoader:
         if not (cached := self._cached_instances.get(key)):
             if not (builder := self._builders.get(builder)):
                 raise KeyError(f"unknown repository type: {builder}")
-            cached = builder.build(name, args)
+            cached = builder.build(name, **{k.replace("-", "_"): v for k, v in args.items()})
             self._cached_instances[key] = cached
 
         return cached
